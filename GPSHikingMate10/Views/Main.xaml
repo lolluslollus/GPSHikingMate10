@@ -1,0 +1,795 @@
+﻿<Page 
+	x:Class="LolloGPS.Core.Main"
+	x:Name="me"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:listChooser="using:LolloListChooser"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:val="using:System.ComponentModel"
+	xmlns:customTriggers="using:Utilz"
+	mc:Ignorable="d"
+	DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+	Loaded="OnLoaded"
+	UseLayoutRounding="True"
+	>
+	<Page.Transitions>
+		<TransitionCollection>
+			<!--<NavigationThemeTransition>
+				<NavigationThemeTransition.DefaultNavigationTransitionInfo>
+					<CommonNavigationTransitionInfo IsStaggeringEnabled="False"/>
+				</NavigationThemeTransition.DefaultNavigationTransitionInfo>
+			</NavigationThemeTransition>-->
+		</TransitionCollection>
+	</Page.Transitions>
+	<!--<Page.Resources>
+		-->
+	<!-- Animates the message area -->
+	<!--
+		<Storyboard x:Name="Storyboard_NewMessage" >
+			<DoubleAnimationUsingKeyFrames
+						Storyboard.TargetName="StatusBox"
+						Storyboard.TargetProperty="Opacity"
+						EnableDependentAnimation="True" AutoReverse="False" Duration="0:0:5">
+				<LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.3"/>
+				<DiscreteDoubleKeyFrame Value="1" KeyTime="0:0:4.7" />
+				<LinearDoubleKeyFrame Value="0" KeyTime="0:0:5"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames
+						Storyboard.TargetName="StatusBoxText"
+						Storyboard.TargetProperty="Opacity"
+						EnableDependentAnimation="True" AutoReverse="False" Duration="0:0:5">
+				<LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.3"/>
+				<DiscreteDoubleKeyFrame Value="1" KeyTime="0:0:4.7" />
+				<LinearDoubleKeyFrame Value="0" KeyTime="0:0:5"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+	</Page.Resources>-->
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<VisualStateManager.VisualStateGroups>
+			<VisualStateGroup>
+				<VisualState>
+					<VisualState.StateTriggers>
+						<customTriggers:ProportionsTrigger TargetElement="{x:Bind BottomButtonBar}"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="BottomButtonBar.Visibility" Value="Visible" />
+						<Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
+						<Setter Target="UserInfoGridRow.Height" Value="50"/>
+					</VisualState.Setters>
+				</VisualState>
+			</VisualStateGroup>
+		</VisualStateManager.VisualStateGroups>
+		<!-- loading notice -->
+		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+			  Background="White"
+			  Opacity=".5"
+			  Canvas.ZIndex="999"
+			  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}}" 
+			  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
+			<TextBlock
+				x:Name="LoadingNoticeTextBlock"
+				Opacity="1"
+				Text="Drawing..." 
+				Foreground="{StaticResource FlashyForeground}"
+				HorizontalAlignment="Center" VerticalAlignment="Center"
+				Style="{StaticResource HugeTextStyle}"
+				Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}}" 
+				IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
+				>
+				<!--<TextBlock.Triggers>
+					<EventTrigger RoutedEvent="TextBlock.Loaded">
+						<BeginStoryboard>
+							<Storyboard x:Name="Storyboard_LoadingNotice">
+								<DoubleAnimation
+									Storyboard.TargetName="LoadingNoticeTextBlock"
+									Storyboard.TargetProperty="Opacity"
+									From="1.0" To="0.0" Duration="0:0:0.6"
+									RepeatBehavior="Forever"
+									AutoReverse="True"/>
+							</Storyboard>
+						</BeginStoryboard>
+					</EventTrigger>
+				</TextBlock.Triggers>-->
+			</TextBlock>
+		</Grid>
+		<!-- Map, altitude and their overlays -->
+		<Grid Grid.Row="0" Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition x:Name="UserInfoGridRow" Height="25"/>
+			</Grid.RowDefinitions>
+			<!-- download bar and icons for battery consuming features -->
+			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100" >
+				<!-- download progress bar -->
+				<Grid Background="{ThemeResource SystemChromeBlackHighColor}"
+					Opacity=".75"
+					Visibility="{Binding IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}}"
+					VerticalAlignment="Top"
+					IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<ProgressBar Grid.Column="0" Grid.ColumnSpan="2"
+						 IsIndeterminate="False"
+						 Minimum="0"
+						 Maximum="1"
+						 Foreground="{StaticResource FlashyForeground}"
+						 VerticalAlignment="Bottom"
+						 Value="{Binding ElementName=me, Path=MyRuntimeData.DownloadProgressValue}"/>
+					<TextBlock Grid.Column="0"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Text="Downloading..." 
+						Foreground="{StaticResource FlashyForeground}"
+						Style="{StaticResource BaseMessageStyle}"
+						Margin="10"
+						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
+						Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToVisibleConverter}}"/>
+					<TextBlock Grid.Column="0"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						Text="Download will resume when back online"
+						Foreground="{StaticResource FlashyForeground}"
+						TextWrapping="WrapWholeWords"
+						Style="{StaticResource BaseMessageStyle}"
+						Margin="10"
+						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
+						Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+					<Button Grid.Column="1"
+						BorderBrush="{StaticResource FlashyForeground}"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"
+						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
+						Click="OnCancelDownload_Click">
+						<Button.Content>
+							<TextBlock
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Text="Cancel" 
+								Foreground="{StaticResource FlashyForeground}"
+								Style="{StaticResource BaseMessageStyle}"
+								IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"/>
+						</Button.Content>
+					</Button>
+				</Grid>
+				<!--header with icons for battery consuming functions -->
+				<Grid >
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" Visibility="{Binding IsTracking, Converter={StaticResource BooleanToVisibleConverter}}">
+						<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+						   HorizontalAlignment="Center" Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
+						   Text="Foreground trk" />
+						<AppBarButton 
+							HorizontalAlignment="Center" VerticalAlignment="Center" 
+							Style="{StaticResource AppBarButtonRecoloured_NoDisabled}"
+							Foreground="{StaticResource FlashyForeground}"
+							IsEnabled="False"
+							IsTapEnabled="False"
+							Icon="Clock" />
+					</StackPanel>
+					<StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" Visibility="{Binding IsBackgroundEnabled, Converter={StaticResource BooleanToVisibleConverter}}">
+						<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" 
+						   HorizontalAlignment="Center" Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
+						   Text="Background trk" />
+						<AppBarButton 
+							HorizontalAlignment="Center" VerticalAlignment="Center" 
+							Style="{StaticResource AppBarButtonRecoloured_NoDisabled}"
+							Foreground="{StaticResource FlashyForeground}"
+							IsEnabled="False"
+							IsTapEnabled="False"
+							Icon="Clock" />
+					</StackPanel>
+					<StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Center" Visibility="{Binding IsKeepAlive, Converter={StaticResource BooleanToVisibleConverter}}">
+						<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" 
+						   HorizontalAlignment="Center" Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
+						   Text="Keeping alive" />
+						<AppBarButton 
+							HorizontalAlignment="Center" VerticalAlignment="Center" 
+							Style="{StaticResource AppBarButtonRecoloured_NoDisabled}"
+							Foreground="{StaticResource FlashyForeground}"
+							IsEnabled="False"
+							IsTapEnabled="False"
+							Icon="Pin" />
+					</StackPanel>
+				</Grid>
+			</StackPanel>
+			<!-- Map  -->
+			<!-- Must never set visibility = Collapsed, even in code: use height = 0 instead, to avoid stupid catastrophic failure -->
+			<!--Background="MediumBlue"-->
+			<local:LolloMap Grid.Row="0" Canvas.ZIndex="0"
+						x:Name="MyLolloMap"/>
+			<!-- TODO MAYBE try a split view to show map and altitude at the same time -->
+			<!-- Altitude profiles -->
+			<local:AltitudeProfiles Grid.Row="0" Canvas.ZIndex="200"
+				x:Name="MyAltitudeProfiles"            
+				Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"/>
+			<!-- Pivot -->
+			<Pivot Grid.Row="0" Canvas.ZIndex="600"
+				   x:Name="MyPivot"
+				   Visibility="{Binding IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}}"
+				   Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+				   Margin="{StaticResource PanelMargin}"
+				   SelectedIndex="{Binding SelectedPivotIndex, Mode=TwoWay}">
+				<PivotItem Header="Points">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+						Margin="{StaticResource PanelMargin}">
+						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested"/>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Files">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
+						Margin="{StaticResource PanelMargin}">
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="20"/>
+								<ColumnDefinition />
+								<ColumnDefinition />
+								<ColumnDefinition />
+								<ColumnDefinition />
+							</Grid.ColumnDefinitions>
+							<!-- History-->
+							<Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
+								BorderThickness="0" Background="{StaticResource HistoryBrushOpaque}"/>
+							<TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Foreground="{StaticResource HistoryBrushOpaque}"
+								Text="Tracking history"/>
+							<!--Label="Go to trk history"-->
+							<AppBarButton Grid.Row="1" Grid.Column="1"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnCenterHistory_Click"                                    
+								Icon="Go"
+								IsEnabled="{Binding History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Clear trk history"-->
+							<AppBarButton Grid.Row="1" Grid.Column="2" 
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnClearHistory_Click"
+								Icon="Clear"
+								IsEnabled="{Binding History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Save trk history"-->
+							<AppBarButton Grid.Row="1" Grid.Column="4"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnSaveTrackingHistory_Click"                                        
+								Icon="Save"
+								IsEnabled="{Binding History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Text="The tracking history is empty, get a fix or start tracking."
+								Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Text="You can export your tracks as a GPX route file and import them again later as a route."
+								Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Route0-->
+							<Border Grid.Row="3" Grid.Column="0" Grid.RowSpan="3"
+								BorderThickness="0" Background="{StaticResource Route0BrushOpaque}"/>
+							<TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Foreground="{StaticResource Route0BrushOpaque}"
+								Text="Route"/>
+							<!--Label="Go to route"-->
+							<AppBarButton Grid.Row="4" Grid.Column="1"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnCenterRoute_Click" 
+								Icon="Go"
+								IsEnabled="{Binding Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Clear route"-->
+							<AppBarButton Grid.Row="4" Grid.Column="2"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnClearRoute0_Click" 
+								Icon="Clear"
+								IsEnabled="{Binding Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Load route"-->
+							<AppBarButton Grid.Row="4" Grid.Column="3"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnLoadRoute0_Click" 
+								Icon="OpenFile" />
+							<AppBarButton Grid.Row="4" Grid.Column="4"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnSaveRoute0_Click"                                        
+								Icon="Save"
+								IsEnabled="{Binding Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Text="No route. You can import one from a GPX file."
+								Visibility="{Binding Route0.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+
+							<!-- Landmarks -->
+							<Border Grid.Row="6" Grid.Column="0" Grid.RowSpan="3"
+								BorderThickness="0" Background="{StaticResource LandmarksBrushOpaque}"/>
+							<TextBlock Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Foreground="{StaticResource LandmarksBrushOpaque}"
+								Text="Landmarks"/>
+							<!--Label="Go to landmarks"-->
+							<AppBarButton Grid.Row="7" Grid.Column="1"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnCenterLandmarks_Click" 
+								Icon="Go"
+								IsEnabled="{Binding Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Clear landmarks"-->
+							<AppBarButton Grid.Row="7" Grid.Column="2"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"
+								Click="OnClearLandmarks_Click" 
+								Icon="Clear"
+								IsEnabled="{Binding Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<!--Label="Load landmarks"-->
+							<AppBarButton Grid.Row="7" Grid.Column="3"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"                                  
+								Click="OnLoadLandmarks_Click" 
+								Icon="OpenFile" />
+							<!--Label="Save landmarks"-->
+							<AppBarButton Grid.Row="7" Grid.Column="4"
+								HorizontalAlignment="Center"
+								IsCompact="True"
+								Style="{StaticResource AppBarButtonRecoloured}"                                  
+								Click="OnSaveLandmarks_Click" 
+								Icon="Save"
+								IsEnabled="{Binding Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Text="No landmarks. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
+								Visibility="{Binding Landmarks.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+							<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
+								VerticalAlignment="Center" 
+								TextWrapping="Wrap"
+								Style="{StaticResource BaseMessageStyle}" 
+								Text="Add or update landmarks in the 'Points' panel. You can export them as a waypoint GPX file and import them again later."
+								Visibility="{Binding Landmarks.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+						</Grid>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Maps">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
+						Margin="{StaticResource PanelMargin}">
+						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested"/>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Custom maps">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"                            
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
+						Margin="{StaticResource PanelMargin}">
+						<local:CustomMapsPanel/>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Settings">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
+						Margin="{StaticResource PanelMargin}">
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="*"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+
+							<TextBlock Grid.Row="0" Grid.Column="0" 
+								Text="Foreground trk period (sec): " 
+								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<Slider Grid.Row="0" Grid.Column="1" Margin="{StaticResource BaseMessageStyleMargin}" 
+								Value="{Binding ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}" 
+								IsThumbToolTipEnabled="False"
+								Minimum="{Binding MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
+								Maximum="{Binding MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
+								SmallChange="1" LargeChange="3"
+								VerticalAlignment="Center" VerticalContentAlignment="Center"
+								IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
+							<TextBlock Grid.Row="0" Grid.Column="2" 
+								Text="{Binding ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2"
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" 
+								  VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+								  IsOn="{Binding IsTracking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+							<TextBlock Grid.Row="1" Grid.Column="0" 
+								Text="Background trk period (min): " 
+								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<Slider Grid.Row="1" Grid.Column="1" 
+								Margin="{StaticResource BaseMessageStyleMargin}"
+								Value="{Binding BackgroundUpdatePeriodInMinutes, Mode=TwoWay}"
+								Minimum="{Binding MinBackgroundUpdatePeriodInMinutesProp}" 
+								Maximum="{Binding MaxBackgroundUpdatePeriodInMinutesProp}" 
+								LargeChange="5"
+								IsThumbToolTipEnabled="False"
+								VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+							<TextBlock Grid.Row="1" Grid.Column="2" 
+								Text="{Binding BackgroundUpdatePeriodInMinutes}" 
+								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" 
+								  VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsOn="{Binding IsBackgroundEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+							<TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+								Text="You can tap and hold the map to centre it on the last point. This switch keeps it centred automatically." 
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsOn="{Binding IsCentreOnCurrent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+							<TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+								Text="Keep the app alive, never mind the lock screen settings."
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsOn="{Binding IsKeepAlive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+							<TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+								Text="GPS accuracy (m): " 
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<!-- TODO bind min and max to properties, do not leave them here hard-coded -->
+							<Slider Grid.Row="4" Grid.Column="2"
+									Margin="{StaticResource BaseMessageStyleMargin}"
+									Value="{Binding DesiredAccuracyInMeters, Mode=TwoWay}" 
+									Minimum="1" Maximum="100" 
+									SmallChange="1" LargeChange="10"
+									IsThumbToolTipEnabled="False"
+									IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
+							<TextBlock Grid.Row="4" Grid.Column="3"
+								Text="{Binding DesiredAccuracyInMeters}" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+
+							<TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+								Text="You can tap on a map object to show its details. Raise this for more tolerance." 
+								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<Slider Grid.Row="5" Grid.Column="2"
+									Margin="{StaticResource BaseMessageStyleMargin}"
+									Value="{Binding TapTolerance, Mode=TwoWay}" 
+									IsThumbToolTipEnabled="False"
+									Minimum="1" Maximum="50"
+									SmallChange="1" LargeChange="3"/>
+							<TextBlock Grid.Row="5" Grid.Column="3"
+								Text="{Binding TapTolerance}" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+
+							<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
+								Text="Show angles in degrees."
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsOn="{Binding IsShowDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+							<TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
+								Text="Show speedometre."
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource PanelMargin2}"
+								VerticalAlignment="Center"/>
+							<ToggleSwitch Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2"
+								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
+								  Style="{StaticResource ToggleSwitchMini}"
+								  Header=""
+								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+								  IsOn="{Binding IsShowSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+						</Grid>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Help">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"                
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
+						Margin="{StaticResource PanelMargin}">
+						<local:HelpPanel/>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="About">
+					<ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+						Margin="{StaticResource PanelMargin}">
+						<local:AboutPanel/>
+					</ScrollViewer>
+				</PivotItem>
+				<PivotItem Header="Logs" x:Name="LogsButton">
+					<!-- logs panel -->
+					<Grid Grid.Row="0" Canvas.ZIndex="600"
+						VerticalAlignment="Top"                
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+						Margin="{StaticResource PanelMargin}">
+
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="*"/>
+						</Grid.RowDefinitions>
+						<StackPanel Grid.Row="0" Orientation="Horizontal">
+							<Button Content="Fgr" Click="OnLogButton_Click"/>
+							<Button Content="Bgr" Click="OnLogButton_Click"/>
+							<Button Content="BgrCanc" Click="OnLogButton_Click"/>
+						</StackPanel>
+						<StackPanel Grid.Row="1" Orientation="Horizontal">
+							<Button Content="FileError" Click="OnLogButton_Click"/>
+							<Button Content="MyPersistentData" Click="OnLogButton_Click"/>
+							<Button Content="AppExc" Click="OnLogButton_Click"/>
+						</StackPanel>
+						<StackPanel Grid.Row="2" Orientation="Horizontal">
+							<Button Content="Clear" Click="OnLogButton_Click"/>
+							<Button Content="Check files in dbg" Click="OnTestFiles_Click"/>
+						</StackPanel>
+						<ScrollViewer Grid.Row="3" 
+							BringIntoViewOnFocusChange="True"
+							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+							Margin="{StaticResource PanelMargin}">
+							<TextBlock Grid.Row="3" TextWrapping="Wrap"
+								Text="{Binding ElementName=me, Path=MyVM.LogText}"
+								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
+						</ScrollViewer>
+					</Grid>
+				</PivotItem>
+			</Pivot>
+			<!-- user info -->
+			<StackPanel Grid.Row="1" Orientation="Horizontal"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+					ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"
+					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}">
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="Last:"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="Lat"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="Lon"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="{Binding Current.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="{Binding Current.Altitude, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Alt {0} m'}"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="@"/>
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+					   Text="{Binding Current.TimePoint}"/>
+			</StackPanel>
+			<Border Grid.Row="1" BorderThickness="0" Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+				Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}">
+				<TextBlock
+					TextWrapping="Wrap" 
+					Margin="{StaticResource TightMargin}" 
+					Style="{StaticResource BaseMessageStyle}" 
+					HorizontalAlignment="Left"
+					Text="Get a fix or start tracking to retrieve your location"/>
+			</Border>
+			<Border Grid.Row="1" BorderThickness="0" Canvas.ZIndex="999"
+				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+				Visibility="{Binding ElementName=me, Path=MyVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}">
+				<TextBlock
+				   TextWrapping="Wrap"
+				   Margin="{StaticResource TightMargin}"
+				   Style="{StaticResource BaseMessageStyle}" 
+				   HorizontalAlignment="Left"
+				   Foreground="{StaticResource FlashyForeground}"
+				   Text="{Binding LastMessage}">
+				</TextBlock>
+			</Border>
+		</Grid>
+		<!-- bottom button bar -->
+		<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+			x:Name="BottomButtonBar" 
+			Visibility="Collapsed"
+			HorizontalAlignment="Center" VerticalAlignment="Center">
+			<!--<Grid.Background>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<GradientStop Color="{ThemeResource PhoneBackgroundColor}" Offset="1"/>
+					<GradientStop Color="Transparent" Offset="0"/>
+				</LinearGradientBrush>
+			</Grid.Background>-->
+
+			<!--<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>-->
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition />
+				<ColumnDefinition />
+				<ColumnDefinition />
+				<ColumnDefinition />
+			</Grid.ColumnDefinitions>
+			<!-- get a fix button -->
+			<AppBarButton Grid.Column="0"
+						  VerticalAlignment="Center"
+						  Label="Get a fix" Icon="Map"
+						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  Click="OnGetAFixNow_Click" 
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+			<!-- altitude profile button-->
+			<AppBarToggleButton Grid.Column="1"
+						  VerticalAlignment="Center"
+						  Label="Altitude" Icon="List"
+						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+						  Click="OnAltitude_Click"
+						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+			<!-- open pivot -->
+			<AppBarButton Grid.Column="2"
+						  HorizontalAlignment="Center" 
+						  Label="Menu" Icon="Setting"
+						  Click="OnOpenPivot_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+			<!-- back -->
+			<AppBarButton Grid.Column="3"
+						  HorizontalAlignment="Center" 
+						  Label="Back" Icon="Back"
+						  Click="OnBack_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  IsEnabled="{Binding IsBackButtonEnabled}"
+						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+		</Grid>
+		<!-- left button bar -->
+		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" 
+			x:Name="LeftButtonBar" 
+			Visibility="Visible"
+			HorizontalAlignment="Center" VerticalAlignment="Center">
+			<!--<Grid.Background>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<GradientStop Color="{ThemeResource PhoneBackgroundColor}" Offset="1"/>
+					<GradientStop Color="Transparent" Offset="0"/>
+				</LinearGradientBrush>
+			</Grid.Background>-->
+
+			<Grid.RowDefinitions>
+				<RowDefinition />
+				<RowDefinition />
+				<RowDefinition />
+				<RowDefinition />
+			</Grid.RowDefinitions>
+			<!-- get a fix button -->
+			<AppBarButton Grid.Row="0"
+						  HorizontalAlignment="Center"  
+						  Label="Get a fix" Icon="Map"
+						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  Click="OnGetAFixNow_Click" 
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+			<!-- altitude profile button-->
+			<AppBarToggleButton Grid.Row="1"
+						  HorizontalAlignment="Center" 
+						  Label="Altitude" Icon="List"
+						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+						  Click="OnAltitude_Click"
+						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+			<!-- open pivot -->
+			<AppBarButton Grid.Row="2"
+						  HorizontalAlignment="Center" 
+						  Label="Menu" Icon="Setting"
+						  Click="OnOpenPivot_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+			<!-- back -->
+			<AppBarButton Grid.Row="3"
+						  HorizontalAlignment="Center" 
+						  Label="Back" Icon="Back"
+						  Click="OnBack_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  IsEnabled="{Binding IsBackButtonEnabled}"
+						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+		</Grid>
+	</Grid>
+</Page>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<gpx
+  version="1.1"
+  creator="GPS Hiking Mate for Windows 10"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+  xmlns:topografix="http://www.topografix.com/GPX/Private/TopoGrafix/0/1"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<metadata>
+  <time>1999-12-31T00:00:00Z</time>
+  <bounds minlat="20" minlon="20" maxlat="30" maxlon="30"/>
+</metadata>
+<extensions>
+</extensions>
+</gpx>

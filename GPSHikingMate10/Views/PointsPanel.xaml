@@ -1,0 +1,323 @@
+﻿<UserControl
+    x:Class="LolloGPS.Core.PointsPanel"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    UseLayoutRounding="True"
+    mc:Ignorable="d"
+    d:DesignHeight="600"
+    d:DesignWidth="400">
+
+    <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>            
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <!--target float-->
+        <Grid Grid.Row="0" Grid.Column="0"
+            Visibility="{Binding IsShowDegrees, Converter={StaticResource BooleanToCollapsedConverter}}" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <!-- lat float -->
+            <TextBlock Grid.Row="0" 
+                Text="Latitude" 
+                Style="{StaticResource BaseMessageStyle}"
+                VerticalAlignment="Center" />
+            <TextBox Grid.Row="1"
+                x:Name="LatFloat"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter}}" 
+                InputScope="NumberFullWidth" 
+                LostFocus="LatFloat_LostFocus"/>
+            <!-- lon float -->
+            <TextBlock Grid.Row="2" 
+                Text="Longitude" 
+                Style="{StaticResource BaseMessageStyle}"
+                VerticalAlignment="Center" />
+            <TextBox Grid.Row="3" 
+                x:Name="LonFloat"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter}}" 
+                InputScope="NumberFullWidth"
+                LostFocus="LonFloat_LostFocus"/>
+            <!-- altitude -->
+            <!--<TextBlock Grid.Row="2" Grid.Column="0" Margin="2" Text="Target alt m "
+                Style="{StaticResource BaseMessageStyle}"
+                VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="2"
+                VerticalAlignment="Center"
+                Text="{Binding Target.Altitude, Converter={StaticResource FloatConverter}}"
+                IsEnabled="False"/>-->
+
+        </Grid>
+        <!--target in degrees min sec dec-->
+        <Grid Grid.Row="1" Grid.Column="0"
+            Visibility="{Binding IsShowDegrees, Converter={StaticResource BooleanToVisibleConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <!--target lat in deg min sec dec-->
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="8"
+                Text="Latitude"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBlock Grid.Row="1" Grid.Column="0"
+                Text="°"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LatDeg"
+                Grid.Row="1" Grid.Column="1"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                VerticalAlignment="Center"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDeg}}"
+                LostFocus="LatDeg_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="4"/>
+            <TextBlock Grid.Row="1" Grid.Column="2"
+                Text="'"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LatMin"
+                Grid.Row="1" Grid.Column="3"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                VerticalAlignment="Center"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterMin}}"
+                LostFocus="LatMin_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="2"/>
+            <TextBlock Grid.Row="1" Grid.Column="4"
+                Text="''"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LatSec"
+                Grid.Row="1" Grid.Column="5"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterSec}}"
+                LostFocus="LatSec_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="2"/>
+            <TextBlock Grid.Row="1" Grid.Column="6"
+                Text="."
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LatDec"
+                Grid.Row="1" Grid.Column="7"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDec}}" 
+                MaxLength="3"
+                LostFocus="LatDec_LostFocus"
+                GotFocus="LatLon_GotFocus"/>
+            <!--target lon in deg min sec dec-->
+            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="8"
+                Text="Longitude"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBlock Grid.Row="3" Grid.Column="0"
+                Text="°"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LonDeg" Grid.Row="3" Grid.Column="1"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDeg}}"
+                LostFocus="LonDeg_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="4"/>
+            <TextBlock Grid.Row="3" Grid.Column="2"
+                Text="'"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LonMin" Grid.Row="3" Grid.Column="3"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterMin}}"
+                LostFocus="LonMin_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="2"/>
+            <TextBlock Grid.Row="3" Grid.Column="4"
+                Text="''"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LonSec" Grid.Row="3" Grid.Column="5"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterSec}}"
+                LostFocus="LonSec_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="2"/>
+            <TextBlock Grid.Row="3" Grid.Column="6"
+                Text="."
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}" />
+            <TextBox x:Name="LonDec" Grid.Row="3" Grid.Column="7"
+                VerticalAlignment="Center"
+                Margin="{StaticResource BaseMessageStyleMargin}"
+                InputScope="NumberFullWidth" 
+                Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDec}}" 
+                LostFocus="LonDec_LostFocus"
+                GotFocus="LatLon_GotFocus"
+                MaxLength="3"/>
+        </Grid>
+        <!-- human description -->
+        <TextBlock Grid.Row="2" Grid.Column="0"
+            Text="Description"
+            Style="{StaticResource BaseMessageStyle}"
+            VerticalAlignment="Center" />
+        <TextBox Grid.Row="3" Grid.Column="0"
+            x:Name="HumanDescriptionTB"
+            HorizontalAlignment="Stretch" VerticalAlignment="Center"
+            Style="{StaticResource BaseTextBoxStyle}" 
+            MaxLength="160"
+            TextWrapping="Wrap" 
+            AcceptsReturn="True"
+            Text="{Binding Target.HumanDescription, Mode=TwoWay}"
+            PlaceholderText="you can type a note here" 
+            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+        <!-- lat lon commands -->
+        <Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="5"
+            VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <!--Label="Show degrees"-->
+            <AppBarToggleButton Grid.Row="0"
+                IsChecked="{Binding IsShowDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                IsCompact="True"
+                Style="{StaticResource AppBarToggleButtonRecoloured}"
+                Icon="Clock"
+                TabIndex="2"/>
+            <!--Label="Go to target"-->
+            <AppBarButton Grid.Row="2"
+                Click="OnGotoTarget_Click" 
+                IsCompact="True"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                Icon="Go"
+                TabIndex="1"/>
+        </Grid>
+
+        <!--target commands-->
+        <TextBlock Grid.Row="5" Grid.Column="0"
+            VerticalAlignment="Center"
+            Style="{StaticResource BaseMessageStyle}"
+            TextWrapping="WrapWholeWords"
+            Text="Update your landmarks with this point."/>
+        <!--Label="Add target"-->
+        <AppBarButton Grid.Row="5" Grid.Column="1"
+            VerticalAlignment="Center"
+            Click="OnAddTargetToLandmarks_Click"
+            IsCompact="True"
+            Foreground="{StaticResource LandmarksBrushOpaque}"
+            Style="{StaticResource AppBarButtonRecoloured}"
+            Icon="Add"/>
+
+        <!-- too many landmarks notice-->
+        <TextBlock Grid.Row="6" Grid.Column="0"
+            VerticalAlignment="Center" 
+            TextWrapping="Wrap"
+            Style="{StaticResource BaseMessageStyle}" 
+            Text="{Binding MaxRecordsInLandmarksProp, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Max {0} landmarks!'}"
+            Foreground="{StaticResource FlashyForeground}"
+            Visibility="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountEqualMaxToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <TextBlock Grid.Row="7" Grid.Column="0"
+            VerticalAlignment="Center"
+            Style="{StaticResource BaseMessageStyle}"
+            TextWrapping="WrapWholeWords"
+            Text="Add the current location to your landmarks."/>
+        <!--Label="Set to here"-->
+        <AppBarButton Grid.Row="7" Grid.Column="1"
+            VerticalAlignment="Center"
+            IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+            Click="OnSetTargetToCurrentPoint_Click" 
+            IsCompact="True"
+            Foreground="{StaticResource LandmarksBrushOpaque}"
+            Style="{StaticResource AppBarButtonRecoloured}"
+            Icon="Map"/>
+
+        <TextBlock Grid.Row="8" Grid.Column="0"
+            VerticalAlignment="Center" 
+            Style="{StaticResource BaseMessageStyle}"
+            TextWrapping="WrapWholeWords"
+            Text="Move around the map and tap the aim to add a landmark. Hold the aim to hide it."/>
+        <!--Label="Show aim"-->
+        <AppBarToggleButton Grid.Row="8" Grid.Column="1"
+            VerticalAlignment="Center"
+            IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            IsCompact="True"
+            Foreground="{StaticResource LandmarksBrushOpaque}"
+            Style="{StaticResource AppBarToggleButtonRecoloured}"
+            Click="OnAim_Click">
+            <AppBarToggleButton.Icon>
+                <BitmapIcon UriSource="ms-appx:///Assets/aim-36.png"/>
+            </AppBarToggleButton.Icon>
+        </AppBarToggleButton>
+
+        <TextBlock Grid.Row="9" Grid.Column="0"
+            VerticalAlignment="Center" 
+            Style="{StaticResource BaseMessageStyle}"
+            TextWrapping="WrapWholeWords"
+            Text="Move around the map and tap the aim to add one landmark."/>
+        <!--Label="Show aim"-->
+        <AppBarToggleButton Grid.Row="9" Grid.Column="1"
+            VerticalAlignment="Center"
+            IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            IsCompact="True"
+            Foreground="{StaticResource LandmarksBrushOpaque}"
+            Style="{StaticResource AppBarToggleButtonRecoloured}"
+            Click="OnAimOnce_Click">
+            <AppBarToggleButton.Icon>
+                <BitmapIcon UriSource="ms-appx:///Assets/aimOnce-36.png"/>
+            </AppBarToggleButton.Icon>
+        </AppBarToggleButton>
+    </Grid>
+</UserControl>

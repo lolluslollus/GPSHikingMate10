@@ -1,0 +1,133 @@
+﻿<lollo:OrientationResponsiveUserControl
+	x:Class="LolloGPS.Core.LolloMap"
+	x:Name="me"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:lollo="using:LolloBaseUserControls"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps" 
+	UseLayoutRounding="True"
+	d:DesignHeight="400"
+	d:DesignWidth="500"
+	DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}">
+	<UserControl.Resources>
+		<local:HeadingConverter x:Key="HeadingConverter"/>
+		<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
+	</UserControl.Resources>
+	<Grid x:Name="RootGrid">
+		<!-- point details -->
+		<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed">
+			<local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
+				PointChanged="OnInfoPanelPointChanged"
+				PopupContainer="{x:Bind Path=RootGrid}"/>
+		</Popup>
+		<!--compass-->
+		<Canvas Canvas.ZIndex="200"
+				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+				VerticalAlignment="Top" HorizontalAlignment="Left">
+			<Image Canvas.Top="150" Canvas.Left="30"
+				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
+				<Image.RenderTransform>
+					<CompositeTransform Rotation="{Binding ElementName=MyMap, Path=Heading, Converter={StaticResource HeadingConverter}}"/>
+				</Image.RenderTransform>
+			</Image>
+		</Canvas>
+		<!--speedometer-->
+		<Canvas Canvas.ZIndex="200" 
+				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+				VerticalAlignment="Top" HorizontalAlignment="Right">
+			<StackPanel Orientation="Horizontal" Canvas.Left="-230" Canvas.Top="150" 
+				HorizontalAlignment="Left"
+				Visibility="{Binding IsShowSpeed, Converter={StaticResource BooleanToVisibleConverter}}">
+				<TextBlock Text="{Binding Current.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}}"
+					Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
+					Style="{StaticResource HugeTextStyle}"/>
+			</StackPanel>
+		</Canvas>
+		<!--scale-->
+		<Canvas Height="Auto" Canvas.ZIndex="200" 
+				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+				VerticalAlignment="Bottom">
+			<!-- left distance -->
+			<TextBlock Text="0" 
+				   Canvas.Left="18" Canvas.Top="-74"
+				   HorizontalAlignment="Center" 
+				   FontWeight="Bold" 
+				   Style="{StaticResource BaseMessageStyle}" 
+				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+			<!-- right distance -->
+			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
+				   Canvas.Left="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}"
+				   Canvas.Top="-74" 
+				   HorizontalAlignment="Center" 
+				   FontWeight="Bold" 
+				   Style="{StaticResource BaseMessageStyle}" 
+				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+			<!-- internal zoom level -->
+			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
+				   Canvas.Left="18" Canvas.Top="-94"
+				   HorizontalAlignment="Center" 
+				   FontWeight="Bold" 
+				   Style="{StaticResource BaseMessageStyle}" 
+				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+			<!-- scale bar -->
+			<Image x:Name="ScaleImage"
+				   Canvas.Top="-60" Canvas.Left="20" 
+				   Source="ms-appx:///Assets/scale-300.png" 
+				   ScrollViewer.VerticalScrollBarVisibility="Disabled" 
+				   Stretch="None" 
+				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+				   RenderTransformOrigin="0.0,0.0" >
+				<Image.RenderTransform>
+					<CompositeTransform ScaleX="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform}"/>
+				</Image.RenderTransform>
+			</Image>
+		</Canvas>
+		<!--aim centre-->
+		<Image Canvas.ZIndex="200" 
+			Source="ms-appx:///Assets/aim-120.png"
+			Stretch="None"
+			VerticalAlignment="Center" HorizontalAlignment="Center"
+			Visibility="{Binding IsShowAim, Converter={StaticResource BooleanToVisibleConverter}}"
+			Tapped="OnAim_Tapped"
+			Holding="OnAim_Holding"
+			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
+		<!-- tile source -->
+		<Border Canvas.ZIndex="300"
+				HorizontalAlignment="Right" VerticalAlignment="Top"
+				Background="{ThemeResource SystemChromeBlackHighColor}"
+				RenderTransformOrigin="1, 1"
+				Visibility="{Binding CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}}"
+				Tapped="OnProvider_Tapped">
+			<Border.RenderTransform>
+				<RotateTransform Angle="-90"/>
+			</Border.RenderTransform>
+			<StackPanel Orientation="Horizontal" >
+				<TextBlock Text="© "
+					Style="{StaticResource BasicTextStyle}"
+					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
+					Margin="6,2,6,2"/>
+				<TextBlock Text="{Binding CurrentTileSource, Converter={StaticResource MapSourceToItsDescriptionConverter}}"
+					Style="{StaticResource BasicTextStyle}"
+					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
+					Margin="6,2,6,2"/>
+			</StackPanel>
+		</Border>
+		<!--MapControl-->
+		<!--CenterChanged="OnMyMap_CenterChanged" HeadingChanged="OnMyMap_HeadingChanged" PitchChanged="OnMyMap_PitchChanged" ZoomLevelChanged="OnMyMap_ZoomLevelChanged"-->
+		<Maps:MapControl Canvas.ZIndex="100"
+			x:Name="MyMap"
+			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+			VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
+			MapTapped="OnMap_Tapped" MapHolding="OnMap_Holding"
+			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False">
+		</Maps:MapControl>
+	</Grid>
+</lollo:OrientationResponsiveUserControl>

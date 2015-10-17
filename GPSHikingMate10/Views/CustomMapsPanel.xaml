@@ -1,0 +1,155 @@
+﻿<lollo:OrientationResponsiveUserControl
+    x:Class="LolloGPS.Core.CustomMapsPanel"
+    x:Name="me"
+    xmlns:lollo="using:LolloBaseUserControls"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LolloGPS.Core"
+    xmlns:listChooser="using:LolloListChooser"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
+    UseLayoutRounding="True"
+    mc:Ignorable="d"
+    d:DesignHeight="600"
+    d:DesignWidth="400">
+
+    <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="MainGrid">
+        <!--<Grid Grid.Row="1" Visibility="{Binding ElementName=me, Path=MyVM.IsCustomTileSourceOpen, Converter={StaticResource BooleanToVisibleConverter}}">-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Name: "
+                       Style="{StaticResource BaseMessageStyle}"
+                       VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Uri: "
+                       Style="{StaticResource BaseMessageStyle}"
+                       VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Min zoom: "
+                       Style="{StaticResource BaseMessageStyle}"
+                       VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="2" Grid.Column="2" Text="Max zoom: "
+                       Style="{StaticResource BaseMessageStyle}"
+                       Margin="8,2,2,2"
+                       VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Tile size (px): "
+                       Style="{StaticResource BaseMessageStyle}"
+                       VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding TestTileSource.TechName, Mode=TwoWay}"
+                     MaxLength="{Binding TestTileSource.MaxTechNameLengthProp}"
+                     VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding TestTileSource.UriString, Mode=TwoWay}"
+                     TextWrapping="Wrap"
+                     InputScope="Url"
+                     VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TestTileSource.MinZoom, Mode=TwoWay}"
+                     MaxLength="2"
+                     InputScope="Number"
+                     VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding TestTileSource.MaxZoom, Mode=TwoWay}"
+                     MaxLength="2"
+                     InputScope="Number"
+                     VerticalAlignment="Center"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TestTileSource.TilePixelSize, Mode=TwoWay}"
+                     MaxLength="3"
+                     InputScope="Number"
+                     VerticalAlignment="Center"/>
+        <!-- error message after clicking test -->
+        <TextBlock Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
+                    Text="{Binding ElementName=me, Path=MyVM.TestTileSourceErrorMsg}"                    
+                    TextWrapping="Wrap"
+                    Foreground="{StaticResource FlashyForeground}"
+                    Style="{StaticResource BaseMessageStyle}"
+                    Margin="8,2,2,2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+
+        <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <!-- only allow download when connection is available -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}"
+                TextWrapping="WrapWholeWords"
+                Text="Use this source"/>
+            <AppBarButton Grid.Row="1" Grid.Column="2"
+                VerticalAlignment="Center"
+                Click="OnTestClicked"
+                IsEnabled="{Binding ElementName=me, Path=MyRuntimeData.IsConnectionAvailable}"
+                IsCompact="True"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                Icon="View"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Style="{StaticResource BaseMessageStyle}"
+                TextWrapping="WrapWholeWords"
+                Foreground="{StaticResource FlashyForeground}"
+                Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
+                Text="No connection"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                VerticalAlignment="Center"
+                Style="{StaticResource BaseMessageStyle}"
+                TextWrapping="WrapWholeWords"
+                Text="Erase custom sources"/>
+            <!--IsEnabled="{Binding TileSourcez.Count, Converter={StaticResource CustomTileSourcezToEnabledConverter}}"-->
+            <AppBarButton Grid.Row="3" Grid.Column="2"
+                VerticalAlignment="Center"
+                IsEnabled="{Binding ElementName=me, Path=MyVM.IsClearCustomCacheEnabled}"
+                Click="OnClearCustomTileSource_Click"
+                IsCompact="True"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                Icon="Clear"/>
+            <listChooser:LolloListChooser Grid.Row="3" Grid.Column="1"
+                    SelectorVisibility="Collapsed"
+                    x:Name="ClearCustomCacheChooser"
+                    PlaceholderText="Which source do you want to erase?"
+                    ListHeaderText="Which source do you want to erase?"
+                    PopupContainer="{Binding ElementName=me}"
+                    VerticalAlignment="Center"
+                    TextBlockStyle="{StaticResource BaseMessageStyle}"
+                    AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
+                    TextItemStyle="{StaticResource ListItemTextStyle}"
+                    ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache}"
+                    ItemSelected="OnClearCustomCacheChooser_ItemSelected"
+                    BackPressedRaiser="{x:Bind Path=MyVM}"/>
+
+            <!--<AppBarButton Grid.Row="3" Grid.Column="0"
+                    VerticalAlignment="Center"                    
+                    IsCompact="True"
+                    Style="{StaticResource AppBarButtonRecoloured}"
+                    Click="OnOpenCloseCustom_Click"
+                    Label="All maps" Icon="Back"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                   VerticalAlignment="Center"
+                   Style="{StaticResource BaseMessageStyle}"
+                   TextWrapping="WrapWholeWords"
+                   Text="Go back to all maps."/>-->
+
+        </Grid>
+        <!--</Grid>-->
+    </Grid>
+</lollo:OrientationResponsiveUserControl>

@@ -1,0 +1,53 @@
+﻿<lollo:OrientationResponsiveUserControl
+    x:Class="LolloGPS.Core.AltitudeProfiles"
+    x:Name="me"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:lollo="using:LolloBaseUserControls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LolloGPS.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:chart="using:LolloChartMobile"
+    UseLayoutRounding="True"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+    <Grid x:Name="RootGrid">
+        <!-- point details -->
+        <Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed">
+            <local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
+                PointChanged="OnInfoPanelPointChanged"
+                PopupContainer="{x:Bind Path=RootGrid}"/>
+        </Popup>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
+                  BringIntoViewOnFocusChange="True" ZoomMode="Enabled" MaxZoomFactor="2" MinZoomFactor=".5"
+                  Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+                  x:Name="MyScrollViewer">
+
+            <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Large}"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TBNoData" Text="No altitude data available" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{StaticResource ScenarioHeaderTextStyle}"/>
+                <chart:LolloChart Grid.Row="1" Grid.Column="1" x:Name="HistoryChart" Title="Tracking history altitude vs time" ChartTapped="OnHistoryChartTapped" TitleStyle="{StaticResource BaseMessageStyle}"
+                                  Foreground="{StaticResource HistoryBrushOpaque}"/>
+                <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="Route0Chart" Title="Route altitude vs time" ChartTapped="OnRoute0ChartTapped" TitleStyle="{StaticResource BaseMessageStyle}"
+                                  Foreground="{StaticResource Route0BrushOpaque}"/>
+                <chart:LolloChart Grid.Row="3" Grid.Column="1" x:Name="LandmarksChart" Title="Landmarks altitude" ChartTapped="OnLandmarksChartTapped" TitleStyle="{StaticResource BaseMessageStyle}"
+                                  Foreground="{StaticResource LandmarksBrushOpaque}"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</lollo:OrientationResponsiveUserControl>

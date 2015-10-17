@@ -1,0 +1,217 @@
+﻿<lollo:OrientationResponsiveUserControl
+	x:Class="LolloGPS.Core.PointInfoPanel"
+	x:Name="me"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:lollo="using:LolloBaseUserControls"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:data="using:LolloGPS.Data"
+	UseLayoutRounding="True"
+	mc:Ignorable="d"
+	d:DesignHeight="600"
+	d:DesignWidth="400">
+
+	<ScrollViewer BringIntoViewOnFocusChange="True" 
+		Margin="{StaticResource PanelMargin}">
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<!-- choose a series to see the point details -->
+			<Grid Grid.Row="0" x:Name="ChooseSeriesGrid" 
+				Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToVisibleConverter}}">
+				<Grid.Background>
+					<LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1" >
+						<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
+						<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
+						<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.85"/>
+						<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="1"/>
+					</LinearGradientBrush>
+				</Grid.Background>
+
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="1*"/>
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="0" Grid.ColumnSpan="5" 
+					Text="You have tapped a point with multiple series, choose one" 
+					TextWrapping="WrapWholeWords"
+					Margin="8" 
+					Style="{StaticResource BaseMessageStyle}"/>
+				<AppBarButton x:Name="ChooseDisplayHistoryButton" Grid.Column="1" Grid.Row="1"
+						  Click="OnDisplayHistory_Click"
+						  VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+						  Icon="Directions" Label="Trk history"
+						  Foreground="{StaticResource HistoryBrushOpaque}"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+				<AppBarButton x:Name="ChooseDisplayRoute0Button" Grid.Column="2" Grid.Row="1"
+						  Click="OnDisplayRoute0_Click"
+						  VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+						  Icon="Directions" Label="Route"
+						  Foreground="{StaticResource Route0BrushOpaque}"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+				<AppBarButton x:Name="ChooseDisplayLandmarksButton" Grid.Column="3" Grid.Row="1"
+						  Click="OnDisplayLandmarks_Click"
+						  VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+						  Icon="Target" Label="Landmarks"
+						  Foreground="{StaticResource LandmarksBrushOpaque}"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+			</Grid>
+			<!-- info grid -->
+			<Grid x:Name="InfoGrid" Grid.Row="1"
+				Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToCollapsedConverter}}">
+				<Grid.Background>
+					<LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1" >
+						<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
+						<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
+					</LinearGradientBrush>
+				</Grid.Background>
+
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="3*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+				<!-- header -->
+				<TextBlock TextWrapping="Wrap" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding SelectedSeries, Converter={StaticResource SeriesTextConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Time: " Visibility="{Binding Selected.TimePoint, Converter={StaticResource DateNotNullToVisibilityConverter}}"/>
+				<!-- human description -->
+				<Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					<TextBlock TextWrapping="Wrap" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+						Text="Description: "/>
+					<TextBox TextWrapping="Wrap" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource BaseTextBoxStyle}" MaxLength="160" AcceptsReturn="True" Width="250"
+						Text="{Binding Selected.HumanDescription}"
+						LostFocus="OnHumanDescriptionTextBox_LostFocus" IsTabStop="False" PlaceholderText="you can type a note here" PreventKeyboardDisplayOnProgrammaticFocus="True" PointerEntered="OnHumanDescriptionTextBox_PointerEntered"/>
+					<TextBlock TextWrapping="Wrap" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource BaseMessageStyle}"
+						Text="{Binding Selected.HumanDescription}"/>
+				</Grid>
+				<!-- point navigation -->
+				<Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" >
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="1*"/>
+					</Grid.ColumnDefinitions>
+					<AppBarButton x:Name="DeletePointButton" Grid.Column="0"
+						  Click="OnDeletePoint_Click"
+						  Icon="Clear"
+						  IsCompact="True"                          
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+					<AppBarButton x:Name="GotoPreviousButton" Grid.Column="1" 
+						  Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
+						  Icon="Previous"
+						  IsCompact="True"
+						  IsEnabled="{Binding ElementName=me, Path=IsGotoPreviousEnabled}"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+					<AppBarButton x:Name="GotoNextButton" Grid.Column="2"
+						  Click="OnGotoNext_Click" DoubleTapped="OnGoto100Next_Click" Holding="OnGotoNextButton_Holding" 
+						  Icon="Next"
+						  IsCompact="True"
+						  IsEnabled="{Binding ElementName=me, Path=IsGotoNextEnabled}"
+						  Style="{StaticResource AppBarButtonRecoloured}"/>
+				</Grid>
+				<!-- data -->
+				<TextBlock TextWrapping="Wrap" Grid.Row="4" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Latitude: " />
+				<TextBlock TextWrapping="Wrap" Grid.Row="5" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Longitude: " />
+				<TextBlock TextWrapping="Wrap" Grid.Row="6" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Altitude (m): " />
+				<TextBlock TextWrapping="Wrap" Grid.Row="7" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Accuracy (m): " Visibility="{Binding Selected.Accuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="8" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Altitude accuracy (m): " Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="9" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Source: " Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="10" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Link to media: " Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="11" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Speed (kmh): " />
+				<TextBlock TextWrapping="Wrap" Grid.Row="12" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Km from previous: " Visibility="{Binding ElementName=me, Path=IsGotoPreviousEnabled, Converter={StaticResource BooleanToVisibleConverter}}"/>
+
+				<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.TimePoint}" Visibility="{Binding Selected.TimePoint, Converter={StaticResource DateNotNullToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="4" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0}" />
+				<TextBlock TextWrapping="Wrap" Grid.Row="5" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0}" />
+				<TextBlock TextWrapping="Wrap" Grid.Row="6" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverter}}" />
+				<TextBlock TextWrapping="Wrap" Grid.Row="7" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.Accuracy}" Visibility="{Binding Selected.Accuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="8" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.AltitudeAccuracy}" Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}"/>
+				<TextBlock TextWrapping="Wrap" Grid.Row="9" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Selected.PositionSource}" Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibilityConverter}}"/>
+				<HyperlinkButton Grid.Row="10" Grid.Column="1" HorizontalAlignment="Left" NavigateUri="{Binding Selected.HyperLink}" Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+					<HyperlinkButton.Content>
+						<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" >
+								<Underline>
+									<Run Text="{Binding Selected.HyperLinkText, Converter={StaticResource HyperLinkLabelConverter}}"/>
+								</Underline>
+						</TextBlock>
+					</HyperlinkButton.Content>
+				</HyperlinkButton>
+				<TextBlock TextWrapping="Wrap" Grid.Row="11" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+				   Text="{Binding Selected.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter_OnlyNumber}}" />
+				<TextBlock TextWrapping="Wrap" Grid.Row="12" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Visibility="{Binding ElementName=me, Path=IsGotoPreviousEnabled, Converter={StaticResource BooleanToVisibleConverter}}"
+				   Text="{Binding ElementName=me, Path=DistanceFromPrevious}"/>
+				<!-- point n of m -->
+				<Grid Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="2">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+					</Grid.ColumnDefinitions>
+					<TextBlock TextWrapping="Wrap" Grid.Row="0" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Record " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Record " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="2" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="Record " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}"/>
+
+					<TextBlock TextWrapping="Wrap" Grid.Row="0" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding SelectedIndex_Base1}" 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding SelectedIndex_Base1}"
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="2" Grid.Column="1" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding SelectedIndex_Base1}"
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}"/>
+
+					<TextBlock TextWrapping="Wrap" Grid.Row="0" Grid.Column="2" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text=" of " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="2" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text=" of " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="2" Grid.Column="2" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text=" of " 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}"/>
+
+					<TextBlock TextWrapping="Wrap" Grid.Row="0" Grid.Column="3" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding History.Count}" 
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="3" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Route0.Count}"
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}"/>
+					<TextBlock TextWrapping="Wrap" Grid.Row="2" Grid.Column="3" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Text="{Binding Landmarks.Count}"
+							   Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}"/>
+				</Grid>
+			</Grid>
+		</Grid>
+	</ScrollViewer>
+</lollo:OrientationResponsiveUserControl>
