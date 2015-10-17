@@ -27,15 +27,6 @@ namespace LolloGPS.Core
     {
         #region events
         public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
-        //private void RaiseBackSoftKeyPressed()
-        //{
-        //    BackSoftKeyPressed?.Invoke(this, null);
-        //    //var listeners = BackSoftKeyPressed;
-        //    //if (listeners != null)
-        //    //{
-        //    //    listeners(this, null);
-        //    //}
-        //}
         #endregion events
 
         #region properties
@@ -207,25 +198,25 @@ namespace LolloGPS.Core
         #endregion event handlers
 
         #region services
-        public void GoBackSoft()
+        public void GoBackMyButtonSoft()
         {
             var args = new BackOrHardSoftKeyPressedEventArgs();
             BackOrHardSoftKeyPressed?.Invoke(this, args);
-            if (!args.Handled) MyPersistentData.IsShowingPivot = false; // TODO the handling of back is still dodgy. I changed it a bit, check it
-                                                                        //if (MyPersistentData.IsShowingPivot)
-                                                                        //{
-                                                                        //    MyPersistentData.IsShowingPivot = false;
-                                                                        //}
-                                                                        ////RaiseBackSoftKeyPressed();
-                                                                        //BackOrHardSoftKeyPressed?.Invoke(this, new BackOrHardSoftKeyPressedEventArgs() { Handled = false });
+            if (!args.Handled) MyPersistentData.IsShowingPivot = false;
         }
-        public void GoBackHard(object sender, BackPressedEventArgs e)
+        public void GoBackTabletSoft(object sender, BackRequestedEventArgs e)
         {
-            //if ((MyPersistentData.IsShowingPivot || MyPersistentData.IsBackButtonEnabled) && !e.Handled)
             if (MyPersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
             var args = new BackOrHardSoftKeyPressedEventArgs();
             BackOrHardSoftKeyPressed?.Invoke(sender, args);
-            if (!args.Handled) MyPersistentData.IsShowingPivot = false; // TODO the handling of back is still dodgy. I changed it a bit, check it
+            if (!args.Handled) MyPersistentData.IsShowingPivot = false;
+        }
+        public void GoBackHard(object sender, BackPressedEventArgs e)
+        {
+            if (MyPersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
+            var args = new BackOrHardSoftKeyPressedEventArgs();
+            BackOrHardSoftKeyPressed?.Invoke(sender, args);
+            if (!args.Handled) MyPersistentData.IsShowingPivot = false;
         }
         public void SetLastMessage_UI(string message)
         {

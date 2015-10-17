@@ -106,13 +106,28 @@
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
-					<TextBlock TextWrapping="Wrap" Grid.Column="0" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+					<TextBlock Grid.Column="0" 
+						TextWrapping="Wrap" 
+						Style="{StaticResource BaseMessageStyle}" 
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
 						Text="Description: "/>
-					<TextBox TextWrapping="Wrap" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource BaseTextBoxStyle}" MaxLength="160" AcceptsReturn="True" Width="250"
-						Text="{Binding Selected.HumanDescription}"
-						LostFocus="OnHumanDescriptionTextBox_LostFocus" IsTabStop="False" PlaceholderText="you can type a note here" PreventKeyboardDisplayOnProgrammaticFocus="True" PointerEntered="OnHumanDescriptionTextBox_PointerEntered"/>
-					<TextBlock TextWrapping="Wrap" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource BaseMessageStyle}"
-						Text="{Binding Selected.HumanDescription}"/>
+					<TextBox Grid.Column="1"
+						TextWrapping="Wrap"
+						Style="{StaticResource BaseTextBoxStyle}"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						MaxLength="{StaticResource MaxHumanDescriptionLength}"
+						AcceptsReturn="True"
+						Width="250"
+						Text="{Binding Selected.HumanDescription, Mode=OneWay}"
+						LostFocus="OnHumanDescriptionTextBox_LostFocus"
+						IsTabStop="False"
+						PlaceholderText="you can type a note here"
+						PreventKeyboardDisplayOnProgrammaticFocus="True"
+						PointerEntered="OnHumanDescriptionTextBox_PointerEntered"/>
+					<!--<TextBlock TextWrapping="Wrap" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource BaseMessageStyle}"
+						Text="{Binding Selected.HumanDescription}"/>-->
 				</Grid>
 				<!-- point navigation -->
 				<Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" >

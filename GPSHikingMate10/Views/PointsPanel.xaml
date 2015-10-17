@@ -213,9 +213,10 @@
             VerticalAlignment="Center" />
         <TextBox Grid.Row="3" Grid.Column="0"
             x:Name="HumanDescriptionTB"
-            HorizontalAlignment="Stretch" VerticalAlignment="Center"
+            HorizontalAlignment="Stretch" 
+            VerticalAlignment="Center"
             Style="{StaticResource BaseTextBoxStyle}" 
-            MaxLength="160"
+            MaxLength="{StaticResource MaxHumanDescriptionLength}"
             TextWrapping="Wrap" 
             AcceptsReturn="True"
             Text="{Binding Target.HumanDescription, Mode=TwoWay}"
@@ -251,7 +252,6 @@
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Update your landmarks with this point."/>
-        <!--Label="Add target"-->
         <AppBarButton Grid.Row="5" Grid.Column="1"
             VerticalAlignment="Center"
             Click="OnAddTargetToLandmarks_Click"
@@ -274,7 +274,6 @@
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Add the current location to your landmarks."/>
-        <!--Label="Set to here"-->
         <AppBarButton Grid.Row="7" Grid.Column="1"
             VerticalAlignment="Center"
             IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"

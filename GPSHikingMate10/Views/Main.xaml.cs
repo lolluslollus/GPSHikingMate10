@@ -236,6 +236,7 @@ namespace LolloGPS.Core
 			{
 				if (MyPersistentData != null) MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				if (MyRuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+				Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
 				_isDataChangedHandlerActive = true;
 			}
 		}
@@ -244,12 +245,19 @@ namespace LolloGPS.Core
 		{
 			if (MyPersistentData != null) MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 			if (MyRuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
+			Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 			_isDataChangedHandlerActive = false;
 		}
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
 			MyVM.GoBackHard(sender, e);
 		}
+
+		private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+		{
+			MyVM.GoBackTabletSoft(sender, e);
+		}
+
 		DispatcherTimerPlus _animationTimer = null;    
 
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -287,6 +295,17 @@ namespace LolloGPS.Core
 		private void StopShowingNotice()
 		{
 			MyVM.IsLastMessageVisible = false;
+		}
+		private void OnLastMessage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
+		{
+			if (!MyVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(MyVM.MyPersistentData.LastMessage))
+			{
+				MyVM.IsLastMessageVisible = true;
+			}
+			else
+			{
+				MyVM.IsLastMessageVisible = false;
+			}
 		}
 		private void OnGetAFixNow_Click(object sender, RoutedEventArgs e)
 		{
@@ -429,7 +448,7 @@ namespace LolloGPS.Core
 
 		private void OnBack_Click(object sender, RoutedEventArgs e)
 		{
-			MyVM.GoBackSoft();
+			MyVM.GoBackMyButtonSoft();
 		}
 
 		#endregion event handling

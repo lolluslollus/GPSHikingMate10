@@ -11,6 +11,7 @@ using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
+// LOLLO guide to uap https://msdn.microsoft.com/en-us/library/windows/apps/xaml/dn894631.aspx
 namespace LolloBaseUserControls
 {
     public class OrientationResponsiveUserControl : UserControl, INotifyPropertyChanged
@@ -74,6 +75,7 @@ namespace LolloBaseUserControls
         {
             if (_isHandlersActive == false)
             {
+                // Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested // LOLLO TODO catch this (it is the soft back key in tablet mode)
                 if (_appView != null) _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
                 //if (_orientationSensor != null) _orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
                 //if (_isHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareOrSoftwareButtons_BackPressed;

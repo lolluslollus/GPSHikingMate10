@@ -20,6 +20,10 @@
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource PanelMargin2}"/>
+        <TextBlock Text="To enjoy it in full, run it on a device with a GPS sensor."
+            TextWrapping="Wrap"
+            Style="{StaticResource BaseMessageStyle}"
+            Margin="{StaticResource PanelMargin2}"/>
         <TextBlock Text="It can tell where you are, where you have been and where you decided to go, but it won't tell you to turn left or right or find the nearest cheap food joint. There is no turn-by-turn navigation outdoors, finding your way is entirely up to you."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"

@@ -227,7 +227,7 @@
 				   Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				   Margin="{StaticResource PanelMargin}"
 				   SelectedIndex="{Binding SelectedPivotIndex, Mode=TwoWay}">
-				<PivotItem Header="Points">
+				<PivotItem Header="Points" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
@@ -235,7 +235,7 @@
 						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested"/>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Files">
+				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
@@ -296,7 +296,7 @@
 								VerticalAlignment="Center" 
 								TextWrapping="Wrap"
 								Style="{StaticResource BaseMessageStyle}" 
-								Text="The tracking history is empty, get a fix or start tracking."
+								Text="The tracking history is empty, get a fix or start tracking to populate it."
 								Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 							<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
 								VerticalAlignment="Center" 
@@ -347,7 +347,7 @@
 								VerticalAlignment="Center" 
 								TextWrapping="Wrap"
 								Style="{StaticResource BaseMessageStyle}" 
-								Text="No route. You can import one from a GPX file."
+								Text="No route. You can import one from a route GPX file."
 								Visibility="{Binding Route0.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 
 							<!-- Landmarks -->
@@ -405,7 +405,7 @@
 						</Grid>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Maps">
+				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
@@ -413,7 +413,7 @@
 						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested"/>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Custom maps">
+				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
@@ -421,7 +421,7 @@
 						<local:CustomMapsPanel/>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Settings">
+				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
@@ -593,7 +593,7 @@
 						</Grid>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Help">
+				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
@@ -601,7 +601,7 @@
 						<local:HelpPanel/>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="About">
+				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
@@ -609,7 +609,7 @@
 						<local:AboutPanel/>
 					</ScrollViewer>
 				</PivotItem>
-				<PivotItem Header="Logs" x:Name="LogsButton">
+				<PivotItem Header="Logs" x:Name="LogsButton" Style="{StaticResource PivotItemStyle}">
 					<!-- logs panel -->
 					<Grid Grid.Row="0" Canvas.ZIndex="600"
 						VerticalAlignment="Top"                
@@ -649,9 +649,10 @@
 			</Pivot>
 			<!-- user info -->
 			<StackPanel Grid.Row="1" Orientation="Horizontal"
-						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"
-					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}">
+					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"
+                    Tapped="OnLastMessage_Tapped">
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Last:"/>
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
@@ -670,7 +671,8 @@
 					   Text="{Binding Current.TimePoint}"/>
 			</StackPanel>
 			<Border Grid.Row="1" BorderThickness="0" Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}">
+				Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"
+                Tapped="OnLastMessage_Tapped">
 				<TextBlock
 					TextWrapping="Wrap" 
 					Margin="{StaticResource TightMargin}" 
@@ -680,7 +682,8 @@
 			</Border>
 			<Border Grid.Row="1" BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding ElementName=me, Path=MyVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}">
+				Visibility="{Binding ElementName=me, Path=MyVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}"
+				Tapped="OnLastMessage_Tapped">
 				<TextBlock
 				   TextWrapping="Wrap"
 				   Margin="{StaticResource TightMargin}"

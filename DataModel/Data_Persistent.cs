@@ -893,6 +893,7 @@ namespace LolloGPS.Data
                         if (index > -1)
                         {
                             Landmarks[index] = point;
+                            Task update = DBManager.UpdateLandmarksAsync(point, false);
                             LastMessage = "Landmarks updated";
                             return true;
                         }
@@ -907,7 +908,7 @@ namespace LolloGPS.Data
                         if (Landmarks.Count < MaxRecordsInLandmarks)
                         {
                             Landmarks.Add(point);
-                            Task insert = DBManager.InsertIntoLandmarksAsync(point, true);
+                            Task insert = DBManager.InsertIntoLandmarksAsync(point, false);
                             LastMessage = "Target added to landmarks";
                             return true;
                         }
@@ -935,7 +936,7 @@ namespace LolloGPS.Data
                     SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
                 }
             }
-            LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
+            LastMessage = "Error updating landmarks";
             return false;
         }
         public Task<bool> TryAddTargetToLandmarksAsync()

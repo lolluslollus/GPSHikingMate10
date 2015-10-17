@@ -15,7 +15,7 @@
     <x:Double x:Key="Route0Thickness">10</x:Double>
     <Thickness x:Key="PanelMargin">0, 0, 0, 0</Thickness>
     <Thickness x:Key="PanelMargin2">0, 4, 0, 4</Thickness>
-    <Thickness x:Key="PanelPadding">2, 2, 2, 2</Thickness>
+    <Thickness x:Key="PanelPadding">12, 12, 12, 12</Thickness>
 
     <GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Medium">20</GridLength>
@@ -25,7 +25,9 @@
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />
     <SolidColorBrush x:Key="ObjectInOverlayForegroundBrush" Color="Red" />
     <media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
-    
+
+    <x:Int32 x:Key="MaxHumanDescriptionLength">160</x:Int32>
+
     <!-- LOLLO get the standard styles in Generic.xaml. To bring it up, press F12 on ApplicationForegroundThemeBrush or other ThemeResource in the code below -->
     <Style x:Key="BasicTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
@@ -940,6 +942,32 @@
                             StrokeDashArray="1,1"
                             Opacity="0"
                             StrokeDashOffset="0.5"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="PivotItem"
+           x:Key="PivotItemStyle">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Margin" Value="{ThemeResource PanelMargin}"/>
+        <Setter Property="Padding" Value="{StaticResource PanelPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PivotItem">
+                    <Grid Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="Pivot">
+                                <VisualState x:Name="Right" />
+                                <VisualState x:Name="Left" />
+                                <VisualState x:Name="Center" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Margin="{TemplateBinding Padding}" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
