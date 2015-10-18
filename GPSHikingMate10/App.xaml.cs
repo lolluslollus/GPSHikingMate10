@@ -329,7 +329,8 @@ namespace LolloGPS.Core
             // back up the app settings
             await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
             // lock the DBs
-            await PersistentData.CloseMainDbAsync().ConfigureAwait(false);
+            // await PersistentData.CloseMainDb().ConfigureAwait(false);
+            PersistentData.CloseMainDb();
             await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
 
             MyRuntimeData?.Dispose();

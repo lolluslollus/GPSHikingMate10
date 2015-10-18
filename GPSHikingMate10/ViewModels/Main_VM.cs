@@ -88,6 +88,15 @@ namespace LolloGPS.Core
         }
         internal async Task ActivateAsync()
         {
+            //bool isTesting = true; // LOLLO remove when done testing
+            //if (isTesting)
+            //{
+            //    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
+            //    {
+            //        String aaa = i.ToString();
+            //    }
+            //}
+
             await _myGPSInteractor.ActivateAsync();
             UpdateClearCacheButtonIsEnabled();
             UpdateClearCustomCacheButtonIsEnabled();
@@ -99,6 +108,15 @@ namespace LolloGPS.Core
         {
             RemoveHandler_DataChanged();
             _myGPSInteractor.Deactivate();
+
+            //bool isTesting = true; // LOLLO remove when done testing
+            //if (isTesting)
+            //{
+            //    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
+            //    {
+            //        String aaa = i.ToString();
+            //    }
+            //}
         }
         #endregion construct and dispose
 

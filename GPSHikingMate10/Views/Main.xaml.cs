@@ -92,10 +92,10 @@ namespace LolloGPS.Core
 				try
 				{
 					RemoveHandler_Activate();
-					_owner.MyVM.Deactivate();
-					_owner.RemoveHandlers();
-					if (_owner.MyLolloMap != null) _owner.MyLolloMap.Deactivate();
-					if (_owner.MyAltitudeProfiles != null) _owner.MyAltitudeProfiles.Deactivate();
+					_owner?.MyVM?.Deactivate();
+					_owner?.RemoveHandlers();
+					_owner?.MyLolloMap?.Deactivate();
+					_owner?.MyAltitudeProfiles?.Deactivate();
 					KeepAlive.StopKeepAlive();
 					//_owner.Storyboard_NewMessage.SkipToFill();
 					CancelPendingTasks(); // after removing the handlers

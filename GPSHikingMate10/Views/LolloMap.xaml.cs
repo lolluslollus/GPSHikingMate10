@@ -208,7 +208,7 @@ namespace LolloGPS.Core
 				{
 					newCentre = new Geopoint(new BasicGeoposition() { Latitude = 0.0, Longitude = 0.0 });
 				}
-				await MyMap.TrySetViewAsync(newCentre); //, CentreZoomLevel);
+				await MyMap.TrySetViewAsync(newCentre).AsTask().ConfigureAwait(false); //, CentreZoomLevel);
 			}
 			catch (Exception ex)
 			{
