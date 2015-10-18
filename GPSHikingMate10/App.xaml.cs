@@ -175,14 +175,14 @@ namespace LolloGPS.Core
                 // However, reread the history coz the background task may have changed it while I was suspended.
                 RuntimeData.SetIsDBDataRead_UI(false);
                 Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(false)", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                await PersistentData.LoadHistoryFromDbAsync(false).ConfigureAwait(false);
+                await PersistentData.LoadHistoryFromDbAsync(false);
                 RuntimeData.SetIsDBDataRead_UI(true);
                 Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(true)", Logger.ForegroundLogFilename, Logger.Severity.Info);
                 // reregister events
-                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                {
+                //await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                //{
                     main.OnResuming();
-                }).AsTask().ConfigureAwait(false);
+                //}).AsTask().ConfigureAwait(false);
                 // In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
                 // but I deregister them when suspending to make sure long running tasks are really stopped.
                 // This also includes the background task state check.
@@ -244,7 +244,7 @@ namespace LolloGPS.Core
                                         await PersistentData.LoadSeriesFromDbAsync(series);
                                     }
                                     // centre view on the file data
-                                    if (whichTables.Count > 0 && rootFrame != null && rootFrame.Content as Main != null)
+                                    if (whichTables.Count > 0 && rootFrame?.Content as Main != null)
                                     {
                                         Main main = rootFrame.Content as Main;
                                         if (whichTables[0] == PersistentData.Tables.Landmarks)
@@ -272,7 +272,7 @@ namespace LolloGPS.Core
                                 {
                                     await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                                     {
-                                        if (whichTables != null && whichTables.Count > 0 && rootFrame != null && rootFrame.Content as Main != null)
+                                        if (whichTables != null && whichTables.Count > 0 && rootFrame?.Content as Main != null)
                                         {
                                             Main main = rootFrame.Content as Main;
                                             if (whichTables[0] == PersistentData.Tables.Landmarks)

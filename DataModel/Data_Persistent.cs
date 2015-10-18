@@ -264,8 +264,8 @@ namespace LolloGPS.Data
                 _current = value;
                 if (_current == null && oldValue == null) { }
                 else if (_current == null && oldValue != null) { }
-                else if (_current != null && oldValue == null) { RaisePropertyChanged(); }
-                else if (_current.Longitude != oldValue.Longitude || _current.Latitude != oldValue.Latitude) { RaisePropertyChanged(); }
+                else if (_current != null && oldValue == null) { RaisePropertyChanged_UI(); }
+                else if (_current.Longitude != oldValue.Longitude || _current.Latitude != oldValue.Latitude) { RaisePropertyChanged_UI(); }
             }
         }
         private bool _isCentreOnCurrent = true;
@@ -377,7 +377,7 @@ namespace LolloGPS.Data
         public int MaxRecordsInLandmarksProp { get { return MaxRecordsInLandmarks; } }
         private String _lastMessage = String.Empty;
         [DataMember]
-        public String LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged(); } }
+        public String LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
         private Boolean _isShowSpeed = false;
         [DataMember]
         public Boolean IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged(); } }
@@ -605,37 +605,38 @@ namespace LolloGPS.Data
         }
         public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess = true)
         {
-            List<PointRecord> dataRecords = await DBManager.GetHistoryAsync();
+            List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
             try
             {
-                await _historySemaphore.WaitAsync();
-                _history.IsObserving = false;
-                _history.Clear();
-
-                if (dataRecords != null)
+                await _historySemaphore.WaitAsync().ConfigureAwait(false);
+                
+                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                 {
-                    try
+                    _history.Clear();
+
+                    if (dataRecords != null)
                     {
-                        if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
-                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                        try
                         {
-                            _history.IsObserving = true;
+                            if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
                             _history.AddRange(dataRecords.Where(a => !a.IsEmpty()));
-                        }).AsTask().ConfigureAwait(false);
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            LastMessage = "Only part of the history is drawn";
+                        }
+                        catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInHistory
+                        {
+                            var howMuchMemoryLeft = GC.GetTotalMemory(true);
+                            LastMessage = "Only part of the history is drawn";
+                            Logger.Add_TPL("OutOfMemoryException in PersistentData.SetHistory()", Logger.PersistentDataLogFilename);
+                        }
                     }
-                    catch (IndexOutOfRangeException)
-                    {
-                        LastMessage = "Only part of the history is drawn";
-                    }
-                    catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInHistory
-                    {
-                        var howMuchMemoryLeft = GC.GetTotalMemory(true);
-                        LastMessage = "Only part of the history is drawn";
-                        Logger.Add_TPL("OutOfMemoryException in PersistentData.SetHistory()", Logger.PersistentDataLogFilename);
-                    }
-                }
-                _history.IsObserving = true;
-                SetCurrentToLast();
+
+                    SetCurrentToLast();
+
+                }).AsTask().ConfigureAwait(false);
+
             }
             catch (Exception exc0)
             {
