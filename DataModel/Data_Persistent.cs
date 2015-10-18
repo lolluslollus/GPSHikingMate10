@@ -212,13 +212,15 @@ namespace LolloGPS.Data
         {
             LolloSQLiteConnectionPoolMT.Open();
         }
-        public static bool IsMainDbClosed
+        /// <summary>
+        /// Only call this from a task, which is not the main one. 
+        /// Otherwise, you will screw up the db open / closed logic.
+        /// </summary>
+        /// <param name="dbAction"></param>
+        /// <returns></returns>
+        public static Task<bool> RunDbOpInOtherTaskAsync(Func<bool> action)
         {
-            get
-            {
-                return LolloSQLiteConnectionPoolMT.IsClosed;
-                //            return LolloSQLiteConnectionPoolMT.TryOpenIsClosedSemaphore();
-            }
+            return LolloSQLiteConnectionPoolMT.RunInOtherTaskAsync(action);
         }
         /// <summary>
         /// Waits for current DB operations to terminate and then locks the DB.
@@ -230,9 +232,10 @@ namespace LolloGPS.Data
         /// <summary>
         /// Waits for current DB operations to terminate and then locks the DB.
         /// </summary>
-        public async static Task CloseMainDbAsync()
+        public static void CloseMainDb()
         {
-            await LolloSQLiteConnectionPoolMT.CloseAsync().ConfigureAwait(false);
+            // await LolloSQLiteConnectionPoolMT.Close().ConfigureAwait(false);
+            LolloSQLiteConnectionPoolMT.Close();
         }
         #endregion construct dispose and clone
 
@@ -265,7 +268,7 @@ namespace LolloGPS.Data
                 if (_current == null && oldValue == null) { }
                 else if (_current == null && oldValue != null) { }
                 else if (_current != null && oldValue == null) { RaisePropertyChanged_UI(); }
-                else if (_current.Longitude != oldValue.Longitude || _current.Latitude != oldValue.Latitude) { RaisePropertyChanged_UI(); }
+                else if (_current.Longitude != oldValue.Longitude || _current.Latitude != oldValue.Latitude || _current.TimePoint != oldValue.TimePoint) { RaisePropertyChanged_UI(); }
             }
         }
         private bool _isCentreOnCurrent = true;
@@ -639,7 +642,7 @@ namespace LolloGPS.Data
             }
             catch (Exception exc0)
             {
-                Logger.Add_TPL(exc0.ToString(), Logger.PersistentDataLogFilename);
+                await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
             }
             finally
             {
@@ -688,7 +691,8 @@ namespace LolloGPS.Data
             try
             {
                 _historySemaphore.Wait();
-                return AddHistoryRecord2(dataRecord, checkMaxEntries, true);
+                bool isOk = AddHistoryRecord2(dataRecord, checkMaxEntries, true);
+                return isOk;
             }
             finally
             {
@@ -706,15 +710,22 @@ namespace LolloGPS.Data
                     //History.Insert(index, dataRecord);
                     History.Add(dataRecord); // we don't need to need to clone the record first, if the callers always instantiate a new record
 
-                    Task insert = null;
-                    if (runDBsync) DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
-                    else insert = DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries);
+                    bool isOk = false;
+                    if (runDBsync)
+                    {
+                        isOk = DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
+                    }
+                    else
+                    {
+                        Task insert = DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries);
+                        isOk = true; // we cannot be sure...
+                    }
 
                     Current = dataRecord;
                     LastMessage = dataRecord.Status;
 
                     CurrentChanged?.Invoke(this, EventArgs.Empty);
-                    return true;
+                    return isOk;
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -784,7 +795,7 @@ namespace LolloGPS.Data
             }
             catch (Exception exc0)
             {
-                Logger.Add_TPL(exc0.ToString(), Logger.PersistentDataLogFilename);
+                await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
             }
             finally
             {
@@ -849,7 +860,7 @@ namespace LolloGPS.Data
             }
             catch (Exception exc0)
             {
-                Logger.Add_TPL(exc0.ToString(), Logger.PersistentDataLogFilename);
+                await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
             }
             finally
             {

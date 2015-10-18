@@ -37,7 +37,8 @@ namespace Utilz
         public static bool TryOpenExisting()
         {
             Semaphore semaphoreOpen = null;
-            return Semaphore.TryOpenExisting(SEMAPHORE_NAME, out semaphoreOpen);
+            bool result = Semaphore.TryOpenExisting(SEMAPHORE_NAME, out semaphoreOpen);
+            return result;
         }
     }
 }

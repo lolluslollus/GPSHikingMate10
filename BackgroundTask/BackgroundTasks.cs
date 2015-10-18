@@ -51,7 +51,7 @@ namespace BackgroundTasks
                 // only in the background task and only if called before GetDeferral and only if awaited
                 Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info);
 
-                if (!GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) // if app is not running. Otherwise, skip.
+                if (!GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) // if app is not listening to this task. Otherwise, skip, the app will have to take care of it.
                 {
                     PersistentData myData = PersistentData.GetInstance(); // note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
                     Debug.WriteLine("GetLocationBackgroundTask done initialising variables");
@@ -77,31 +77,30 @@ namespace BackgroundTasks
                     if (pos != null)
                     {
                         _isCancellationAllowedNow = false;
-                        if (PersistentData.IsMainDbClosed)
+                        bool isSaved = false;
+                        isSaved = await PersistentData.RunDbOpInOtherTaskAsync(() => GPSInteractor.AppendGeoPosition(myData, pos, true)).ConfigureAwait(false);
+                        if (isSaved)
                         {
-                            Debug.WriteLine("GetLocationBackgroundTask found the main db closed");
-                            PersistentData.OpenMainDb();
-                            bool isSaved = GPSInteractor.AppendGeoPosition(myData, pos, true);
-                            await PersistentData.CloseMainDbAsync().ConfigureAwait(false);
-                            Debug.WriteLine("GetLocationBackgroundTask saved into db: " + isSaved);
+                            Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
+                            //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                         }
                         else
                         {
-                            Debug.WriteLine("GetLocationBackgroundTask found the main db open");
-                            // if the main db is unlocked shortly, this may fail to save the record: you can bear with it, it is very unlikely anyway.
-                            bool isSaved = GPSInteractor.AppendGeoPosition(myData, pos, true);
-                            Debug.WriteLine("GetLocationBackgroundTask saved into db: " + isSaved);
-                            // if you want to be sure the record is saved:
-                            //if (!isSaved && PersistentData.IsMainDbClosed)
-                            //{
-                            //    PersistentData.OpenMainDb();
-                            //    GPSInteractor.AppendGeoPosition(myData, pos, true);
-                            //    await PersistentData.CloseMainDbAsync().ConfigureAwait(false);
-                            //}
+                            Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
+                            //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                         }
                         _isCancellationAllowedNow = true;
                     }
-                    Debug.WriteLine("GetLocationBackgroundTask done saving geoposition");
+                    else
+                    {
+                        Debug.WriteLine("GetLocationBackgroundTask has failed to acquire a location");
+                        //await Logger.AddAsync("GetLocationBackgroundTask has failed to acquire a location", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+                    }                   
+                }
+                else
+                {
+                    Debug.WriteLine("GetLocationBackgroundTask did nothing because the app is running");
+                    //await Logger.AddAsync("GetLocationBackgroundTask did nothing because the app is running", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                 }
             }
             catch (Exception exc0)

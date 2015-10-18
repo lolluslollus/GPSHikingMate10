@@ -587,7 +587,8 @@ namespace LolloGPS.GPSInteraction
         {
             PointRecord newDataRecord = new PointRecord();
             InitNewHistoryRecord(pos, newDataRecord);
-            return persistentData.AddHistoryRecord(newDataRecord, checkMaxEntries);
+            bool isOk = persistentData.AddHistoryRecord(newDataRecord, checkMaxEntries);
+            return isOk;
         }
 
         private void SetLastMessage_UI(string message)

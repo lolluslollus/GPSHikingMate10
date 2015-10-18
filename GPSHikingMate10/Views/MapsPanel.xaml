@@ -32,7 +32,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Grid.Column="0"
-                Text="Download on metered connections"
+                Text="Allow download on metered connections."
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>

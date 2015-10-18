@@ -14,7 +14,7 @@ using Windows.Storage;
 // Add a reference to it in the project that uses it.
 namespace LolloGPS.Data
 {
-    sealed class DBManager
+    internal static class DBManager
     {
         private static readonly string _historyDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "History.db");
         private static readonly string _route0DbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Route0.db");
@@ -61,26 +61,28 @@ namespace LolloGPS.Data
                 Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
             }
         }
-        internal static async Task InsertIntoHistoryAsync(PointRecord record, bool checkMaxEntries)
+        internal static async Task<bool> InsertIntoHistoryAsync(PointRecord record, bool checkMaxEntries)
         {
             try
             {
-                await LolloSQLiteConnectionMT.InsertAsync<PointRecord>(_historyDbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _HistorySemaphore).ConfigureAwait(false);
+                return await LolloSQLiteConnectionMT.InsertAsync<PointRecord>(_historyDbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _HistorySemaphore).ConfigureAwait(false);
             }
             catch (Exception exc)
             {
                 Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+                return false;
             }
         }
-        internal static void InsertIntoHistory(PointRecord record, bool checkMaxEntries)
+        internal static bool InsertIntoHistory(PointRecord record, bool checkMaxEntries)
         {
             try
             {
-                LolloSQLiteConnectionMT.Insert<PointRecord>(_historyDbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _HistorySemaphore);
+                return LolloSQLiteConnectionMT.Insert<PointRecord>(_historyDbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _HistorySemaphore);
             }
             catch (Exception exc)
             {
                 Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+                return false;
             }
         }
         public async static Task<List<PointRecord>> GetHistoryAsync()
@@ -283,7 +285,6 @@ namespace LolloGPS.Data
                 {
                     if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
-                    Exception exc0 = null;
                     try
                     {
                         semaphore.WaitOne();
@@ -298,24 +299,26 @@ namespace LolloGPS.Data
                             {
                                 items_mt = items;
                             }
+
                             var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+
                             try
                             {
+                                var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                                 int aResult = conn.CreateTable(typeof(T));
                                 conn.DeleteAll<T>();
                                 conn.InsertAll(items_mt);
                             }
-                            catch (Exception exc1) { exc0 = exc1; }
-                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                            finally
+                            {
+                                LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                            }
                         }
                     }
-                    catch (Exception) { } // semaphore disposed
                     finally
                     {
                         SemaphoreExtensions.TryRelease(semaphore);
                     }
-                    if (exc0 != null) throw exc0;
                 });
             }
             public static Task<List<T>> ReadTableAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, Semaphore semaphore) where T : new()
@@ -330,30 +333,29 @@ namespace LolloGPS.Data
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
 
                 List<T> result = null;
-                Exception exc0 = null;
                 try
                 {
                     semaphore.WaitOne();
                     if (!LolloSQLiteConnectionPoolMT.IsClosed)
                     {
                         var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                         try
                         {
+                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                             int aResult = conn.CreateTable(typeof(T));
                             var query = conn.Table<T>();
                             result = query.ToList<T>();
                         }
-                        catch (Exception exc1) { exc0 = exc1; }
-                        LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        finally
+                        {
+                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        }
                     }
                 }
-                catch (Exception) { } // semaphore disposed
                 finally
                 {
                     SemaphoreExtensions.TryRelease(semaphore);
                 }
-                if (exc0 != null) throw exc0;
                 return result;
             }
             public static Task DeleteAllAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, Semaphore semaphore)
@@ -362,44 +364,42 @@ namespace LolloGPS.Data
                 {
                     if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
-                    Exception exc0 = null;
                     try
                     {
                         semaphore.WaitOne();
                         if (!LolloSQLiteConnectionPoolMT.IsClosed)
                         {
                             var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                             try
                             {
+                                var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                                 int aResult = conn.CreateTable(typeof(T));
                                 conn.DeleteAll<T>();
                             }
-                            catch (Exception exc1) { exc0 = exc1; }
-                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                            finally
+                            {
+                                LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                            }
                         }
                     }
-                    catch (Exception) { } // semaphore disposed
                     finally
                     {
                         SemaphoreExtensions.TryRelease(semaphore);
                     }
-                    if (exc0 != null) throw exc0;
                 });
             }
-            public static Task InsertAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
+            public static Task<bool> InsertAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
             {
                 return Task.Run(delegate
                 {
-                    Insert<T>(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
+                    return Insert<T>(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
                 });
             }
-            public static void Insert<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
+            public static bool Insert<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
             {
-                if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+                if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
 
-                //Debug.WriteLine("Insert<T>: semaphore entered with dbpath = " + dbPath);
-                Exception exc0 = null;
+                bool result = false;
                 try
                 {
                     semaphore.WaitOne();
@@ -414,39 +414,35 @@ namespace LolloGPS.Data
                         //    }
                         //}
 
-                        object item_mt = item;
                         var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                         try
                         {
+                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+
                             int aResult = conn.CreateTable(typeof(T));
                             if (checkMaxEntries)
                             {
                                 var query = conn.Table<T>();
                                 var count = query.Count();
-                                if (count < GetHowManyEntriesMax(dbPath)) conn.Insert(item_mt);
+                                if (count < GetHowManyEntriesMax(dbPath)) result = conn.Insert(item) > 0;
                             }
                             else
                             {
-                                conn.Insert(item_mt);
+                                result = conn.Insert(item) > 0;
                             }
-                            //var query2 = conn.Table<T>(); //delete when done testing
-                            //var count2 = query2.Count(); //delete when done testing
-                            //var dummy = "WW"; //delete when done testing
                         }
-                        catch (Exception exc1) { exc0 = exc1; }
-                        LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        finally
+                        {
+                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
                 finally
                 {
                     SemaphoreExtensions.TryRelease(semaphore);
                 }
-                if (exc0 != null) throw exc0;
+                Debug.WriteLine("Insert<T> returned " + result);
+                return result;
             }
             public static Task DeleteAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
@@ -459,8 +455,6 @@ namespace LolloGPS.Data
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
-                //Debug.WriteLine("Insert<T>: semaphore entered with dbpath = " + dbPath);
-                Exception exc0 = null;
                 try
                 {
                     semaphore.WaitOne();
@@ -475,28 +469,24 @@ namespace LolloGPS.Data
                         //    }
                         //}
 
-                        object item_mt = item;
                         var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                         try
                         {
+                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                             int aResult = conn.CreateTable(typeof(T));
-                            int deleteResult = conn.Delete(item_mt);
+                            int deleteResult = conn.Delete(item);
                             Debug.WriteLine("DB delete returned " + deleteResult);
                         }
-                        catch (Exception exc1) { exc0 = exc1; }
-                        LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        finally
+                        {
+                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
                 finally
                 {
                     SemaphoreExtensions.TryRelease(semaphore);
                 }
-                if (exc0 != null) throw exc0;
             }
             public static Task UpdateAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
@@ -509,42 +499,38 @@ namespace LolloGPS.Data
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
-                Exception exc0 = null;
                 try
                 {
                     semaphore.WaitOne();
                     if (!LolloSQLiteConnectionPoolMT.IsClosed)
                     {
                         var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                         try
                         {
+                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
                             int aResult = conn.CreateTable(typeof(T));
                             {
                                 int test = conn.Update(item);
                                 Debug.WriteLine(test + "records updated");
                             }
                         }
-                        catch (Exception exc1) { exc0 = exc1; }
-                        LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        finally
+                        {
+                            LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
                 finally
                 {
                     SemaphoreExtensions.TryRelease(semaphore);
                 }
-                if (exc0 != null) throw exc0;
             }
         }
     }
 
     internal static class LolloSQLiteConnectionPoolMT
     {
-        private class Entry
+        private sealed class Entry : IDisposable
         {
             public SQLiteConnectionString ConnectionString { get; private set; }
             public SQLiteConnection Connection { get; private set; }
@@ -555,7 +541,7 @@ namespace LolloGPS.Data
                 Connection = new SQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
             }
 
-            public void OnApplicationSuspended()
+            public void Dispose()
             {
                 if (Connection != null)
                 {
@@ -566,11 +552,10 @@ namespace LolloGPS.Data
         }
 
         private static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
-        private static Semaphore _entriesSemaphore = new Semaphore(1, 1, EntriesSemaphoreName);
-        private const string EntriesSemaphoreName = "GPSHikingMate10_SQLiteEntriesSemaphore";
-        private static Semaphore _isClosedSemaphore = new Semaphore(1, 1, IsClosedSemaphoreName);
-        private const string IsClosedSemaphoreName = "GPSHikingMate10_SQLiteIsClosedSemaphore";
+        private static Semaphore _entriesSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteEntriesSemaphore");
         private static volatile bool _isClosed = true;
+        private static Semaphore _isClosedSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsClosedSemaphore");
+
         /// <summary>
         /// Gets a value to tell if the DB is suspended or active.
         /// </summary>
@@ -598,32 +583,32 @@ namespace LolloGPS.Data
             if (entry != null) return entry.Connection;
             return null;
         }
-        /// <summary>
-        /// Closes all connections managed by this pool.
-        /// </summary>
-        private static void ResetAllConnections()
-        {
-            try
-            {
-                DBManager._HistorySemaphore.WaitOne();
-                DBManager._Route0Semaphore.WaitOne();
-                DBManager._LandmarksSemaphore.WaitOne();
-                _entriesSemaphore.WaitOne();
-                foreach (var entry in _entries.Values)
-                {
-                    entry.OnApplicationSuspended();
-                }
-                _entries.Clear();
-            }
-            catch (Exception) { } // semaphore disposed
-            finally
-            {
-                SemaphoreExtensions.TryRelease(_entriesSemaphore);
-                SemaphoreExtensions.TryRelease(DBManager._LandmarksSemaphore);
-                SemaphoreExtensions.TryRelease(DBManager._Route0Semaphore);
-                SemaphoreExtensions.TryRelease(DBManager._HistorySemaphore);
-            }
-        }
+        ///// <summary>
+        ///// Closes all connections managed by this pool.
+        ///// </summary>
+        //private static void ResetAllConnections()
+        //{
+        //    try
+        //    {
+        //        DBManager._HistorySemaphore.WaitOne();
+        //        DBManager._Route0Semaphore.WaitOne();
+        //        DBManager._LandmarksSemaphore.WaitOne();
+        //        _entriesSemaphore.WaitOne();
+        //        foreach (var entry in _entries.Values)
+        //        {
+        //            entry.OnApplicationSuspended();
+        //        }
+        //        _entries.Clear();
+        //    }
+        //    catch (Exception) { } // semaphore disposed
+        //    finally
+        //    {
+        //        SemaphoreExtensions.TryRelease(_entriesSemaphore);
+        //        SemaphoreExtensions.TryRelease(DBManager._LandmarksSemaphore);
+        //        SemaphoreExtensions.TryRelease(DBManager._Route0Semaphore);
+        //        SemaphoreExtensions.TryRelease(DBManager._HistorySemaphore);
+        //    }
+        //}
         /// <summary>
         /// Closes a given connection managed by this pool. 
         /// </summary>
@@ -635,7 +620,7 @@ namespace LolloGPS.Data
                 Entry entry;
                 if (_entries.TryGetValue(connectionString, out entry))
                 {
-                    entry.OnApplicationSuspended();
+                    entry.Dispose();
                     _entries.Remove(connectionString);
                 }
             }
@@ -649,17 +634,22 @@ namespace LolloGPS.Data
         /// Call this method when the application is suspended.
         /// </summary>
         /// <remarks>Behaviour here is to close any open connections.</remarks>
-        public static Task CloseAsync()
+        public static void Close()
         {
             try
             {
-                _isClosed = true;
-                return Task.Run(() => ResetAllConnections());
+                // await Close2().ConfigureAwait(false);
+                Close2();
             }
             finally
             {
                 SemaphoreExtensions.TryRelease(_isClosedSemaphore);
             }
+        }
+        private static void Close2()
+        {
+            _isClosed = true;
+            //return Task.Run(() => ResetAllConnections());
         }
         /// <summary>
         /// Call this method when the application is resumed.
@@ -671,10 +661,7 @@ namespace LolloGPS.Data
                 if (_isClosed)
                 {
                     _isClosedSemaphore.WaitOne();
-                    if (_isClosed)
-                    {
-                        _isClosed = false;
-                    }
+                    Open2();
                 }
             }
             catch (Exception ex)
@@ -682,10 +669,70 @@ namespace LolloGPS.Data
                 Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
             }
         }
-        //public static bool TryOpenIsClosedSemaphore()
-        //{
-        //    Semaphore semaphore = null;
-        //    return Semaphore.TryOpenExisting(IsClosedSemaphoreName, out semaphore);
-        //}
+        private static void Open2()
+        {
+            if (_isClosed)
+            {
+                _isClosed = false;
+            }
+        }
+        private static Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
+        /// <summary>
+        /// Only call this from a task, which is not the main one. 
+        /// Otherwise, you will screw up the db open / closed logic.
+        /// </summary>
+        /// <param name="dbAction"></param>
+        /// <returns></returns>
+        public static async Task<bool> RunInOtherTaskAsync(Func<bool> dbAction)
+        {
+            //Semaphore semaphore = null;
+            bool isOk = false;
+            //if (Semaphore.TryOpenExisting(IsClosedSemaphoreName, out semaphore) // the db has been initialised in another task or in the current task. It may be open or closed.
+            //    && !semaphore.GetSafeWaitHandle().IsClosed) // IsClosed means that the Dispose or Close method was called and there are no references to the SafeHandle object on other threads.
+            //{
+            //    try
+            //    {
+            //        Open2();
+            //        isOk = action();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        isOk = false;
+            //        await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+            //    }
+            //    finally
+            //    {
+            //        // await Close2().ConfigureAwait(false);
+            //        Close2();
+            //    }
+            //}
+            //else
+            //{
+            try
+            {
+                _dbActionInOtherTaskSemaphore.WaitOne();
+                Open2();
+                isOk = dbAction();
+            }
+            catch (Exception ex)
+            {
+                isOk = false;
+                await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+            }
+            finally
+            {
+                // await Close().ConfigureAwait(false);
+                try
+                {
+                    Close2();
+                }
+                finally
+                {
+                    SemaphoreExtensions.TryRelease(_dbActionInOtherTaskSemaphore);
+                }
+            }
+            //}
+            return isOk;
+        }
     }
 }

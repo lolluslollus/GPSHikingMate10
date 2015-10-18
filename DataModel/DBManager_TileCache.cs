@@ -12,7 +12,7 @@ using Windows.Storage;
 // Add a reference to it in the project that uses it.
 namespace LolloGPS.Data.TileCache
 {
-    sealed class DBManager
+    internal static class DBManager
     {
         internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
         internal static readonly bool _isStoreDateTimeAsTicks = true;
@@ -77,14 +77,14 @@ namespace LolloGPS.Data.TileCache
 
         private class LolloSQLiteConnectionMT
         {
-            public static Task<TileCacheRecord> ReadRecordAsync(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
+            public static Task<TileCacheRecord> ReadRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
             {
-                return Task.Run<TileCacheRecord>(delegate
+                return Task.Run(delegate
                 {
                     return ReadRecord(dbPath, openFlags, storeDateTimeAsTicks, semaphore, primaryKey);
                 });
             }
-            private static TileCacheRecord ReadRecord(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
+            private static TileCacheRecord ReadRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
                 TileCacheRecord pk_mt = primaryKey;
@@ -101,17 +101,19 @@ namespace LolloGPS.Data.TileCache
                         result = command.GetOneRecord();
                     }
                 }
-                catch (Exception exc)
+                catch (Exception ex)
                 {
-                    Debug.WriteLine(exc.ToString() + exc.Message);
+                    // Ignore semaphore disposed or semaphore null exceptions
+                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
-                finally // LOLLO TEST: more tolerant semaphores when reading
+                finally
                 {
                     SemaphoreSlimSafeRelease.TryRelease(semaphore);
                 }
                 return result;
             }
-            public static Task<int> DeleteAsync(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string[] folderNamesToBeDeleted)
+            public static Task<int> DeleteAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string[] folderNamesToBeDeleted)
             {
                 return Task.Run(delegate
                 {
@@ -133,9 +135,11 @@ namespace LolloGPS.Data.TileCache
                             }
                         }
                     }
-                    catch (Exception exc)
+                    catch (Exception ex)
                     {
-                        Debug.WriteLine("ERROR in DeleteAsync(): " + exc.ToString() + exc.Message);
+                        // Ignore semaphore disposed or semaphore null exceptions
+                        if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+                            Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                     }
                     finally
                     {
@@ -144,14 +148,14 @@ namespace LolloGPS.Data.TileCache
                     return howManyRecordsProcessed;
                 });
             }
-            public static Task<bool> InsertRecordAsync(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
+            public static Task<bool> InsertRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
             {
                 return Task.Run(delegate
                 {
                     return InsertRecord(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
                 });
             }
-            private static bool InsertRecord(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
+            private static bool InsertRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
                 TileCacheRecord item_mt = item;
@@ -197,7 +201,9 @@ namespace LolloGPS.Data.TileCache
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("ERROR on InsertRecord: " + ex.ToString());
+                    // Ignore semaphore disposed or semaphore null exceptions
+                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
                 finally
                 {
@@ -205,15 +211,14 @@ namespace LolloGPS.Data.TileCache
                 }
                 return result;
             }
-            public static Task<bool> UpdateRecordAsync(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
+            public static Task<bool> UpdateRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
             {
                 return Task.Run(delegate
                 {
                     return UpdateRecord(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
                 });
             }
-
-            private static bool UpdateRecord(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
+            private static bool UpdateRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
                 TileCacheRecord item_mt = item;
@@ -251,7 +256,9 @@ namespace LolloGPS.Data.TileCache
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("ERROR on InsertRecord: " + ex.ToString());
+                    // Ignore semaphore disposed or semaphore null exceptions
+                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
+                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 }
                 finally
                 {
@@ -264,7 +271,7 @@ namespace LolloGPS.Data.TileCache
 
     internal static class LolloSQLiteConnectionPoolMT
     {
-        private class Entry
+        private sealed class Entry : IDisposable
         {
             public SQLiteConnectionString ConnectionString { get; private set; }
             public TileSQLiteConnection Connection { get; private set; }
@@ -275,7 +282,7 @@ namespace LolloGPS.Data.TileCache
                 Connection = new TileSQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
             }
 
-            public void OnApplicationSuspended()
+            public void Dispose()
             {
                 if (Connection != null)
                 {
@@ -293,7 +300,7 @@ namespace LolloGPS.Data.TileCache
         /// Gets a value telling if the DB is suspended.
         /// </summary>
         public static bool IsClosed { get { return _isClosed; } }
-        public static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+        internal static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
         {
             Entry entry = null;
             try
@@ -307,7 +314,12 @@ namespace LolloGPS.Data.TileCache
                     _entries[key] = entry;
                 }
             }
-            catch (Exception) { } // semaphore disposed
+            catch (Exception ex)
+            {
+                // Ignore semaphore disposed or semaphore null exceptions
+                if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+            }
             finally
             {
                 SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
@@ -327,11 +339,15 @@ namespace LolloGPS.Data.TileCache
                 _entriesSemaphore.Wait();
                 foreach (var entry in _entries.Values)
                 {
-                    entry.OnApplicationSuspended();
+                    entry.Dispose();
                 }
                 _entries.Clear();
             }
-            catch (Exception) { } // semaphore disposed
+            catch (Exception ex) {
+                // Ignore semaphore disposed or semaphore null exceptions
+                if (SemaphoreSlimSafeRelease.IsAlive(DBManager._writingSemaphore) && SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+            }
             finally
             {
                 SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
@@ -349,30 +365,34 @@ namespace LolloGPS.Data.TileCache
                 Entry entry;
                 if (_entries.TryGetValue(connectionString, out entry))
                 {
-                    entry.OnApplicationSuspended();
+                    entry.Dispose();
                     _entries.Remove(connectionString);
                 }
             }
-            catch (Exception) { } // semaphore disposed
+            catch (Exception ex)
+            {
+                // Ignore semaphore disposed or semaphore null exceptions
+                if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+            }
             finally
             {
-                try
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
-                }
-                catch (Exception) { } // semaphore disposed
+                SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
             }
         }
         /// <summary>
         /// Call this method when the application is suspended.
         /// </summary>
         /// <remarks>Behaviour here is to close any open connections.</remarks>
-        public static Task CloseAsync()
+        public static async Task CloseAsync()
         {
             try
             {
+                // block any new db operations
                 _isClosed = true;
-                return Task.Run(() => ResetAllConnections());
+                // wait until there is a free slot between operations taking place
+                // and break off all queued operations
+                await Task.Run(() => ResetAllConnections()).ConfigureAwait(false);
             }
             finally
             {
@@ -394,12 +414,14 @@ namespace LolloGPS.Data.TileCache
             }
             catch (Exception ex)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.BackgroundLogFilename);
+                // Ignore semaphore disposed or semaphore null exceptions
+                if (SemaphoreSlimSafeRelease.IsAlive(_isClosedSemaphore))
+                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
             }
         }
     }
 
-    public sealed class TileSQLiteConnection : SQLiteConnection
+    internal sealed class TileSQLiteConnection : SQLiteConnection
     {
         public TileSQLiteConnection(string databasePath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks = false)
             : base(databasePath, openFlags, storeDateTimeAsTicks)
@@ -428,7 +450,7 @@ namespace LolloGPS.Data.TileCache
             return CreateCommand(sCommand);
         }
     }
-    public sealed class TileCacheCommand : SQLiteCommand
+    internal sealed class TileCacheCommand : SQLiteCommand
     {
         public TileCacheCommand(SQLiteConnection conn) : base(conn) { }
         public LolloGPS.Data.TileCache.TileCacheRecord GetOneRecord()
@@ -480,6 +502,5 @@ namespace LolloGPS.Data.TileCache
             }
             return null;
         }
-
     }
 }

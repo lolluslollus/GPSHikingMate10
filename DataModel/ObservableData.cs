@@ -42,6 +42,8 @@ namespace LolloGPS.Data
                     });
                 }
             }
+            catch (InvalidOperationException) // called from a background task: ignore
+            { }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
