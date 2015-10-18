@@ -606,6 +606,7 @@ namespace LolloGPS.Data
         public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess = true)
         {
             List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
+
             try
             {
                 await _historySemaphore.WaitAsync().ConfigureAwait(false);
@@ -634,9 +635,7 @@ namespace LolloGPS.Data
                     }
 
                     SetCurrentToLast();
-
                 }).AsTask().ConfigureAwait(false);
-
             }
             catch (Exception exc0)
             {
@@ -753,39 +752,35 @@ namespace LolloGPS.Data
         }
         public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess = true)
         {
-            List<PointRecord> dataRecords = await DBManager.GetRoute0Async();
+            List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
 
             try
             {
-                await _route0Semaphore.WaitAsync();
-                _route0.IsObserving = false;
-                _route0.Clear();
+                await _route0Semaphore.WaitAsync().ConfigureAwait(false);
 
-                if (dataRecords != null)
+                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                 {
-                    try
-                    {
-                        if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
+                    _route0.Clear();
 
-                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                    if (dataRecords != null)
+                    {
+                        try
                         {
-                            _route0.IsObserving = true;
+                            if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
                             _route0.AddRange(dataRecords.Where(a => !a.IsEmpty()));
-
-                        }).AsTask().ConfigureAwait(false);
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            LastMessage = "Only part of the route is drawn";
+                        }
+                        catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInRoute
+                        {
+                            var howMuchMemoryLeft = GC.GetTotalMemory(true);
+                            LastMessage = "Only part of the route is drawn";
+                            Logger.Add_TPL("OutOfMemoryException in PersistentData.SetRoute0()", Logger.PersistentDataLogFilename);
+                        }
                     }
-                    catch (IndexOutOfRangeException)
-                    {
-                        LastMessage = "Only part of the route is drawn";
-                    }
-                    catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInRoute
-                    {
-                        var howMuchMemoryLeft = GC.GetTotalMemory(true);
-                        LastMessage = "Only part of the route is drawn";
-                        Logger.Add_TPL("OutOfMemoryException in PersistentData.SetRoute0()", Logger.PersistentDataLogFilename);
-                    }
-                }
-                _route0.IsObserving = true;
+                }).AsTask().ConfigureAwait(false);
             }
             catch (Exception exc0)
             {
@@ -822,37 +817,35 @@ namespace LolloGPS.Data
         }
         public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess = true)
         {
-            List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync();
+            List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync().ConfigureAwait(false);
 
             try
             {
-                await _landmarksSemaphore.WaitAsync();
-                _landmarks.IsObserving = false;
-                _landmarks.Clear();
+                await _landmarksSemaphore.WaitAsync().ConfigureAwait(false);
 
-                if (dataRecords != null)
+                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                 {
-                    try
+                    _landmarks.Clear();
+
+                    if (dataRecords != null)
                     {
-                        if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
-                        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                        try
                         {
-                            _landmarks.IsObserving = true;
+                            if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
                             _landmarks.AddRange(dataRecords.Where(a => !a.IsEmpty()));
-                        }).AsTask().ConfigureAwait(false);
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            LastMessage = "Only some landmarks are drawn";
+                        }
+                        catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInLandmarks
+                        {
+                            var howMuchMemoryLeft = GC.GetTotalMemory(true);
+                            LastMessage = "Only some landmarks are drawn";
+                            Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
+                        }
                     }
-                    catch (IndexOutOfRangeException)
-                    {
-                        LastMessage = "Only some landmarks are drawn";
-                    }
-                    catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInLandmarks
-                    {
-                        var howMuchMemoryLeft = GC.GetTotalMemory(true);
-                        LastMessage = "Only some landmarks are drawn";
-                        Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
-                    }
-                }
-                _landmarks.IsObserving = true;
+                }).AsTask().ConfigureAwait(false);
             }
             catch (Exception exc0)
             {
