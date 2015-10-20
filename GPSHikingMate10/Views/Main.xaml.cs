@@ -351,17 +351,17 @@ namespace LolloGPS.Core
 
 		private async void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.LoadSeriesAsync(PersistentData.Tables.Route0).ConfigureAwait(false);
+			await _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0).ConfigureAwait(false);
 		}
 
 		private async void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.SaveSeriesAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
+			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
 		}
 
 		private async void OnSaveRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.SaveSeriesAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
+			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
 		}
 
 		private async void OnClearRoute0_Click(object sender, RoutedEventArgs e)
@@ -371,7 +371,7 @@ namespace LolloGPS.Core
 
 		private async void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.LoadSeriesAsync(PersistentData.Tables.Landmarks).ConfigureAwait(false);
+			await _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks).ConfigureAwait(false);
 		}
 
 		private async void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
@@ -381,7 +381,7 @@ namespace LolloGPS.Core
 
 		private async void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.SaveSeriesAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks").ConfigureAwait(false);
+			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks").ConfigureAwait(false);
 		}
 
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)

@@ -148,7 +148,7 @@ namespace LolloGPS.GPSInteraction
                             //{
                             //    if (loc.Item1)
                             //    {
-                            //        Task dis = CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
+                            //        Task dis = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
                             //    }
                             //}
                         }
@@ -355,7 +355,7 @@ namespace LolloGPS.GPSInteraction
             string errorMsg = string.Empty;
             BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
             _getlocTask = GetTaskIfAlreadyRegistered();
-            
+
             if (_getlocTask == null) // bkg task not registered yet: register it
             {
                 try
@@ -454,7 +454,7 @@ namespace LolloGPS.GPSInteraction
             //{
             //    if (loc.Item1)
             //    {
-            //        Task dis = CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
+            //        Task dis = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
             //    }
             //}
         }
@@ -519,7 +519,7 @@ namespace LolloGPS.GPSInteraction
                     {
                         pos = await _geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
                         dataRecord = await AppendGeoPositionAsync(_myPersistentData, pos, false).ConfigureAwait(false);
-                        result = Tuple.Create<bool, PointRecord>(false, dataRecord);
+                        result = Tuple.Create(false, dataRecord);
                     }
                 }
                 catch (UnauthorizedAccessException)
@@ -533,10 +533,11 @@ namespace LolloGPS.GPSInteraction
                     result = Tuple.Create<bool, PointRecord>(false, null);
                     SetLastMessage_UI("location acquisition cancelled");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     result = Tuple.Create<bool, PointRecord>(false, null);
                     SetLastMessage_UI("cannot get location");
+                    await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -583,28 +584,29 @@ namespace LolloGPS.GPSInteraction
             newDataRecord.SpeedInMetreSec = pos.Coordinate.Speed ?? default(Double);
         }
 
-        public static bool AppendGeoPosition(PersistentData persistentData, Geoposition pos, bool checkMaxEntries)
+        public static bool AppendGeoPositionOnlyDb(PersistentData persistentData, Geoposition pos, bool checkMaxEntries)
         {
             PointRecord newDataRecord = new PointRecord();
             InitNewHistoryRecord(pos, newDataRecord);
-            bool isOk = persistentData.AddHistoryRecord(newDataRecord, checkMaxEntries);
+            bool isOk = persistentData.AddHistoryRecordOnlyDb(newDataRecord, checkMaxEntries);
             return isOk;
         }
 
         private void SetLastMessage_UI(string message)
         {
-            // if (_persistentData != null) _persistentData.LastMessage = message;
-            if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-            {
-                if (_myPersistentData != null) _myPersistentData.LastMessage = message;
-            }
-            else
-            {
-                IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                {
-                    if (_myPersistentData != null) _myPersistentData.LastMessage = message;
-                });
-            }
+            if (_myPersistentData != null) _myPersistentData.LastMessage = message;
+            //// if (_persistentData != null) _persistentData.LastMessage = message;
+            //if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+            //{
+            //    if (_myPersistentData != null) _myPersistentData.LastMessage = message;
+            //}
+            //else
+            //{
+            //    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+            //    {
+            //        if (_myPersistentData != null) _myPersistentData.LastMessage = message;
+            //    });
+            //}
         }
         #endregion services
     }

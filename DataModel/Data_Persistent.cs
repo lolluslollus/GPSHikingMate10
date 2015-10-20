@@ -667,16 +667,16 @@ namespace LolloGPS.Data
             try
             {
                 await _historySemaphore.WaitAsync();
-                if (CoreApplication.MainView.Dispatcher.HasThreadAccess)
+                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
                 {
-                    return AddHistoryRecord2(dataRecord, checkMaxEntries, false);
+                    return AddHistoryRecord2(dataRecord, checkMaxEntries);
                 }
                 else
                 {
                     bool result = false;
-                    await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                     {
-                        result = AddHistoryRecord2(dataRecord, checkMaxEntries, false);
+                        result = AddHistoryRecord2(dataRecord, checkMaxEntries);
                     }).AsTask().ConfigureAwait(false);
                     return result;
                 }
@@ -686,12 +686,12 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
             }
         }
-        public bool AddHistoryRecord(PointRecord dataRecord, bool checkMaxEntries)
+        public bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
         {
             try
             {
                 _historySemaphore.Wait();
-                bool isOk = AddHistoryRecord2(dataRecord, checkMaxEntries, true);
+                bool isOk = AddHistoryRecord2OnlyDb(dataRecord, checkMaxEntries);
                 return isOk;
             }
             finally
@@ -700,7 +700,7 @@ namespace LolloGPS.Data
             }
         }
 
-        private bool AddHistoryRecord2(PointRecord dataRecord, bool checkMaxEntries, bool runDBsync)
+        private bool AddHistoryRecord2(PointRecord dataRecord, bool checkMaxEntries)
         {
             if (dataRecord != null && !dataRecord.IsEmpty() && History.Count < MaxRecordsInHistory)
             {
@@ -708,24 +708,15 @@ namespace LolloGPS.Data
                 {
                     //int index = GetIndexCheckingDateAscending(dataRecord, this); // no more needed if we update on the go!
                     //History.Insert(index, dataRecord);
-                    History.Add(dataRecord); // we don't need to need to clone the record first, if the callers always instantiate a new record
+                    _history.Add(dataRecord); // we don't need to need to clone the record first, if the callers always instantiate a new record
 
-                    bool isOk = false;
-                    if (runDBsync)
-                    {
-                        isOk = DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
-                    }
-                    else
-                    {
-                        Task insert = DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries);
-                        isOk = true; // we cannot be sure...
-                    }
+                    Task insert = DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries);
 
                     Current = dataRecord;
                     LastMessage = dataRecord.Status;
 
                     CurrentChanged?.Invoke(this, EventArgs.Empty);
-                    return isOk;
+                    return true;
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -746,6 +737,33 @@ namespace LolloGPS.Data
                 return false;
             }
         }
+        private bool AddHistoryRecord2OnlyDb(PointRecord dataRecord, bool checkMaxEntries)
+        {
+            if (dataRecord != null && !dataRecord.IsEmpty() && History.Count < MaxRecordsInHistory)
+            {
+                try
+                {
+                    bool isOk = DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
+                    return isOk;
+                }
+                catch (IndexOutOfRangeException ex0)
+                {
+                    Logger.Add_TPL(ex0.ToString(), Logger.PersistentDataLogFilename);
+                    return false;
+                }
+                catch (OutOfMemoryException ex1) // TODO this should never happen. If it does, lower MaxRecordsInHistory
+                {
+                    var howMuchMemoryLeft = GC.GetTotalMemory(true);
+                    Logger.Add_TPL(ex1.ToString(), Logger.PersistentDataLogFilename);
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         private void SetCurrentToLast()
         {
             if (History != null && History.Count > 0)
@@ -1092,7 +1110,7 @@ namespace LolloGPS.Data
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                await CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+                await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                 {
                     if (tileSource.IsAll)
                     {

@@ -75,7 +75,6 @@ namespace LolloBaseUserControls
         {
             if (_isHandlersActive == false)
             {
-                // Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested // LOLLO TODO catch this (it is the soft back key in tablet mode)
                 if (_appView != null) _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
                 //if (_orientationSensor != null) _orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
                 //if (_isHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareOrSoftwareButtons_BackPressed;

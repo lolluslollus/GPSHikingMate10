@@ -34,7 +34,7 @@ namespace GPX
         /// <param name="whichTable"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static async Task<Tuple<bool, string>> LoadSeriesIntoDbAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
+        public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
         {
             if (whichTable == PersistentData.Tables.Route0) return await LoadRoute0Async(gpxFile, token).ConfigureAwait(false);
             else if (whichTable == PersistentData.Tables.Landmarks) return await LoadLandmarksAsync(gpxFile, token).ConfigureAwait(false);

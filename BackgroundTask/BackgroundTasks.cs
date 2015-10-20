@@ -78,7 +78,7 @@ namespace BackgroundTasks
                     {
                         _isCancellationAllowedNow = false;
                         bool isSaved = false;
-                        isSaved = await PersistentData.RunDbOpInOtherTaskAsync(() => GPSInteractor.AppendGeoPosition(myData, pos, true)).ConfigureAwait(false);
+                        isSaved = await PersistentData.RunDbOpInOtherTaskAsync(() => GPSInteractor.AppendGeoPositionOnlyDb(myData, pos, true)).ConfigureAwait(false);
                         if (isSaved)
                         {
                             Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");

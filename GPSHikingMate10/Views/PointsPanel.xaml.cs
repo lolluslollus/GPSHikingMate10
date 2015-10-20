@@ -180,7 +180,7 @@ namespace LolloGPS.Core
                     if (geoPosTuple.Item2 != null) geoPosTuple.Item2.HumanDescription = PersistentData?.Target?.HumanDescription;
                     //if (geoPosTuple.Item1) // disable bkg task if the app has no access to location? No, the user might grant it later
                     //{
-                    //    Task dis = CoreApplication.MainView.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => PersistentData.IsBackgroundEnabled = false).AsTask();
+                    //    Task dis = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => PersistentData.IsBackgroundEnabled = false).AsTask();
                     //}
                     //else
                     //{
