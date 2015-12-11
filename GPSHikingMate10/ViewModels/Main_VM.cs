@@ -239,25 +239,10 @@ namespace LolloGPS.Core
 		public void SetLastMessage_UI(string message)
 		{
 			MyPersistentData.LastMessage = message;
-			//if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-			//{
-			//    MyPersistentData.LastMessage = message;
-			//}
-			//else
-			//{
-			//    IAsyncAction msg = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
-			//    {
-			//        MyPersistentData.LastMessage = message;
-			//    });
-			//}
 		}
 		public async void GetAFix()
 		{
 			var fix = await _myGPSInteractor.GetGeoLocationAsync().ConfigureAwait(false);
-			//if (fix != null && fix.Item1 && MyPersistentData != null) // disable bkg task if the app has no access to location? No, the user might grant it later
-			//{
-			//    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => MyPersistentData.IsBackgroundEnabled = false).AsTask().ConfigureAwait(false);
-			//}
 		}
 		public async Task<int> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{

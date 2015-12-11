@@ -144,13 +144,6 @@ namespace LolloGPS.GPSInteraction
                         if (isOk && _myPersistentData.IsBackgroundEnabled)
                         {
                             var loc = await GetGeoLocationAsync().ConfigureAwait(false);
-                            //if (loc != null && _myPersistentData != null) // disable bkg task if the app has no access to location? No, the user might grant it later
-                            //{
-                            //    if (loc.Item1)
-                            //    {
-                            //        Task dis = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
-                            //    }
-                            //}
                         }
                     }
                 }
@@ -242,51 +235,6 @@ namespace LolloGPS.GPSInteraction
             RemoveHandlers_GeoLocator();
         }
 
-        //async private void OnGeolocator_StatusChangedAsync(Geolocator sender, StatusChangedEventArgs e)
-        //{
-        //    //this method runs in a worker thread and dispatches its junk to the ui thread
-        //    CoreDispatcher dispatcher = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher;
-        //    await dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-        //    {
-        //        switch (e.Status)
-        //        {
-        //            case PositionStatus.Ready:
-        //                // Location platform is providing valid data.
-        //                SetLastMessage_UI("Ready");
-        //                break;
-
-        //            case PositionStatus.Initializing:
-        //                // Location platform is acquiring a fix. It may or may not have data. Or the data may be less accurate.
-        //                SetLastMessage_UI("Initializing");
-        //                break;
-
-        //            case PositionStatus.NoData:
-        //                // Location platform could not obtain location data.
-        //                SetLastMessage_UI("No data");
-        //                break;
-
-        //            case PositionStatus.Disabled:
-        //                // The permission to access location data is denied by the user or other policies.
-        //                SetLastMessage_UI("Disabled");
-        //                break;
-
-        //            case PositionStatus.NotInitialized:
-        //                // The location platform is not initialized. This indicates that the application has not made a request for location data.
-        //                SetLastMessage_UI("Not initialized");
-        //                break;
-
-        //            case PositionStatus.NotAvailable:
-        //                // The location platform is not available on this version of the OS.
-        //                SetLastMessage_UI("Not available");
-        //                break;
-
-        //            default:
-        //                SetLastMessage_UI("Unknown");
-        //                break;
-        //        }
-        //    });
-        //}
-
         private async void OnGeolocator_PositionChangedAsync(Geolocator sender, PositionChangedEventArgs e)
         {
             if (_getLocationCts == null) // get out if another request is already pending
@@ -295,15 +243,11 @@ namespace LolloGPS.GPSInteraction
                 CancellationToken token = _getLocationCts.Token;
                 try
                 {
-                    //CoreDispatcher dispatcher = CoreApplication.MainView.CoreWindow.Dispatcher;
-                    //await dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                    //{
                     if (e != null)
                     {
                         Geoposition pos = e.Position;
                         await AppendGeoPositionAsync(_myPersistentData, pos, false).ConfigureAwait(false);
                     }
-                    //}).AsTask(token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { } // ignore
                 catch (Exception exc)
@@ -450,13 +394,6 @@ namespace LolloGPS.GPSInteraction
         {
             Debug.WriteLine("BackgroundTask completed, event caught");
             Task getLoc = GetGeoLocationAsync();
-            //if (loc != null && _myPersistentData != null) // disable bkg task if the app has no access to location? No, the user might grant it later
-            //{
-            //    if (loc.Item1)
-            //    {
-            //        Task dis = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => _myPersistentData.IsBackgroundEnabled = false).AsTask();
-            //    }
-            //}
         }
 
         private async Task<bool> TryUpdatePropsAfterPropsChanged_Background()
@@ -595,18 +532,6 @@ namespace LolloGPS.GPSInteraction
         private void SetLastMessage_UI(string message)
         {
             if (_myPersistentData != null) _myPersistentData.LastMessage = message;
-            //// if (_persistentData != null) _persistentData.LastMessage = message;
-            //if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-            //{
-            //    if (_myPersistentData != null) _myPersistentData.LastMessage = message;
-            //}
-            //else
-            //{
-            //    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-            //    {
-            //        if (_myPersistentData != null) _myPersistentData.LastMessage = message;
-            //    });
-            //}
         }
         #endregion services
     }

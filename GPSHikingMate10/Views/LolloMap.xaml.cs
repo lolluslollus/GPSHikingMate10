@@ -34,7 +34,7 @@ namespace LolloGPS.Core
 		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number. It would be nice to have more though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
 		// Things look better with win 10, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
-		internal const Double ScaleImageWidth = 300.0; //200.0;
+		internal const double ScaleImageWidth = 300.0; //200.0;
 		//internal const string LandmarkTag = "Landmark";
 		internal const int HistoryTabIndex = 20;
 		internal const int Route0TabIndex = 10;
@@ -48,14 +48,14 @@ namespace LolloGPS.Core
 		private static MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["Route0Brush"])).Color,
-			StrokeThickness = (Double)(App.Current.Resources["Route0Thickness"]),
+			StrokeThickness = (double)(App.Current.Resources["Route0Thickness"]),
 			MapTabIndex = Route0TabIndex,
 		};
 
 		private static MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["HistoryBrush"])).Color,
-			StrokeThickness = (Double)(App.Current.Resources["HistoryThickness"]),
+			StrokeThickness = (double)(App.Current.Resources["HistoryThickness"]),
 			MapTabIndex = HistoryTabIndex,
 		};
 		//private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -227,10 +227,10 @@ namespace LolloGPS.Core
 				}
 				else if (coll.Count > 1)
 				{
-					Double _minLongitude = default(Double);
-					Double _maxLongitude = default(Double);
-					Double _minLatitude = default(Double);
-					Double _maxLatitude = default(Double);
+					double _minLongitude = default(double);
+					double _maxLongitude = default(double);
+					double _minLatitude = default(double);
+					double _maxLatitude = default(double);
 
 					_minLongitude = coll.Min(a => a.Longitude);
 					_maxLongitude = coll.Max(a => a.Longitude);
@@ -546,8 +546,6 @@ namespace LolloGPS.Core
 			GeoboundingBox output = null;
 			await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
 			{
-				// double minLat = default(double); double maxLat = default(double); double minLon = default(double); double maxLon = default(double);
-
 				Geopoint topLeftGeopoint = null;
 				Geopoint topRightGeopoint = null;
 				Geopoint bottomLeftGeopoint = null;
@@ -808,8 +806,8 @@ namespace LolloGPS.Core
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null) return 0.0;
-			Double mapHeading = 0.0;
-			Double.TryParse(value.ToString(), out mapHeading);
+			double mapHeading = 0.0;
+			double.TryParse(value.ToString(), out mapHeading);
 			return -mapHeading;
 		}
 
@@ -821,20 +819,20 @@ namespace LolloGPS.Core
 
 	public class ScaleSizeConverter : IValueConverter
 	{
-		//private const Double VerticalHalfCircM = 20004000.0;
-		private const Double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
-		private static Double _lastZoomScale = 0.0; //remember this to avoid repeating the same calculation
-		private static Double _imageScaleTransform = 1.0;
-		private static String _distRoundedFormatted = "1 m";
-		private static Double _rightLabelX = LolloMap.ScaleImageWidth;
+		//private const double VerticalHalfCircM = 20004000.0;
+		private const double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
+		private static double _lastZoomScale = 0.0; //remember this to avoid repeating the same calculation
+		private static double _imageScaleTransform = 1.0;
+		private static string _distRoundedFormatted = "1 m";
+		private static double _rightLabelX = LolloMap.ScaleImageWidth;
 
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			MapControl mapControl = LolloMap.GetMapControlInstance();
-			Double currentZoomScale = 0.0;
+			double currentZoomScale = 0.0;
 			if (mapControl != null)
 			{
-				Double.TryParse(value.ToString(), out currentZoomScale);
+				double.TryParse(value.ToString(), out currentZoomScale);
 
 				if (currentZoomScale != _lastZoomScale)
 				{
@@ -846,7 +844,7 @@ namespace LolloGPS.Core
 					catch (Exception) { } // there may be exceptions if I am in a very awkward place in the map, such as the arctic
 				}
 			}
-			String param = parameter.ToString();
+			string param = parameter.ToString();
 			if (param == "imageScaleTransform")
 			{
 				return _imageScaleTransform;
@@ -871,35 +869,39 @@ namespace LolloGPS.Core
 			return 1.0; //should never get here
 		}
 
-		private static void Calc(MapControl mapControl)
+        // LOLLO check the mercator formulas at http://wiki.openstreetmap.org/wiki/Mercator
+        // and http://wiki.openstreetmap.org/wiki/EPSG:3857
+        // and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
+
+        private static void Calc(MapControl mapControl)
 		{
 			if (mapControl != null)
 			{
 				//we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
-				Double halfMapWidth = mapControl.ActualWidth / 2.0;
-				Double halfMapHeight = mapControl.ActualHeight / 2.0;
+				double halfMapWidth = mapControl.ActualWidth / 2.0;
+				double halfMapHeight = mapControl.ActualHeight / 2.0;
 				if (halfMapHeight <= 0 || halfMapWidth <= 0) return;
 
-				Double headingRadians = mapControl.Heading * Math.PI / 180.0;
+				double headingRadians = mapControl.Heading * Math.PI / 180.0;
 				Point pointN = new Point(halfMapWidth, halfMapHeight);
-				Double barLength = 99.0; // LolloMap.scaleImageWidth - 1; //I use a shortish bar length so it always fits snugly in the MapControl
+				double barLength = 99.0; // LolloMap.scaleImageWidth - 1; //I use a shortish bar length so it always fits snugly in the MapControl
 				//                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
 				Point pointS = new Point(halfMapWidth + barLength * Math.Sin(headingRadians), halfMapHeight + barLength * Math.Cos(headingRadians));
-				//Double checkIpotenusa = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
+				//double checkIpotenusa = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
 				Geopoint locationN = null;
 				Geopoint locationS = null;
 				mapControl.GetLocationFromOffset(pointN, out locationN);
 				mapControl.GetLocationFromOffset(pointS, out locationS);
-				Double dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.ScaleImageWidth / (barLength + 1); //need the abs for when the map is rotated
-				String distStr = Math.Truncate(dist).ToString(CultureInfo.InvariantCulture);
+				double dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.ScaleImageWidth / (barLength + 1); //need the abs for when the map is rotated
+				string distStr = Math.Truncate(dist).ToString(CultureInfo.InvariantCulture);
 				//work out next lower round distance because the scale must always be very round
-				String distStrRounded = distStr.Substring(0, 1);
+				string distStrRounded = distStr.Substring(0, 1);
 				for (int i = 0; i < distStr.Length - 1; i++)
 				{
 					distStrRounded += "0";
 				}
-				Double distRounded = 0.0;
-				Double.TryParse(distStrRounded, out distRounded);
+				double distRounded = 0.0;
+				double.TryParse(distStrRounded, out distRounded);
 
 				if (distRounded > 1000)
 				{

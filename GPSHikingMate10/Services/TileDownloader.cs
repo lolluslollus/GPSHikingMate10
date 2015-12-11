@@ -21,7 +21,7 @@ namespace LolloGPS.Core
         Task<GeoboundingBox> GetMinMaxLatLonAsync();
         BasicGeoposition GetCentre();
     }
-    public sealed class TileDownloader
+    public class TileDownloader
     {
         #region properties
         public const int MaxTilesToLeech = 10000;
@@ -35,7 +35,7 @@ namespace LolloGPS.Core
 
         public bool IsCancelled { get { return _isCancelledBySuspend || _isCancelledByUser || !(RuntimeData.GetInstance().IsConnectionAvailable); } }
 
-        private IGeoBoundingBoxProvider _gbbProvider = null;
+        protected IGeoBoundingBoxProvider _gbbProvider = null;
         #endregion properties
 
         #region events
@@ -52,7 +52,7 @@ namespace LolloGPS.Core
         #endregion events
 
         #region construct and dispose
-        internal TileDownloader(IGeoBoundingBoxProvider gbbProvider)
+        public TileDownloader(IGeoBoundingBoxProvider gbbProvider)
         {
             _gbbProvider = gbbProvider;
         }
@@ -101,8 +101,7 @@ namespace LolloGPS.Core
                         DownloadSession newSession = new DownloadSession(
                             tileCache.GetMinZoom(),
                             Math.Min(tileCache.GetMaxZoom(), maxDesiredZoomForDownloadingTiles_mt),
-                            gbb.NorthwestCorner,
-                            gbb.SoutheastCorner,
+                            gbb,
                             tileCache.TileSource.TechName);
                         // never write an invalid DownloadSession into the persistent data
                         if (newSession.IsValid) persistentData.LastDownloadSession = lastDownloadSession_mt = newSession;
@@ -250,8 +249,7 @@ namespace LolloGPS.Core
                     DownloadSession session = new DownloadSession(
                         tileCache.GetMinZoom(),
                         tileCache.GetMaxZoom(),
-                        gbb.NorthwestCorner,
-                        gbb.SoutheastCorner,
+                        gbb,
                         tileCache.TileSource.TechName);
                     if (session.IsValid)
                     {
@@ -272,7 +270,7 @@ namespace LolloGPS.Core
             return output;
         }
 
-        private List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
+        protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
         {
             List<TileCacheRecord> output = new List<TileCacheRecord>();
 
@@ -286,49 +284,101 @@ namespace LolloGPS.Core
                     {
                         TileCacheRecord topLeftTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
                         TileCacheRecord bottomRightTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
+                        int maxX4Zoom = MaxTilexX4Zoom(zoom);
                         Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
-                        for (int x = topLeftTile.X; x <= bottomRightTile.X; x++)
+
+                        // LOLLO new code begin
+                        bool exit = false;
+                        bool hasJumpedDateLine = false;
+
+                        int x = topLeftTile.X;
+                        while (!exit)
                         {
                             for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
                             {
                                 output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
                                 totalCnt++;
-                                if (totalCnt > MaxTilesToLeech) break;
+                                if (IsMustBreak(totalCnt))
+                                {
+                                    exit = true;
+                                    break;
+                                }
                             }
-                            if (totalCnt > MaxTilesToLeech || IsCancelled) break;
+
+                            x++;
+                            if (x > bottomRightTile.X)
+                            {
+                                if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
+                                {
+                                    if (x > maxX4Zoom)
+                                    {
+                                        x = 0;
+                                        hasJumpedDateLine = true;
+                                    }
+                                }
+                                else
+                                {
+                                    exit = true;
+                                }
+                            }
                         }
-                        if (totalCnt > MaxTilesToLeech || IsCancelled) break;
+                        // LOLLO new code end
+                        // LOLLO the previous code did not take into account the date line. It was:
+
+                        //for (int x = topLeftTile.X; x <= bottomRightTile.X; x++)
+                        //{
+                        //    for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
+                        //    {
+                        //        output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
+                        //        totalCnt++;
+                        //        if (IsMustBreak(totalCnt)) break;
+                        //    }
+                        //    if (IsMustBreak(totalCnt)) break;
+                        //}
+                        if (IsMustBreak(totalCnt)) break;
                     }
                 }
             }
             return output;
         }
+        private bool IsMustBreak(int totalCnt)
+        {
+            return totalCnt > MaxTilesToLeech || IsCancelled;
+        }
         #endregion read services
+
+        // LOLLO check the mercator formulas at http://wiki.openstreetmap.org/wiki/Mercator
+        // and http://wiki.openstreetmap.org/wiki/EPSG:3857
+        // and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
 
         #region private services
         private static double toRad = Math.PI / 180.0;
         private static double toDeg = 180.0 / Math.PI;
-        private static int Lon2TileX(double lonDeg, int z)
+        protected static int Lon2TileX(double lonDeg, int z)
         {
             //                   N * (lon + 180) / 360
-            return (int)(Math.Floor((lonDeg + 180.0) / 360.0 * Math.Pow(2.0, z)));
+            return Math.Max((int)(Math.Floor((lonDeg + 180.0) / 360.0 * Math.Pow(2.0, z))), 0);
         }
-        private static int Lat2TileY(double latDeg, int z)
+        protected static int Lat2TileY(double latDeg, int z)
         {
             //                   N *  { 1 - log[ tan ( lat ) + sec ( lat ) ] / Pi } / 2
             //      sec(x) = 1 / cos(x)
             //return (int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * Math.PI / 180.0) + 1.0 / Math.Cos(latDeg * Math.PI / 180.0)) / Math.PI) / 2.0 * Math.Pow(2.0, z)));
-            return (int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * toRad) + 1.0 / Math.Cos(latDeg * toRad)) / Math.PI) / 2.0 * Math.Pow(2.0, z)));
+            return Math.Max((int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * toRad) + 1.0 / Math.Cos(latDeg * toRad)) / Math.PI) / 2.0 * Math.Pow(2.0, z))), 0);
         }
-        private static int Zoom2TileN(int z)
+        protected static int MaxTilexX4Zoom(int z)
+        {
+            return Lon2TileX(179.9999999, z);
+        }
+        protected static int Zoom2TileN(int z)
         {
             return (int)Math.Pow(2.0, Convert.ToDouble(z));
         }
-        private static double TileX2Lon(int x, int z)
+        protected static double TileX2Lon(int x, int z)
         {
             return x / Math.Pow(2.0, z) * 360.0 - 180;
         }
-        private static double TileY2Lat(int y, int z)
+        protected static double TileY2Lat(int y, int z)
         {
             double n = Math.PI - 2.0 * Math.PI * y / Math.Pow(2.0, z);
             //return 180.0 / Math.PI * Math.Atan(0.5 * (Math.Exp(n) - Math.Exp(-n)));

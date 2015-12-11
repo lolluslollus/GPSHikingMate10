@@ -65,43 +65,6 @@ namespace Utilz
             }
         }
 
-        //private SimpleOrientation? _lastOrientation = null;
-        //private void OnSensor_OrientationChanged(SimpleOrientationSensor sender, SimpleOrientationSensorOrientationChangedEventArgs args)
-        //{
-        //    if (_lastOrientation == null || args.Orientation != _lastOrientation)
-        //    {
-        //        bool mustUpdate = false;
-        //        bool newTriggerValue = false;
-        //        switch (args.Orientation)
-        //        {
-        //            case SimpleOrientation.Facedown:
-        //                break;
-        //            case SimpleOrientation.Faceup:
-        //                break;
-        //            case SimpleOrientation.NotRotated:
-        //                mustUpdate = true;
-        //                newTriggerValue = true;
-        //                break;
-        //            case SimpleOrientation.Rotated180DegreesCounterclockwise:
-        //                mustUpdate = true;
-        //                newTriggerValue = true;
-        //                break;
-        //            case SimpleOrientation.Rotated270DegreesCounterclockwise:
-        //                mustUpdate = true;
-        //                newTriggerValue = false;
-        //                break;
-        //            case SimpleOrientation.Rotated90DegreesCounterclockwise:
-        //                mustUpdate = true;
-        //                newTriggerValue = false;
-        //                break;
-        //            default:
-        //                break;
-        //        }
-        //        _lastOrientation = args.Orientation;
-        //        //if (mustUpdate) UpdateTrigger(newTriggerValue);
-        //        if (mustUpdate) UpdateTrigger(_appView.VisibleBounds.Width > _appView.VisibleBounds.Height);
-        //    }
-        //}
         private Rect? _lastVisibleBounds = null;
         private void OnVisibleBoundsChanged(ApplicationView sender, object args)
         {

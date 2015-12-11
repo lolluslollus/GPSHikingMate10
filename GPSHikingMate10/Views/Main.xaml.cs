@@ -446,6 +446,11 @@ namespace LolloGPS.Core
 			MyPersistentData.IsShowingPivot = false;
 		}
 
+		private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
+		{
+			MyPersistentData.CycleMapStyle();
+		}
+
 		private void OnBack_Click(object sender, RoutedEventArgs e)
 		{
 			MyVM.GoBackMyButtonSoft();

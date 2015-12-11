@@ -178,11 +178,7 @@ namespace LolloGPS.Core
                 await PersistentData.LoadHistoryFromDbAsync(false);
                 RuntimeData.SetIsDBDataRead_UI(true);
                 Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(true)", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                // reregister events
-                //await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                //{
                     main.OnResuming();
-                //}).AsTask().ConfigureAwait(false);
                 // In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
                 // but I deregister them when suspending to make sure long running tasks are really stopped.
                 // This also includes the background task state check.

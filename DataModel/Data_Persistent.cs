@@ -378,30 +378,30 @@ namespace LolloGPS.Data
         public uint MaxBackgroundUpdatePeriodInMinutesProp { get { return MaxBackgroundUpdatePeriodInMinutes; } }
         [IgnoreDataMember]
         public int MaxRecordsInLandmarksProp { get { return MaxRecordsInLandmarks; } }
-        private String _lastMessage = String.Empty;
+        private string _lastMessage = String.Empty;
         [DataMember]
-        public String LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
+        public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
         private Boolean _isShowSpeed = false;
         [DataMember]
-        public Boolean IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged(); } }
-        private Boolean _isTracking = false;
+        public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged(); } }
+        private bool _isTracking = false;
         [DataMember]
-        public Boolean IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged(); } }
+        public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged(); } }
         private volatile Boolean _isBackgroundEnabled = false;
         [DataMember]
-        public Boolean IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged(); } }
-        private Double _tapTolerance = 20.0;
+        public bool IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged(); } }
+        private double _tapTolerance = 20.0;
         [DataMember]
-        public Double TapTolerance { get { return _tapTolerance; } set { _tapTolerance = value; RaisePropertyChanged(); } }
-        private Boolean _isShowDegrees = false;
+        public double TapTolerance { get { return _tapTolerance; } set { _tapTolerance = value; RaisePropertyChanged(); } }
+        private bool _isShowDegrees = false;
         [DataMember]
-        public Boolean IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged(); } }
+        public bool IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged(); } }
         private Boolean _isKeepAlive = false;
         [DataMember]
-        public Boolean IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged(); } }
-        private Boolean _isAllowMeteredConnection = false;
+        public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged(); } }
+        private bool _isAllowMeteredConnection = false;
         [DataMember]
-        public Boolean IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged(); } }
+        public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged(); } }
 
         private MapStyle _mapStyle = MapStyle.Terrain;
         [DataMember]

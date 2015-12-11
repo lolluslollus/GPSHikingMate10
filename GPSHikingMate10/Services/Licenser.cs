@@ -186,7 +186,7 @@ namespace LolloGPS.Core
 			//    Debug.WriteLine(item.DisplayName);
 			//    Debug.WriteLine(item.Name);
 			//}
-			var assetsFolder = await installLocationFolder.GetFolderAsync("Assets").AsTask<StorageFolder>().ConfigureAwait(false);
+			var assetsFolder = await installLocationFolder.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
 			DateTimeOffset folderCreateDate = assetsFolder.DateCreated;
 
 			if (Package.Current.InstalledDate.CompareTo(folderCreateDate) < 0) return Package.Current.InstalledDate;
@@ -367,6 +367,7 @@ namespace LolloGPS.Core
 				{
 					_lastNonNegativeUsageDays = LastNonNegativeUsageDays_Default;
 				}
+
 				string lastInstallDate = Utilz.RegistryAccess.GetValue(LastInstallDateKey);
 				try
 				{
@@ -376,6 +377,7 @@ namespace LolloGPS.Core
 				{
 					_lastInstallDate = Date_Default;
 				}
+
 				string lastExpiryDate = Utilz.RegistryAccess.GetValue(LastExpiryDateKey);
 				try
 				{

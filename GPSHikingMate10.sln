@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24627.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPSHikingMate10", "GPSHikingMate10\GPSHikingMate10.csproj", "{C1FC8E3C-7EDC-4CC0-B68E-8C9E1B4F4001}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -19,6 +19,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPSInteractor", "GPSInteractor\GPSInteractor.csproj", "{A23CD15A-9D3A-4FF6-95BD-EB0A2DDFC68E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPSHikingMate10BackgroundTasks", "BackgroundTask\GPSHikingMate10BackgroundTasks.csproj", "{FCCFA2FC-F84A-47EA-B42A-8D90D5545551}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject1", "UnitTestProject1\UnitTestProject1.csproj", "{CF4B0119-9515-4295-B2C9-C571BC91365E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -272,6 +274,50 @@ Global
 		{FCCFA2FC-F84A-47EA-B42A-8D90D5545551}.ReleaseNoStore|x64.Build.0 = ReleaseNoStore|x64
 		{FCCFA2FC-F84A-47EA-B42A-8D90D5545551}.ReleaseNoStore|x86.ActiveCfg = ReleaseNoStore|x86
 		{FCCFA2FC-F84A-47EA-B42A-8D90D5545551}.ReleaseNoStore|x86.Build.0 = ReleaseNoStore|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.ActiveCfg = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.Build.0 = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.Deploy.0 = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.ActiveCfg = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.Build.0 = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.Deploy.0 = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x86.ActiveCfg = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x86.Build.0 = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x86.Deploy.0 = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|Any CPU.ActiveCfg = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|Any CPU.Build.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|Any CPU.Deploy.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.ActiveCfg = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.Build.0 = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.Deploy.0 = Debug|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.ActiveCfg = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.Build.0 = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.Deploy.0 = Debug|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x86.ActiveCfg = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x86.Build.0 = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x86.Deploy.0 = Debug|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|Any CPU.ActiveCfg = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.ActiveCfg = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.Build.0 = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.Deploy.0 = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.ActiveCfg = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.Build.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.Deploy.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x86.ActiveCfg = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x86.Build.0 = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x86.Deploy.0 = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|Any CPU.ActiveCfg = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|Any CPU.Build.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|Any CPU.Deploy.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.ActiveCfg = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.Build.0 = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.Deploy.0 = Release|ARM
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.ActiveCfg = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.Build.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.Deploy.0 = Release|x64
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x86.ActiveCfg = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x86.Build.0 = Release|x86
+		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

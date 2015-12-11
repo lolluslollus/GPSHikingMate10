@@ -24,29 +24,6 @@
 			</NavigationThemeTransition>-->
 		</TransitionCollection>
 	</Page.Transitions>
-	<!--<Page.Resources>
-		-->
-	<!-- Animates the message area -->
-	<!--
-		<Storyboard x:Name="Storyboard_NewMessage" >
-			<DoubleAnimationUsingKeyFrames
-						Storyboard.TargetName="StatusBox"
-						Storyboard.TargetProperty="Opacity"
-						EnableDependentAnimation="True" AutoReverse="False" Duration="0:0:5">
-				<LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.3"/>
-				<DiscreteDoubleKeyFrame Value="1" KeyTime="0:0:4.7" />
-				<LinearDoubleKeyFrame Value="0" KeyTime="0:0:5"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames
-						Storyboard.TargetName="StatusBoxText"
-						Storyboard.TargetProperty="Opacity"
-						EnableDependentAnimation="True" AutoReverse="False" Duration="0:0:5">
-				<LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.3"/>
-				<DiscreteDoubleKeyFrame Value="1" KeyTime="0:0:4.7" />
-				<LinearDoubleKeyFrame Value="0" KeyTime="0:0:5"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-	</Page.Resources>-->
 
 	<Grid>
 		<Grid.RowDefinitions>
@@ -86,22 +63,7 @@
 				HorizontalAlignment="Center" VerticalAlignment="Center"
 				Style="{StaticResource HugeTextStyle}"
 				Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}}" 
-				IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-				>
-				<!--<TextBlock.Triggers>
-					<EventTrigger RoutedEvent="TextBlock.Loaded">
-						<BeginStoryboard>
-							<Storyboard x:Name="Storyboard_LoadingNotice">
-								<DoubleAnimation
-									Storyboard.TargetName="LoadingNoticeTextBlock"
-									Storyboard.TargetProperty="Opacity"
-									From="1.0" To="0.0" Duration="0:0:0.6"
-									RepeatBehavior="Forever"
-									AutoReverse="True"/>
-							</Storyboard>
-						</BeginStoryboard>
-					</EventTrigger>
-				</TextBlock.Triggers>-->
+				IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
 			</TextBlock>
 		</Grid>
 		<!-- Map, altitude and their overlays -->
@@ -699,18 +661,9 @@
 			x:Name="BottomButtonBar" 
 			Visibility="Collapsed"
 			HorizontalAlignment="Center" VerticalAlignment="Center">
-			<!--<Grid.Background>
-				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-					<GradientStop Color="{ThemeResource PhoneBackgroundColor}" Offset="1"/>
-					<GradientStop Color="Transparent" Offset="0"/>
-				</LinearGradientBrush>
-			</Grid.Background>-->
-
-			<!--<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition/>
-			</Grid.RowDefinitions>-->
 			<Grid.ColumnDefinitions>
+				<ColumnDefinition />
+				<ColumnDefinition />
 				<ColumnDefinition />
 				<ColumnDefinition />
 				<ColumnDefinition />
@@ -745,6 +698,23 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{Binding IsBackButtonEnabled}"
 						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+			<!-- map style -->
+			<TextBlock Grid.Column="4"
+                Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
+                TextWrapping="Wrap"
+                Style="{StaticResource BaseMessageStyle}"
+                VerticalAlignment="Center"/>
+			<AppBarButton Grid.Column="4"
+                HorizontalAlignment="Left"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                IsCompact="True"
+                Click="OnMapStyleButton_Click">
+				<AppBarButton.Icon>
+					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+                        Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+				</AppBarButton.Icon>
+			</AppBarButton>
+
 		</Grid>
 		<!-- left button bar -->
 		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" 
@@ -759,6 +729,8 @@
 			</Grid.Background>-->
 
 			<Grid.RowDefinitions>
+				<RowDefinition />
+				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
@@ -793,6 +765,23 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{Binding IsBackButtonEnabled}"
 						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+
+			<!-- map style -->
+			<TextBlock Grid.Column="4"
+                Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
+                TextWrapping="Wrap"
+                Style="{StaticResource BaseMessageStyle}"
+                VerticalAlignment="Center"/>
+			<AppBarButton Grid.Column="4"
+                HorizontalAlignment="Left"
+                Style="{StaticResource AppBarButtonRecoloured}"
+                IsCompact="True"
+                Click="OnMapStyleButton_Click">
+				<AppBarButton.Icon>
+					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+                        Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+				</AppBarButton.Icon>
+			</AppBarButton>
 		</Grid>
 	</Grid>
 </Page>
