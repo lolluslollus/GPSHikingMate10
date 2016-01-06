@@ -238,7 +238,7 @@ namespace LolloGPS.Core
 		}
 		public void SetLastMessage_UI(string message)
 		{
-			MyPersistentData.LastMessage = message;
+			PersistentData.GetInstance().LastMessage = message;
 		}
 		public async void GetAFix()
 		{
@@ -441,7 +441,8 @@ namespace LolloGPS.Core
 			openPicker.FileTypeFilter.Add(ConstantData.GPX_EXTENSION); //LOLLO I could add many more extensions here, and turn it into a file explorer...
 			try
 			{
-				StorageFile file = await openPicker.PickSingleFileAsync(); // TODO check this on a win10 phone
+				StorageFile file = await openPicker.PickSingleFileAsync(); // LOLLO TODO this works on a win10 phone but 1000 landmarks are too many: check available memory and reduce max landkarks to match.
+																		   // check https://msdn.microsoft.com/en-us/library/windows/apps/jj681682(v=vs.105).aspx
 				await LoadSeriesFromFileAsync(file, whichSeries);
 			}
 			catch (Exception ex)

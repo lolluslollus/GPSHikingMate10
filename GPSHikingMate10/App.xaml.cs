@@ -153,7 +153,7 @@ namespace LolloGPS.Core
             await CloseAll();
             deferral.Complete();
         }
-
+		
         /// <summary>
         /// Invoked when the app is resumed without being terminated.
         /// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
