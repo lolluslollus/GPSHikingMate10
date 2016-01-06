@@ -117,14 +117,38 @@
 						</Button.Content>
 					</Button>
 				</Grid>
-				<!--header with icons for battery consuming functions -->
-				<Grid >
+				<!-- icons for battery consuming functions -->
+				<Grid Margin="0" Padding="0">
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="*"/>
+						<ColumnDefinition />
+						<ColumnDefinition />
+						<ColumnDefinition />
 					</Grid.ColumnDefinitions>
-					<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" Visibility="{Binding IsTracking, Converter={StaticResource BooleanToVisibleConverter}}">
+					<AppBarButton Grid.Column="0"
+						HorizontalAlignment="Center" VerticalAlignment="Center"
+						Width="90"
+						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
+						Visibility="{Binding IsTracking, Converter={StaticResource BooleanToVisibleConverter}}"
+						Foreground="{StaticResource FlashyForeground}"
+						IsEnabled="False"
+						Icon="Clock" Label="Foreground trk"/>
+					<AppBarButton Grid.Column="1"
+						HorizontalAlignment="Center" VerticalAlignment="Center"
+						Width="90"
+						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
+						Visibility="{Binding IsBackgroundEnabled, Converter={StaticResource BooleanToVisibleConverter}}"
+						Foreground="{StaticResource FlashyForeground}"
+						IsEnabled="False"
+						Icon="Clock" Label="Background trk"/>
+					<AppBarButton Grid.Column="2"
+						HorizontalAlignment="Center" VerticalAlignment="Center"
+						Width="90"
+						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
+						Visibility="{Binding IsKeepAlive, Converter={StaticResource BooleanToVisibleConverter}}"
+						Foreground="{StaticResource FlashyForeground}"
+						IsEnabled="False"
+						Icon="Pin" Label="Keeping alive"/>
+					<!--<StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" Visibility="{Binding IsTracking, Converter={StaticResource BooleanToVisibleConverter}}">
 						<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
 						   HorizontalAlignment="Center" Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
 						   Text="Foreground trk" />
@@ -159,7 +183,7 @@
 							IsEnabled="False"
 							IsTapEnabled="False"
 							Icon="Pin" />
-					</StackPanel>
+					</StackPanel>-->
 				</Grid>
 			</StackPanel>
 			<!-- Map  -->

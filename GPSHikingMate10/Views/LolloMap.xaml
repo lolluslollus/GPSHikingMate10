@@ -19,16 +19,17 @@
 	</UserControl.Resources>
 	<Grid x:Name="RootGrid">
 		<!-- point details -->
-		<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed">
+		<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed"
+			ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 			<local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
-				PointChanged="OnInfoPanelPointChanged"
-				PopupContainer="{x:Bind Path=RootGrid}"/>
+				PointChanged="OnInfoPanelPointChanged"/>
+			<!--PopupContainer="{x:Bind Path=RootGrid}"/>-->
 		</Popup>
 		<!--compass-->
 		<Canvas Canvas.ZIndex="200"
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				VerticalAlignment="Top" HorizontalAlignment="Left">
-			<Image Canvas.Top="150" Canvas.Left="30"
+			<Image Canvas.Top="120" Canvas.Left="30"
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
 				<Image.RenderTransform>
@@ -54,7 +55,7 @@
 				VerticalAlignment="Bottom">
 			<!-- left distance -->
 			<TextBlock Text="0" 
-				   Canvas.Left="18" Canvas.Top="-74"
+				   Canvas.Left="18" Canvas.Top="-54"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -63,7 +64,7 @@
 			<!-- right distance -->
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
 				   Canvas.Left="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}"
-				   Canvas.Top="-74" 
+				   Canvas.Top="-54" 
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -71,7 +72,7 @@
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- internal zoom level -->
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
-				   Canvas.Left="18" Canvas.Top="-94"
+				   Canvas.Left="18" Canvas.Top="-74"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -79,7 +80,7 @@
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- scale bar -->
 			<Image x:Name="ScaleImage"
-				   Canvas.Top="-60" Canvas.Left="20" 
+				   Canvas.Top="-35" Canvas.Left="20" 
 				   Source="ms-appx:///Assets/scale-300.png" 
 				   ScrollViewer.VerticalScrollBarVisibility="Disabled" 
 				   Stretch="None" 

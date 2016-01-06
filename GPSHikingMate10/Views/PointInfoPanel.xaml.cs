@@ -28,13 +28,13 @@ namespace LolloGPS.Core
             }
         }        
 
-        public FrameworkElement PopupContainer
-        {
-            get { return (FrameworkElement)GetValue(PopupContainerProperty); }
-            set { SetValue(PopupContainerProperty, value); }
-        }
-        public static readonly DependencyProperty PopupContainerProperty =
-            DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(PointInfoPanel), new PropertyMetadata(Window.Current.Content));
+        //public FrameworkElement PopupContainer
+        //{
+        //    get { return (FrameworkElement)GetValue(PopupContainerProperty); }
+        //    set { SetValue(PopupContainerProperty, value); }
+        //}
+        //public static readonly DependencyProperty PopupContainerProperty =
+        //    DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(PointInfoPanel), new PropertyMetadata(Window.Current.Content));
 
         private Main_VM _myVM = Main_VM.GetInstance();        
 
@@ -194,22 +194,24 @@ namespace LolloGPS.Core
         {
             PersistentData.GetInstance().IsBackButtonEnabled = false;
         }
-        private void UpdateWidth()
-        {
+		private void UpdateWidth()
+		{
+			//    ChooseSeriesGrid.Width = InfoGrid.Width = PopupContainer.ActualWidth;
+			double availableWidth = default(double);
+			if (AppView != null && AppView.VisibleBounds != null) availableWidth = AppView.VisibleBounds.Width;
+			ChooseSeriesGrid.Width = InfoGrid.Width = availableWidth;
+		}
+		private void UpdateHeight()
+		{
+			//    ChooseSeriesGrid.Height = InfoGrid.Height = PopupContainer.ActualHeight;
+			double availableHeight = default(double);
+			if (AppView != null && AppView.VisibleBounds != null) availableHeight = AppView.VisibleBounds.Height;
+			ChooseSeriesGrid.Height = InfoGrid.Height = availableHeight;
+		}
+		#endregion ui event handlers
 
-
-            ChooseSeriesGrid.Width = InfoGrid.Width = PopupContainer.ActualWidth;
-        }
-        private void UpdateHeight()
-        {
-
-
-            ChooseSeriesGrid.Height = InfoGrid.Height = PopupContainer.ActualHeight;
-        }
-        #endregion ui event handlers
-
-        #region services
-        public void SetDetails(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
+		#region services
+		public void SetDetails(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
         {
             List<PointRecord> selectedRecords = new List<PointRecord>();
             selectedRecords.Add(selectedRecord);

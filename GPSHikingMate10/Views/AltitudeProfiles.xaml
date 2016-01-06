@@ -15,13 +15,14 @@
 
     <Grid x:Name="RootGrid">
         <!-- point details -->
-        <Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed">
-            <local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
-                PointChanged="OnInfoPanelPointChanged"
-                PopupContainer="{x:Bind Path=RootGrid, Mode=OneWay}"/>
-        </Popup>
+		<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed"
+			ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+			<local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
+                PointChanged="OnInfoPanelPointChanged"/>
+			<!--PopupContainer="{x:Bind Path=RootGrid, Mode=OneWay}"/>-->
+		</Popup>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+		<ScrollViewer VerticalScrollBarVisibility="Auto" 
 			HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
             BringIntoViewOnFocusChange="True" 
 			ZoomMode="Enabled" MaxZoomFactor="2" MinZoomFactor=".5"
