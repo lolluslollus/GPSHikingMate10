@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24627.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPSHikingMate10", "GPSHikingMate10\GPSHikingMate10.csproj", "{C1FC8E3C-7EDC-4CC0-B68E-8C9E1B4F4001}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -277,7 +277,6 @@ Global
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.ActiveCfg = Debug|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.Build.0 = Debug|ARM
-		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|ARM.Deploy.0 = Debug|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.ActiveCfg = Debug|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.Build.0 = Debug|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Debug|x64.Deploy.0 = Debug|x64
@@ -289,7 +288,6 @@ Global
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|Any CPU.Deploy.0 = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.ActiveCfg = Debug|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.Build.0 = Debug|ARM
-		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|ARM.Deploy.0 = Debug|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.ActiveCfg = Debug|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.Build.0 = Debug|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.DebugNoStore|x64.Deploy.0 = Debug|x64
@@ -299,7 +297,6 @@ Global
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|Any CPU.ActiveCfg = Release|x86
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.ActiveCfg = Release|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.Build.0 = Release|ARM
-		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|ARM.Deploy.0 = Release|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.ActiveCfg = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.Build.0 = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.Release|x64.Deploy.0 = Release|x64
@@ -311,7 +308,6 @@ Global
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|Any CPU.Deploy.0 = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.ActiveCfg = Release|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.Build.0 = Release|ARM
-		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|ARM.Deploy.0 = Release|ARM
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.ActiveCfg = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.Build.0 = Release|x64
 		{CF4B0119-9515-4295-B2C9-C571BC91365E}.ReleaseNoStore|x64.Deploy.0 = Release|x64

@@ -13,17 +13,7 @@
 	DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	Loaded="OnLoaded"
-	UseLayoutRounding="True"
-	>
-	<Page.Transitions>
-		<TransitionCollection>
-			<!--<NavigationThemeTransition>
-				<NavigationThemeTransition.DefaultNavigationTransitionInfo>
-					<CommonNavigationTransitionInfo IsStaggeringEnabled="False"/>
-				</NavigationThemeTransition.DefaultNavigationTransitionInfo>
-			</NavigationThemeTransition>-->
-		</TransitionCollection>
-	</Page.Transitions>
+	UseLayoutRounding="True">
 
 	<Grid>
 		<Grid.RowDefinitions>
@@ -43,7 +33,7 @@
 					<VisualState.Setters>
 						<Setter Target="BottomButtonBar.Visibility" Value="Visible" />
 						<Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
-						<Setter Target="UserInfoGridRow.Height" Value="50"/>
+						<!--<Setter Target="UserInfoGridRow.Height" Value="50"/>-->
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -70,7 +60,7 @@
 		<Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*" />
-				<RowDefinition x:Name="UserInfoGridRow" Height="25"/>
+				<RowDefinition x:Name="UserInfoGridRow" Height="Auto"/>
 			</Grid.RowDefinitions>
 			<!-- download bar and icons for battery consuming features -->
 			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100" >
@@ -610,12 +600,22 @@
 				</PivotItem>
 			</Pivot>
 			<!-- user info -->
-			<StackPanel Grid.Row="1" Orientation="Horizontal"
+			<Border Grid.Row="1"
 					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-					ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"
 					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"
                     Tapped="OnLastMessage_Tapped">
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
+					<Run Text="Last:"/>
+					<Run Text="Lat"/>
+					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="Lon"/>
+					<Run Text="{Binding Current.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="{Binding Current.Altitude, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Alt {0} m'}"/>
+					<Run Text="@"/>
+					<Run Text="{Binding Current.TimePoint}"/>
+				</TextBlock>
+
+				<!--<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Last:"/>
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Lat"/>
@@ -630,9 +630,12 @@
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="@"/>
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
-					   Text="{Binding Current.TimePoint}"/>
-			</StackPanel>
-			<Border Grid.Row="1" BorderThickness="0" Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+					   Text="{Binding Current.TimePoint}"/>-->
+			</Border>
+			<Border Grid.Row="0" Grid.RowSpan="2"
+				VerticalAlignment="Bottom"
+				BorderThickness="0" 
+				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"
                 Tapped="OnLastMessage_Tapped">
 				<TextBlock
@@ -642,7 +645,9 @@
 					HorizontalAlignment="Left"
 					Text="Get a fix or start tracking to retrieve your location"/>
 			</Border>
-			<Border Grid.Row="1" BorderThickness="0" Canvas.ZIndex="999"
+			<Border Grid.Row="0" Grid.RowSpan="2"
+				VerticalAlignment="Bottom"
+				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{Binding ElementName=me, Path=MyVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}"
 				Tapped="OnLastMessage_Tapped">
@@ -662,15 +667,22 @@
 			Visibility="Collapsed"
 			HorizontalAlignment="Center" VerticalAlignment="Center">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition />
-				<ColumnDefinition />
+				<ColumnDefinition Width="Auto"/>
 				<ColumnDefinition />
 				<ColumnDefinition />
 				<ColumnDefinition />
 				<ColumnDefinition />
 			</Grid.ColumnDefinitions>
-			<!-- get a fix button -->
+			<!-- back -->
 			<AppBarButton Grid.Column="0"
+						  HorizontalAlignment="Center" 
+						  Label="Back" Icon="Back"
+						  Click="OnBack_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  IsEnabled="{Binding IsBackButtonEnabled}"
+						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+			<!-- get a fix button -->
+			<AppBarButton Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
@@ -678,42 +690,31 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- altitude profile button-->
-			<AppBarToggleButton Grid.Column="1"
+			<AppBarToggleButton Grid.Column="2"
 						  VerticalAlignment="Center"
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open pivot -->
-			<AppBarButton Grid.Column="2"
+			<AppBarButton Grid.Column="3"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
 						  Click="OnOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
-			<!-- back -->
-			<AppBarButton Grid.Column="3"
-						  HorizontalAlignment="Center" 
-						  Label="Back" Icon="Back"
-						  Click="OnBack_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{Binding IsBackButtonEnabled}"
-						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
 			<!-- map style -->
-			<TextBlock Grid.Column="4"
-                Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
-                TextWrapping="Wrap"
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center"/>
 			<AppBarButton Grid.Column="4"
-                HorizontalAlignment="Left"
+                HorizontalAlignment="Center"
+				Label="Map style"
+				Click="OnMapStyleButton_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                IsCompact="True"
-                Click="OnMapStyleButton_Click">
+				IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
 				</AppBarButton.Icon>
 			</AppBarButton>
+
 
 		</Grid>
 		<!-- left button bar -->
@@ -729,15 +730,22 @@
 			</Grid.Background>-->
 
 			<Grid.RowDefinitions>
-				<RowDefinition />
-				<RowDefinition />
+				<RowDefinition Height="Auto"/>
 				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
 			</Grid.RowDefinitions>
-			<!-- get a fix button -->
+			<!-- back -->
 			<AppBarButton Grid.Row="0"
+						  HorizontalAlignment="Center" 
+						  Label="Back" Icon="Back"
+						  Click="OnBack_Click"
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  IsEnabled="{Binding IsBackButtonEnabled}"
+						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+			<!-- get a fix button -->
+			<AppBarButton Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
@@ -745,38 +753,25 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- altitude profile button-->
-			<AppBarToggleButton Grid.Row="1"
+			<AppBarToggleButton Grid.Row="2"
 						  HorizontalAlignment="Center" 
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open pivot -->
-			<AppBarButton Grid.Row="2"
+			<AppBarButton Grid.Row="3"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
 						  Click="OnOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
-			<!-- back -->
-			<AppBarButton Grid.Row="3"
-						  HorizontalAlignment="Center" 
-						  Label="Back" Icon="Back"
-						  Click="OnBack_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{Binding IsBackButtonEnabled}"
-						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-
 			<!-- map style -->
-			<TextBlock Grid.Column="4"
-                Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
-                TextWrapping="Wrap"
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center"/>
-			<AppBarButton Grid.Column="4"
-                HorizontalAlignment="Left"
+			<AppBarButton Grid.Row="4"
+                HorizontalAlignment="Center"
+				Label="Map style"
+				Click="OnMapStyleButton_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                IsCompact="True"
-                Click="OnMapStyleButton_Click">
+				IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>

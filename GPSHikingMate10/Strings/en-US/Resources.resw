@@ -120,10 +120,52 @@
   <data name="AddAppBarButton.Label" xml:space="preserve">
     <value>add</value>
   </data>
+  <data name="LicenserAlreadyBoughtLong" xml:space="preserve">
+    <value>You already bought this app and have a fully-licensed version.</value>
+  </data>
+  <data name="LicenserAlreadyBoughtShort" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="LicenserBuy" xml:space="preserve">
+    <value>Buy</value>
+  </data>
+  <data name="LicenserCannotOpenStoreLong" xml:space="preserve">
+    <value>Could not open the store</value>
+  </data>
+  <data name="LicenserCannotOpenStoreShort" xml:space="preserve">
+    <value>Sorry</value>
+  </data>
+  <data name="LicenserErrorChecking" xml:space="preserve">
+    <value>Error checking the license</value>
+  </data>
+  <data name="LicenserNoLicensesLong" xml:space="preserve">
+    <value>No licenses found for this app</value>
+  </data>
+  <data name="LicenserNoLicensesShort" xml:space="preserve">
+    <value>No licenses</value>
+  </data>
+  <data name="LicenserQuit" xml:space="preserve">
+    <value>Quit</value>
+  </data>
+  <data name="LicenserTrialExpiredLong" xml:space="preserve">
+    <value>This trial version has expired</value>
+  </data>
+  <data name="LicenserTrialExpiredShort" xml:space="preserve">
+    <value>Trial expired</value>
+  </data>
+  <data name="LicenserUpgradeFailedLong" xml:space="preserve">
+    <value>The upgrade transaction failed. You still have a trial license for this app.</value>
+  </data>
+  <data name="LicenserUpgradeFailedShort" xml:space="preserve">
+    <value>Sorry</value>
+  </data>
   <data name="NavigationFailedExceptionMessage" xml:space="preserve">
     <value>Navigation failed.</value>
   </data>
   <data name="NewItemTitle" xml:space="preserve">
     <value>Item Title: {0}</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Ok</value>
   </data>
 </root>

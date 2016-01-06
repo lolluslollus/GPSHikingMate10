@@ -29,7 +29,7 @@ namespace Utilz
             }
         }
 
-        private Boolean _isHandlersActive = false;
+        private bool _isHandlersActive = false;
         private void AddHandlers()
         {
             //if (_orientationSensor == null) _orientationSensor = SimpleOrientationSensor.GetDefault();
@@ -38,7 +38,8 @@ namespace Utilz
             {
                 //_orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
                 _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
-                _isHandlersActive = true;
+				UpdateTrigger(_appView.VisibleBounds.Width < _appView.VisibleBounds.Height);
+				_isHandlersActive = true;
             }
         }
 

@@ -230,8 +230,7 @@ namespace LolloGPS.Core
                             {
                                 Logger.Add_TPL("OnFileActivated() is about to open a file, app already running", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-                                whichTables = await Task.Run(async () => await fileOpenPage.LoadFileIntoDbAsync(e as FileActivatedEventArgs));
-                                // whichTables = await fileOpenPage.FileOpenAsync(e as FileActivatedEventArgs);
+                                whichTables = await Task.Run(delegate { return fileOpenPage.LoadFileIntoDbAsync(e as FileActivatedEventArgs); });
                                 if (whichTables != null)
                                 {
                                     // get file data from DB into UI
@@ -258,15 +257,14 @@ namespace LolloGPS.Core
                             {
                                 Logger.Add_TPL("OnFileActivated() is about to open a file, app not running", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-                                whichTables = await Task.Run(async () => await fileOpenPage.LoadFileIntoDbAsync(e as FileActivatedEventArgs)).ConfigureAwait(false);
-                                // whichTables = await fileOpenPage.FileOpenAsync(e as FileActivatedEventArgs).ConfigureAwait(false);
+                                whichTables = await Task.Run(delegate { return fileOpenPage.LoadFileIntoDbAsync(e as FileActivatedEventArgs); }).ConfigureAwait(false);
                                 // get all data from DB into UI
                                 await SuspensionManager.LoadSettingsAndDbDataAsync().ConfigureAwait(false);
 
                                 // centre view on the file data
                                 if (whichTables != null && whichTables.Count > 0)
                                 {
-                                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                                    await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
                                     {
                                         if (whichTables != null && whichTables.Count > 0 && rootFrame?.Content as Main != null)
                                         {

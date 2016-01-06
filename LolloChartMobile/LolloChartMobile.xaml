@@ -3,51 +3,62 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             UseLayoutRounding="True"
-             mc:Ignorable="d" 
-             d:DesignHeight="360" d:DesignWidth="750">
+    UseLayoutRounding="True"
+    mc:Ignorable="d" 
+    d:DesignHeight="512" d:DesignWidth="320">
 
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ChartStyleDictionary.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-            <x:Double x:Key="GridHeightSmall">30</x:Double>
-            <x:Double x:Key="GridHeightLarge">200</x:Double>
-            <x:Double x:Key="GridWidthSmall">40</x:Double>
-            <x:Double x:Key="GridWidthLarge">300</x:Double>
-        </ResourceDictionary>
-    </UserControl.Resources>
-    
-    <Grid x:Name="LayoutRoot">
-        <Grid.RowDefinitions>
-            <RowDefinition x:Name="MainRow0" />
-            <RowDefinition x:Name="MainRow1" />
-            <RowDefinition x:Name="MainRow2" />
-            <RowDefinition x:Name="MainRow3" />
-            <RowDefinition x:Name="MainRow4" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions >
-            <ColumnDefinition x:Name="MainCol0" />
-            <ColumnDefinition x:Name="MainCol1" />
-            <ColumnDefinition x:Name="MainCol2" />
-        </Grid.ColumnDefinitions>
-        <TextBlock x:Name="LBTitle" Grid.Row="0" Grid.Column="1" Text="{Binding Title}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <Grid x:Name="GridXLabelsTop" Grid.Row="1" Grid.Column="1">
-            <Canvas x:Name="CanvasXLabelsTop"/>
-        </Grid>
-        <Grid x:Name="GridYLabelsLeft" Grid.Row="2" Grid.Column="0">
-            <Canvas x:Name="CanvasYLabelsLeft"/>
-        </Grid>
-        <Grid x:Name="GridChartArea" Grid.Row="2" Grid.Column="1"
-                  Background="Transparent"
-                  Tapped="OnGridChartArea_Tapped"/>
-        <Grid x:Name="GridYLabelsRight" Grid.Row="2" Grid.Column="2">
-            <Canvas x:Name="CanvasYLabelsRight"/>
-        </Grid>
-        <Grid x:Name="GridXLabelsBottom" Grid.Row="4" Grid.Column="1">
-            <Canvas x:Name="CanvasXLabelsBottom"/>
-        </Grid>
-    </Grid>
+	<!-- LOLLO NOTE assume min screen width = 320 pixel -->
+	<UserControl.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="ChartStyleDictionary.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
+			<x:Double x:Key="GridHeightSmall">30</x:Double>
+			<!--<x:Double x:Key="GridHeightLarge">200</x:Double>-->
+			<x:Double x:Key="GridWidthSmall">40</x:Double>
+			<!--<x:Double x:Key="GridWidthLarge">240</x:Double>-->
+			<GridLength x:Key="GridHeightSmall_ForGrid">30</GridLength>
+			<GridLength x:Key="GridWidthSmall_ForGrid">40</GridLength>
+		</ResourceDictionary>
+	</UserControl.Resources>
+
+	<Grid x:Name="LayoutRoot">
+		<Grid.RowDefinitions>
+			<RowDefinition x:Name="MainRow0" Height="{StaticResource GridHeightSmall_ForGrid}"/>
+			<RowDefinition x:Name="MainRow1" Height="{StaticResource GridHeightSmall_ForGrid}"/>
+			<RowDefinition x:Name="MainRow2" />
+			<RowDefinition x:Name="MainRow3" Height="{StaticResource GridHeightSmall_ForGrid}"/>
+			<RowDefinition x:Name="MainRow4" Height="{StaticResource GridHeightSmall_ForGrid}"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition x:Name="MainCol0" Width="{StaticResource GridWidthSmall_ForGrid}"/>
+			<ColumnDefinition x:Name="MainCol1" />
+			<ColumnDefinition x:Name="MainCol2" Width="{StaticResource GridWidthSmall_ForGrid}"/>
+		</Grid.ColumnDefinitions>
+
+		<TextBlock x:Name="LBTitle" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+			Height="{StaticResource GridHeightSmall}"
+			Text="{Binding Title}"
+			TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"/>
+		<Grid x:Name="GridXLabelsTop" Grid.Row="1" Grid.Column="1" Canvas.ZIndex="200"
+			Height="{StaticResource GridHeightSmall}">
+			<Canvas x:Name="CanvasXLabelsTop" />
+		</Grid>
+		<Grid x:Name="GridYLabelsLeft" Grid.Row="2" Grid.Column="0" Canvas.ZIndex="200"
+			Width="{StaticResource GridWidthSmall}">
+			<Canvas x:Name="CanvasYLabelsLeft" />
+		</Grid>
+		<Grid x:Name="GridChartArea" Grid.Row="2" Grid.Column="1" Canvas.ZIndex="100"
+            Background="Transparent"
+			HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+            Tapped="OnGridChartArea_Tapped"/>
+		<Grid x:Name="GridYLabelsRight" Grid.Row="2" Grid.Column="2" Canvas.ZIndex="200"
+			Width="{StaticResource GridWidthSmall}">
+			<Canvas x:Name="CanvasYLabelsRight" />
+		</Grid>
+		<Grid x:Name="GridXLabelsBottom" Grid.Row="3" Grid.Column="1" Canvas.ZIndex="200"
+			Height="{StaticResource GridHeightSmall}">
+			<Canvas x:Name="CanvasXLabelsBottom" />
+		</Grid>
+	</Grid>
 </UserControl>

@@ -18,8 +18,9 @@ namespace LolloGPS.Data.Constants
         public const string GPX_EXTENSION = ".gpx";
         public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
+		public const int TRIAL_LENGTH_DAYS = 7;
 
-        public static string AppName { get { return APPNAME; } }
+		public static string AppName { get { return APPNAME; } }
         private static string _version = Package.Current.Id.Version.Major.ToString()
             + "."
             + Package.Current.Id.Version.Minor.ToString()

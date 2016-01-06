@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="35701Lollus.GPSHikingMate10" Publisher="CN=9B2F7926-7E04-4BF6-BDB8-A8FD12FC5378" Version="1.1.12.0" />
+  <Identity Name="35701Lollus.GPSHikingMate10" Publisher="CN=9B2F7926-7E04-4BF6-BDB8-A8FD12FC5378" Version="1.1.13.0" />
   <mp:PhoneIdentity PhoneProductId="9dadf69e-d811-4219-86da-63b3b8bb36b5" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>GPS Hiking Mate 10</DisplayName>
@@ -32,21 +32,6 @@
               <uap:FileType>.gpx</uap:FileType>
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
-        </uap:Extension>
-        <uap:Extension Category="windows.fileSavePicker">
-          <uap:FileSavePicker>
-            <uap:SupportedFileTypes>
-              <uap:FileType>.gpx</uap:FileType>
-            </uap:SupportedFileTypes>
-          </uap:FileSavePicker>
-        </uap:Extension>
-        <uap:Extension Category="windows.fileOpenPicker">
-          <uap:FileOpenPicker>
-            <uap:SupportedFileTypes>
-              <uap:FileType>.gpx</uap:FileType>
-              <uap:FileType>.xml</uap:FileType>
-            </uap:SupportedFileTypes>
-          </uap:FileOpenPicker>
         </uap:Extension>
         <Extension Category="windows.backgroundTasks" EntryPoint="BackgroundTasks.GetLocationBackgroundTask">
           <BackgroundTasks>

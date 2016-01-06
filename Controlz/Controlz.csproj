@@ -116,6 +116,7 @@
     <Compile Include="LolloListChooser.xaml.cs" />
     <Compile Include="OrientationResponsiveUserControl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TextBlockScaler.cs" />
     <Content Include="Properties\Controlz.rd.xml" />
   </ItemGroup>
   <ItemGroup>

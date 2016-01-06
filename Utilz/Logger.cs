@@ -145,30 +145,54 @@ namespace Utilz
             // await SendEmailWithLogsAsync("lollus@hotmail.co.uk"); // maybe move Logger into the utils and use the right email address and maybe new parameter "sendemailifcrash"
             // On second thought, the email could be annoying and scary. Better leave the option to send it in the "About" panel only.
         }
-        private static async Task UpdateLogAsync(string fileName, string msg)
-        {
-            StorageFile file = await _logsFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+		private static async Task UpdateLogAsync(string fileName, string msg)
+		{
+			if (string.IsNullOrEmpty(msg)) return;
+			StorageFile file = await _logsFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
-            using (var fileStreamForWrite = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-            {
-                if (fileStreamForWrite.Length + msg.Length > MAX_SIZE_BYTES)
-                {
-                    // fileStreamForWrite.Seek(Math.Max(LogData.MaxSizeBytes - message.Length, 0), SeekOrigin.Begin);
-                    fileStreamForWrite.Seek(0, SeekOrigin.Begin);
-                }
-                else
-                {
-                    fileStreamForWrite.Seek(0, SeekOrigin.End);
-                }
-                using (var streamWriter = new StreamWriter(fileStreamForWrite))
-                {
-                    await streamWriter.WriteAsync(msg).ConfigureAwait(false);
-                    await streamWriter.FlushAsync().ConfigureAwait(false);
-                }
-            }
-        }
+			using (var fileStreamForWrite = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
+			{
+				if (fileStreamForWrite.Length + msg.Length > MAX_SIZE_BYTES)
+				{
+					fileStreamForWrite.Seek(0, SeekOrigin.Begin);
 
-        public static void ClearAll()
+					using (var reader = new StreamReader(fileStreamForWrite, Encoding.UTF8))
+					{
+						try
+						{
+							string current = await reader.ReadToEndAsync();
+							string next = current.Substring(Math.Min(msg.Length, current.Length)) + msg; // shift the string to accommodate msg at the end
+
+							fileStreamForWrite.SetLength(next.Length);
+							fileStreamForWrite.Seek(0, SeekOrigin.Begin);
+
+							using (var streamWriter = new StreamWriter(fileStreamForWrite, Encoding.UTF8))
+							{
+								await streamWriter.WriteAsync(next).ConfigureAwait(false);
+								await streamWriter.FlushAsync().ConfigureAwait(false);
+							}
+						}
+#pragma warning disable 0168
+						catch (Exception ex)
+#pragma warning restore 0168
+						{
+
+						}
+					}
+				}
+				else
+				{
+					fileStreamForWrite.Seek(0, SeekOrigin.End);
+
+					using (var streamWriter = new StreamWriter(fileStreamForWrite, Encoding.UTF8))
+					{
+						await streamWriter.WriteAsync(msg).ConfigureAwait(false);
+						await streamWriter.FlushAsync().ConfigureAwait(false);
+					}
+				}
+			}
+		}
+		public static void ClearAll()
         {
             Task.Run(async delegate
             {
