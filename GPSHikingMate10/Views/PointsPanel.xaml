@@ -46,7 +46,7 @@
 			<TextBox Grid.Row="1"
                 x:Name="LatFloat"
                 VerticalAlignment="Center"
-                Margin="{StaticResource BaseMessageStyleMargin}"
+				Style="{StaticResource BaseTextBoxStyle}"
                 Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter}}" 
                 InputScope="NumberFullWidth" 
                 LostFocus="LatFloat_LostFocus"/>
@@ -58,19 +58,10 @@
 			<TextBox Grid.Row="3" 
                 x:Name="LonFloat"
                 VerticalAlignment="Center"
-                Margin="{StaticResource BaseMessageStyleMargin}"
+                Style="{StaticResource BaseTextBoxStyle}"
                 Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter}}" 
                 InputScope="NumberFullWidth"
                 LostFocus="LonFloat_LostFocus"/>
-			<!-- altitude -->
-			<!--<TextBlock Grid.Row="2" Grid.Column="0" Margin="2" Text="Target alt m "
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="2"
-                VerticalAlignment="Center"
-                Text="{Binding Target.Altitude, Converter={StaticResource FloatConverter}}"
-                IsEnabled="False"/>-->
-
 		</Grid>
 		<!--target in degrees min sec dec-->
 		<Grid Grid.Row="1" Grid.Column="0"
@@ -89,7 +80,7 @@
 			<utilz:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
 				<TextBox x:Name="LatDeg"
 					Grid.Row="1" Grid.Column="1"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDeg}}"
@@ -101,7 +92,7 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LatMin"
 					Grid.Row="1" Grid.Column="3"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterMin}}"
@@ -114,7 +105,7 @@
 				<TextBox x:Name="LatSec"
 					Grid.Row="1" Grid.Column="5"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterSec}}"
 					LostFocus="LatSec_LostFocus"
@@ -126,7 +117,7 @@
 				<TextBox x:Name="LatDec"
 					Grid.Row="1" Grid.Column="7"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDec}}" 
 					MaxLength="3"
@@ -144,7 +135,7 @@
 			<utilz:UniversalWrapPanel Grid.Row="3" Orientation="Horizontal">
 				<TextBox x:Name="LonDeg" Grid.Row="3" Grid.Column="1"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDeg}}"
 					LostFocus="LonDeg_LostFocus"
@@ -155,7 +146,7 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonMin" Grid.Row="3" Grid.Column="3"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterMin}}"
 					LostFocus="LonMin_LostFocus"
@@ -166,7 +157,7 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonSec" Grid.Row="3" Grid.Column="5"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterSec}}"
 					LostFocus="LonSec_LostFocus"
@@ -177,7 +168,7 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonDec" Grid.Row="3" Grid.Column="7"
 					VerticalAlignment="Center"
-					Margin="{StaticResource BaseMessageStyleMargin}"
+					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDec}}" 
 					LostFocus="LonDec_LostFocus"

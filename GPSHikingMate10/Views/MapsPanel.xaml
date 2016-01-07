@@ -89,7 +89,7 @@
                     PopupContainer="{Binding ElementName=me}"
                     BackPressedRaiser="{x:Bind Path=MyVM}"
                     VerticalAlignment="Center"
-                    Margin="{StaticResource BaseMessageStyleMargin}"
+                    Margin="{StaticResource Thickness2}"
                     TextBlockStyle="{StaticResource BaseMessageStyle}"
                     AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
                     TextItemStyle="{StaticResource ListItemTextStyle}"

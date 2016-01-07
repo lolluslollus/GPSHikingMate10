@@ -201,13 +201,13 @@
 				   x:Name="MyPivot"
 				   Visibility="{Binding IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}}"
 				   Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				   Margin="{StaticResource PanelMargin}"
+				   Margin="{StaticResource Thickness0}"
 				   SelectedIndex="{Binding SelectedPivotIndex, Mode=TwoWay}">
 				<PivotItem Header="Points" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested"/>
 					</ScrollViewer>
 				</PivotItem>
@@ -215,7 +215,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<Grid>
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto"/>
@@ -385,7 +385,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested"/>
 					</ScrollViewer>
 				</PivotItem>
@@ -393,7 +393,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<local:CustomMapsPanel/>
 					</ScrollViewer>
 				</PivotItem>
@@ -401,7 +401,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<Grid>
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto"/>
@@ -419,13 +419,13 @@
 								<ColumnDefinition Width="*"/>
 								<ColumnDefinition Width="*"/>
 							</Grid.ColumnDefinitions>
-
+<!-- LOLLO TODO style the ToggleSwitch so it has the theme colour, or shades of grey. At the moment, it has -->
 							<TextBlock Grid.Row="0" Grid.Column="0" 
 								Text="Foreground trk period (sec): " 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<Slider Grid.Row="0" Grid.Column="1" Margin="{StaticResource BaseMessageStyleMargin}" 
+							<Slider Grid.Row="0" Grid.Column="1" Margin="{StaticResource Thickness2}" 
 								Value="{Binding ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}" 
 								IsThumbToolTipEnabled="False"
 								Minimum="{Binding MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
@@ -436,7 +436,7 @@
 							<TextBlock Grid.Row="0" Grid.Column="2" 
 								Text="{Binding ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2"
 								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" 
@@ -450,10 +450,10 @@
 							<TextBlock Grid.Row="1" Grid.Column="0" 
 								Text="Background trk period (min): " 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<Slider Grid.Row="1" Grid.Column="1" 
-								Margin="{StaticResource BaseMessageStyleMargin}"
+								Margin="{StaticResource Thickness2}"
 								Value="{Binding BackgroundUpdatePeriodInMinutes, Mode=TwoWay}"
 								Minimum="{Binding MinBackgroundUpdatePeriodInMinutesProp}" 
 								Maximum="{Binding MaxBackgroundUpdatePeriodInMinutesProp}" 
@@ -463,7 +463,7 @@
 							<TextBlock Grid.Row="1" Grid.Column="2" 
 								Text="{Binding BackgroundUpdatePeriodInMinutes}" 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
 								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
@@ -478,7 +478,7 @@
 								Text="You can tap and hold the map to centre it on the last point. This switch keeps it centred automatically." 
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
 								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
@@ -492,7 +492,7 @@
 								Text="Keep the app alive, never mind the lock screen settings."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
 								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
@@ -506,11 +506,11 @@
 								Text="GPS accuracy (m): " 
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<!-- TODO bind min and max to properties, do not leave them here hard-coded -->
 							<Slider Grid.Row="4" Grid.Column="2"
-									Margin="{StaticResource BaseMessageStyleMargin}"
+									Margin="{StaticResource Thickness2}"
 									Value="{Binding DesiredAccuracyInMeters, Mode=TwoWay}" 
 									Minimum="1" Maximum="100" 
 									SmallChange="1" LargeChange="10"
@@ -519,16 +519,16 @@
 							<TextBlock Grid.Row="4" Grid.Column="3"
 								Text="{Binding DesiredAccuracyInMeters}" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 
 							<TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
 								Text="You can tap on a map object to show its details. Raise this for more tolerance." 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<Slider Grid.Row="5" Grid.Column="2"
-									Margin="{StaticResource BaseMessageStyleMargin}"
+									Margin="{StaticResource Thickness2}"
 									Value="{Binding TapTolerance, Mode=TwoWay}" 
 									IsThumbToolTipEnabled="False"
 									Minimum="1" Maximum="50"
@@ -536,14 +536,14 @@
 							<TextBlock Grid.Row="5" Grid.Column="3"
 								Text="{Binding TapTolerance}" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 
 							<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
 								Text="Show angles in degrees."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2"
 								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
@@ -557,7 +557,7 @@
 								Text="Show speedometre."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource PanelMargin2}"
+								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<ToggleSwitch Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2"
 								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
@@ -573,7 +573,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<local:HelpPanel/>
 					</ScrollViewer>
 				</PivotItem>
@@ -581,7 +581,7 @@
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 						<local:AboutPanel/>
 					</ScrollViewer>
 				</PivotItem>
@@ -590,7 +590,7 @@
 					<Grid Grid.Row="0" Canvas.ZIndex="600"
 						VerticalAlignment="Top"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-						Margin="{StaticResource PanelMargin}">
+						Margin="{StaticResource Thickness0}">
 
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
@@ -615,7 +615,7 @@
 						<ScrollViewer Grid.Row="3" 
 							BringIntoViewOnFocusChange="True"
 							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-							Margin="{StaticResource PanelMargin}">
+							Margin="{StaticResource Thickness0}">
 							<TextBlock Grid.Row="3" TextWrapping="Wrap"
 								Text="{Binding ElementName=me, Path=MyVM.LogText}"
 								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
@@ -628,7 +628,7 @@
 					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"
                     Tapped="OnLastMessage_Tapped">
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
 					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
@@ -639,21 +639,21 @@
 					<Run Text="{Binding Current.TimePoint}"/>
 				</TextBlock>
 
-				<!--<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<!--<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Last:"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Lat"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="Lon"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="{Binding Current.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="{Binding Current.Altitude, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Alt {0} m'}"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="@"/>
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource TightMargin}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left"
 					   Text="{Binding Current.TimePoint}"/>-->
 			</Border>
 			<Border Grid.Row="0" Grid.RowSpan="2"
@@ -664,7 +664,7 @@
                 Tapped="OnLastMessage_Tapped">
 				<TextBlock
 					TextWrapping="Wrap" 
-					Margin="{StaticResource TightMargin}" 
+					Margin="{StaticResource Thickness1}" 
 					Style="{StaticResource BaseMessageStyle}" 
 					HorizontalAlignment="Left"
 					Text="Get a fix or start tracking to retrieve your location"/>
@@ -677,7 +677,7 @@
 				Tapped="OnLastMessage_Tapped">
 				<TextBlock
 				   TextWrapping="Wrap"
-				   Margin="{StaticResource TightMargin}"
+				   Margin="{StaticResource Thickness1}"
 				   Style="{StaticResource BaseMessageStyle}" 
 				   HorizontalAlignment="Left"
 				   Foreground="{StaticResource FlashyForeground}"

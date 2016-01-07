@@ -112,11 +112,11 @@
 			</Border.RenderTransform>
 			<StackPanel Orientation="Horizontal" >
 				<TextBlock Text="© "
-					Style="{StaticResource BasicTextStyle}"
+					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>
 				<TextBlock Text="{Binding CurrentTileSource, Converter={StaticResource MapSourceToItsDescriptionConverter}}"
-					Style="{StaticResource BasicTextStyle}"
+					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>
 			</StackPanel>

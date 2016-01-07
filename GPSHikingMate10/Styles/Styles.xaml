@@ -11,13 +11,17 @@
     <SolidColorBrush x:Key="Route0Brush" Color="#800000FF" />
     <SolidColorBrush x:Key="Route0BrushOpaque" Color="#FF0000FF"/>
     <SolidColorBrush x:Key="LandmarksBrushOpaque" Color="#FFFF00FF" />
-    <x:Double x:Key="HistoryThickness">8</x:Double>
+    
+	<x:Double x:Key="HistoryThickness">8</x:Double>
     <x:Double x:Key="Route0Thickness">10</x:Double>
-    <Thickness x:Key="PanelMargin">0, 0, 0, 0</Thickness>
-    <Thickness x:Key="PanelMargin2">0, 4, 0, 4</Thickness>
-    <Thickness x:Key="PanelPadding">12, 12, 12, 12</Thickness>
+    
+	<Thickness x:Key="Thickness0">0, 0, 0, 0</Thickness>
+	<Thickness x:Key="Thickness2">2</Thickness>
+	<Thickness x:Key="Thickness1">1</Thickness>
+	<Thickness x:Key="Thickness0404">0, 4, 0, 4</Thickness>
+    <Thickness x:Key="Thickness12">12, 12, 12, 12</Thickness>
 
-    <GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
+	<GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Medium">20</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Large">40</GridLength>
     
@@ -29,17 +33,6 @@
     <x:Int32 x:Key="MaxHumanDescriptionLength">160</x:Int32>
 
     <!-- LOLLO get the standard styles in Generic.xaml. To bring it up, press F12 on ApplicationForegroundThemeBrush or other ThemeResource in the code below -->
-    <Style x:Key="BasicTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
-        <Setter Property="FontSize" Value="20"/>
-        <Setter Property="Margin" Value="0,0,0,10"/>
-    </Style>
-
-    <Style x:Key="TagLineTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}"/>
-        <Setter Property="FontSize" Value="20"/>
-    </Style>
-
     <Style x:Key="SampleHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
         <Setter Property="FontSize" Value="28"/>
@@ -67,123 +60,39 @@
         <Setter Property="Margin" Value="0,0,0,0"/>
     </Style>
 
-    <Style x:Key="ScenarioDescriptionTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP"/>
-        <Setter Property="FontSize" Value="20"/>
-    </Style>
-
     <FontFamily x:Key="BaseMessageStyleFontFamily">Segoe WP Semilight</FontFamily>
     <!--<x:Double x:Key="BaseMessageStyleFontSize">14.667</x:Double>-->
     <x:Double x:Key="BaseMessageStyleFontSize">16</x:Double>
-    <Thickness x:Key="BaseMessageStyleMargin">2</Thickness>
-    <Thickness x:Key="TightMargin">1</Thickness>
 
     <Style x:Key="BaseMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
-        <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
+        <Setter Property="Margin" Value="{StaticResource Thickness2}"/>
     </Style>
 
-    <Style x:Key="BaseTightMessageStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
-        <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
-        <Setter Property="FontStretch" Value="UltraCondensed"/>
-        <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
-    </Style>
+	<Style x:Key="BaseTightMessageStyle" TargetType="TextBlock">
+		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+		<Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
+		<Setter Property="Margin" Value="{StaticResource Thickness1}"/>
+		<Setter Property="FontStretch" Value="UltraCondensed"/>
+	</Style>
 
-    <Style x:Key="BaseTextBoxStyle" TargetType="TextBox">
-        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
-        <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
-        <Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>
-        <!--<Setter Property="Background" Value="{ThemeResource TextBoxForegroundThemeBrush}"/>
+	<Style x:Key="TextParagraphStyle" TargetType="TextBlock">
+		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+		<Setter Property="FontSize" Value="20"/>
+		<Setter Property="Margin" Value="0,0,0,10"/>
+	</Style>
+
+	<Style x:Key="BaseTextBoxStyle" TargetType="TextBox">
+		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+		<Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
+		<Setter Property="Margin" Value="{StaticResource Thickness2}"/>
+		<!--<Setter Property="Background" Value="{ThemeResource TextBoxForegroundThemeBrush}"/>
         <Setter Property="Foreground" Value="{ThemeResource TextBoxBackgroundThemeBrush}"/>-->
-        <!--<Setter Property="Margin" Value="0,0,0,5"/>-->
-    </Style>
+	</Style>
 
-    <Style x:Key="SmallMessageStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
-        <Setter Property="FontSize" Value="10"/>
-        <Setter Property="Margin" Value="0,0,0,0"/>
-    </Style>
-
-    <Style x:Key="MainPageRootGridLandscapeStyle" TargetType="Grid">
-        <Setter Property="Margin" Value="42,0,0,0"/>
-    </Style>
-
-    <Style x:Key="MainPageRootGridPortraitStyle" TargetType="Grid">
-        <Setter Property="Margin" Value="0,0,0,0"/>
-    </Style>
-
-    <Style x:Key="ScenarioRootGridLandscapeStyle" TargetType="Grid">
-        <Setter Property="Margin" Value=" 42,20,12,12"/>
-    </Style>
-
-    <Style x:Key="ScenarioRootGridPortraitStyle" TargetType="Grid">
-        <Setter Property="Margin" Value="12,20,12,12"/>
-    </Style>
-
-    <Style x:Key="SeparatorStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe UI"/>
-        <Setter Property="FontSize" Value="9"/>
-        <Setter Property="Foreground" Value="Gray"/>
-    </Style>
-
-    <Style x:Key="HyperlinkStyle" TargetType="HyperlinkButton">
-        <Setter Property="Padding" Value="2"/>
-        <Setter Property="Foreground" Value="Gray"/>
-    </Style>
-    <x:Double x:Key="OverlayOpacity">.5</x:Double>
-   
     <Color x:Key="DetailsPopupColor">#88220000</Color>
     <SolidColorBrush x:Key="DetailsPopupBrush" Color="{StaticResource DetailsPopupColor}" />
-    <!-- http://msdn.microsoft.com/en-us/library/windows/apps/xaml/jj709931.aspx -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchCurtainBackgroundThemeBrush" Color="#FF4617B4" />
-    <SolidColorBrush x:Key="ToggleSwitchCurtainDisabledBackgroundThemeBrush" Color="Transparent" />
-    <SolidColorBrush x:Key="ToggleSwitchCurtainPointerOverBackgroundThemeBrush" Color="#FF5F37BE" />
-    <SolidColorBrush x:Key="ToggleSwitchCurtainPressedBackgroundThemeBrush" Color="#FF7241E4" />
-
-    -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchDisabledForegroundThemeBrush" Color="#66000000" />-->
-    <!--
-    <SolidColorBrush x:Key="ToggleSwitchDisabledForegroundThemeBrush" Color="#66FF0000" />    
-    <SolidColorBrush x:Key="ToggleSwitchForegroundThemeBrush" Color="#FF000000" />
-
-    -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchHeaderDisabledForegroundThemeBrush" Color="#66000000" />-->
-    <!--
-    <SolidColorBrush x:Key="ToggleSwitchHeaderDisabledForegroundThemeBrush" Color="#66FF0000" />    
-    <SolidColorBrush x:Key="ToggleSwitchHeaderForegroundThemeBrush" Color="#FF000000" />
-
-    <SolidColorBrush x:Key="ToggleSwitchOuterBorderBorderThemeBrush" Color="#59000000" />
-    -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchOuterBorderDisabledBorderThemeBrush" Color="#33000000" />-->
-    <!--
-    <SolidColorBrush x:Key="ToggleSwitchOuterBorderDisabledBorderThemeBrush" Color="#33FF0000" />
-
-    <SolidColorBrush x:Key="ToggleSwitchThumbBackgroundThemeBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbBorderThemeBrush" Color="#FF000000" />
-    -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchThumbDisabledBackgroundThemeBrush" Color="#FF929292" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbDisabledBorderThemeBrush" Color="#FF929292" />-->
-    <!--
-    <SolidColorBrush x:Key="ToggleSwitchThumbDisabledBackgroundThemeBrush" Color="#FFFF0000" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbDisabledBorderThemeBrush" Color="#FFFF0000" />
-
-    <SolidColorBrush x:Key="ToggleSwitchThumbPointerOverBackgroundThemeBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbPointerOverBorderThemeBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbPressedBackgroundThemeBrush" Color="#FF000000" />
-    <SolidColorBrush x:Key="ToggleSwitchThumbPressedForegroundThemeBrush" Color="#FF000000" />
-
-    <SolidColorBrush x:Key="ToggleSwitchTrackBackgroundThemeBrush" Color="#59000000" />
-    <SolidColorBrush x:Key="ToggleSwitchTrackBorderThemeBrush" Color="Transparent" />
-    -->
-    <!--<SolidColorBrush x:Key="ToggleSwitchTrackDisabledBackgroundThemeBrush" Color="#1F000000" />-->
-    <!--
-    <SolidColorBrush x:Key="ToggleSwitchTrackDisabledBackgroundThemeBrush" Color="#1FFF0000" />    
-    <SolidColorBrush x:Key="ToggleSwitchTrackPointerOverBackgroundThemeBrush" Color="#4A000000" />
-    <SolidColorBrush x:Key="ToggleSwitchTrackPressedBackgroundThemeBrush" Color="#42000000" />-->
 
     <Thickness x:Key="ToggleSwitchMiniMargin">0, 6, 0, 0</Thickness>
 
@@ -817,7 +726,7 @@
 		<Setter Property="IsRightTapEnabled" Value="False"/>
 		<Setter Property="Margin" Value="0"/>
 		<Setter Property="Width" Value="{StaticResource AppBarButtonWidth}"/>
-		<!--<Setter Property="Margin" Value="{StaticResource BaseMessageStyleMargin}"/>-->
+		<!--<Setter Property="Margin" Value="{StaticResource Thickness2}"/>-->
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="AppBarButton">
@@ -958,8 +867,8 @@
 	<Style TargetType="PivotItem"
            x:Key="PivotItemStyle">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Margin" Value="{ThemeResource PanelMargin}"/>
-        <Setter Property="Padding" Value="{StaticResource PanelPadding}" />
+        <Setter Property="Margin" Value="{ThemeResource Thickness0}"/>
+        <Setter Property="Padding" Value="{StaticResource Thickness12}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
         <Setter Property="IsTabStop" Value="False" />

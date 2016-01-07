@@ -14,7 +14,7 @@
     d:DesignHeight="600"
     d:DesignWidth="400">
 
-	<Grid Margin="{StaticResource PanelMargin}">
+	<Grid Margin="{StaticResource Thickness0}">
 		<!-- choose a series to see the point details -->
 		<Grid x:Name="ChooseSeriesGrid" 
                 Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToVisibleConverter}}">
