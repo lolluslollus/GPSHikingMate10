@@ -406,166 +406,152 @@
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 								<RowDefinition Height="Auto"/>
 							</Grid.RowDefinitions>
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*"/>
 								<ColumnDefinition Width="*"/>
 								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="*"/>
+								<!--<ColumnDefinition Width="*"/>-->
 							</Grid.ColumnDefinitions>
-<!-- LOLLO TODO style the ToggleSwitch so it has the theme colour, or shades of grey. At the moment, it has -->
-							<TextBlock Grid.Row="0" Grid.Column="0" 
+
+							<TextBlock Grid.Row="0" Grid.ColumnSpan="2"
 								Text="Foreground trk period (sec): " 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<Slider Grid.Row="0" Grid.Column="1" Margin="{StaticResource Thickness2}" 
+							<ToggleSwitch Grid.Row="0" Grid.Column="2"
+								  VerticalAlignment="Center"
+								  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+								  IsOn="{Binding IsTracking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+							<Slider Grid.Row="1" Grid.Column="1" Margin="{StaticResource Thickness2}" 
 								Value="{Binding ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}" 
 								IsThumbToolTipEnabled="False"
 								Minimum="{Binding MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
 								Maximum="{Binding MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
 								SmallChange="1" LargeChange="3"
-								VerticalAlignment="Center" VerticalContentAlignment="Center"
+								VerticalAlignment="Center"
 								IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
-							<TextBlock Grid.Row="0" Grid.Column="2" 
-								Text="{Binding ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}" 
+							<TextBlock Grid.Row="1" Grid.Column="2"
+								Text="{Binding ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}"
+								VerticalAlignment="Center"
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2"
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" 
-								  VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-								  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
-								  IsOn="{Binding IsTracking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+								Margin="{StaticResource Thickness0404}"/>
 
-							<TextBlock Grid.Row="1" Grid.Column="0" 
+							<TextBlock Grid.Row="3" Grid.ColumnSpan="2"
 								Text="Background trk period (min): " 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<Slider Grid.Row="1" Grid.Column="1" 
+							<ToggleSwitch Grid.Row="3" Grid.Column="2"
+								VerticalAlignment="Center"
+								IsOn="{Binding IsBackgroundEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+							<Slider Grid.Row="4" Grid.Column="1" 
 								Margin="{StaticResource Thickness2}"
 								Value="{Binding BackgroundUpdatePeriodInMinutes, Mode=TwoWay}"
 								Minimum="{Binding MinBackgroundUpdatePeriodInMinutesProp}" 
 								Maximum="{Binding MaxBackgroundUpdatePeriodInMinutesProp}" 
 								LargeChange="5"
 								IsThumbToolTipEnabled="False"
-								VerticalAlignment="Center" VerticalContentAlignment="Center"/>
-							<TextBlock Grid.Row="1" Grid.Column="2" 
-								Text="{Binding BackgroundUpdatePeriodInMinutes}" 
-								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
-								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" 
-								  VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-								  IsOn="{Binding IsBackgroundEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+							<TextBlock Grid.Row="4" Grid.Column="2"
+								Text="{Binding BackgroundUpdatePeriodInMinutes}"
+								VerticalAlignment="Center"
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource Thickness0404}"/>
 
-							<TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+							<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
 								Text="You can tap and hold the map to centre it on the last point. This switch keeps it centred automatically." 
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
-								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+							<ToggleSwitch Grid.Row="6" Grid.Column="2"
+								  VerticalAlignment="Center"
 								  IsOn="{Binding IsCentreOnCurrent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-							<TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+							<TextBlock Grid.Row="8" Grid.ColumnSpan="2"
 								Text="Keep the app alive, never mind the lock screen settings."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="2"
-								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+							<ToggleSwitch Grid.Row="8" Grid.Column="2"
+								  VerticalAlignment="Center"
 								  IsOn="{Binding IsKeepAlive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-							<TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+							<TextBlock Grid.Row="10"
 								Text="GPS accuracy (m): " 
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 							<!-- TODO bind min and max to properties, do not leave them here hard-coded -->
-							<Slider Grid.Row="4" Grid.Column="2"
-									Margin="{StaticResource Thickness2}"
-									Value="{Binding DesiredAccuracyInMeters, Mode=TwoWay}" 
-									Minimum="1" Maximum="100" 
-									SmallChange="1" LargeChange="10"
-									IsThumbToolTipEnabled="False"
-									IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
-							<TextBlock Grid.Row="4" Grid.Column="3"
-								Text="{Binding DesiredAccuracyInMeters}" 
+							<Slider Grid.Row="10" Grid.Column="1"
+								VerticalAlignment="Center"
+								Margin="{StaticResource Thickness2}"
+								Value="{Binding DesiredAccuracyInMeters, Mode=TwoWay}" 
+								Minimum="1" Maximum="100" 
+								SmallChange="1" LargeChange="10"
+								IsThumbToolTipEnabled="False"
+								IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
+							<TextBlock Grid.Row="10" Grid.Column="2"
+								Text="{Binding DesiredAccuracyInMeters}"
+								VerticalAlignment="Center"
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
+								Margin="{StaticResource Thickness0404}"/>
 
-							<TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+							<TextBlock Grid.Row="12"
 								Text="You can tap on a map object to show its details. Raise this for more tolerance." 
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<Slider Grid.Row="5" Grid.Column="2"
-									Margin="{StaticResource Thickness2}"
-									Value="{Binding TapTolerance, Mode=TwoWay}" 
-									IsThumbToolTipEnabled="False"
-									Minimum="1" Maximum="50"
-									SmallChange="1" LargeChange="3"/>
-							<TextBlock Grid.Row="5" Grid.Column="3"
-								Text="{Binding TapTolerance}" 
+							<Slider Grid.Row="12" Grid.Column="1"
+								VerticalAlignment="Center"
+								Margin="{StaticResource Thickness2}"
+								Value="{Binding TapTolerance, Mode=TwoWay}" 
+								IsThumbToolTipEnabled="False"
+								Minimum="1" Maximum="50"
+								SmallChange="1" LargeChange="3"/>
+							<TextBlock Grid.Row="12" Grid.Column="2"
+								Text="{Binding TapTolerance}"
+								VerticalAlignment="Center"
 								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-
-							<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
+								Margin="{StaticResource Thickness0404}"/>
+							
+							<TextBlock Grid.Row="14" Grid.ColumnSpan="2"
 								Text="Show angles in degrees."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2"
-								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+							<ToggleSwitch Grid.Row="14" Grid.Column="2"
+								  VerticalAlignment="Center"
 								  IsOn="{Binding IsShowDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-							<TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
+							<TextBlock Grid.Row="16" Grid.ColumnSpan="2"
 								Text="Show speedometre."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<ToggleSwitch Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2"
-								  ScrollViewer.VerticalScrollBarVisibility="Disabled" 
-								  HorizontalContentAlignment="Center" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center"
-								  Style="{StaticResource ToggleSwitchMini}"
-								  Header=""
-								  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-								  IsOn="{Binding IsShowSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+							<ToggleSwitch Grid.Row="16" Grid.Column="2"
+								VerticalAlignment="Center"
+								IsOn="{Binding IsShowSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 						</Grid>
 					</ScrollViewer>
 				</PivotItem>
