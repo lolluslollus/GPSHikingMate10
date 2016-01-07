@@ -258,7 +258,7 @@
 								IsCompact="True"
 								Style="{StaticResource AppBarButtonRecoloured}"
 								Click="OnClearHistory_Click"
-								Icon="Clear"
+								Icon="Delete"
 								IsEnabled="{Binding History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 							<!--Label="Save trk history"-->
 							<AppBarButton Grid.Row="1" Grid.Column="4"
@@ -278,7 +278,7 @@
 								VerticalAlignment="Center" 
 								TextWrapping="Wrap"
 								Style="{StaticResource BaseMessageStyle}" 
-								Text="You can export your tracks as a GPX route file and import them again later as a route."
+								Text="You can export your tracks and import them again later as a route."
 								Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 							<!--Route0-->
 							<Border Grid.Row="3" Grid.Column="0" Grid.RowSpan="3"
@@ -303,7 +303,7 @@
 								IsCompact="True"
 								Style="{StaticResource AppBarButtonRecoloured}"
 								Click="OnClearRoute0_Click" 
-								Icon="Clear"
+								Icon="Delete"
 								IsEnabled="{Binding Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 							<!--Label="Load route"-->
 							<AppBarButton Grid.Row="4" Grid.Column="3"
@@ -349,7 +349,7 @@
 								IsCompact="True"
 								Style="{StaticResource AppBarButtonRecoloured}"
 								Click="OnClearLandmarks_Click" 
-								Icon="Clear"
+								Icon="Delete"
 								IsEnabled="{Binding Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 							<!--Label="Load landmarks"-->
 							<AppBarButton Grid.Row="7" Grid.Column="3"
@@ -376,7 +376,7 @@
 								VerticalAlignment="Center" 
 								TextWrapping="Wrap"
 								Style="{StaticResource BaseMessageStyle}" 
-								Text="Add or update landmarks in the 'Points' panel. You can export them as a waypoint GPX file and import them again later."
+								Text="Add or update landmarks in the 'Points' panel. You can export them and import them again later."
 								Visibility="{Binding Landmarks.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 						</Grid>
 					</ScrollViewer>

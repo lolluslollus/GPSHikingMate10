@@ -108,7 +108,7 @@
 				<utilz:UniversalWrapPanel Orientation="Horizontal">
 					<AppBarButton x:Name="DeletePointButton"
                           Click="OnDeletePoint_Click"
-                          Icon="Clear"
+                          Icon="Delete"
                           IsCompact="True"                          
                           Style="{StaticResource AppBarButtonRecoloured}"/>
 					<AppBarButton x:Name="GotoPreviousButton"

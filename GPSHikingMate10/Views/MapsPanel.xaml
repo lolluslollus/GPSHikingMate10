@@ -155,7 +155,7 @@
                 Click="OnClearMapCache_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
                 IsCompact="True"
-                Icon="Clear"/>
+                Icon="Delete"/>
         <listChooser:LolloListChooser Grid.Row="7" Grid.Column="0"
                 SelectorVisibility="Collapsed"
                 x:Name="ClearCacheChooser"

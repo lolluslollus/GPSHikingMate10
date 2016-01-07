@@ -199,7 +199,7 @@ namespace LolloGPS.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is Int32)) return false;
+            if (value == null || !(value is int)) return false;
             int val = (int)value;
             if (val < PersistentData.MaxRecordsInLandmarks) return true;
             else return false;

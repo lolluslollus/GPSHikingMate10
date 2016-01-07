@@ -137,7 +137,7 @@
                 Click="OnClearCustomTileSource_Click"
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                Icon="Clear"/>
+                Icon="Delete"/>
 			<listChooser:LolloListChooser Grid.Row="3" Grid.Column="1"
                 SelectorVisibility="Collapsed"
                 x:Name="ClearCustomCacheChooser"

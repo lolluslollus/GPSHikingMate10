@@ -212,6 +212,10 @@ namespace LolloGPS.Core
             }
         }
 
-        #endregion event handlers
-    }
+		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
+		{
+			Task clear = MyVM.MyPersistentData.ResetLandmarksAsync();
+		}
+		#endregion event handlers
+	}
 }

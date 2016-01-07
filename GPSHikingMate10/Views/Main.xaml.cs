@@ -328,60 +328,60 @@ namespace LolloGPS.Core
 			if (reply == yesCommand) { Task res = MyPersistentData.ResetHistoryAsync(); }
 		}
 
-		private async void OnCenterRoute_Click(object sender, RoutedEventArgs e)
+		private void OnCenterRoute_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.CentreOnRoute0Async().ConfigureAwait(false);
+			Task cr = _myVM.CentreOnRoute0Async();
 		}
-		private async void OnCenterHistory_Click(object sender, RoutedEventArgs e)
+		private void OnCenterHistory_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.CentreOnHistoryAsync().ConfigureAwait(false);
+			Task ch = _myVM.CentreOnHistoryAsync();
 		}
-		private async void OnCenterLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnCenterLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.CentreOnLandmarksAsync().ConfigureAwait(false);
+			Task cl = _myVM.CentreOnLandmarksAsync();
 		}
-		private async void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
+		private void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
 		{
-			await _myVM.CentreOnTargetAsync().ConfigureAwait(false);
+			Task ct = _myVM.CentreOnTargetAsync();
 		}
 		private void OnMapsGoto2DRequested(object sender, EventArgs e)
 		{
 			_myVM.Goto2D();
 		}
 
-		private async void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
+		private void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0).ConfigureAwait(false);
+			Task lr = _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0);
 		}
 
-		private async void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
+		private void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
+			Task sth = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
 		}
 
-		private async void OnSaveRoute0_Click(object sender, RoutedEventArgs e)
+		private void OnSaveRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route").ConfigureAwait(false);
+			Task sr = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
 		}
 
-		private async void OnClearRoute0_Click(object sender, RoutedEventArgs e)
+		private void OnClearRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			await MyPersistentData.ResetRoute0Async().ConfigureAwait(false);
+			Task rr = MyPersistentData.ResetRoute0Async();
 		}
 
-		private async void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks).ConfigureAwait(false);
+			Task ll = _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks);
 		}
 
-		private async void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await MyPersistentData.ResetLandmarksAsync().ConfigureAwait(false);
+			Task cll = MyPersistentData.ResetLandmarksAsync();
 		}
 
-		private async void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			await _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks").ConfigureAwait(false);
+			Task sl = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks");
 		}
 
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
@@ -401,7 +401,7 @@ namespace LolloGPS.Core
 
 		private async void OnLogButton_Click(object sender, RoutedEventArgs e)
 		{
-			String cnt = (sender as Button).Content.ToString();
+			string cnt = (sender as Button).Content.ToString();
 			if (cnt == "FileError")
 			{
 				MyVM.LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);
@@ -433,7 +433,7 @@ namespace LolloGPS.Core
 		}
 		private void OnLogText_Unloaded(object sender, RoutedEventArgs e)
 		{
-			MyVM.LogText = String.Empty;
+			MyVM.LogText = string.Empty;
 		}
 
 		private void OnOpenPivot_Click(object sender, RoutedEventArgs e)
@@ -455,7 +455,6 @@ namespace LolloGPS.Core
 		{
 			MyVM.GoBackMyButtonSoft();
 		}
-
 		#endregion event handling
 
 		#region continuations
