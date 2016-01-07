@@ -247,8 +247,8 @@ namespace Utilz
 					await Launcher.LaunchUriAsync(uri).AsTask();
 					return false; // must quit and restart to verify the purchase
 
-					////string receipt = await CurrentAppSimulator.RequestAppPurchaseAsync(true).AsTask<String>();
-					//string receipt = await CurrentApp.RequestAppPurchaseAsync(true).AsTask<String>();
+					////string receipt = await CurrentAppSimulator.RequestAppPurchaseAsync(true).AsTask<string>();
+					//string receipt = await CurrentApp.RequestAppPurchaseAsync(true).AsTask<string>();
 					//XElement receiptXml = XElement.Parse(receipt);
 					//var appReceipt = receiptXml.Element("AppReceipt");
 					//if (appReceipt.Attribute("LicenseType").Value == "Full" && !licenseInformation.IsTrial && licenseInformation.IsActive)

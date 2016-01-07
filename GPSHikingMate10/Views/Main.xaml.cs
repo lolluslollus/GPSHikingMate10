@@ -115,7 +115,7 @@ namespace LolloGPS.Core
 				_owner?.MyVM?._fileSavePickerCts?.Cancel();
 			}
 
-			private Boolean _isActivateHandlerActive = false;
+			private bool _isActivateHandlerActive = false;
 			private void AddHandler_Activate()
 			{
 				if (!_isActivateHandlerActive && _owner != null && _owner.MyRuntimeData != null)
@@ -229,7 +229,7 @@ namespace LolloGPS.Core
 		#endregion construct and dispose
 
 		#region event handling
-		private Boolean _isDataChangedHandlerActive = false;
+		private bool _isDataChangedHandlerActive = false;
 		private void AddHandlers()
 		{
 			if (!_isDataChangedHandlerActive)

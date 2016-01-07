@@ -28,12 +28,13 @@ using Windows.UI.Xaml.Media.Imaging;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
+	// LOLLO TODO update the min targeting release to 10.586... for ALL projects, or the map will throw an error
 	public sealed partial class LolloMap : OrientationResponsiveUserControl, IGeoBoundingBoxProvider, IMapApController
 	{
 		#region properties
 		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number. It would be nice to have more though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
-		// Things look better with win 10, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
+		// Things look better with win 10 on a pc, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
 		internal const double ScaleImageWidth = 300.0; //200.0;
 		//internal const string LandmarkTag = "Landmark";
 		internal const int HistoryTabIndex = 20;
@@ -236,7 +237,7 @@ namespace LolloGPS.Core
 					_maxLongitude = coll.Max(a => a.Longitude);
 					_minLatitude = coll.Min(a => a.Latitude);
 					_maxLatitude = coll.Max(a => a.Latitude);
-					//Boolean isOK = await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude }, new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }), new Thickness(20), Windows.UI.Xaml.Controls.Maps.MapAnimationKind.Default);
+					//bool isOK = await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude }, new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }), new Thickness(20), Windows.UI.Xaml.Controls.Maps.MapAnimationKind.Default);
 
 					await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(
 						new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude },
@@ -771,7 +772,7 @@ namespace LolloGPS.Core
 			DrawHistory();
 		}
 
-		private Boolean _isHandlerActive = false;
+		private bool _isHandlerActive = false;
 		private void AddHandlerThisEvents()
 		{
 			if (MyPersistentData != null && !_isHandlerActive)

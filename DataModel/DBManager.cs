@@ -279,7 +279,7 @@ namespace LolloGPS.Data
 
         private class LolloSQLiteConnectionMT
         {
-            public static Task ReplaceAllAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, IEnumerable<T> items, bool checkMaxEntries, Semaphore semaphore)
+            public static Task ReplaceAllAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, IEnumerable<T> items, bool checkMaxEntries, Semaphore semaphore)
             {
                 return Task.Run(delegate
                 {
@@ -321,14 +321,14 @@ namespace LolloGPS.Data
                     }
                 });
             }
-            public static Task<List<T>> ReadTableAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, Semaphore semaphore) where T : new()
+            public static Task<List<T>> ReadTableAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, Semaphore semaphore) where T : new()
             {
                 return Task.Run(delegate
                 {
                     return ReadTable<T>(dbPath, openFlags, storeDateTimeAsTicks, semaphore);
                 });
             }
-            public static List<T> ReadTable<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, Semaphore semaphore) where T : new()
+            public static List<T> ReadTable<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, Semaphore semaphore) where T : new()
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
 
@@ -358,7 +358,7 @@ namespace LolloGPS.Data
                 }
                 return result;
             }
-            public static Task DeleteAllAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, Semaphore semaphore)
+            public static Task DeleteAllAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, Semaphore semaphore)
             {
                 return Task.Run(delegate
                 {
@@ -388,14 +388,14 @@ namespace LolloGPS.Data
                     }
                 });
             }
-            public static Task<bool> InsertAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
+            public static Task<bool> InsertAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
             {
                 return Task.Run(delegate
                 {
                     return Insert<T>(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
                 });
             }
-            public static bool Insert<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
+            public static bool Insert<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
 
@@ -410,7 +410,7 @@ namespace LolloGPS.Data
                         //{
                         //    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
                         //    {
-                        //        String aaa = i.ToString();
+                        //        string aaa = i.ToString();
                         //    }
                         //}
 
@@ -444,14 +444,14 @@ namespace LolloGPS.Data
                 Debug.WriteLine("Insert<T> returned " + result);
                 return result;
             }
-            public static Task DeleteAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
+            public static Task DeleteAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
                 return Task.Run(delegate
                 {
                     Delete<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
                 });
             }
-            public static void Delete<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
+            public static void Delete<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
@@ -465,7 +465,7 @@ namespace LolloGPS.Data
                         //{
                         //    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
                         //    {
-                        //        String aaa = i.ToString();
+                        //        string aaa = i.ToString();
                         //    }
                         //}
 
@@ -488,14 +488,14 @@ namespace LolloGPS.Data
                     SemaphoreExtensions.TryRelease(semaphore);
                 }
             }
-            public static Task UpdateAsync<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
+            public static Task UpdateAsync<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
                 return Task.Run(delegate
                 {
                     Update<T>(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
                 });
             }
-            public static void Update<T>(String dbPath, SQLiteOpenFlags openFlags, Boolean storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
+            public static void Update<T>(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, object item, Semaphore semaphore) where T : new()
             {
                 if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 

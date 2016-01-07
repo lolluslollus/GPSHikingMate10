@@ -21,7 +21,7 @@ namespace GPX
     // date-time formats: http://www.geekzilla.co.uk/View00FF7904-B510-468C-A2C8-F859AA20581F.htm
     public sealed class ReaderWriter
     {
-        //public const String DateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
+        //public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
         //public const ulong MaxFileSize = (ulong)2000000;
 
         #region load route
@@ -166,7 +166,7 @@ namespace GPX
                             var ele = xe.Descendants(xn + "ele").FirstOrDefault();
                             if (ele != null) Double.TryParse(ele.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out altitude);
 
-                            String positionSource = String.Empty;
+                            string positionSource = string.Empty;
                             var src = xe.Descendants(xn + "src").FirstOrDefault();
                             if (src != null) positionSource = src.Value;
 
@@ -182,20 +182,20 @@ namespace GPX
                             var speed = xe.Descendants(xn + "speed").FirstOrDefault();
                             if (speed != null) Double.TryParse(speed.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out speedInMetreSec);
 
-                            //String gpsName = String.Empty;
+                            //string gpsName = string.Empty;
                             //var name = xe.Descendants(xn + "name").FirstOrDefault();
                             //if (name != null) gpsName = name.Value;
 
-                            //String gpsComment = String.Empty;
+                            //string gpsComment = string.Empty;
                             //var cmt = xe.Descendants(xn + "cmt").FirstOrDefault();
                             //if (cmt != null) gpsComment = cmt.Value;
 
-                            String humanDescription = String.Empty;
+                            string humanDescription = string.Empty;
                             var desc = xe.Descendants(xn + "desc").FirstOrDefault();
                             if (desc != null) humanDescription = desc.Value;
 
-                            String hyperLink = null;
-                            String hyperLinkText = string.Empty;
+                            string hyperLink = null;
+                            string hyperLinkText = string.Empty;
                             var link = xe.Descendants(xn + "link").FirstOrDefault();
                             if (link != null)
                             {
@@ -314,7 +314,7 @@ namespace GPX
                     }
 
                     // this is only for testing
-                    //String contentString = null;
+                    //string contentString = null;
                     //using (IInputStream inStream = gpxFile.OpenSequentialReadAsync().AsTask<IInputStream>().Result) //OpenReadAsync() also works
                     //{
                     //    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
@@ -406,11 +406,11 @@ namespace GPX
             }
 
             //XmlElement nodeTrkptName = gpxDoc.CreateElementNS(nameSpaceUri, "name");
-            //nodeTrkptName.InnerText = dataRecord.GPSName ?? String.Empty;
+            //nodeTrkptName.InnerText = dataRecord.GPSName ?? string.Empty;
             //if (!string.IsNullOrWhiteSpace(nodeTrkptName.InnerText)) nodeWpt.AppendChild(nodeTrkptName);
 
             //XmlElement nodeTrkptCmt = gpxDoc.CreateElementNS(nameSpaceUri, "cmt");
-            //nodeTrkptCmt.InnerText = dataRecord.GPSComment ?? String.Empty;
+            //nodeTrkptCmt.InnerText = dataRecord.GPSComment ?? string.Empty;
             //if (!string.IsNullOrWhiteSpace(nodeTrkptCmt.InnerText)) nodeWpt.AppendChild(nodeTrkptCmt);
 
             // speed is an optional field in GPX and http://www.topografix.com/gpx_manual.asp#speed is obsolete, but it works here.
@@ -449,7 +449,7 @@ namespace GPX
                 try
                 {
                     XmlElement nodeMetadata = gpxDoc.GetElementsByTagName("metadata")[0] as XmlElement;
-                    //String strMetadata = nodeMetadata.GetXml();
+                    //string strMetadata = nodeMetadata.GetXml();
                     XmlElement nodeTime = nodeMetadata.GetElementsByTagName("time")[0] as XmlElement;
                     nodeTime.FirstChild.NodeValue = fileCreationDateTime.ToUniversalTime().ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
 
@@ -490,7 +490,7 @@ namespace GPX
             {
                 using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
                 {
-                    String content = streamReader.ReadToEnd();
+                    string content = streamReader.ReadToEnd();
                     gpxDoc = new XmlDocument();
                     gpxDoc.LoadXml(content);
                 }

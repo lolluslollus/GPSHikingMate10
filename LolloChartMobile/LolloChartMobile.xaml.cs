@@ -75,13 +75,13 @@ namespace LolloChartMobile
 		private GridScale _Y2GridScale;
 		public GridScale Y2GridScale { get { return _Y2GridScale; } set { _Y2GridScale = value; } }
 
-		public String Title
+		public string Title
 		{
-			get { return (String)GetValue(TitleProperty); }
+			get { return (string)GetValue(TitleProperty); }
 			set { SetValue(TitleProperty, value); }
 		}
 		public static DependencyProperty TitleProperty =
-			DependencyProperty.Register("Title", typeof(String), typeof(LolloChart), new PropertyMetadata(string.Empty));
+			DependencyProperty.Register("Title", typeof(string), typeof(LolloChart), new PropertyMetadata(string.Empty));
 		private static void OnTitleChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			if (args.NewValue != null) (obj as LolloChart).LBTitle.Text = args.NewValue.ToString();

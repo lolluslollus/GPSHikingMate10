@@ -18,7 +18,7 @@ namespace LolloGPS.Data
     public abstract class ObservableData : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void RaisePropertyChanged([CallerMemberName] String propertyName = "")
+        protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
         {
             var listener = PropertyChanged;
             if (listener != null)

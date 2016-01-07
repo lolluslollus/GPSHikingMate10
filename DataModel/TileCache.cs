@@ -157,7 +157,7 @@ namespace LolloGPS.Data.TileCache
 		//	int where = 0;
 		//	string sWebUri = GetWebUri(x, y, z, zoom);
 		//	// check if I have this tile in the cache already
-		//	String fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+		//	string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 		//	try
 		//	{
 		//		// tile is not in cache: 
@@ -195,7 +195,7 @@ namespace LolloGPS.Data.TileCache
 		//									if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen
 		//									{
 		//										where = 99;
-		//										// String testFileName = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+		//										// string testFileName = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 		//										// Debug.WriteLine("GetTileUri() attempted to overwrite existing file " + fileName);
 		//										output = await TileCacheRecord.GetPixelStreamRefFromByteArray(newRecord.Img).ConfigureAwait(false);
 		//									}
@@ -348,7 +348,7 @@ namespace LolloGPS.Data.TileCache
 			int where = 0;
 			string sWebUri = GetWebUri(x, y, z, zoom);
 			// check if I have this tile in the cache already
-			String fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+			string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 			//Debug.WriteLine("GetTileUri() calculated" + Environment.NewLine
 			//    + "_imageFolder = " + (_imageFolder == null ? "null" : _imageFolder.Path) + Environment.NewLine
 			//    + "fileName = " + fileName + Environment.NewLine
@@ -492,7 +492,7 @@ namespace LolloGPS.Data.TileCache
 			int where = 0;
 			string sWebUri = GetWebUri(x, y, z, zoom);
 			// check if I have this tile in the cache already
-			String fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+			string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 			try
 			{
 				// tile is not in cache: 
@@ -616,7 +616,7 @@ namespace LolloGPS.Data.TileCache
 		public sealed class ProcessingQueue
 		{
 			public static event PropertyChangedEventHandler PropertyChanged;
-			private static void RaisePropertyChanged([CallerMemberName] String propertyName = "")
+			private static void RaisePropertyChanged([CallerMemberName] string propertyName = "")
 			{
 				var listener = PropertyChanged;
 				if (listener != null)

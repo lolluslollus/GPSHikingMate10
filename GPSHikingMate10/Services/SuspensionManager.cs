@@ -65,7 +65,7 @@ namespace LolloGPS.Suspension
                 // read settings
                 StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(SessionDataFilename).AsTask().ConfigureAwait(false);
 
-                //String ssss = null; //this is useful when you debug and want to see the file as a string
+                //string ssss = null; //this is useful when you debug and want to see the file as a string
                 //using (IInputStream inStream = await file.OpenSequentialReadAsync())
                 //{
                 //    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
@@ -127,7 +127,7 @@ namespace LolloGPS.Suspension
             PersistentData allDataClone = allDataOriginal.CloneNonDbProperties();
             //for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
             //{
-            //    String aaa = i.ToString();
+            //    string aaa = i.ToString();
             //}
 
             try

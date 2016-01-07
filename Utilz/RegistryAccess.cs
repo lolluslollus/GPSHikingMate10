@@ -9,10 +9,10 @@ namespace Utilz
         // If settings.Values[regKey] is not found when reading, it returns null but does not throw. 
         // If it is not found when writing, it creates the key
 
-        public static String ReadAllReg() //LOLLO this is only for testing or diagnosing
+        public static string ReadAllReg() //LOLLO this is only for testing or diagnosing
         {
             var settings = ApplicationData.Current.LocalSettings;
-            String output = String.Empty;
+            string output = string.Empty;
             foreach (var item in settings.Values)
             {
                 Debug.WriteLine(item.Key + " = " + item.Value.ToString());
@@ -21,17 +21,17 @@ namespace Utilz
             return output;
         }
 
-        public static void SetValue(String regKey, String value)
+        public static void SetValue(string regKey, string value)
         {
             Debug.WriteLine("writing value " + value + " into reg key " + regKey);
             var settings = ApplicationData.Current.LocalSettings;
             settings.Values[regKey] = value;
         }
 
-        public static String GetValue(String regKey)
+        public static string GetValue(string regKey)
         {
             var settings = ApplicationData.Current.LocalSettings;
-            String valueStr = String.Empty;
+            string valueStr = string.Empty;
             Object valueObj = settings.Values[regKey];
             if (valueObj != null)
             {

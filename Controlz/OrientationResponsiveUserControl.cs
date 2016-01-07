@@ -18,7 +18,7 @@ namespace LolloBaseUserControls
     {
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
-        protected void RaisePropertyChanged([CallerMemberName] String propertyName = "")
+        protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
         {
             var listener = PropertyChanged;
             if (listener != null)
@@ -70,7 +70,7 @@ namespace LolloBaseUserControls
         { }
         protected virtual void OnUnloaded()
         { }
-        private Boolean _isHandlersActive = false;
+        private bool _isHandlersActive = false;
         private void AddHandlers()
         {
             if (_isHandlersActive == false)

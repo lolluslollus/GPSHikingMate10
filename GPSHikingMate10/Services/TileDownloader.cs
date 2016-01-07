@@ -459,7 +459,7 @@ namespace LolloGPS.Core
     //    double n = M_PI - 2.0 * M_PI * y / pow(2.0, z);
     //    return 180.0 / M_PI * atan(0.5 * (exp(n) - exp(-n)));
     //}
-    //    return new Uri(String.Format(this.UriFormat, x, posY, zoom));
+    //    return new Uri(string.Format(this.UriFormat, x, posY, zoom));
     //}
 
     //            public PointF WorldToTilePos(double lon, double lat, int zoom)

@@ -23,8 +23,8 @@ namespace LolloGPS.Data.Runtime
         private bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
         public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
 
-        private Boolean _isSettingsRead = false;
-        public Boolean IsSettingsRead { get { return _isSettingsRead; } }
+        private bool _isSettingsRead = false;
+        public bool IsSettingsRead { get { return _isSettingsRead; } }
         private async Task Set_IsSettingsRead_Async(bool value)
         {
             try
@@ -47,8 +47,8 @@ namespace LolloGPS.Data.Runtime
             Task set = RuntimeData.GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
         }
 
-        private Boolean _isDBDataRead = false;
-        public Boolean IsDBDataRead { get { return _isDBDataRead; } }
+        private bool _isDBDataRead = false;
+        public bool IsDBDataRead { get { return _isDBDataRead; } }
         private async Task Set_IsDBDataRead_Async(bool value)
         {
             try
@@ -71,8 +71,8 @@ namespace LolloGPS.Data.Runtime
             Task set = GetInstance().Set_IsDBDataRead_Async(isDbDataRead);
         }
 
-        private Boolean _isCommandsActive = false;
-        public Boolean IsCommandsActive
+        private bool _isCommandsActive = false;
+        public bool IsCommandsActive
         {
             get { return _isCommandsActive; }
             private set

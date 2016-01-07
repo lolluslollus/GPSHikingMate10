@@ -10,7 +10,7 @@ namespace Utilz
         private const long LongMax = 2147483647L;
         private static long _displayRequestRefCount = 0;
 
-        public static void UpdateKeepAlive(Boolean isMustKeepAlive)
+        public static void UpdateKeepAlive(bool isMustKeepAlive)
         {
             try
             {

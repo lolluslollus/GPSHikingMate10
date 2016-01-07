@@ -88,9 +88,9 @@ namespace LolloGPS.GPSInteraction
         #endregion construct and dispose
 
         #region event handling
-        private Boolean _isGeoLocatorHandlersActive = false;
-        private Boolean _isDataModelHandlersActive = false;
-        private Boolean _isGetLocTaskHandlersActive = false;
+        private bool _isGeoLocatorHandlersActive = false;
+        private bool _isDataModelHandlersActive = false;
+        private bool _isGetLocTaskHandlersActive = false;
 
         private async void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {

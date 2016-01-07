@@ -82,8 +82,8 @@ namespace LolloGPS.Converters
 
     //    public object ConvertBack(object value, Type targetType, object parameter, string language)
     //    {
-    //        if (value == null || !(value is Boolean)) return MapStyle.Terrain;
-    //        Boolean isAerial = (Boolean)value;
+    //        if (value == null || !(value is bool)) return MapStyle.Terrain;
+    //        bool isAerial = (bool)value;
     //        if (isAerial) return MapStyle.Aerial;
     //        else return MapStyle.Terrain;
     //    }
@@ -93,8 +93,8 @@ namespace LolloGPS.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is Boolean)) return Visibility.Collapsed;
-            Boolean boo = (Boolean)value;
+            if (value == null || !(value is bool)) return Visibility.Collapsed;
+            bool boo = (bool)value;
             if (boo) return Visibility.Visible;
             else return Visibility.Collapsed;
         }
@@ -108,8 +108,8 @@ namespace LolloGPS.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is Boolean)) return Visibility.Visible;
-            Boolean boo = (Boolean)value;
+            if (value == null || !(value is bool)) return Visibility.Visible;
+            bool boo = (bool)value;
             if (boo) return Visibility.Collapsed;
             else return Visibility.Visible;
         }
@@ -123,8 +123,8 @@ namespace LolloGPS.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is Boolean)) return true;
-            Boolean boo = (Boolean)value;
+            if (value == null || !(value is bool)) return true;
+            bool boo = (bool)value;
             if (boo) return false;
             else return true;
         }
@@ -466,7 +466,7 @@ namespace LolloGPS.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is PersistentData.Tables)) return String.Empty;
+            if (value == null || !(value is PersistentData.Tables)) return string.Empty;
             return PersistentData.GetTextForSeries((PersistentData.Tables)value);
         }
 
@@ -552,8 +552,8 @@ namespace LolloGPS.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            if (value == null || !(value is Boolean)) return PositionAccuracy.Default;
-            if ((Boolean)value) return PositionAccuracy.High;
+            if (value == null || !(value is bool)) return PositionAccuracy.Default;
+            if ((bool)value) return PositionAccuracy.High;
             return PositionAccuracy.Default;
         }
     }

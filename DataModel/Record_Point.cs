@@ -21,13 +21,13 @@ namespace LolloGPS.Data
         //private double _positionDilutionOfPrecision = default(Double);
         //private double _horizontalDilutionOfPrecision = default(Double);
         //private double _verticalDilutionOfPrecision = default(Double);
-        private string _positionSource = String.Empty;
+        private string _positionSource = string.Empty;
         private Double _speedInMetreSec = default(Double);
-        private string _status = String.Empty;
+        private string _status = string.Empty;
         private DateTime _timePoint = default(DateTime);
-        //private string _gpsName = String.Empty;
-        //private string _gpsComment = String.Empty;
-        private string _humanDescription = String.Empty;
+        //private string _gpsName = string.Empty;
+        //private string _gpsComment = string.Empty;
+        private string _humanDescription = string.Empty;
         private string _hyperLink = null;
         private string _hyperLinkText = string.Empty;
 
@@ -157,13 +157,13 @@ namespace LolloGPS.Data
                     break;
             }
         }
-        public Boolean IsEmpty()
+        public bool IsEmpty()
         {
             return !(
                 _latitude != default(Double) 
                 || _longitude != default(Double) 
                 || _altitude != default(Double) 
-                || !String.IsNullOrWhiteSpace(_positionSource));
+                || !string.IsNullOrWhiteSpace(_positionSource));
         }
     }
 }

@@ -93,7 +93,7 @@ namespace LolloGPS.Core
 			//{
 			//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//    {
-			//        String aaa = i.ToString();
+			//        string aaa = i.ToString();
 			//    }
 			//}
 
@@ -114,7 +114,7 @@ namespace LolloGPS.Core
 			//{
 			//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//    {
-			//        String aaa = i.ToString();
+			//        string aaa = i.ToString();
 			//    }
 			//}
 		}
@@ -148,7 +148,7 @@ namespace LolloGPS.Core
 		#endregion updaters
 
 		#region event handlers
-		private Boolean _isDataChangedHandlerActive = false;
+		private bool _isDataChangedHandlerActive = false;
 		private void AddHandler_DataChanged()
 		{
 			if (!_isDataChangedHandlerActive)
@@ -441,10 +441,7 @@ namespace LolloGPS.Core
 			openPicker.FileTypeFilter.Add(ConstantData.GPX_EXTENSION); //LOLLO I could add many more extensions here, and turn it into a file explorer...
 			try
 			{
-				// LOLLO TODO update the min targeting release to 10.586... for ALL projects, or the map will throw an error
-				StorageFile file = await openPicker.PickSingleFileAsync(); // LOLLO TODO this works on a win10 phone but 1000 landmarks are too many: check available memory and reduce max landkarks to match.
-																		   // check https://msdn.microsoft.com/en-us/library/windows/apps/jj681682(v=vs.105).aspx
-																		   // the new static constructor of PersistentData should take care of it
+				StorageFile file = await openPicker.PickSingleFileAsync();
 				await LoadSeriesFromFileAsync(file, whichSeries);
 			}
 			catch (Exception ex)

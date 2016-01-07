@@ -70,7 +70,7 @@ namespace LolloGPS.Core
         #endregion construct and dispose
 
         #region event handlers
-        private Boolean isEventHandlersActive = false;
+        private bool isEventHandlersActive = false;
         private void AddEventHandlers()
         {
             if (!isEventHandlersActive)
@@ -392,7 +392,6 @@ namespace LolloGPS.Core
         }
         public static void ShortVibration()
         {
-            // LOLLO TODO check this on a device that can vibrate
             if (_isVibrationDevicePresent)
             {
                 VibrationDevice myDevice = VibrationDevice.GetDefault();

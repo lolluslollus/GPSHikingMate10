@@ -26,25 +26,29 @@ namespace LolloGPS.Data
     public sealed class PersistentData : ObservableData //, INotifyDataErrorInfo //does not work
     {
         public enum Tables { History, Route0, Landmarks, nil }
-        public static String GetTextForSeries(PersistentData.Tables whichSeries)
+        public static string GetTextForSeries(PersistentData.Tables whichSeries)
         {
             switch (whichSeries)
             {
-                case PersistentData.Tables.History:
+                case Tables.History:
                     return "Tracking history";
-                case PersistentData.Tables.Route0:
+                case Tables.Route0:
                     return "Route";
-                case PersistentData.Tables.Landmarks:
+                case Tables.Landmarks:
                     return "Landmarks";
-                case PersistentData.Tables.nil:
+                case Tables.nil:
                     return "No series";
                 default:
                     return "";
             }
         }
-        public const int MaxRecordsInRoute = (Int32)Int16.MaxValue;
-        public const int MaxRecordsInHistory = (Int32)Int16.MaxValue;
-        public static readonly int MaxRecordsInLandmarks = 1000; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
+        public const int MaxRecordsInRoute = short.MaxValue;
+        public const int MaxRecordsInHistory = short.MaxValue;
+		private const int MaxLandmarks1 = 100;
+		private const int MaxLandmarks2 = 250;
+		private const int MaxLandmarks3 = 500;
+		private const int MaxLandmarks4 = 1000;
+		public static readonly int MaxRecordsInLandmarks = MaxLandmarks4; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
         public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
         public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
         public const uint MinReportIntervalInMilliSec = 3000u;
@@ -52,7 +56,6 @@ namespace LolloGPS.Data
         public const uint MinAccuracyInMetres = 1u;
         public const string DefaultPositionSource = ConstantData.APPNAME;
         private const int DefaultSelectedIndex_Base1 = 0;
-        //public const double MinMovementThresholdInMetres = 2.0;
 
         private static SemaphoreSlimSafeRelease _historySemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private static SemaphoreSlimSafeRelease _route0Semaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -200,10 +203,10 @@ namespace LolloGPS.Data
 		{
 			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC
 			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.ForegroundLogFilename, Logger.Severity.Info);
-			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = 100;
-			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = 250;
-			else if (memUsageLimit < 3e+9) MaxRecordsInLandmarks = 500;
-			else MaxRecordsInLandmarks = 1000;
+			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = MaxLandmarks1;
+			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = MaxLandmarks2;
+			else if (memUsageLimit < 3e+9) MaxRecordsInLandmarks = MaxLandmarks3;
+			else MaxRecordsInLandmarks = MaxLandmarks4;
 			//Logger.Add_TPL("MaxRecordsInLandmarks = " + MaxRecordsInLandmarks, Logger.ForegroundLogFilename, Logger.Severity.Info);
 		}
 		private PersistentData()
@@ -296,9 +299,9 @@ namespace LolloGPS.Data
         private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
         [DataMember]
         public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
-        private PersistentData.Tables _selectedSeries = Tables.nil;
+        private Tables _selectedSeries = Tables.nil;
         [DataMember]
-        public PersistentData.Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
+        public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
         private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
         [DataMember]
         public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
@@ -391,16 +394,16 @@ namespace LolloGPS.Data
         public uint MaxBackgroundUpdatePeriodInMinutesProp { get { return MaxBackgroundUpdatePeriodInMinutes; } }
         [IgnoreDataMember]
         public int MaxRecordsInLandmarksProp { get { return MaxRecordsInLandmarks; } }
-        private string _lastMessage = String.Empty;
+        private string _lastMessage = string.Empty;
         [DataMember]
         public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
-        private Boolean _isShowSpeed = false;
+        private bool _isShowSpeed = false;
         [DataMember]
         public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged(); } }
         private bool _isTracking = false;
         [DataMember]
         public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged(); } }
-        private volatile Boolean _isBackgroundEnabled = false;
+        private volatile bool _isBackgroundEnabled = false;
         [DataMember]
         public bool IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged(); } }
         private double _tapTolerance = 20.0;
@@ -409,7 +412,7 @@ namespace LolloGPS.Data
         private bool _isShowDegrees = false;
         [DataMember]
         public bool IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged(); } }
-        private Boolean _isKeepAlive = false;
+        private bool _isKeepAlive = false;
         [DataMember]
         public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged(); } }
         private bool _isAllowMeteredConnection = false;
@@ -1230,24 +1233,24 @@ namespace LolloGPS.Data
     {
         public const int MaxDecimalPlaces = 3;
         public const int TenPowerMaxDecimalPlaces = 1000;
-        public static String Float_To_DegMinSec_NoDec_String(object value, object parameter)
+        public static string Float_To_DegMinSec_NoDec_String(object value, object parameter)
         {
             int deg;
             int min;
             int sec;
             int dec;
             Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
-            return (deg + "°" + min + "'" + sec + "\"") as String; //we skip dec
+            return (deg + "°" + min + "'" + sec + "\"") as string; //we skip dec
         }
 
-        public static String[] Float_To_DegMinSecDec_Array(object value, object parameter)
+        public static string[] Float_To_DegMinSecDec_Array(object value, object parameter)
         {
             int deg;
             int min;
             int sec;
             int dec;
             Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
-            String[] strArray = new String[4];
+            string[] strArray = new string[4];
             strArray[0] = deg.ToString();
             strArray[1] = min.ToString();
             strArray[2] = sec.ToString();
@@ -1279,7 +1282,7 @@ namespace LolloGPS.Data
             //if (parameter != null) sec = Math.Round(sec, System.Convert.ToInt32(parameter.ToString())); // in case we need this again in future...
         }
 
-        public static Double DegMinSecDec_To_Float(String degStr, String minStr, String secStr, String decStr)
+        public static Double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)
         {
             Int32 deg = 0;
             Int32.TryParse(degStr, out deg);
