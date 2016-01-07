@@ -44,7 +44,7 @@ namespace LolloGPS.Data
         }
         public const int MaxRecordsInRoute = (Int32)Int16.MaxValue;
         public const int MaxRecordsInHistory = (Int32)Int16.MaxValue;
-        public const int MaxRecordsInLandmarks = 1000; //100; //256; //(Int32)Int16.MaxValue; // TODO check this on a win10 phone
+        public static readonly int MaxRecordsInLandmarks = 1000; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
         public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
         public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
         public const uint MinReportIntervalInMilliSec = 3000u;
@@ -196,7 +196,20 @@ namespace LolloGPS.Data
                 target.RaisePropertyChanged(nameof(PersistentData.LastDownloadSession));
             }
         }
-        private PersistentData() { }
+		static PersistentData()
+		{
+			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC
+			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.ForegroundLogFilename, Logger.Severity.Info);
+			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = 100;
+			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = 250;
+			else if (memUsageLimit < 3e+9) MaxRecordsInLandmarks = 500;
+			else MaxRecordsInLandmarks = 1000;
+			//Logger.Add_TPL("MaxRecordsInLandmarks = " + MaxRecordsInLandmarks, Logger.ForegroundLogFilename, Logger.Severity.Info);
+		}
+		private PersistentData()
+		{
+			_landmarks = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInLandmarks);
+		}
 
         /// <summary>
         /// Unlocks the TileCache DB.
@@ -297,7 +310,7 @@ namespace LolloGPS.Data
         //[DataMember] // we save this into the DB so we don't serialise it anymore
         [IgnoreDataMember]
         public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
-        private SwitchableObservableCollection<PointRecord> _landmarks = new SwitchableObservableCollection<PointRecord>(MaxRecordsInLandmarks);
+		private SwitchableObservableCollection<PointRecord> _landmarks = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInLandmarks);
         //[DataMember] // we save this into the DB so we don't serialise it anymore
         [IgnoreDataMember]
         public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged(); } }

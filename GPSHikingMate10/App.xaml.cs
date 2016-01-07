@@ -150,7 +150,8 @@ namespace LolloGPS.Core
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            await CloseAll();
+            await CloseAll().ConfigureAwait(false);
+			await Logger.AddAsync("OnSuspending ended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
             deferral.Complete();
         }
 		
@@ -163,7 +164,7 @@ namespace LolloGPS.Core
         /// <param name="e"></param>
         private async void OnResuming(object sender, object e)
         {
-            Logger.Add_TPL("OnResuming()", Logger.ForegroundLogFilename, Logger.Severity.Info);
+            await Logger.AddAsync("OnResuming()", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
             InitData();
             if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
@@ -174,10 +175,10 @@ namespace LolloGPS.Core
                 // Settings and data are already in.
                 // However, reread the history coz the background task may have changed it while I was suspended.
                 RuntimeData.SetIsDBDataRead_UI(false);
-                Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(false)", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                //Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(false)", Logger.ForegroundLogFilename, Logger.Severity.Info);
                 await PersistentData.LoadHistoryFromDbAsync(false);
                 RuntimeData.SetIsDBDataRead_UI(true);
-                Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(true)", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                //Logger.Add_TPL("OnResuming() called RuntimeData.SetIsDBDataRead_UI(true)", Logger.ForegroundLogFilename, Logger.Severity.Info);
                     main.OnResuming();
                 // In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
                 // but I deregister them when suspending to make sure long running tasks are really stopped.
@@ -185,7 +186,7 @@ namespace LolloGPS.Core
                 // If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
                 // which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
             }
-            Logger.Add_TPL("OnResuming() ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+            await Logger.AddAsync("OnResuming() ended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
         }
         //protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
         //{
