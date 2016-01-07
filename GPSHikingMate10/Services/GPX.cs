@@ -287,7 +287,8 @@ namespace GPX
                 try
                 {
                     XmlDocument gpxDoc = await GetEmptyXml(whichTable).ConfigureAwait(false);
-                    await PersistentData.GetInstance().RunFunctionUnderSemaphore(
+					token.ThrowIfCancellationRequested();
+					await PersistentData.GetInstance().RunFunctionUnderSemaphore(
                         delegate
                         {
                             EditXmlData(coll, gpxDoc, whichTable, token);
