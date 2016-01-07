@@ -183,20 +183,24 @@ namespace LolloGPS.Core
 
 		#endregion construct and dispose
 		#region services
-		private async Task RestoreViewAsync()
+		private Task RestoreViewAsync()
 		{
 			try
 			{
 				Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = MyPersistentData.MapLastLat, Longitude = MyPersistentData.MapLastLon });
-				await MyMap.TrySetViewAsync(gp, MyPersistentData.MapLastZoom, MyPersistentData.MapLastHeading, MyPersistentData.MapLastPitch, MapAnimationKind.None).AsTask().ConfigureAwait(false);
+				return RunInUiThreadAsync(delegate
+				{
+					Task set = MyMap.TrySetViewAsync(gp, MyPersistentData.MapLastZoom, MyPersistentData.MapLastHeading, MyPersistentData.MapLastPitch, MapAnimationKind.None).AsTask();
+				});
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			return Task.CompletedTask;
 		}
 
-		private async void CentreOnCurrent()
+		private Task CentreOnCurrentAsync()
 		{
 			try
 			{
@@ -209,22 +213,29 @@ namespace LolloGPS.Core
 				{
 					newCentre = new Geopoint(new BasicGeoposition() { Latitude = 0.0, Longitude = 0.0 });
 				}
-				await MyMap.TrySetViewAsync(newCentre).AsTask().ConfigureAwait(false); //, CentreZoomLevel);
+				return RunInUiThreadAsync(delegate
+				{
+					Task set = MyMap.TrySetViewAsync(newCentre).AsTask(); //, CentreZoomLevel);
+				});
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			return Task.CompletedTask;
 		}
-		private async Task CentreAsync(Collection<PointRecord> coll)
+		private Task CentreAsync(Collection<PointRecord> coll)
 		{
 			try
 			{
-				if (coll == null || coll.Count < 1) return;
+				if (coll == null || coll.Count < 1) return Task.CompletedTask;
 				else if (coll.Count == 1 && coll[0] != null && !coll[0].IsEmpty())
 				{
 					Geopoint target = new Geopoint(new BasicGeoposition() { Latitude = coll[0].Latitude, Longitude = coll[0].Longitude });
-					await MyMap.TrySetViewAsync(target); //, CentreZoomLevel);
+					return RunInUiThreadAsync(delegate
+					{
+						Task set = MyMap.TrySetViewAsync(target).AsTask(); //, CentreZoomLevel);
+					});
 				}
 				else if (coll.Count > 1)
 				{
@@ -239,33 +250,36 @@ namespace LolloGPS.Core
 					_maxLatitude = coll.Max(a => a.Latitude);
 					//bool isOK = await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude }, new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }), new Thickness(20), Windows.UI.Xaml.Controls.Maps.MapAnimationKind.Default);
 
-					await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(
-						new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude },
-						new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }),
-						new Thickness(20), //this is the margin to use in the view
-						Windows.UI.Xaml.Controls.Maps.MapAnimationKind.Default
-						).AsTask();
+					return RunInUiThreadAsync(delegate
+					{
+						Task set = MyMap.TrySetViewBoundsAsync(new GeoboundingBox(
+							new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude },
+							new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }),
+							new Thickness(20), //this is the margin to use in the view
+							MapAnimationKind.Default
+							).AsTask();
+					});
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-
+			return Task.CompletedTask;
 		}
-		async public Task CentreOnLandmarksAsync()
+		public Task CentreOnLandmarksAsync()
 		{
-			await CentreAsync(MyPersistentData.Landmarks);
+			return CentreAsync(MyPersistentData.Landmarks);
 		}
-		async public Task CentreOnRoute0Async()
+		public Task CentreOnRoute0Async()
 		{
-			await CentreAsync(MyPersistentData.Route0);
+			return CentreAsync(MyPersistentData.Route0);
 		}
-		async public Task CentreOnHistoryAsync()
+		public Task CentreOnHistoryAsync()
 		{
-			await CentreAsync(MyPersistentData.History);
+			return CentreAsync(MyPersistentData.History);
 		}
-		public async Task CentreOnTargetAsync()
+		public Task CentreOnTargetAsync()
 		{
 			try
 			{
@@ -277,33 +291,44 @@ namespace LolloGPS.Core
 						Latitude = MyPersistentData.Target.Latitude,
 						Longitude = MyPersistentData.Target.Longitude
 					});
-					await MyMap.TrySetViewAsync(location); //, CentreZoomLevel);
+					return RunInUiThreadAsync(delegate
+					{
+						Task c2 = MyMap.TrySetViewAsync(location).AsTask(); //, CentreZoomLevel);
+					});
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			return Task.CompletedTask;
 		}
-		private async Task CentreOnSelectedPointAsync()
+		private Task CentreOnSelectedPointAsync()
 		{
 			try
 			{
 				if (MyPersistentData != null && MyPersistentData.Selected != null)
 				{
 					Geopoint location = new Geopoint(new BasicGeoposition() { Latitude = MyPersistentData.Selected.Latitude, Longitude = MyPersistentData.Selected.Longitude });
-					await MyMap.TrySetViewAsync(location); //, CentreZoomLevel);
+					return RunInUiThreadAsync(delegate
+					{
+						Task set = MyMap.TrySetViewAsync(location).AsTask(); //, CentreZoomLevel);
+					});
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			return Task.CompletedTask;
 		}
-		public void Goto2D()
+		public Task Goto2DAsync()
 		{
-			MyMap.DesiredPitch = 0.0;
-			MyMap.Heading = 0.0;
+			return RunInUiThreadAsync(delegate
+			{
+				MyMap.DesiredPitch = 0.0;
+				MyMap.Heading = 0.0;
+			});
 		}
 		/// <summary>
 		/// Initialises all map elements except for landmarks, which have their dedicated method
@@ -545,7 +570,7 @@ namespace LolloGPS.Core
 		public async Task<GeoboundingBox> GetMinMaxLatLonAsync()
 		{
 			GeoboundingBox output = null;
-			await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+			await RunInUiThreadAsync(delegate
 			{
 				Geopoint topLeftGeopoint = null;
 				Geopoint topRightGeopoint = null;
@@ -553,10 +578,10 @@ namespace LolloGPS.Core
 				Geopoint bottomRightGeopoint = null;
 				try
 				{
-					MyMap.GetLocationFromOffset(new Windows.Foundation.Point(0.0, 0.0), out topLeftGeopoint);
-					MyMap.GetLocationFromOffset(new Windows.Foundation.Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
-					MyMap.GetLocationFromOffset(new Windows.Foundation.Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
-					MyMap.GetLocationFromOffset(new Windows.Foundation.Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
+					MyMap.GetLocationFromOffset(new Point(0.0, 0.0), out topLeftGeopoint);
+					MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
+					MyMap.GetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
+					MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
 
 					double minLat = Math.Min(Math.Min(Math.Min(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
 					double maxLat = Math.Max(Math.Max(Math.Max(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
@@ -569,10 +594,10 @@ namespace LolloGPS.Core
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine("Exception in LolloMap.GetMinMaxLatLonAsync(): " + ex.Message + ex.StackTrace);
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 					output = null;
 				}
-			}).AsTask().ConfigureAwait(false);
+			}).ConfigureAwait(false);
 			return output;
 		}
 		private static void AdjustMinMaxLatLon(ref double minLat, ref double maxLat, ref double minLon, ref double maxLon)
@@ -591,9 +616,14 @@ namespace LolloGPS.Core
 
 			if (minLon > maxLon) LolloMath.Swap(ref minLon, ref maxLon);
 		}
-		public BasicGeoposition GetCentre()
+		public async Task<BasicGeoposition> GetCentreAsync()
 		{
-			return MyMap.Center.Position;
+			BasicGeoposition result = default(BasicGeoposition);
+			await RunInUiThreadAsync(delegate
+			{
+				result = MyMap.Center.Position;
+			});
+			return result;
 		}
 		#endregion IGeoBoundingBoxProvider
 
@@ -675,7 +705,7 @@ namespace LolloGPS.Core
 		private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
-			CentreOnCurrent();
+			Task cen = CentreOnCurrentAsync();
 		}
 
 		private async void OnInfoPanelPointChanged(object sender, EventArgs e)
@@ -737,7 +767,10 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.MapStyle))
 			{
-				MyMap.Style = MyPersistentData.MapStyle;
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					MyMap.Style = MyPersistentData.MapStyle;
+				});
 			}
 			//else if (e.PropertyName == "IsCentreOnCurrent")
 			//{
@@ -753,7 +786,7 @@ namespace LolloGPS.Core
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
 			if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent && (SelectedPointPopup == null || !SelectedPointPopup.IsOpen))
 			{
-				CentreOnCurrent();
+				Task cen = CentreOnCurrentAsync();
 			}
 		}
 

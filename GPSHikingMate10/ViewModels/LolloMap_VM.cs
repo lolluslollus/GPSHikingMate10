@@ -220,7 +220,7 @@ namespace LolloGPS.Core
         {
             if (_gbbProvider != null && MyPersistentData != null)
             {
-                var centre = _gbbProvider.GetCentre();
+                var centre = await _gbbProvider.GetCentreAsync();
                 // this stupid control does not know the altitude, it gives crazy high numbers
                 centre.Altitude = Main_VM.RoundAndRangeAltitude(centre.Altitude);
                 return await MyPersistentData.TryAddPointToLandmarksAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
@@ -244,9 +244,9 @@ namespace LolloGPS.Core
         {
             return _mapController?.CentreOnTargetAsync();
         }
-        public void Goto2D()
+        public Task Goto2DAsync()
         {
-            _mapController?.Goto2D();
+            return _mapController?.Goto2DAsync();
         }
     }
 }

@@ -493,7 +493,7 @@ namespace LolloGPS.Data
                 case Tables.Landmarks:
                     return LoadLandmarksFromDbAsync(isShowMessageEvenIfSuccess);
                 default:
-                    return Task.Delay(1);
+                    return Task.CompletedTask;
             }
         }
         /// <summary>

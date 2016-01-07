@@ -347,32 +347,32 @@ namespace LolloGPS.Core
 		public async Task CentreOnRoute0Async()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			await _myAltitudeProfiles_VM?.CentreOnRoute0Async();
+			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnRoute0Async();
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnRoute0Async().ConfigureAwait(false);
 		}
 		public async Task CentreOnHistoryAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			await _myAltitudeProfiles_VM?.CentreOnHistoryAsync();
+			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnHistoryAsync();
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnHistoryAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnLandmarksAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			await _myAltitudeProfiles_VM?.CentreOnLandmarksAsync();
+			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnLandmarksAsync();
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnLandmarksAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnTargetAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless, just here tor espect interface IMapApController
+			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless, just here to respect interface IMapApController
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnTargetAsync().ConfigureAwait(false);
 		}
-		public void Goto2D()
+		public Task Goto2DAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			// _myAltitudeProfiles_VM.Goto2D(); // useless, just here tor espect interface IMapApController
-			_myLolloMap_VM.Goto2D();
+			// _myAltitudeProfiles_VM.Goto2D(); // useless, just here to respect interface IMapApController
+			return _myLolloMap_VM?.Goto2DAsync();
 		}
 		#endregion IMapApController
 
@@ -441,14 +441,13 @@ namespace LolloGPS.Core
 			openPicker.FileTypeFilter.Add(ConstantData.GPX_EXTENSION); //LOLLO I could add many more extensions here, and turn it into a file explorer...
 			try
 			{
-				StorageFile file = await openPicker.PickSingleFileAsync();
-				await LoadSeriesFromFileAsync(file, whichSeries);
+				StorageFile file = await openPicker.PickSingleFileAsync().AsTask().ConfigureAwait(false);
+				await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
-				Debug.WriteLine(ex.ToString());
 				MyPersistentData.LastMessage = string.Format("error loading {0}", PersistentData.GetTextForSeries(whichSeries));
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
 		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
@@ -466,9 +465,9 @@ namespace LolloGPS.Core
 					token.ThrowIfCancellationRequested();
 					// disable UI commands
 					RuntimeData.SetIsDBDataRead_UI(false);
-					SetLastMessage_UI("reading GPX file...");                    
+					SetLastMessage_UI("reading GPX file...");
 					// load the file
-					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token);
+					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 					// update the UI with the file data
 					if (result?.Item1 == true)
@@ -478,11 +477,11 @@ namespace LolloGPS.Core
 							case PersistentData.Tables.History:
 								break;
 							case PersistentData.Tables.Route0:
-								await MyPersistentData.LoadRoute0FromDbAsync(false); //.ConfigureAwait(false);
+								await MyPersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
 								await CentreOnRoute0Async().ConfigureAwait(false);
 								break;
 							case PersistentData.Tables.Landmarks:
-								await MyPersistentData.LoadLandmarksFromDbAsync(false); //.ConfigureAwait(false);
+								await MyPersistentData.LoadLandmarksFromDbAsync(false).ConfigureAwait(false);
 								await CentreOnLandmarksAsync().ConfigureAwait(false);
 								break;
 							case PersistentData.Tables.nil:
@@ -561,6 +560,6 @@ namespace LolloGPS.Core
 		Task CentreOnLandmarksAsync();
 		Task CentreOnRoute0Async();
 		Task CentreOnTargetAsync();
-		void Goto2D();
+		Task Goto2DAsync();
 	}
 }

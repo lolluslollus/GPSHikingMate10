@@ -346,7 +346,7 @@ namespace LolloGPS.Core
 		}
 		private void OnMapsGoto2DRequested(object sender, EventArgs e)
 		{
-			_myVM.Goto2D();
+			Task gt = _myVM.Goto2DAsync();
 		}
 
 		private void OnLoadRoute0_Click(object sender, RoutedEventArgs e)

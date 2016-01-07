@@ -14,21 +14,9 @@ using Windows.UI.Xaml.Controls;
 // LOLLO guide to uap https://msdn.microsoft.com/en-us/library/windows/apps/xaml/dn894631.aspx
 namespace LolloBaseUserControls
 {
-    public class OrientationResponsiveUserControl : UserControl, INotifyPropertyChanged
+    public class OrientationResponsiveUserControl : ObservableControl, INotifyPropertyChanged
     {
-        #region INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            var listener = PropertyChanged;
-            if (listener != null)
-            {
-                listener(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-        #endregion INotifyPropertyChanged
-
-        #region construct and destroy
+        #region ctor
         public OrientationResponsiveUserControl()
             : base()
         {
@@ -39,19 +27,19 @@ namespace LolloBaseUserControls
             Loaded += OnLoadedInternal;
             Unloaded += OnUnloadedInternal;
         }
-        //~OrientationResponsiveUserControl() // this fucks up
-        //{
-        //    try
-        //    {
-        //        this.Loaded -= OnLoadedInternal;
-        //        this.Unloaded -= OnUnloadedInternal;
-        //    }
-        //    catch (Exception exc) { }
-        //}
-        #endregion construct and destroy
+		//~OrientationResponsiveUserControl() // this fucks up
+		//{
+		//    try
+		//    {
+		//        this.Loaded -= OnLoadedInternal;
+		//        this.Unloaded -= OnUnloadedInternal;
+		//    }
+		//    catch (Exception exc) { }
+		//}
+		#endregion ctor
 
-        #region common
-        private ApplicationView _appView = null;
+		#region common
+		private ApplicationView _appView = null;
         public ApplicationView AppView { get { return _appView; } }
 
         private void OnLoadedInternal(object sender, RoutedEventArgs e)

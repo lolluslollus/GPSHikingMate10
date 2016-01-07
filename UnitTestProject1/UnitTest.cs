@@ -166,9 +166,11 @@ namespace UnitTestProject1
                 nw = new BasicGeoposition() { Altitude = nwAlt, Latitude = nwLat, Longitude = nwLon };
                 se = new BasicGeoposition() { Altitude = seAlt, Latitude = seLat, Longitude = seLon };
             }
-            public BasicGeoposition GetCentre()
+            public async Task<BasicGeoposition> GetCentreAsync()
             {
-                return new BasicGeoposition() { Altitude = 0, Latitude = (nw.Latitude + se.Latitude) / 2.0, Longitude = (se.Longitude + nw.Latitude) / 2.0 };
+				await Task.CompletedTask;
+                var result = new BasicGeoposition() { Altitude = 0, Latitude = (nw.Latitude + se.Latitude) / 2.0, Longitude = (se.Longitude + nw.Latitude) / 2.0 };
+				return result;
             }
 
             public async Task<GeoboundingBox> GetMinMaxLatLonAsync()

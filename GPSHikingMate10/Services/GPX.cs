@@ -303,13 +303,13 @@ namespace GPX
 
                     if (status == FileUpdateStatus.Complete)
                     {
-                        Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                        await Logger.AddAsync("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                         outIsOk = true;
                         outMessage = "file saved";
                     }
                     else
                     {
-                        Logger.Add_TPL("File " + gpxFile.Name + " could not be saved", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                        await Logger.AddAsync("File " + gpxFile.Name + " could not be saved", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                         outMessage = "file could not be saved";
                     }
 
@@ -329,13 +329,13 @@ namespace GPX
                 }
                 catch (Exception exc1)
                 {
-                    Logger.Add_TPL("Error writing GPX: " + exc1.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+                    await Logger.AddAsync("Error writing GPX: " + exc1.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                     outMessage = "file could not be saved, " + exc1.Message;
                 }
             }
             else
             {
-                Logger.Add_TPL("GPX file null", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                await Logger.AddAsync("GPX file null", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
                 outMessage = "file could not be saved";
             }
 

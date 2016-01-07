@@ -19,7 +19,7 @@ namespace LolloGPS.Core
     public interface IGeoBoundingBoxProvider
     {
         Task<GeoboundingBox> GetMinMaxLatLonAsync();
-        BasicGeoposition GetCentre();
+        Task<BasicGeoposition> GetCentreAsync();
     }
     public class TileDownloader
     {

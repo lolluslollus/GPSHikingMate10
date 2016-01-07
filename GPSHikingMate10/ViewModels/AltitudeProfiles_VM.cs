@@ -167,9 +167,9 @@ namespace LolloGPS.Core
         {
             return _altitudeProfilesController?.CentreOnTargetAsync();
         }
-        public void Goto2D()
+        public Task Goto2DAsync()
         {
-            _altitudeProfilesController.Goto2D();
+            return _altitudeProfilesController.Goto2DAsync();
         }
         #endregion IAltitudeProfilesController
     }

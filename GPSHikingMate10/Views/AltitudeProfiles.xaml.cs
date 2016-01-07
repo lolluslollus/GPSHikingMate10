@@ -370,55 +370,67 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && HistoryChart.Visibility == Visibility.Visible)
+				return RunInUiThreadAsync(delegate
 				{
-					MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
-				}
+					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && HistoryChart.Visibility == Visibility.Visible)
+					{
+						MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
+					}
+				});
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.Delay(1); // to respect the form of the output
+			return Task.CompletedTask; // to respect the form of the output
 		}
 		public Task CentreOnRoute0Async()
 		{
 			try
 			{
-				if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && Route0Chart.Visibility == Visibility.Visible)
+				return RunInUiThreadAsync(delegate
 				{
-					double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
-					MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
-				}
+					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && Route0Chart.Visibility == Visibility.Visible)
+					{
+						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
+						MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
+					}
+				});
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.Delay(1); // to respect the form of the output
+			return Task.CompletedTask; // to respect the form of the output
 		}
 		public Task CentreOnLandmarksAsync()
 		{
 			try
 			{
-				if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
+				return RunInUiThreadAsync(delegate 
 				{
-					double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
-					if (Route0Chart.Visibility == Visibility.Visible) vOffset += Route0Chart.ActualHeight;
-					MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
-				}
+					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
+					{
+						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
+						if (Route0Chart.Visibility == Visibility.Visible) vOffset += Route0Chart.ActualHeight;
+						MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
+					}
+				});
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.Delay(1); // to respect the form of the output
+			return Task.CompletedTask; // to respect the form of the output
 		}
 		public Task CentreOnTargetAsync()
 		{
-			return Task.Delay(1); // to respect the form of the output
+			return Task.CompletedTask; // to respect the form of the output and interface
 		}
-		public void Goto2D() { }
+		public Task Goto2DAsync()
+		{
+			return Task.CompletedTask; // to respect the form of the output and interface
+		}
 #endregion IMapApController
 	}
 }

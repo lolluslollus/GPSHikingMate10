@@ -115,7 +115,7 @@ namespace LolloGPS.Suspension
         }
         public static async Task ReadDataAsync()
         {
-            Logger.Add_TPL("SuspensionManager.ReadData() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
+            await Logger.AddAsync("SuspensionManager.ReadData() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
             await PersistentData.SetInstanceAsync(_newPersistentData,
                 _history,
                 _route0,
