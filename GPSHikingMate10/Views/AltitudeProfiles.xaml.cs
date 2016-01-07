@@ -285,10 +285,10 @@ namespace LolloGPS.Core
 				if (_cts == null) _cts = new CancellationTokenSource();
 				CancellationToken token = _cts.Token;
 
-				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
+				await RunInUiThreadAsync(delegate
 				{
 					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, token);
-				}).AsTask().ConfigureAwait(false);
+				}).ConfigureAwait(false);
 			}
 			catch (ObjectDisposedException) { } // fires when I dispose sema and have not rector'd it while the current thread is inside it (unlikely)
 			catch (SemaphoreFullException) { } // fires when I dispose sema and rector it while the current thread is inside it

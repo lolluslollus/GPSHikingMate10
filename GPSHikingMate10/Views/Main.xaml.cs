@@ -1,4 +1,5 @@
-﻿using LolloGPS.Data;
+﻿using LolloBaseUserControls;
+using LolloGPS.Data;
 using LolloGPS.Data.Constants;
 using LolloGPS.Data.Files;
 using LolloGPS.Data.Runtime;
@@ -19,7 +20,7 @@ using Windows.UI.Xaml.Navigation;
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 namespace LolloGPS.Core
 {
-	public sealed partial class Main : Page, IFileActivatable
+	public sealed partial class Main : ObservablePage, IFileActivatable
 	{
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -393,10 +394,11 @@ namespace LolloGPS.Core
 		private async void OnTestFiles_Click(object sender, RoutedEventArgs e)
 		{
 			string txt = await FileData.GetAllFilesInLocalFolderAsync().ConfigureAwait(false);
-			await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+
+			await RunInUiThreadAsync(delegate
 			{
 				MyVM.LogText = txt;
-			}).AsTask().ConfigureAwait(false);            
+			}).ConfigureAwait(false);            
 		}
 
 		private async void OnLogButton_Click(object sender, RoutedEventArgs e)

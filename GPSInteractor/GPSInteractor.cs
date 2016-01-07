@@ -482,17 +482,10 @@ namespace LolloGPS.GPSInteraction
                     _getLocationCts = null;
                     if (dataRecord != null)
                     {
-                        if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+						await RunInUiThreadAsync(delegate
                         {
                             _myPersistentData?.SelectRecordFromSeries(_myPersistentData.Current, PersistentData.Tables.History);
-                        }
-                        else
-                        {
-                            IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                            {
-                                _myPersistentData?.SelectRecordFromSeries(_myPersistentData.Current, PersistentData.Tables.History);
-                            });
-                        }
+                        }).ConfigureAwait(false);
                     }
                     IsGPSWorking = false;
                 }

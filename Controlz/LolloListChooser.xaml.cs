@@ -1,6 +1,7 @@
 ﻿using LolloBaseUserControls;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Phone.UI.Input;
 using Windows.UI.ViewManagement;
@@ -321,14 +322,14 @@ namespace LolloListChooser
 
         private void OnMyListViewItems_VectorChanged(Windows.Foundation.Collections.IObservableVector<object> sender, Windows.Foundation.Collections.IVectorChangedEventArgs @event)
         {
-            MyListView.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+			Task updSelIdx = RunInUiThreadAsync(MyListView.Dispatcher, delegate
             {
                 if (MyListView.Items.Count > SelectedIndex)
                 {
                     MyListView.SelectedIndex = SelectedIndex;
                     //MyListView.SelectRange(new Windows.UI.Xaml.Data.ItemIndexRange(SelectedIndex, 1)); // you can only call this if multiple selections are allowed
                 }
-            }).AsTask().ConfigureAwait(false);
+            });
         }
         #endregion event handlers
     }

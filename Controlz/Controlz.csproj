@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LolloListChooser.xaml.cs" />
+    <Compile Include="ObservablePage.cs" />
     <Compile Include="ObservableControl.cs" />
     <Compile Include="OrientationResponsiveUserControl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

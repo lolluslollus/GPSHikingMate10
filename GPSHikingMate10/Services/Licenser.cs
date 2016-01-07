@@ -1,4 +1,5 @@
 ﻿using LolloGPS.Core;
+using LolloGPS.Data;
 using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
@@ -15,7 +16,7 @@ using Windows.UI.Popups;
 
 namespace Utilz
 {
-	internal class Licenser
+	internal class Licenser : ObservableData
 	{
 		private static RuntimeData _runtimeData = RuntimeData.GetInstance();
 		public static async Task<bool> CheckLicensedAsync()
@@ -307,24 +308,7 @@ namespace Utilz
 			}).ConfigureAwait(false);
 			await taskReply.ConfigureAwait(false);
 		}
-		private static async Task RunInUiThreadAsync(DispatchedHandler action)
-		{
-			try
-			{
-				if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-				{
-					action();
-				}
-				else
-				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-			}
-		}
+
 		private class LicenserData
 		{
 			public const int LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT = 0;

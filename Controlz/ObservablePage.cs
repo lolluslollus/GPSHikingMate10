@@ -11,7 +11,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloBaseUserControls
 {
-	public abstract class ObservableControl : UserControl, INotifyPropertyChanged
+	public abstract class ObservablePage : Page, INotifyPropertyChanged
 	{
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -38,7 +38,7 @@ namespace LolloBaseUserControls
 
 
 		#region construct dispose
-		public ObservableControl() { }
+		public ObservablePage() { }
 		#endregion construct dispose
 
 
@@ -52,18 +52,6 @@ namespace LolloBaseUserControls
 			else
 			{
 				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
-			}
-		}
-
-		protected async Task RunInUiThreadAsync(CoreDispatcher dispatcher, DispatchedHandler action)
-		{
-			if (dispatcher.HasThreadAccess)
-			{
-				action();
-			}
-			else
-			{
-				await dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

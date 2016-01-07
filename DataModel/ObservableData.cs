@@ -26,28 +26,36 @@ namespace LolloGPS.Data
                 listener(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
+        protected async void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
         {
             try
             {
-                if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-                else
-                {
-                    IAsyncAction ui = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, delegate
-                    {
-                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                    });
-                }
+				await RunInUiThreadAsync(delegate 
+				{
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+				}).ConfigureAwait(false);
             }
             catch (InvalidOperationException) // called from a background task: ignore
             { }
             catch (Exception ex)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+                await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
             }
         }
-    }
+
+
+		#region UIThread
+		protected static async Task RunInUiThreadAsync(DispatchedHandler action)
+		{
+			if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+			{
+				action();
+			}
+			else
+			{
+				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+			}
+		}
+		#endregion UIThread
+	}
 }

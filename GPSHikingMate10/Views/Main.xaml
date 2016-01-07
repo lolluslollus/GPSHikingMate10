@@ -1,4 +1,4 @@
-﻿<Page 
+﻿<ctl:ObservablePage 
 	x:Class="LolloGPS.Core.Main"
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -9,6 +9,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:val="using:System.ComponentModel"
 	xmlns:customTriggers="using:Utilz"
+	xmlns:ctl="using:LolloBaseUserControls"
 	mc:Ignorable="d"
 	DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
@@ -789,4 +790,4 @@
 			</AppBarButton>
 		</Grid>
 	</Grid>
-</Page>
+</ctl:ObservablePage>

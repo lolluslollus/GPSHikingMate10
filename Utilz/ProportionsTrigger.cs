@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Sensors;
 using Windows.Foundation;
+using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 
@@ -25,12 +26,12 @@ namespace Utilz
             set
             {
                 _targetElement = value;
-                AddHandlers();
+                Task add = AddHandlersAsync();
             }
         }
 
         private bool _isHandlersActive = false;
-        private void AddHandlers()
+        private async Task AddHandlersAsync()
         {
             //if (_orientationSensor == null) _orientationSensor = SimpleOrientationSensor.GetDefault();
             if (_appView == null) _appView = ApplicationView.GetForCurrentView();
@@ -38,7 +39,7 @@ namespace Utilz
             {
                 //_orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
                 _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
-				UpdateTrigger(_appView.VisibleBounds.Width < _appView.VisibleBounds.Height);
+				await UpdateTriggerAsync(_appView.VisibleBounds.Width < _appView.VisibleBounds.Height).ConfigureAwait(false);
 				_isHandlersActive = true;
             }
         }
@@ -50,15 +51,15 @@ namespace Utilz
             _isHandlersActive = false;
         }
 
-        private void UpdateTrigger(bool newValue)
+        private async Task UpdateTriggerAsync(bool newValue)
         {
             if (_targetElement != null)
             {
                 bool newValue_mt = newValue;
-                _targetElement.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+				await RunInUiThreadAsync(_targetElement.Dispatcher, delegate
                 {
                     SetActive(newValue_mt);
-                }).AsTask().ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
             else
             {
@@ -67,13 +68,25 @@ namespace Utilz
         }
 
         private Rect? _lastVisibleBounds = null;
-        private void OnVisibleBoundsChanged(ApplicationView sender, object args)
+        private async void OnVisibleBoundsChanged(ApplicationView sender, object args)
         {
             if (_lastVisibleBounds == null || _appView.VisibleBounds.Height != _lastVisibleBounds?.Height || _appView.VisibleBounds.Width != _lastVisibleBounds?.Width)
             {
-                UpdateTrigger(_appView.VisibleBounds.Width < _appView.VisibleBounds.Height);
+                await UpdateTriggerAsync(_appView.VisibleBounds.Width < _appView.VisibleBounds.Height).ConfigureAwait(false);
             }
             _lastVisibleBounds = _appView.VisibleBounds;
         }
-    }
+
+		private async Task RunInUiThreadAsync(CoreDispatcher dispatcher, DispatchedHandler action)
+		{
+			if (dispatcher.HasThreadAccess)
+			{
+				action();
+			}
+			else
+			{
+				await dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+			}
+		}
+	}
 }
