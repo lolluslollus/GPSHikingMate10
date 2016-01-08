@@ -119,6 +119,7 @@
     <Compile Include="KeepAlive.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LolloMath.cs" />
+    <Compile Include="Pickers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegistryAccess.cs" />
     <Compile Include="ProportionsTrigger.cs" />

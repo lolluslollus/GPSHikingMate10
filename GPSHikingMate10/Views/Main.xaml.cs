@@ -75,7 +75,7 @@ namespace LolloGPS.Core
 
 					if (_isReadDataWhenActivating) await SuspensionManager.ReadDataAsync();
 
-					await _owner.MyVM.ActivateAsync();
+					await _owner.MyVM.OpenAsync();
 					KeepAlive.UpdateKeepAlive(_owner.MyPersistentData.IsKeepAlive);
 					await _owner.MyLolloMap.ActivateAsync();
 					_owner.MyAltitudeProfiles.Activate();
@@ -93,7 +93,7 @@ namespace LolloGPS.Core
 				try
 				{
 					RemoveHandler_Activate();
-					_owner?.MyVM?.Deactivate();
+					_owner?.MyVM?.Close();
 					_owner?.RemoveHandlers();
 					_owner?.MyLolloMap?.Deactivate();
 					_owner?.MyAltitudeProfiles?.Deactivate();

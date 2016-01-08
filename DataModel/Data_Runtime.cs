@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Core;
@@ -42,8 +43,12 @@ namespace LolloGPS.Data.Runtime
 				SemaphoreSlimSafeRelease.TryRelease(SettingsDbDataReadSemaphore);
 			}
 		}
-		public static void SetIsSettingsRead_UI(bool isSettingsRead)
+		public static void SetIsSettingsRead_UI(bool isSettingsRead, 
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0)
 		{
+			Logger.Add_TPL(sourceFilePath + " line " + sourceLineNumber + memberName + " set isSettingsRead to " + isSettingsRead, Logger.ForegroundLogFilename, Logger.Severity.Info);
 			Task set = RuntimeData.GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
 		}
 

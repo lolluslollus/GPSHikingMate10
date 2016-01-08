@@ -46,9 +46,11 @@ namespace LolloGPS.Data
 		public const int MaxRecordsInHistory = short.MaxValue;
 		private const int MaxLandmarks1 = 100;
 		private const int MaxLandmarks2 = 250;
-		private const int MaxLandmarks3 = 500;
-		private const int MaxLandmarks4 = 1000;
-		public static readonly int MaxRecordsInLandmarks = MaxLandmarks4; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
+		private const int MaxLandmarks3 = 600;
+		private const int MaxLandmarks4 = 1500;
+		private const int MaxLandmarks5 = 4000;
+
+		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
 		public const uint MinReportIntervalInMilliSec = 3000u;
@@ -205,8 +207,9 @@ namespace LolloGPS.Data
 			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.ForegroundLogFilename, Logger.Severity.Info);
 			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = MaxLandmarks1;
 			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = MaxLandmarks2;
-			else if (memUsageLimit < 3e+9) MaxRecordsInLandmarks = MaxLandmarks3;
-			else MaxRecordsInLandmarks = MaxLandmarks4;
+			else if (memUsageLimit < 4e+9) MaxRecordsInLandmarks = MaxLandmarks3;
+			else if (memUsageLimit < 8e+9) MaxRecordsInLandmarks = MaxLandmarks4;
+			else MaxRecordsInLandmarks = MaxLandmarks5;
 			//Logger.Add_TPL("MaxRecordsInLandmarks = " + MaxRecordsInLandmarks, Logger.ForegroundLogFilename, Logger.Severity.Info);
 		}
 		private PersistentData()
