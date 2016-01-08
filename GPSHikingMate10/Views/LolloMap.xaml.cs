@@ -28,7 +28,6 @@ using Windows.UI.Xaml.Media.Imaging;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
-	// LOLLO TODO update the min targeting release to 10.586... for ALL projects, or the map will throw an error
 	public sealed partial class LolloMap : OrientationResponsiveUserControl, IGeoBoundingBoxProvider, IMapApController
 	{
 		#region properties

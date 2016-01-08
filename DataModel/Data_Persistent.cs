@@ -50,7 +50,7 @@ namespace LolloGPS.Data
 		private const int MaxLandmarks4 = 1500;
 		private const int MaxLandmarks5 = 4000;
 
-		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5; //100; //256; //(Int32)Int16.MaxValue; // LOLLO TODO check this on a win10 phone
+		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5;
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
 		public const uint MinReportIntervalInMilliSec = 3000u;
