@@ -69,10 +69,10 @@ namespace LolloGPS.Core
 		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged(); } } }
 
 		private bool _isLoading = false;
-		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChanged_UI(); } }
+		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChangedUrgent_UI(); } }
 
 		private bool _isSaving = false;
-		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChanged_UI(); } }
+		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChangedUrgent_UI(); } }
 
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged(); } }
@@ -116,14 +116,14 @@ namespace LolloGPS.Core
 				//    }
 				//}
 
-				// disable UI commands
-				RuntimeData.SetIsDBDataRead_UI(false);
+				//// disable UI commands
+				//RuntimeData.SetIsDBDataRead_UI(false);
 
 				if (readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(readDataFromDb, readSettingsFromDb).ConfigureAwait(false);
 
-				// enable UI commands
-				RuntimeData.SetIsSettingsRead_UI(true);
-				RuntimeData.SetIsDBDataRead_UI(true);
+				//// enable UI commands
+				//RuntimeData.SetIsSettingsRead_UI(true);
+				//RuntimeData.SetIsDBDataRead_UI(true);
 
 				await _myGPSInteractor.OpenAsync();
 				UpdateClearCacheButtonIsEnabled();

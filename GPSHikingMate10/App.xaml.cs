@@ -91,6 +91,8 @@ namespace LolloGPS.Core
 
 			OpenData();
 			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+			// disable UI commands
+			RuntimeData.SetIsDBDataRead_UI(false);
 
 			try
 			{
@@ -107,6 +109,10 @@ namespace LolloGPS.Core
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
+
+			// enable UI commands
+			RuntimeData.SetIsSettingsRead_UI(true);
+			RuntimeData.SetIsDBDataRead_UI(true);
 		}
 
 		/// <summary>
@@ -153,6 +159,8 @@ namespace LolloGPS.Core
 
 			OpenData();
 			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+			// disable UI commands
+			RuntimeData.SetIsDBDataRead_UI(false);
 
 			if (IsRootFrameMain)
 			{
@@ -169,6 +177,10 @@ namespace LolloGPS.Core
 				// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
 				// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
 			}
+
+			// enable UI commands
+			RuntimeData.SetIsSettingsRead_UI(true);
+			RuntimeData.SetIsDBDataRead_UI(true);
 			Logger.Add_TPL("OnResuming() ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
 		}
 		//protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
@@ -182,11 +194,13 @@ namespace LolloGPS.Core
 				Logger.ForegroundLogFilename + " and verb = " + e.Verb,
 				Logger.Severity.Info);
 
+			OpenData();
+			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+			// disable UI commands
+			RuntimeData.SetIsDBDataRead_UI(false);
+
 			try
 			{
-				OpenData();
-				if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
-
 				if (e?.Files?[0]?.Path?.Length > 4 && e.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
 				{
 					bool isAppAlreadyRunning = IsRootFrameMain;
@@ -235,6 +249,10 @@ namespace LolloGPS.Core
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
+
+			// enable UI commands
+			RuntimeData.SetIsSettingsRead_UI(true);
+			RuntimeData.SetIsDBDataRead_UI(true);
 		}
 		#endregion event handlers
 

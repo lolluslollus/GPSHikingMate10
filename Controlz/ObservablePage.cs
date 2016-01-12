@@ -51,7 +51,7 @@ namespace LolloBaseUserControls
 			}
 			else
 			{
-				await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+				await Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

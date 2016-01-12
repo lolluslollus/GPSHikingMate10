@@ -47,7 +47,7 @@ namespace Utilz
 			try
 			{
 				Task<StorageFile> fileTask = null;
-				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, delegate
+				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, delegate
 				{
 					var openPicker = new FileOpenPicker();
 					

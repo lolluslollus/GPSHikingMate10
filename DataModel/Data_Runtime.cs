@@ -34,7 +34,7 @@ namespace LolloGPS.Data.Runtime
 				if (_isSettingsRead != value)
 				{
 					_isSettingsRead = value;
-					RaisePropertyChanged_UI(nameof(RuntimeData.IsSettingsRead));
+					RaisePropertyChanged_UI(nameof(IsSettingsRead));
 					IsCommandsActive = _isSettingsRead && _isDBDataRead;
 				}
 			}
@@ -43,7 +43,7 @@ namespace LolloGPS.Data.Runtime
 				SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
 			}
 		}
-		public static void SetIsSettingsRead_UI(bool isSettingsRead, 
+		public static void SetIsSettingsRead_UI(bool isSettingsRead,
 			[CallerMemberName] string memberName = "",
 			[CallerFilePath] string sourceFilePath = "",
 			[CallerLineNumber] int sourceLineNumber = 0)
@@ -85,7 +85,7 @@ namespace LolloGPS.Data.Runtime
 				if (_isCommandsActive != value)
 				{
 					_isCommandsActive = value;
-					RaisePropertyChanged_UI(nameof(IsCommandsActive));
+					RaisePropertyChangedUrgent_UI(nameof(IsCommandsActive));
 				}
 			}
 		}
@@ -133,7 +133,7 @@ namespace LolloGPS.Data.Runtime
 				if (_isConnectionAvailable != value)
 				{
 					_isConnectionAvailable = value;
-					RaisePropertyChanged_UI(nameof(RuntimeData.IsConnectionAvailable));
+					RaisePropertyChanged_UI(nameof(IsConnectionAvailable));
 				}
 			}
 		}
