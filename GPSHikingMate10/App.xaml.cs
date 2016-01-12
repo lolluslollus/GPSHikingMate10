@@ -101,7 +101,7 @@ namespace LolloGPS.Core
 				Window.Current.Activate();
 
 				var main = rootFrame.Content as Main;
-				await main.OpenAsync(true).ConfigureAwait(false);
+				await main.OpenAsync(true, true).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -131,7 +131,7 @@ namespace LolloGPS.Core
 			Debugger.Break();
 			var deferral = e.SuspendingOperation.GetDeferral();
 
-			await CloseAll().ConfigureAwait(false);
+			await CloseAllAsync().ConfigureAwait(false);
 			Logger.Add_TPL("OnSuspending ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
 			deferral.Complete();
@@ -161,7 +161,7 @@ namespace LolloGPS.Core
 				// However, reread the history coz the background task may have changed it while I was suspended.
 
 				await PersistentData.LoadHistoryFromDbAsync(false);
-				await main.OpenAsync(false).ConfigureAwait(false);
+				await main.OpenAsync(false, false).ConfigureAwait(false);
 
 				// In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
 				// but I deregister them when suspending to make sure long running tasks are really stopped.
@@ -200,80 +200,35 @@ namespace LolloGPS.Core
 
 					List<PersistentData.Tables> whichTables = null;
 					var fileOpener = Main_VM.GetInstance() as IFileActivatable;
-					if (fileOpener != null)
+					var main = rootFrame.Content as Main;
+					if (fileOpener != null && main != null)
 					{
-						try
-						{
-							if (isAppAlreadyRunning)
-							{
-								Logger.Add_TPL("OnFileActivated() is about to open a file, app already running", Logger.ForegroundLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("OnFileActivated() is about to open a file, app already running = " + isAppAlreadyRunning, Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-								whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
-								if (whichTables != null)
+						whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
+
+						await main.OpenAsync(!isAppAlreadyRunning, !isAppAlreadyRunning); // LOLLO TODO MAYBE avoid reading the same series twice when the app is not already running?
+						if (whichTables != null)
+						{
+							// get file data from DB into UI
+							foreach (var series in whichTables)
+							{
+								await PersistentData.LoadSeriesFromDbAsync(series);
+							}
+							// centre view on the file data
+							if (whichTables.Count > 0)
+							{
+								if (whichTables[0] == PersistentData.Tables.Landmarks)
 								{
-									// get file data from DB into UI
-									foreach (var series in whichTables)
-									{
-										await PersistentData.LoadSeriesFromDbAsync(series);
-									}
-									// centre view on the file data
-									if (whichTables.Count > 0 && rootFrame?.Content as Main != null)
-									{
-										Main main = rootFrame.Content as Main;
-										if (whichTables[0] == PersistentData.Tables.Landmarks)
-										{
-											Task centreView = main.MyVM.CentreOnLandmarksAsync();
-										}
-										else if (whichTables[0] == PersistentData.Tables.Route0)
-										{
-											Task centreView = main.MyVM.CentreOnRoute0Async();
-										}
-									}
+									Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
+								}
+								else if (whichTables[0] == PersistentData.Tables.Route0)
+								{
+									Task centreView = main?.MyVM?.CentreOnRoute0Async();
 								}
 							}
-							else
-							{
-								Logger.Add_TPL("OnFileActivated() is about to open a file, app not running", Logger.ForegroundLogFilename, Logger.Severity.Info);
-
-								whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
-								var main = rootFrame.Content as Main;
-								if (main != null)
-								{
-									await main.OpenAsync(true);
-									// get file data from DB into UI. // LOLLO TODO MAYBE avoid reading the same series twice?
-									foreach (var series in whichTables)
-									{
-										await PersistentData.LoadSeriesFromDbAsync(series);
-									}
-									// centre view on the file data
-									if (whichTables != null && whichTables.Count > 0)
-									{
-										if (whichTables[0] == PersistentData.Tables.Landmarks)
-										{
-											Task centreView = main.MyVM.CentreOnLandmarksAsync();
-										}
-										else if (whichTables[0] == PersistentData.Tables.Route0)
-										{
-											Task centreView = main.MyVM.CentreOnRoute0Async();
-										}
-									}
-								}
-							}
-						}
-						catch (Exception ex)
-						{
-							await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-						}
-						finally
-						{
-							RuntimeData.SetIsSettingsRead_UI(true);
-							RuntimeData.SetIsDBDataRead_UI(true);
 						}
 					}
-				}
-				else
-				{
-					//when opening a lol file, which is required for the log, the application starts and crashes back "elegantly". Very unlikely anyway, because it is not an ordinary extension.
 				}
 			}
 			catch (Exception ex)
@@ -286,10 +241,10 @@ namespace LolloGPS.Core
 		#region services
 		public async Task Quit()
 		{
-			await CloseAll();
+			await CloseAllAsync();
 			Exit();
 		}
-		private async Task CloseAll()
+		private async Task CloseAllAsync()
 		{
 			Logger.Add_TPL("CloseAll() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
@@ -299,7 +254,7 @@ namespace LolloGPS.Core
 			if (IsRootFrameMain)
 			{
 				Main main = (Window.Current.Content as Frame).Content as Main;
-				main.Close();
+				await main.CloseAsync().ConfigureAwait(false);
 			}
 			// back up the app settings
 			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);

@@ -140,7 +140,7 @@ namespace LolloGPS.Core
 				MyMap.Style = MyPersistentData.MapStyle; // maniman
 				_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
 				await RestoreViewAsync();
-				_myVM.Activate();
+				_myVM.Open();
 
 				InitMapElements();
 				DrawHistory();
@@ -809,12 +809,12 @@ namespace LolloGPS.Core
 		{
 			if (MyPersistentData != null && !_isHandlerActive)
 			{
+				_isHandlerActive = true;
 				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				MyPersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				MyPersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
 				MyPersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
 				MyPersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
-				_isHandlerActive = true;
 			}
 		}
 

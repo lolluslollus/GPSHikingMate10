@@ -41,7 +41,7 @@ namespace LolloGPS.GPSInteraction
             // distance-based tracking or ReportInterval for
             // periodic-based tracking before adding event handlers.
         }
-        public async Task ActivateAsync()
+        public async Task OpenAsync()
         {
             try
             {

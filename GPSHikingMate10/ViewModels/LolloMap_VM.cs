@@ -39,7 +39,7 @@ namespace LolloGPS.Core
             _mapTileSources = mapTileSources;
             _tileDownloader = new TileDownloader(gbbProvider);
         }
-        internal void Activate()
+        internal void Open()
         {
             _tileDownloader.Activate();
             Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);

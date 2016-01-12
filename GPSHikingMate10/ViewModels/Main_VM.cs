@@ -97,45 +97,81 @@ namespace LolloGPS.Core
 			//Application.Current.Resuming += OnResuming;
 		}
 
-		internal async Task OpenAsync(bool readDataFromDb)
+		//private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//private volatile bool _isOpen = false;
+		internal async Task OpenAsync(bool readDataFromDb, bool readSettingsFromDb)
 		{
-			//bool isTesting = true; // LOLLO remove when done testing
-			//if (isTesting)
+			//if (_isOpen) return;
+			try
+			{
+				//await _openCloseSemaphore.WaitAsync();
+				//if (_isOpen) return;
+				//await Logger.AddAsync("opening", Logger.ForegroundLogFilename, Logger.Severity.Info);
+				//bool isTesting = true; // LOLLO remove when done testing
+				//if (isTesting)
+				//{
+				//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
+				//    {
+				//        string aaa = i.ToString();
+				//    }
+				//}
+				if (readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(readDataFromDb, readSettingsFromDb).ConfigureAwait(false);
+
+				await _myGPSInteractor.OpenAsync();
+				UpdateClearCacheButtonIsEnabled();
+				UpdateClearCustomCacheButtonIsEnabled();
+				UpdateCacheButtonIsEnabled();
+				UpdateDownloadButtonIsEnabled();
+
+				KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+
+				AddHandlers_DataChanged();
+
+				//_isOpen = true;
+				//await Logger.AddAsync("opened", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			//finally
 			//{
-			//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
-			//    {
-			//        string aaa = i.ToString();
-			//    }
+			//	SemaphoreSlimSafeRelease.TryRelease(_openCloseSemaphore);
 			//}
-			if (readDataFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync().ConfigureAwait(false);
-			RuntimeData.SetIsDBDataRead_UI(true);
-			RuntimeData.SetIsSettingsRead_UI(true);
-
-			await _myGPSInteractor.ActivateAsync();
-			UpdateClearCacheButtonIsEnabled();
-			UpdateClearCustomCacheButtonIsEnabled();
-			UpdateCacheButtonIsEnabled();
-			UpdateDownloadButtonIsEnabled();
-
-			KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
-
-			AddHandler_DataChanged();
 		}
-		internal void Close()
+		internal async Task CloseAsync()
 		{
-			RemoveHandler_DataChanged();
-			_myGPSInteractor.Deactivate();
-			KeepAlive.StopKeepAlive();
+			//if (!_isOpen) return;
+			try
+			{
+				//await _openCloseSemaphore.WaitAsync();
+				//if (!_isOpen) return;
+				//Logger.Add_TPL("closing", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-			CancelPendingTasks(); // after removing the handlers
+				RemoveHandlers_DataChanged();
+				_myGPSInteractor.Deactivate();
+				KeepAlive.StopKeepAlive();
 
-			//bool isTesting = true; // LOLLO remove when done testing
-			//if (isTesting)
+				CancelPendingTasks(); // after removing the handlers
+
+				//bool isTesting = true; // LOLLO remove when done testing
+				//if (isTesting)
+				//{
+				//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
+				//    {
+				//        string aaa = i.ToString();
+				//    }
+				//}
+				//_isOpen = false;
+				//Logger.Add_TPL("closed", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			//finally
 			//{
-			//    for (long i = 0; i < 100000000; i++) //wait a few seconds, for testing
-			//    {
-			//        string aaa = i.ToString();
-			//    }
+			//	SemaphoreSlimSafeRelease.TryRelease(_openCloseSemaphore);
 			//}
 		}
 		private void CancelPendingTasks()
@@ -190,17 +226,17 @@ namespace LolloGPS.Core
 
 		#region event handlers
 		private bool _isDataChangedHandlerActive = false;
-		private void AddHandler_DataChanged()
+		private void AddHandlers_DataChanged()
 		{
 			if (!_isDataChangedHandlerActive)
 			{
+				_isDataChangedHandlerActive = true;
 				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				MyRuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				TileCache.ProcessingQueue.PropertyChanged += OnProcessingQueue_PropertyChanged;
-				_isDataChangedHandlerActive = true;
 			}
 		}
-		private void RemoveHandler_DataChanged()
+		private void RemoveHandlers_DataChanged()
 		{
 			if (MyPersistentData != null)
 			{

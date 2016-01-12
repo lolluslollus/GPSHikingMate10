@@ -51,52 +51,63 @@ namespace LolloGPS.Suspension
         // LOLLO important! The Mutex can work across AppDomains (ie across main app and background task) but only if you give it a name!
         // Also, if you declare initially owned true, the second thread trying to cross it will stay locked forever. So, declare it false.
         // All this is not well documented.
-        private static PersistentData _newPersistentData = null;
-        private static List<PointRecord> _history = null;
-        private static List<PointRecord> _route0 = null;
-        private static List<PointRecord> _landmarks = null;
-        public static async Task LoadSettingsAndDbDataAsync()
+        //private static PersistentData _newPersistentData = null;
+        //private static List<PointRecord> _history = null;
+        //private static List<PointRecord> _route0 = null;
+        //private static List<PointRecord> _landmarks = null;
+        public static async Task LoadSettingsAndDbDataAsync(bool readDataFromDb, bool readSettingsFromDb)
         {
-            string errorMessage = string.Empty;
-            PersistentData oldPersistentData = PersistentData.GetInstance();
+			string errorMessage = string.Empty;
+            //PersistentData oldPersistentData = PersistentData.GetInstance();
 
-            try
-            {
-                // read settings
-                StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(SessionDataFilename).AsTask().ConfigureAwait(false);
+			PersistentData _newPersistentData = null;
+			List<PointRecord> _history = null;
+			List<PointRecord> _route0 = null;
+			List<PointRecord> _landmarks = null;
 
-                //string ssss = null; //this is useful when you debug and want to see the file as a string
-                //using (IInputStream inStream = await file.OpenSequentialReadAsync())
-                //{
-                //    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
-                //    {
-                //      ssss = streamReader.ReadToEnd();
-                //    }
-                //}
+			try
+			{
+				if (readSettingsFromDb)
+				{
+					// read settings
+					StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(SessionDataFilename, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
-                using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
-                {
-                    using (var iinStream = inStream.AsStreamForRead())
-                    {
-                        DataContractSerializer serializer = new DataContractSerializer(typeof(PersistentData));
-                        iinStream.Position = 0;
-                        _newPersistentData = (PersistentData)(serializer.ReadObject(iinStream));
-                        await iinStream.FlushAsync().ConfigureAwait(false);
-                    }
-                }
-                Debug.WriteLine("ended reading non-tabular data");
+					//string ssss = null; //this is useful when you debug and want to see the file as a string
+					//using (IInputStream inStream = await file.OpenSequentialReadAsync())
+					//{
+					//    using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
+					//    {
+					//      ssss = streamReader.ReadToEnd();
+					//    }
+					//}
 
-                // read db data
-                _history = PersistentData.GetHistoryFromDB();
-                _route0 = PersistentData.GetRoute0FromDB();
-                _landmarks = PersistentData.GetLandmarksFromDB();
-                Debug.WriteLine("ended reading db data");
+					using (IInputStream inStream = await file.OpenSequentialReadAsync().AsTask().ConfigureAwait(false))
+					{
+						using (var iinStream = inStream.AsStreamForRead())
+						{
+							DataContractSerializer serializer = new DataContractSerializer(typeof(PersistentData));
+							iinStream.Position = 0;
+							_newPersistentData = (PersistentData)(serializer.ReadObject(iinStream));
+							await iinStream.FlushAsync().ConfigureAwait(false);
+						}
+					}
+					Debug.WriteLine("ended reading non-tabular data");
+				}
+
+				if (readDataFromDb)
+				{
+					// read db data
+					_history = PersistentData.GetHistoryFromDB();
+					_route0 = PersistentData.GetRoute0FromDB();
+					_landmarks = PersistentData.GetLandmarksFromDB();
+					Debug.WriteLine("ended reading db data");
+				}
             }
-            catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
-            {
-                errorMessage = "starting afresh";
-                await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
-            }
+            //catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
+            //{
+            //    errorMessage = "starting afresh";
+            //    await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+            //}
             catch (Exception ex)                 //must be tolerant or the app might crash when starting
             {
                 errorMessage = "could not restore the data, starting afresh";
@@ -104,7 +115,7 @@ namespace LolloGPS.Suspension
             }
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
-                if (_newPersistentData == null) _newPersistentData = PersistentData.GetInstance().CloneNonDbProperties();
+				if (_newPersistentData == null) _newPersistentData = PersistentData.GetInstance(); //.CloneNonDbProperties();
                 _newPersistentData.LastMessage = errorMessage;
             }
 

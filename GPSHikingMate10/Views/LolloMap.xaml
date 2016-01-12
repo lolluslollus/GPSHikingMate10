@@ -55,7 +55,7 @@
 				VerticalAlignment="Bottom">
 			<!-- left distance -->
 			<TextBlock Text="0" 
-				   Canvas.Left="18" Canvas.Top="-54"
+				   Canvas.Left="18" Canvas.Top="-84"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -64,7 +64,7 @@
 			<!-- right distance -->
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
 				   Canvas.Left="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}"
-				   Canvas.Top="-54" 
+				   Canvas.Top="-84" 
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -72,7 +72,7 @@
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- internal zoom level -->
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
-				   Canvas.Left="18" Canvas.Top="-74"
+				   Canvas.Left="18" Canvas.Top="-104"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -80,7 +80,7 @@
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- scale bar -->
 			<Image x:Name="ScaleImage"
-				   Canvas.Top="-35" Canvas.Left="20" 
+				   Canvas.Top="-65" Canvas.Left="20" 
 				   Source="ms-appx:///Assets/scale-300.png" 
 				   ScrollViewer.VerticalScrollBarVisibility="Disabled" 
 				   Stretch="None" 

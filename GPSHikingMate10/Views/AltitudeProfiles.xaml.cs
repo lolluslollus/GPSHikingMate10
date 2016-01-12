@@ -47,12 +47,11 @@ namespace LolloGPS.Core
 			try
 			{
 				if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
-				HistoryChart.Activate();
-				Route0Chart.Activate();
-				LandmarksChart.Activate();
+				HistoryChart.Open();
+				Route0Chart.Open();
+				LandmarksChart.Open();
 				UpdateCharts();
 				AddHandlers();
-				Debug.WriteLine("AltitudeProfiles activated");
 			}
 			catch (Exception ex)
 			{
@@ -88,11 +87,11 @@ namespace LolloGPS.Core
 		{
 			if (!_isHandlersActive && MyPersistentData != null)
 			{
+				_isHandlersActive = true;
 				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				MyPersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
 				MyPersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
 				MyPersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
-				_isHandlersActive = true;
 			}
 		}
 		private void RemoveHandlers()

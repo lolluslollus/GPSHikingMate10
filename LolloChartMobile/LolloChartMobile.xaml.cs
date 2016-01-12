@@ -139,7 +139,7 @@ namespace LolloChartMobile
 			SetLineStyles();
 		}
 
-		public void Activate()
+		public void Open()
 		{
 			AddHandlers();
 		}

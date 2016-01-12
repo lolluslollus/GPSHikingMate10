@@ -25,6 +25,9 @@ namespace LolloGPS.Core
 		private Main_VM _myVM = Main_VM.GetInstance();
 		public Main_VM MyVM { get { return _myVM; } }
 
+		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private volatile bool _isOpen = false;
+
 
 		#region lifecycle
 		public Main()
@@ -36,41 +39,65 @@ namespace LolloGPS.Core
 #endif
 		}
 
-		public async Task OpenAsync(bool readDataFromDb)
+		public async Task OpenAsync(bool readDataFromDb, bool readSettingsFromDb)
 		{
+			if (_isOpen) return;
 			try
 			{
+				await _openCloseSemaphore.WaitAsync();
+				if (_isOpen) return;
+
 				_myVM = Main_VM.GetInstance();
-				await _myVM.OpenAsync(readDataFromDb);
+				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
 
 				await MyLolloMap.OpenAsync();
 				MyAltitudeProfiles.Open();
 				AddHandlers();
+
+				_isOpen = true;
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_openCloseSemaphore);
 			}
 		}
 
-		public void Close()
+		public async Task CloseAsync()
 		{
+			if (!_isOpen) return;
 			try
 			{
+				await _openCloseSemaphore.WaitAsync();
+				if (!_isOpen) return;
+
 				RemoveHandlers();
 
 				_animationTimer?.Dispose();
 				_animationTimer = null;
 
-				_myVM?.Close();
+				var vm = _myVM;
+				if (vm != null)
+				{
+					await vm.CloseAsync();
+				}
 				MyLolloMap?.Close();
 				MyAltitudeProfiles?.Close();
 
 				//_owner.Storyboard_NewMessage.SkipToFill();
+
+				_isOpen = false;
 			}
 			catch (Exception ex)
 			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_openCloseSemaphore);
 			}
 		}
 		#endregion lifecycle
