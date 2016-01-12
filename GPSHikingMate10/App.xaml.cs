@@ -239,8 +239,8 @@ namespace LolloGPS.Core
 								var main = rootFrame.Content as Main;
 								if (main != null)
 								{
-									await main.OpenAsync(false);
-									// get file data from DB into UI
+									await main.OpenAsync(true);
+									// get file data from DB into UI. // LOLLO TODO MAYBE avoid reading the same series twice?
 									foreach (var series in whichTables)
 									{
 										await PersistentData.LoadSeriesFromDbAsync(series);
