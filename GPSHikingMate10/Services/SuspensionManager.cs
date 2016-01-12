@@ -119,9 +119,6 @@ namespace LolloGPS.Suspension
                 _newPersistentData.LastMessage = errorMessage;
             }
 
-            RuntimeData.SetIsSettingsRead_UI(true);
-            RuntimeData.SetIsDBDataRead_UI(true);
-
 			Logger.Add_TPL("ended method LoadSettingsAndDbDataAsync()", Logger.FileErrorLogFilename);
         }
         //public static async Task ReadDataAsync()

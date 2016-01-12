@@ -121,6 +121,10 @@ namespace LolloGPS.Core
 
 				if (readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(readDataFromDb, readSettingsFromDb).ConfigureAwait(false);
 
+				// enable UI commands
+				RuntimeData.SetIsSettingsRead_UI(true);
+				RuntimeData.SetIsDBDataRead_UI(true);
+
 				await _myGPSInteractor.OpenAsync();
 				UpdateClearCacheButtonIsEnabled();
 				UpdateClearCustomCacheButtonIsEnabled();
