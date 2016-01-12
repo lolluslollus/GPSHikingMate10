@@ -16,6 +16,7 @@
 	<UserControl.Resources>
 		<local:HeadingConverter x:Key="HeadingConverter"/>
 		<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
+		<x:Double x:Key="LeftMargin4Scale">20</x:Double>
 	</UserControl.Resources>
 	<Grid x:Name="RootGrid">
 		<!-- point details -->
@@ -55,24 +56,24 @@
 				VerticalAlignment="Bottom">
 			<!-- left distance -->
 			<TextBlock Text="0" 
-				   Canvas.Left="18" Canvas.Top="-84"
+				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-84"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
 				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
 			<!-- right distance -->
-			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
-				   Canvas.Left="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}"
-				   Canvas.Top="-84" 
-				   HorizontalAlignment="Center" 
+			<Grid
+				Canvas.Top="-84" Canvas.Left="{StaticResource LeftMargin4Scale}" Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
+				<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
+				   HorizontalAlignment="Right"
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
-				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
-				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+			</Grid>
 			<!-- internal zoom level -->
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
-				   Canvas.Left="18" Canvas.Top="-104"
+				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-104"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
@@ -80,7 +81,7 @@
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- scale bar -->
 			<Image x:Name="ScaleImage"
-				   Canvas.Top="-65" Canvas.Left="20" 
+				   Canvas.Top="-65" Canvas.Left="{StaticResource LeftMargin4Scale}" 
 				   Source="ms-appx:///Assets/scale-300.png" 
 				   ScrollViewer.VerticalScrollBarVisibility="Disabled" 
 				   Stretch="None" 

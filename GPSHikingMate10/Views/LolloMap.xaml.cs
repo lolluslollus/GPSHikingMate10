@@ -34,7 +34,8 @@ namespace LolloGPS.Core
 		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number. It would be nice to have more though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
 		// Things look better with win 10 on a pc, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
-		internal const double ScaleImageWidth = 300.0; //200.0;
+		internal const double SCALE_IMAGE_WIDTH = 300.0; //200.0;
+		public double ScaleImageWidth { get { return SCALE_IMAGE_WIDTH; } }
 		//internal const string LandmarkTag = "Landmark";
 		internal const int HistoryTabIndex = 20;
 		internal const int Route0TabIndex = 10;
@@ -125,8 +126,8 @@ namespace LolloGPS.Core
 			MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
 			MyMap.PedestrianFeaturesVisible = true;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
-			//MyMap.MapElements.Clear(); // no!
-			//_mapTileManager = new MapTileManager(this);
+													  //MyMap.MapElements.Clear(); // no!
+													  //_mapTileManager = new MapTileManager(this);
 		}
 		/// <summary>
 		/// This is the only Activate that is async. It cannot take too long, it merely centers and zooms the map.
@@ -361,9 +362,9 @@ namespace LolloGPS.Core
 				if (basicGeoPositions.Count > 0)
 				{
 					_mapPolylineHistory.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
-					// stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-					//MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-					//MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+																			   // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+																			   //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+																			   //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
 					_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
 					_iconEndHistory.Location = new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]);
 				}
@@ -417,7 +418,7 @@ namespace LolloGPS.Core
 				{
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
 				}                                                             // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-				//Better even: use binding; sadly, it is broken for the moment
+																			  //Better even: use binding; sadly, it is broken for the moment
 				else
 				{
 					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = MyPersistentData.Current.Altitude, Latitude = MyPersistentData.Current.Latitude, Longitude = MyPersistentData.Current.Longitude };
@@ -730,7 +731,7 @@ namespace LolloGPS.Core
 				MyPersistentData.IsShowAim = false;
 			}
 		}
-		
+
 		private void OnAim_Holding(object sender, Windows.UI.Xaml.Input.HoldingRoutedEventArgs e)
 		{
 			MyPersistentData.IsShowAim = false;
@@ -754,7 +755,7 @@ namespace LolloGPS.Core
 			{
 				if (e != null) e.Handled = true;
 				SelectedPointPopup.IsOpen = false;
-			}            
+			}
 		}
 
 		private void OnInfoPanelClosed(object sender, object e)
@@ -857,7 +858,7 @@ namespace LolloGPS.Core
 		private static double _lastZoomScale = 0.0; //remember this to avoid repeating the same calculation
 		private static double _imageScaleTransform = 1.0;
 		private static string _distRoundedFormatted = "1 m";
-		private static double _rightLabelX = LolloMap.ScaleImageWidth;
+		private static double _rightLabelX = LolloMap.SCALE_IMAGE_WIDTH;
 
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -894,19 +895,15 @@ namespace LolloGPS.Core
 			{
 				return currentZoomScale.ToString("zoom #0.#", CultureInfo.CurrentUICulture);
 			}
-			else if (param == "techZoomX")
-			{
-				return _rightLabelX + 60;
-			}
 			Debug.WriteLine("ERROR: XAML used a wrong parameter, or no parameter");
 			return 1.0; //should never get here
 		}
 
-        // LOLLO check the mercator formulas at http://wiki.openstreetmap.org/wiki/Mercator
-        // and http://wiki.openstreetmap.org/wiki/EPSG:3857
-        // and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
+		// LOLLO the mercator formulas are at http://wiki.openstreetmap.org/wiki/Mercator
+		// and http://wiki.openstreetmap.org/wiki/EPSG:3857
+		// and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
 
-        private static void Calc(MapControl mapControl)
+		private static void Calc(MapControl mapControl)
 		{
 			if (mapControl != null)
 			{
@@ -918,14 +915,14 @@ namespace LolloGPS.Core
 				double headingRadians = mapControl.Heading * Math.PI / 180.0;
 				Point pointN = new Point(halfMapWidth, halfMapHeight);
 				double barLength = 99.0; // LolloMap.scaleImageWidth - 1; //I use a shortish bar length so it always fits snugly in the MapControl
-				//                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
+										 //                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
 				Point pointS = new Point(halfMapWidth + barLength * Math.Sin(headingRadians), halfMapHeight + barLength * Math.Cos(headingRadians));
 				//double checkIpotenusa = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
 				Geopoint locationN = null;
 				Geopoint locationS = null;
 				mapControl.GetLocationFromOffset(pointN, out locationN);
 				mapControl.GetLocationFromOffset(pointS, out locationS);
-				double dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.ScaleImageWidth / (barLength + 1); //need the abs for when the map is rotated
+				double dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
 				string distStr = Math.Truncate(dist).ToString(CultureInfo.InvariantCulture);
 				//work out next lower round distance because the scale must always be very round
 				string distStrRounded = distStr.Substring(0, 1);
@@ -938,15 +935,17 @@ namespace LolloGPS.Core
 
 				if (distRounded > 1000)
 				{
-					_distRoundedFormatted = (distRounded / 1000).ToString() + " km"; //I could also use the string, but this is good for testing
+					_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " km";
 				}
 				else
 				{
-					_distRoundedFormatted = distRounded.ToString() + " m"; //I could also use the string, but this is good for testing
+					_distRoundedFormatted = distRounded.ToString(CultureInfo.CurrentUICulture) + " m";
 				}
+
 				if (dist != 0.0) _imageScaleTransform = distRounded / dist;
 				else _imageScaleTransform = 999.999;
-				_rightLabelX = _imageScaleTransform * LolloMap.ScaleImageWidth;
+
+				_rightLabelX = LolloMap.SCALE_IMAGE_WIDTH * _imageScaleTransform;
 			}
 		}
 
