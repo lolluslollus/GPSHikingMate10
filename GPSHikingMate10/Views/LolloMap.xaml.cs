@@ -31,11 +31,11 @@ namespace LolloGPS.Core
 	public sealed partial class LolloMap : OrientationResponsiveUserControl, IGeoBoundingBoxProvider, IMapApController
 	{
 		#region properties
-		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number. It would be nice to have more though.
+		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number, depending on the available memory. 
+		// It would be nice to have more landmarks though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
 		// Things look better with win 10 on a pc, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
-		internal const double SCALE_IMAGE_WIDTH = 300.0; //200.0;
-		public double ScaleImageWidth { get { return SCALE_IMAGE_WIDTH; } }
+		internal const double SCALE_IMAGE_WIDTH = 300.0;
 		//internal const string LandmarkTag = "Landmark";
 		internal const int HistoryTabIndex = 20;
 		internal const int Route0TabIndex = 10;

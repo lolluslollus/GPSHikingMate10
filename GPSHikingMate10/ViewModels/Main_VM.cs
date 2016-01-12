@@ -115,6 +115,10 @@ namespace LolloGPS.Core
 				//        string aaa = i.ToString();
 				//    }
 				//}
+
+				// disable UI commands
+				RuntimeData.SetIsDBDataRead_UI(false);
+
 				if (readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(readDataFromDb, readSettingsFromDb).ConfigureAwait(false);
 
 				await _myGPSInteractor.OpenAsync();
@@ -582,6 +586,7 @@ namespace LolloGPS.Core
 		}
 
 		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
+		// for picker details
 
 		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
 		{
@@ -659,9 +664,9 @@ namespace LolloGPS.Core
 					// load the file, attempting to read landmarks and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
 					token.ThrowIfCancellationRequested();
-					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, token).ConfigureAwait(false); // TODO maybe do not show the "loading..." opaque overlay, deactivate the landmarks buttons instead.
+					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
-					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, token).ConfigureAwait(false); // TODO maybe do not show the "loading..." opaque overlay, deactivate the routes and save history buttons instead
+					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, token).ConfigureAwait(false);
 				}
 				catch (Exception) { }
 				finally

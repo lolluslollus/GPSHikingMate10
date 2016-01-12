@@ -22,7 +22,7 @@ using Windows.UI.Xaml.Navigation;
 // to request map token https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt219694.aspx
 // check https://msdn.microsoft.com/en-us/library/windows/apps/dn706236.aspx for problems when starting on the simulator
 // check out https://msdn.microsoft.com/en-us/library/windows/apps/dn609832.aspx for win 10 universal apps
-// what's new in VS2015 https://msdn.microsoft.com/en-us/library/bb386063.aspx // TODO check out EventSource now supports writing to the Event log
+// what's new in VS2015 https://msdn.microsoft.com/en-us/library/bb386063.aspx
 // new null conditional operators https://msdn.microsoft.com/en-us/library/dn986595.aspx
 
 namespace LolloGPS.Core

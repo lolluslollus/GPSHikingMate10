@@ -321,7 +321,7 @@ namespace LolloGPS.Data
 		[IgnoreDataMember]
 		public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged(); } }
 
-		private uint _backgroundUpdatePeriodInMinutes = MinBackgroundUpdatePeriodInMinutes; //15u;  //TODO windows phone has 30 minutes, not 15: this may need fixing
+		private uint _backgroundUpdatePeriodInMinutes = MinBackgroundUpdatePeriodInMinutes;
 		[DataMember]
 		public uint BackgroundUpdatePeriodInMinutes
 		{
@@ -574,7 +574,7 @@ namespace LolloGPS.Data
 						return false;
 					}
 				}
-				catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInLandmarks
+				catch (OutOfMemoryException)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
 					Logger.Add_TPL("OutOfMemoryException in PersistentData.RemovePointFromSeries()", Logger.PersistentDataLogFilename);
@@ -648,7 +648,7 @@ namespace LolloGPS.Data
 						{
 							LastMessage = "Only part of the history is drawn";
 						}
-						catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInHistory
+						catch (OutOfMemoryException)
 						{
 							var howMuchMemoryLeft = GC.GetTotalMemory(true);
 							LastMessage = "Only part of the history is drawn";
@@ -736,7 +736,7 @@ namespace LolloGPS.Data
 					LastMessage = "Too many records in trk history, max is " + MaxRecordsInHistory;
 					return false;
 				}
-				catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInHistory
+				catch (OutOfMemoryException)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
 					LastMessage = "too many records in trk history";
@@ -764,7 +764,7 @@ namespace LolloGPS.Data
 					Logger.Add_TPL(ex0.ToString(), Logger.PersistentDataLogFilename);
 					return false;
 				}
-				catch (OutOfMemoryException ex1) // TODO this should never happen. If it does, lower MaxRecordsInHistory
+				catch (OutOfMemoryException ex1)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
 					Logger.Add_TPL(ex1.ToString(), Logger.PersistentDataLogFilename);
@@ -815,7 +815,7 @@ namespace LolloGPS.Data
 						{
 							LastMessage = "Only part of the route is drawn";
 						}
-						catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInRoute
+						catch (OutOfMemoryException)
 						{
 							var howMuchMemoryLeft = GC.GetTotalMemory(true);
 							LastMessage = "Only part of the route is drawn";
@@ -880,7 +880,7 @@ namespace LolloGPS.Data
 						{
 							LastMessage = "Only some landmarks are drawn";
 						}
-						catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInLandmarks
+						catch (OutOfMemoryException)
 						{
 							var howMuchMemoryLeft = GC.GetTotalMemory(true);
 							LastMessage = "Only some landmarks are drawn";
@@ -960,7 +960,7 @@ namespace LolloGPS.Data
 					LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
 					return false;
 				}
-				catch (OutOfMemoryException) // TODO this should never happen. If it does, lower MaxRecordsInLandmarks
+				catch (OutOfMemoryException)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
 					LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);

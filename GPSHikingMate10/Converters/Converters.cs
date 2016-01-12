@@ -291,13 +291,13 @@ namespace LolloGPS.Converters
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("this is a one-way bonding, it should never come here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 
     public class NumberNotNullToVisibilityConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, string language) // TODO check this for locales and formats
+        public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null) return Visibility.Collapsed;
             if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(double).ToString()) || value.ToString().Equals(default(int).ToString())) return Visibility.Collapsed;
@@ -305,7 +305,7 @@ namespace LolloGPS.Converters
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("this is a one-way bonding, it should never come here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 

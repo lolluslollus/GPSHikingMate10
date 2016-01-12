@@ -56,7 +56,7 @@ namespace BackgroundTasks
                     PersistentData myData = PersistentData.GetInstance(); // note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
                     Debug.WriteLine("GetLocationBackgroundTask done initialising variables");
 
-                    //TODO maybe add a location trigger ? There is such a thing! But the appmanifest does not seem to support it...
+                    // LOLLO TODO maybe add a location trigger ? There is such a thing! But the appmanifest does not seem to support it...
 
                     _taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 

@@ -214,7 +214,7 @@ namespace LolloListChooser
             if (IsPopupOpen)
             {
                 IsPopupOpen = false;
-                // UpdatePopupSizeAndPlacement(); TODO maybe this screws up, let's just close the popup for now
+                // UpdatePopupSizeAndPlacement(); // this screws up, let's just close the popup for now
             }
             // base.OnVisibleBoundsChanged(sender, args);
         }
