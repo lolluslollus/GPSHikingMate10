@@ -288,31 +288,30 @@ namespace LolloGPS.Data
 					try
 					{
 						semaphore.WaitOne();
-						if (!LolloSQLiteConnectionPoolMT.IsClosed)
+						if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+
+						IEnumerable<T> items_mt = null;
+						if (checkMaxEntries)
 						{
-							IEnumerable<T> items_mt = null;
-							if (checkMaxEntries)
-							{
-								items_mt = items.Take<T>(GetHowManyEntriesMax(dbPath));
-							}
-							else
-							{
-								items_mt = items;
-							}
+							items_mt = items.Take<T>(GetHowManyEntriesMax(dbPath));
+						}
+						else
+						{
+							items_mt = items;
+						}
 
-							var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
 
-							try
-							{
-								var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-								int aResult = conn.CreateTable(typeof(T));
-								conn.DeleteAll<T>();
-								conn.InsertAll(items_mt);
-							}
-							finally
-							{
-								LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-							}
+						try
+						{
+							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+							int aResult = conn.CreateTable(typeof(T));
+							conn.DeleteAll<T>();
+							conn.InsertAll(items_mt);
+						}
+						finally
+						{
+							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 						}
 					}
 					finally
@@ -336,20 +335,19 @@ namespace LolloGPS.Data
 				try
 				{
 					semaphore.WaitOne();
-					if (!LolloSQLiteConnectionPoolMT.IsClosed)
+					if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
+
+					var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						try
-						{
-							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-							int aResult = conn.CreateTable(typeof(T));
-							var query = conn.Table<T>();
-							result = query.ToList<T>();
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+						int aResult = conn.CreateTable(typeof(T));
+						var query = conn.Table<T>();
+						result = query.ToList<T>();
+					}
+					finally
+					{
+						LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 					}
 				}
 				finally
@@ -367,19 +365,18 @@ namespace LolloGPS.Data
 					try
 					{
 						semaphore.WaitOne();
-						if (!LolloSQLiteConnectionPoolMT.IsClosed)
+						if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+
+						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+						try
 						{
-							var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-							try
-							{
-								var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-								int aResult = conn.CreateTable(typeof(T));
-								conn.DeleteAll<T>();
-							}
-							finally
-							{
-								LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-							}
+							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+							int aResult = conn.CreateTable(typeof(T));
+							conn.DeleteAll<T>();
+						}
+						finally
+						{
+							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 						}
 					}
 					finally
@@ -403,38 +400,37 @@ namespace LolloGPS.Data
 				try
 				{
 					semaphore.WaitOne();
-					if (!LolloSQLiteConnectionPoolMT.IsClosed)
+					if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
+
+					//bool isTesting = true;
+					//if (isTesting)
+					//{
+					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
+					//    {
+					//        string aaa = i.ToString();
+					//    }
+					//}
+
+					var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+					try
 					{
-						//bool isTesting = true;
-						//if (isTesting)
-						//{
-						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-						//    {
-						//        string aaa = i.ToString();
-						//    }
-						//}
+						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						try
+						int aResult = conn.CreateTable(typeof(T));
+						if (checkMaxEntries)
 						{
-							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-
-							int aResult = conn.CreateTable(typeof(T));
-							if (checkMaxEntries)
-							{
-								var query = conn.Table<T>();
-								var count = query.Count();
-								if (count < GetHowManyEntriesMax(dbPath)) result = conn.Insert(item) > 0;
-							}
-							else
-							{
-								result = conn.Insert(item) > 0;
-							}
+							var query = conn.Table<T>();
+							var count = query.Count();
+							if (count < GetHowManyEntriesMax(dbPath)) result = conn.Insert(item) > 0;
 						}
-						finally
+						else
 						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
+							result = conn.Insert(item) > 0;
 						}
+					}
+					finally
+					{
+						LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 					}
 				}
 				finally
@@ -458,29 +454,28 @@ namespace LolloGPS.Data
 				try
 				{
 					semaphore.WaitOne();
-					if (!LolloSQLiteConnectionPoolMT.IsClosed)
-					{
-						//bool isTesting = true;
-						//if (isTesting)
-						//{
-						//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
-						//    {
-						//        string aaa = i.ToString();
-						//    }
-						//}
+					if (LolloSQLiteConnectionPoolMT.IsClosed) return;
 
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						try
-						{
-							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-							int aResult = conn.CreateTable(typeof(T));
-							int deleteResult = conn.Delete(item);
-							Debug.WriteLine("DB delete returned " + deleteResult);
-						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+					//bool isTesting = true;
+					//if (isTesting)
+					//{
+					//    for (long i = 0; i < 10000000; i++) //wait a few seconds, for testing
+					//    {
+					//        string aaa = i.ToString();
+					//    }
+					//}
+
+					var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+					try
+					{
+						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+						int aResult = conn.CreateTable(typeof(T));
+						int deleteResult = conn.Delete(item);
+						Debug.WriteLine("DB delete returned " + deleteResult);
+					}
+					finally
+					{
+						LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 					}
 				}
 				finally
@@ -502,22 +497,21 @@ namespace LolloGPS.Data
 				try
 				{
 					semaphore.WaitOne();
-					if (!LolloSQLiteConnectionPoolMT.IsClosed)
+					if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+
+					var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+					try
 					{
-						var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-						try
+						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+						int aResult = conn.CreateTable(typeof(T));
 						{
-							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-							int aResult = conn.CreateTable(typeof(T));
-							{
-								int test = conn.Update(item);
-								Debug.WriteLine(test + "records updated");
-							}
+							int test = conn.Update(item);
+							Debug.WriteLine(test + "records updated");
 						}
-						finally
-						{
-							LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
-						}
+					}
+					finally
+					{
+						LolloSQLiteConnectionPoolMT.ResetConnection(connectionString.ConnectionString);
 					}
 				}
 				finally
@@ -553,13 +547,12 @@ namespace LolloGPS.Data
 
 		private static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
 		private static Semaphore _entriesSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteEntriesSemaphore");
+
 		private static volatile bool _isClosed = true;
+		public static bool IsClosed { get { return _isClosed; } }
 		private static Semaphore _isClosedSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsClosedSemaphore");
 
-		/// <summary>
-		/// Gets a value to tell if the DB is suspended or active.
-		/// </summary>
-		public static bool IsClosed { get { return _isClosed; } }
+		private static Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
 
 		internal static SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 		{
@@ -583,32 +576,7 @@ namespace LolloGPS.Data
 			if (entry != null) return entry.Connection;
 			return null;
 		}
-		///// <summary>
-		///// Closes all connections managed by this pool.
-		///// </summary>
-		//private static void ResetAllConnections()
-		//{
-		//    try
-		//    {
-		//        DBManager._HistorySemaphore.WaitOne();
-		//        DBManager._Route0Semaphore.WaitOne();
-		//        DBManager._LandmarksSemaphore.WaitOne();
-		//        _entriesSemaphore.WaitOne();
-		//        foreach (var entry in _entries.Values)
-		//        {
-		//            entry.OnApplicationSuspended();
-		//        }
-		//        _entries.Clear();
-		//    }
-		//    catch (Exception) { } // semaphore disposed
-		//    finally
-		//    {
-		//        SemaphoreExtensions.TryRelease(_entriesSemaphore);
-		//        SemaphoreExtensions.TryRelease(DBManager._LandmarksSemaphore);
-		//        SemaphoreExtensions.TryRelease(DBManager._Route0Semaphore);
-		//        SemaphoreExtensions.TryRelease(DBManager._HistorySemaphore);
-		//    }
-		//}
+
 		/// <summary>
 		/// Closes a given connection managed by this pool. 
 		/// </summary>
@@ -630,16 +598,15 @@ namespace LolloGPS.Data
 				SemaphoreExtensions.TryRelease(_entriesSemaphore);
 			}
 		}
-		/// <summary>
-		/// Call this method when the application is suspended.
-		/// </summary>
-		/// <remarks>Behaviour here is to close any open connections.</remarks>
+
 		public static void Close()
 		{
 			try
 			{
-				// await Close2().ConfigureAwait(false);
-				Close2();
+				if (!_isClosed)
+				{
+					Close2();
+				}
 			}
 			finally
 			{
@@ -648,12 +615,12 @@ namespace LolloGPS.Data
 		}
 		private static void Close2()
 		{
-			_isClosed = true;
-			//return Task.Run(() => ResetAllConnections());
+			if (!_isClosed)
+			{
+				_isClosed = true;
+			}
 		}
-		/// <summary>
-		/// Call this method when the application is resumed.
-		/// </summary>
+
 		public static void Open()
 		{
 			try
@@ -661,7 +628,10 @@ namespace LolloGPS.Data
 				if (_isClosed)
 				{
 					_isClosedSemaphore.WaitOne();
-					Open2();
+					if (_isClosed)
+					{
+						Open2();
+					}
 				}
 			}
 			catch (Exception ex)
@@ -676,7 +646,7 @@ namespace LolloGPS.Data
 				_isClosed = false;
 			}
 		}
-		private static Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
+
 		/// <summary>
 		/// Only call this from a task, which is not the main one. 
 		/// Otherwise, you will screw up the db open / closed logic.
