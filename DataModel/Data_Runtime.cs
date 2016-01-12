@@ -12,7 +12,7 @@ namespace LolloGPS.Data.Runtime
 {
 	public sealed class RuntimeData : ObservableData, IDisposable
 	{
-		private static SemaphoreSlimSafeRelease SettingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region properties
 		private bool _isTrial = true;
@@ -30,7 +30,7 @@ namespace LolloGPS.Data.Runtime
 		{
 			try
 			{
-				await SettingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
+				await _settingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
 				if (_isSettingsRead != value)
 				{
 					_isSettingsRead = value;
@@ -40,7 +40,7 @@ namespace LolloGPS.Data.Runtime
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(SettingsDbDataReadSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
 			}
 		}
 		public static void SetIsSettingsRead_UI(bool isSettingsRead, 
@@ -49,7 +49,7 @@ namespace LolloGPS.Data.Runtime
 			[CallerLineNumber] int sourceLineNumber = 0)
 		{
 			Logger.Add_TPL(sourceFilePath + " line " + sourceLineNumber + memberName + " set isSettingsRead to " + isSettingsRead, Logger.ForegroundLogFilename, Logger.Severity.Info);
-			Task set = RuntimeData.GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
+			Task set = GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
 		}
 
 		private bool _isDBDataRead = false;
@@ -58,17 +58,17 @@ namespace LolloGPS.Data.Runtime
 		{
 			try
 			{
-				await SettingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
+				await _settingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
 				if (_isDBDataRead != value)
 				{
 					_isDBDataRead = value;
-					RaisePropertyChanged_UI(nameof(RuntimeData.IsDBDataRead));
+					RaisePropertyChanged_UI(nameof(IsDBDataRead));
 					IsCommandsActive = _isSettingsRead && _isDBDataRead;
 				}
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(SettingsDbDataReadSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
 			}
 		}
 		public static void SetIsDBDataRead_UI(bool isDbDataRead)
@@ -85,7 +85,7 @@ namespace LolloGPS.Data.Runtime
 				if (_isCommandsActive != value)
 				{
 					_isCommandsActive = value;
-					RaisePropertyChanged_UI(nameof(RuntimeData.IsCommandsActive));
+					RaisePropertyChanged_UI(nameof(IsCommandsActive));
 				}
 			}
 		}
@@ -106,12 +106,12 @@ namespace LolloGPS.Data.Runtime
 		{
 			try
 			{
-				await SettingsDbDataReadSemaphore.WaitAsync(); //.ConfigureAwait(false);
+				await _settingsDbDataReadSemaphore.WaitAsync(); //.ConfigureAwait(false);
 				await func().ConfigureAwait(false);
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(SettingsDbDataReadSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
 			}
 		}
 		private double _downloadProgressValue = default(double);

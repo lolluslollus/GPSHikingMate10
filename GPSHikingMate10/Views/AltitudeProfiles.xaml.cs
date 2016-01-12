@@ -42,7 +42,7 @@ namespace LolloGPS.Core
 			_myVM = new AltitudeProfiles_VM(this as IMapApController);
 			DataContext = MyPersistentData;
 		}
-		public void Activate()
+		public void Open()
 		{
 			try
 			{
@@ -59,7 +59,7 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
-		public void Deactivate()
+		public void Close()
 		{
 			try
 			{

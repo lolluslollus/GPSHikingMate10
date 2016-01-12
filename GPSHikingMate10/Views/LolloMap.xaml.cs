@@ -133,7 +133,7 @@ namespace LolloGPS.Core
 		/// Otherwise, we don't want to hog the UI thread with our Activate() !!
 		/// </summary>
 		/// <returns></returns>
-		public async Task ActivateAsync()
+		public async Task OpenAsync()
 		{
 			try
 			{
@@ -153,7 +153,7 @@ namespace LolloGPS.Core
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
-		public void Deactivate()
+		public void Close()
 		{
 			try
 			{

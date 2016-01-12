@@ -111,17 +111,17 @@ namespace LolloGPS.Suspension
             RuntimeData.SetIsSettingsRead_UI(true);
             RuntimeData.SetIsDBDataRead_UI(true);
 
-            Debug.WriteLine("ended method LoadDataAsyncNoLocks()");
+			Logger.Add_TPL("ended method LoadSettingsAndDbDataAsync()", Logger.FileErrorLogFilename);
         }
-        public static async Task ReadDataAsync()
-        {
-            await Logger.AddAsync("SuspensionManager.ReadData() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
-            await PersistentData.SetInstanceAsync(_newPersistentData,
-                _history,
-                _route0,
-                _landmarks).ConfigureAwait(false);
+        //public static async Task ReadDataAsync()
+        //{
+        //    await Logger.AddAsync("SuspensionManager.ReadData() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
+        //    await PersistentData.SetInstanceAsync(_newPersistentData,
+        //        _history,
+        //        _route0,
+        //        _landmarks).ConfigureAwait(false);
 
-        }
+        //}
         public static async Task SaveSettingsAsync(PersistentData allDataOriginal)
         {
             PersistentData allDataClone = allDataOriginal.CloneNonDbProperties();

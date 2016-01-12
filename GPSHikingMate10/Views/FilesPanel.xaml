@@ -1,0 +1,183 @@
+﻿<ctl:ObservableControl
+    x:Class="LolloGPS.Core.FilesPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LolloGPS.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ctl="using:LolloBaseUserControls"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+		</Grid.ColumnDefinitions>
+		
+		<!-- History-->
+		<Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
+			BorderThickness="0" Background="{StaticResource HistoryBrushOpaque}"/>
+		<TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Foreground="{StaticResource HistoryBrushOpaque}"
+			Text="Tracking history"/>
+		<AppBarButton Grid.Row="1" Grid.Column="1"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnCenterHistory_Click"                                    
+			Icon="Go"
+			IsEnabled="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<AppBarButton Grid.Row="1" Grid.Column="2"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnClearHistory_Click"
+			Icon="Delete"
+			IsEnabled="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<ContentControl Grid.Row="1" Grid.Column="4"
+			IsEnabled="{Binding IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			<AppBarButton Grid.Row="1" Grid.Column="4"
+				HorizontalAlignment="Center"
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Click="OnSaveTrackingHistory_Click"                                        
+				Icon="Save"
+				IsEnabled="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		</ContentControl>
+		<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="The tracking history is empty, get a fix or start tracking to populate it."
+			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="You can export your tracks and import them again later as a route."
+			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		
+		<!--Route0-->
+		<Border Grid.Row="3" Grid.Column="0" Grid.RowSpan="3"
+			BorderThickness="0" Background="{StaticResource Route0BrushOpaque}"/>
+		<TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Foreground="{StaticResource Route0BrushOpaque}"
+			Text="Route"/>
+		<AppBarButton Grid.Row="4" Grid.Column="1"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnCenterRoute_Click" 
+			Icon="Go"
+			IsEnabled="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<AppBarButton Grid.Row="4" Grid.Column="2"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnClearRoute0_Click" 
+			Icon="Delete"
+			IsEnabled="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<ContentControl Grid.Row="4" Grid.Column="3"
+			IsEnabled="{Binding ElementName=me, Path=VM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			<AppBarButton Grid.Row="4" Grid.Column="3"
+				HorizontalAlignment="Center"
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Click="OnLoadRoute0_Click" 
+				Icon="OpenFile"/>
+		</ContentControl>
+		<ContentControl Grid.Row="4" Grid.Column="4"
+			IsEnabled="{Binding ElementName=me, Path=VM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			<AppBarButton Grid.Row="4" Grid.Column="4"
+				HorizontalAlignment="Center"
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Click="OnSaveRoute0_Click"                                        
+				Icon="Save"
+				IsEnabled="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		</ContentControl>
+		<TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="No route. You can import one from a route GPX file."
+			Visibility="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+
+		<!-- Landmarks -->
+		<Border Grid.Row="6" Grid.Column="0" Grid.RowSpan="3"
+			BorderThickness="0" Background="{StaticResource LandmarksBrushOpaque}"/>
+		<TextBlock Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Foreground="{StaticResource LandmarksBrushOpaque}"
+			Text="Landmarks"/>
+		<AppBarButton Grid.Row="7" Grid.Column="1"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnCenterLandmarks_Click" 
+			Icon="Go"
+			IsEnabled="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<AppBarButton Grid.Row="7" Grid.Column="2"
+			HorizontalAlignment="Center"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Click="OnClearLandmarks_Click" 
+			Icon="Delete"
+			IsEnabled="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<ContentControl Grid.Row="7" Grid.Column="3"
+			IsEnabled="{Binding ElementName=me, Path=VM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			<AppBarButton Grid.Row="7" Grid.Column="3"
+				HorizontalAlignment="Center"
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"                                  
+				Click="OnLoadLandmarks_Click" 
+				Icon="OpenFile" />
+		</ContentControl>
+		<ContentControl Grid.Row="7" Grid.Column="4"
+			IsEnabled="{Binding ElementName=me, Path=VM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			<AppBarButton Grid.Row="7" Grid.Column="4"
+				HorizontalAlignment="Center"
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"                                  
+				Click="OnSaveLandmarks_Click" 
+				Icon="Save"
+				IsEnabled="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		</ContentControl>
+		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="No landmarks. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
+			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="Add or update landmarks in the 'Points' panel. You can export them and import them again later."
+			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+	</Grid>
+</ctl:ObservableControl>

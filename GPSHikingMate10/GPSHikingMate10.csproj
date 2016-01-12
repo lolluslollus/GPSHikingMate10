@@ -126,6 +126,9 @@
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AltitudeProfiles.xaml.cs" />
     <Compile Include="Views\CustomMapsPanel.xaml.cs" />
+    <Compile Include="Views\FilesPanel.xaml.cs">
+      <DependentUpon>FilesPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\HelpPanel.xaml.cs" />
     <Compile Include="Views\LolloMap.xaml.cs" />
     <Compile Include="Views\Main.xaml.cs" />
@@ -231,6 +234,10 @@
     <Page Include="Views\CustomMapsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FilesPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\HelpPanel.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -5,6 +5,7 @@ using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using LolloGPS.GPSInteraction;
+using LolloGPS.Suspension;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,7 +25,7 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed class Main_VM : ObservableData, BackPressedRaiser, IMapApController
+	public sealed class Main_VM : ObservableData, BackPressedRaiser, IMapApController, IFileActivatable
 	{
 		#region events
 		public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
@@ -67,6 +68,12 @@ namespace LolloGPS.Core
 		private bool _isLastMessageVisible = false;
 		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged(); } } }
 
+		private bool _isLoading = false;
+		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChanged_UI(); } }
+
+		private bool _isSaving = false;
+		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChanged_UI(); } }
+
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged(); } }
 
@@ -90,7 +97,7 @@ namespace LolloGPS.Core
 			//Application.Current.Resuming += OnResuming;
 		}
 
-		internal async Task OpenAsync()
+		internal async Task OpenAsync(bool readDataFromDb)
 		{
 			//bool isTesting = true; // LOLLO remove when done testing
 			//if (isTesting)
@@ -100,18 +107,27 @@ namespace LolloGPS.Core
 			//        string aaa = i.ToString();
 			//    }
 			//}
+			if (readDataFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync().ConfigureAwait(false);
+			RuntimeData.SetIsDBDataRead_UI(true);
+			RuntimeData.SetIsSettingsRead_UI(true);
 
 			await _myGPSInteractor.ActivateAsync();
 			UpdateClearCacheButtonIsEnabled();
 			UpdateClearCustomCacheButtonIsEnabled();
 			UpdateCacheButtonIsEnabled();
 			UpdateDownloadButtonIsEnabled();
+
+			KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+
 			AddHandler_DataChanged();
 		}
 		internal void Close()
 		{
 			RemoveHandler_DataChanged();
 			_myGPSInteractor.Deactivate();
+			KeepAlive.StopKeepAlive();
+
+			CancelPendingTasks(); // after removing the handlers
 
 			//bool isTesting = true; // LOLLO remove when done testing
 			//if (isTesting)
@@ -122,7 +138,14 @@ namespace LolloGPS.Core
 			//    }
 			//}
 		}
-
+		private void CancelPendingTasks()
+		{
+			// Do not dispose the cts's here. Dispose is done in the exception handler that catches the OperationCanceled exception. 
+			// If you do it here, the exception handler will throw an ObjectDisposed exception
+			_fileOpenContinuationCts?.Cancel();
+			_fileOpenPickerCts?.Cancel();
+			_fileSavePickerCts?.Cancel();
+		}
 		//private volatile bool _isSuspended = false;
 		//private async void OnResuming(object sender, object e)
 		//{
@@ -396,15 +419,57 @@ namespace LolloGPS.Core
 		#endregion IMapApController
 
 		#region save and load with picker
+		private SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		internal CancellationTokenSource _fileSavePickerCts = null;
+		internal CancellationTokenSource _fileOpenPickerCts = null;
+
+		private async Task<bool> SetIsLoading(bool newValue)
+		{
+			bool isNewValUnlikeOldVal = false;
+			try
+			{
+				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+				isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsLoadingFile) != newValue.ToString();
+				if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, newValue.ToString());
+				IsLoading = newValue;
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+			}
+			return isNewValUnlikeOldVal;
+		}
+
+		private async Task<bool> SetIsSaving(bool newValue)
+		{
+			bool isNewValUnlikeOldVal = false;
+			try
+			{
+				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+				isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsSavingFile) != newValue.ToString();
+				if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsSavingFile, newValue.ToString());
+				IsSaving = newValue;
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+			}
+			return isNewValUnlikeOldVal;
+		}
 
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
+			if (!await SetIsSaving(true)) return;
+
 			SwitchableObservableCollection<PointRecord> series = null;
 			if (whichSeries == PersistentData.Tables.History) series = MyPersistentData.History;
 			else if (whichSeries == PersistentData.Tables.Route0) series = MyPersistentData.Route0;
 			else if (whichSeries == PersistentData.Tables.Landmarks) series = MyPersistentData.Landmarks;
 			else return;
+
+			// disable UI commands
+			RuntimeData.SetIsDBDataRead_UI(false);
+			SetLastMessage_UI("saving GPX file...");
 
 			DateTime fileCreationDateTime = DateTime.Now;
 
@@ -412,12 +477,17 @@ namespace LolloGPS.Core
 
 			if (file != null)
 			{
-				await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false); // TODO check this with a win 10 phone
+				await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
 			}
 			else
 			{
 				SetLastMessage_UI("Saving cancelled");
 			}
+
+			// reactivate UI commands
+			RuntimeData.SetIsDBDataRead_UI(true);
+
+			await SetIsSaving(false).ConfigureAwait(false);
 		}
 		private async Task SaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
 		{
@@ -432,9 +502,6 @@ namespace LolloGPS.Core
 					_fileSavePickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileSavePickerCts.Token;
 					token.ThrowIfCancellationRequested();
-					// disable UI commands
-					RuntimeData.SetIsDBDataRead_UI(false);
-					SetLastMessage_UI("saving GPX file...");
 					// save file
 					result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
@@ -446,81 +513,37 @@ namespace LolloGPS.Core
 				// dispose of cancellation token
 				_fileSavePickerCts?.Dispose();
 				_fileSavePickerCts = null;
-				// reactivate UI commands
-				RuntimeData.SetIsDBDataRead_UI(true);
 				// inform the user about the result
 				if (result != null && result.Item1) SetLastMessage_UI(result.Item2);
 				else SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
 			}
 		}
 
-		internal CancellationTokenSource _fileOpenPickerCts = null;
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
 		{
-			try
-			{
-				RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, true.ToString());
-				RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
+			if (!await SetIsLoading(true)) return;
 
-				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
-				await Task.Delay(1).ConfigureAwait(false);
-				//await Task.Delay(1000).ConfigureAwait(false); // LOLLO set to 1 after done testing
-				if (file != null)
-				{
-					//if (!((App)Application.Current).IsSuspended)
-					//{
-					RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, false.ToString());
-					await Logger.AddAsync("IsSuspended = " + ((App)Application.Current).IsSuspended, Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					await Logger.AddAsync("file not null, about to load it", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
-					await Logger.AddAsync("file loaded straight away because it was not suspended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					//}
-					//else
-					//{
-					//	await Logger.AddAsync("file loading deferred because it was suspended", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					//}
-				}
-				else
-				{
-					RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, false.ToString());
-					SetLastMessage_UI("Loading cancelled");
-				}
-			}
-			catch (Exception ex)
+			//RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
+
+			// disable UI commands
+			RuntimeData.SetIsDBDataRead_UI(false);
+			SetLastMessage_UI("reading GPX file...");
+
+			var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
+			if (file != null)
 			{
-				RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, false.ToString());
-				MyPersistentData.LastMessage = string.Format("error loading {0}", PersistentData.GetTextForSeries(whichSeries));
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 			}
+			else
+			{
+				SetLastMessage_UI("Loading cancelled");
+			}
+
+			// reactivate UI commands
+			RuntimeData.SetIsDBDataRead_UI(true);
+
+			await SetIsLoading(false).ConfigureAwait(false);
 		}
-
-		//private async Task ContinueAfterFileOpenPickAsync()
-		//{
-		//	await Logger.AddAsync("starting", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-		//	var isLoading = RegistryAccess.GetValue(ConstantData.RegIsLoadingFile);
-		//	if (isLoading == true.ToString())
-		//	{
-		//		await Logger.AddAsync("isLoading == true", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-		//		PersistentData.Tables whichSeries = PersistentData.Tables.nil;
-		//		string whichSeriesString = RegistryAccess.GetValue(ConstantData.RegWhichSeries);
-		//		if (Enum.TryParse(whichSeriesString, out whichSeries))
-		//		{
-		//			await Logger.AddAsync("enum parse successful", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-		//			try
-		//			{
-		//				var file = await Pickers.GetLastPickedOpenFileJustOnceAsync().ConfigureAwait(false);
-		//				await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
-		//				await Logger.AddAsync("file loaded after resuming", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-		//			}
-		//			catch (Exception ex)
-		//			{
-		//				MyPersistentData.LastMessage = string.Format("error loading {0}", PersistentData.GetTextForSeries(whichSeries));
-		//				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-		//			}
-		//		}
-		//	}
-		//	RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, false.ToString());
-		//}
 
 		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
 
@@ -537,10 +560,6 @@ namespace LolloGPS.Core
 					_fileOpenPickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileOpenPickerCts.Token;
 					token.ThrowIfCancellationRequested();
-					// disable UI commands
-					RuntimeData.SetIsDBDataRead_UI(false);
-					await Logger.AddAsync("disabled ui commands", Logger.ForegroundLogFilename, Logger.Severity.Info);
-					SetLastMessage_UI("reading GPX file...");
 					// load the file
 					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
@@ -573,9 +592,6 @@ namespace LolloGPS.Core
 				// dispose of cancellation token
 				_fileOpenPickerCts?.Dispose();
 				_fileOpenPickerCts = null;
-				// reactivate UI commands
-				RuntimeData.SetIsDBDataRead_UI(true);
-				await Logger.AddAsync("enabled ui commands", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 				// inform the user about the outcome
 				if (result?.Item1 == true)
 				{
@@ -589,7 +605,7 @@ namespace LolloGPS.Core
 
 		#region continuations
 		internal CancellationTokenSource _fileOpenContinuationCts = null;
-		internal async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
+		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
 		{
 			List<PersistentData.Tables> output = new List<PersistentData.Tables>();
 
