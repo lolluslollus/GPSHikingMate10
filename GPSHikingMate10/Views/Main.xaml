@@ -202,7 +202,8 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<Grid>
+						<local:SettingsPanel VM="{Binding ElementName=me, Path=MyVM}"/>
+						<!--<Grid>
 							<Grid.RowDefinitions>
 								<RowDefinition Height="Auto"/>
 								<RowDefinition Height="Auto"/>
@@ -226,7 +227,7 @@
 								<ColumnDefinition Width="*"/>
 								<ColumnDefinition Width="*"/>
 								<ColumnDefinition Width="*"/>
-								<!--<ColumnDefinition Width="*"/>-->
+								--><!--<ColumnDefinition Width="*"/>--><!--
 							</Grid.ColumnDefinitions>
 
 							<TextBlock Grid.Row="0" Grid.ColumnSpan="2"
@@ -353,7 +354,7 @@
 							<ToggleSwitch Grid.Row="16" Grid.Column="2"
 								VerticalAlignment="Center"
 								IsOn="{Binding IsShowSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-						</Grid>
+						</Grid>-->
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
