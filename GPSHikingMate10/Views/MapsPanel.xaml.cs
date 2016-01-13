@@ -79,7 +79,7 @@ namespace LolloGPS.Core
                 else
                 {
                     _myVM.SetLastMessage_UI("No downloads possible for this area");
-                    // TODO this happens when I zoom out and go north to the arctic.
+                    // LOLLO TODO this happens when I zoom out and go north to the arctic.
                     // the error happens in MapControl.GetLocationFromOffset(). It seems difficult to fix.
                     // Fix it: try and download at least a few tiles. Try fumbling with LolloMap.GetMinMaxLatLonAsync().
                 }

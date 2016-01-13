@@ -152,7 +152,7 @@
 			<!-- LOLLO NOTE Must never set visibility = Collapsed, even in code: use height = 0 instead, to avoid stupid catastrophic failure -->
 			<local:LolloMap Grid.Row="0" Canvas.ZIndex="0"
 						x:Name="MyLolloMap"/>
-			<!-- TODO MAYBE try a split view to show map and altitude at the same time, on large screens only -->
+			<!-- LOLLO TODO MAYBE try a split view to show map and altitude at the same time, on large screens only -->
 			<!-- Altitude profiles -->
 			<local:AltitudeProfiles Grid.Row="0" Canvas.ZIndex="200"
 				x:Name="MyAltitudeProfiles"            

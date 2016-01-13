@@ -22,6 +22,7 @@ namespace LolloGPS.Data.Constants
 		//public const string RegIsLoadingFile = "IsLoadingFile";
 		//public const string RegWhichSeries = "WhichSeries";
 		public const string GpxDateTimeFormat = "yyyyMMddTHHmmssZ";
+		public const ulong MaxFileSize = (ulong)10000000;
 		public const int TRIAL_LENGTH_DAYS = 7;
 
 		public static string AppName { get { return APPNAME; } }

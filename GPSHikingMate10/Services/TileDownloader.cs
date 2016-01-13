@@ -182,7 +182,7 @@ namespace LolloGPS.Core
                             stepsWhenIWantToRaiseProgress[i] = totalCnt * i / howManyProgressStepsIWantToReport;
                         }
                     }
-                    //TODO check this parallelisation. Or maybe not, it could annoy ceertain providers.
+                    // LOLLO TODO MAYBE check this parallelisation. Or maybe not, it can bother certain providers.
                     //CancellationTokenSource cts = new CancellationTokenSource();
                     //var token = cts.Token;
                     //try

@@ -309,13 +309,22 @@ namespace LolloGPS.Converters
         }
     }
 
-    public class DateNotNullToVisibilityConverter : IValueConverter // TODO check this for locales and formats
+    public class DateNotNullToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             if (value == null) return Visibility.Collapsed;
-            if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(DateTime).ToString())) return Visibility.Collapsed;
+
+			DateTime dt = default(DateTime);
+			if (!DateTime.TryParse(value.ToString(), CultureInfo.CurrentUICulture, DateTimeStyles.None, out dt))
+			{
+				DateTime.TryParse(value.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
+			}
+
+			if (dt == default(DateTime)) return Visibility.Collapsed;
+			// if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(DateTime).ToString())) return Visibility.Collapsed;
             else return Visibility.Visible;
+
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {

@@ -23,9 +23,6 @@ namespace GPX
 	// date-time formats: http://www.geekzilla.co.uk/View00FF7904-B510-468C-A2C8-F859AA20581F.htm
 	public sealed class ReaderWriter
 	{
-		//public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
-		//public const ulong MaxFileSize = (ulong)2000000;
-
 		#region load route
 		private const int LOAD_WAIT_INTERVAL_MSEC = 50;
 		private const int LOAD_MAX_WAIT_INTERVALS = 200;
@@ -65,17 +62,17 @@ namespace GPX
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Route0, token).ConfigureAwait(false);
 
 					token.ThrowIfCancellationRequested();
-					if (newDataRecords.Count > 0)
+					if (newDataRecords == null || newDataRecords.Count < 1)
+					{
+						outMessage = "invalid route";
+						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					}
+					else
 					{
 						await PersistentData.SetRoute0InDBAsync(newDataRecords).ConfigureAwait(false);
 						Logger.Add_TPL("Route0 has been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " route points loaded";
-					}
-					else
-					{
-						outMessage = "invalid route";
-						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
 					}
 				}
 				catch (Exception exc) // OutOfMemoryException
@@ -108,17 +105,17 @@ namespace GPX
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
 
 					token.ThrowIfCancellationRequested();
-					if (newDataRecords.Count > 0)
+					if (newDataRecords == null || newDataRecords.Count < 1)
+					{
+						outMessage = "invalid landmarks";
+						Logger.Add_TPL("New landmarks are empty, landmarks have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					}
+					else
 					{
 						await PersistentData.SetLandmarksInDBAsync(newDataRecords).ConfigureAwait(false);
 						Logger.Add_TPL("Landmarks have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " landmarks loaded";
-					}
-					else
-					{
-						outMessage = "could not read landmarks";
-						Logger.Add_TPL("New landmarks are empty, landmarks have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
 					}
 				}
 				catch (Exception exc) // OutOfMemoryException
@@ -141,9 +138,10 @@ namespace GPX
 		private static async Task<List<PointRecord>> LoadDataRecordsAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
 		{
 			List<PointRecord> newDataRecords = new List<PointRecord>();
+			if (gpxFile == null) return newDataRecords;
 
-			//var fileProperties = await gpxFile.GetBasicPropertiesAsync(); // TODO do I need the file size check? Or is Linq smart enough?
-			//if (fileProperties.Size > MaxFileSize) return null; // this can crash the app
+			var fileProperties = await gpxFile.GetBasicPropertiesAsync();
+			if (fileProperties.Size > ConstantData.MaxFileSize) return newDataRecords;
 
 			try
 			{
