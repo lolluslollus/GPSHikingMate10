@@ -179,7 +179,7 @@ namespace LolloGPS.Data.TileCache
 
                         //if (checkMaxEntries)
                         //{
-                        //    var count = conn.Table<TileCacheRecord>().Count();//TODO maybe If you want to use this, 
+                        //    var count = conn.Table<TileCacheRecord>().Count();// LOLLO NOTE If you want to use this, 
                         // make a specialised count command like CreateGetOneRecordCommand()
                         //    if (count < GetHowManyEntriesMax(dbPath))
                         //    {

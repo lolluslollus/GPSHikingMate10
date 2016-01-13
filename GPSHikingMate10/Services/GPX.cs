@@ -38,7 +38,7 @@ namespace GPX
 		/// <param name="whichTable"></param>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
+		public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
 		{
 			int waitIntervals = 0;
 			while (!((App)Application.Current).IsDataOpen)
@@ -143,7 +143,7 @@ namespace GPX
 			List<PointRecord> newDataRecords = new List<PointRecord>();
 
 			//var fileProperties = await gpxFile.GetBasicPropertiesAsync(); // TODO do I need the file size check? Or is Linq smart enough?
-			//if (fileProperties.Size > MaxFileSize) return null; // TODO this can crash the app
+			//if (fileProperties.Size > MaxFileSize) return null; // this can crash the app
 
 			try
 			{

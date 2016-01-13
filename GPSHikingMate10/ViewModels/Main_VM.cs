@@ -590,6 +590,7 @@ namespace LolloGPS.Core
 		}
 
 		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
+		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 
 		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
@@ -606,7 +607,7 @@ namespace LolloGPS.Core
 					CancellationToken token = _fileOpenPickerCts.Token;
 					token.ThrowIfCancellationRequested();
 					// load the file
-					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
+					result = await ReaderWriter.LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(file, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 					// update the UI with the file data
 					if (result?.Item1 == true)
@@ -668,9 +669,9 @@ namespace LolloGPS.Core
 					// load the file, attempting to read landmarks and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
 					token.ThrowIfCancellationRequested();
-					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
+					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(file_mt, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
-					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, token).ConfigureAwait(false);
+					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(file_mt, PersistentData.Tables.Route0, token).ConfigureAwait(false);
 				}
 				catch (Exception) { }
 				finally
