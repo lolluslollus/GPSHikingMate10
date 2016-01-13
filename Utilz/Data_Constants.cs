@@ -18,8 +18,8 @@ namespace LolloGPS.Data.Constants
         public const string GPX_EXTENSION = ".gpx";
         public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
-		public const string RegIsSavingFile = "IsSavingFile";
-		public const string RegIsLoadingFile = "IsLoadingFile";
+		//public const string RegIsSavingFile = "IsSavingFile";
+		//public const string RegIsLoadingFile = "IsLoadingFile";
 		//public const string RegWhichSeries = "WhichSeries";
 		public const string GpxDateTimeFormat = "yyyyMMddTHHmmssZ";
 		public const int TRIAL_LENGTH_DAYS = 7;

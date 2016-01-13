@@ -467,71 +467,81 @@ namespace LolloGPS.Core
 		internal CancellationTokenSource _fileSavePickerCts = null;
 		internal CancellationTokenSource _fileOpenPickerCts = null;
 
-		private async Task<bool> SetIsLoading(bool newValue)
-		{
-			bool isNewValUnlikeOldVal = false;
-			try
-			{
-				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
-				isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsLoadingFile) != newValue.ToString();
-				if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, newValue.ToString());
-				IsLoading = newValue;
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
-			}
-			return isNewValUnlikeOldVal;
-		}
+		//private async Task<bool> SetIsLoading(bool newValue)
+		//{
+		//	// LOLLO NOTE this will never be reset if the app quits before it is set to false
+		//	bool isNewValUnlikeOldVal = false;
+		//	try
+		//	{
+		//		await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+		//		isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsLoadingFile) != newValue.ToString();
+		//		if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, newValue.ToString());
+		//		IsLoading = newValue;
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+		//	}
+		//	return isNewValUnlikeOldVal;
+		//}
 
-		private async Task<bool> SetIsSaving(bool newValue)
-		{
-			bool isNewValUnlikeOldVal = false;
-			try
-			{
-				await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
-				isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsSavingFile) != newValue.ToString();
-				if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsSavingFile, newValue.ToString());
-				IsSaving = newValue;
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
-			}
-			return isNewValUnlikeOldVal;
-		}
+		//private async Task<bool> SetIsSaving(bool newValue)
+		//{
+		//	// LOLLO NOTE this will never be reset if the app quits before it is set to false
+		//	bool isNewValUnlikeOldVal = false;
+		//	try
+		//	{
+		//		await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
+		//		isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsSavingFile) != newValue.ToString();
+		//		if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsSavingFile, newValue.ToString());
+		//		IsSaving = newValue;
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
+		//	}
+		//	return isNewValUnlikeOldVal;
+		//}
 
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
-			if (!await SetIsSaving(true)) return;
-
-			SwitchableObservableCollection<PointRecord> series = null;
-			if (whichSeries == PersistentData.Tables.History) series = MyPersistentData.History;
-			else if (whichSeries == PersistentData.Tables.Route0) series = MyPersistentData.Route0;
-			else if (whichSeries == PersistentData.Tables.Landmarks) series = MyPersistentData.Landmarks;
-			else return;
-
-			// disable UI commands
-			RuntimeData.SetIsDBDataRead_UI(false);
-			SetLastMessage_UI("saving GPX file...");
-
-			DateTime fileCreationDateTime = DateTime.Now;
-
-			var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GpxDateTimeFormat, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
-
-			if (file != null)
+			// if (!await SetIsSaving(true)) return;
+			if (IsSaving) return;
+			try
 			{
-				await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
+				IsSaving = true;
+
+				SwitchableObservableCollection<PointRecord> series = null;
+				if (whichSeries == PersistentData.Tables.History) series = MyPersistentData.History;
+				else if (whichSeries == PersistentData.Tables.Route0) series = MyPersistentData.Route0;
+				else if (whichSeries == PersistentData.Tables.Landmarks) series = MyPersistentData.Landmarks;
+				else return;
+
+				// disable UI commands
+				RuntimeData.SetIsDBDataRead_UI(false);
+				SetLastMessage_UI("saving GPX file...");
+
+				DateTime fileCreationDateTime = DateTime.Now;
+
+				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GpxDateTimeFormat, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
+
+				if (file != null)
+				{
+					await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
+				}
+				else
+				{
+					SetLastMessage_UI("Saving cancelled");
+				}
+
+				// reactivate UI commands
+				RuntimeData.SetIsDBDataRead_UI(true);
 			}
-			else
+			finally
 			{
-				SetLastMessage_UI("Saving cancelled");
+				//await SetIsSaving(false).ConfigureAwait(false);
+				IsSaving = false;
 			}
-
-			// reactivate UI commands
-			RuntimeData.SetIsDBDataRead_UI(true);
-
-			await SetIsSaving(false).ConfigureAwait(false);
 		}
 		private async Task SaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
 		{
@@ -565,28 +575,36 @@ namespace LolloGPS.Core
 
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
 		{
-			if (!await SetIsLoading(true)) return;
-
-			//RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
-
-			// disable UI commands
-			RuntimeData.SetIsDBDataRead_UI(false);
-			SetLastMessage_UI("reading GPX file...");
-
-			var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
-			if (file != null)
+			// if (!await SetIsLoading(true)) return;
+			if (IsLoading) return;
+			try
 			{
-				await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
+				IsLoading = true;
+
+				//RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
+
+				// disable UI commands
+				RuntimeData.SetIsDBDataRead_UI(false);
+				SetLastMessage_UI("reading GPX file...");
+
+				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
+				if (file != null)
+				{
+					await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
+				}
+				else
+				{
+					SetLastMessage_UI("Loading cancelled");
+				}
+
+				// reactivate UI commands
+				RuntimeData.SetIsDBDataRead_UI(true);
 			}
-			else
+			finally
 			{
-				SetLastMessage_UI("Loading cancelled");
+				//await SetIsLoading(false).ConfigureAwait(false);
+				IsLoading = false;
 			}
-
-			// reactivate UI commands
-			RuntimeData.SetIsDBDataRead_UI(true);
-
-			await SetIsLoading(false).ConfigureAwait(false);
 		}
 
 		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop

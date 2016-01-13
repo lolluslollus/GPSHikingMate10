@@ -18,29 +18,16 @@ namespace LolloGPS.Data
 	public abstract class ObservableData : INotifyPropertyChanged
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
-		//protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-		//{
-		//	var listener = PropertyChanged;
-		//	if (listener != null)
-		//	{
-		//		listener(this, new PropertyChangedEventArgs(propertyName));
-		//	}
-		//}
+		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 		protected async void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
-			try
+			await RunInUiThreadAsync(delegate
 			{
-				await RunInUiThreadAsync(delegate
-				{
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-				}).ConfigureAwait(false);
-			}
-			catch (InvalidOperationException) // called from a background task: ignore
-			{ }
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
-			}
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			}).ConfigureAwait(false);
 		}
 		protected async void RaisePropertyChangedUrgent_UI([CallerMemberName] string propertyName = "")
 		{

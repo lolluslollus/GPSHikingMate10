@@ -46,6 +46,9 @@ namespace LolloGPS.Core
 		internal const double MinLon = -180.0;
 		internal const double MaxLon = 180.0;
 
+		private static SemaphoreSlimSafeRelease _initLandmarksSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private volatile bool _isClosing = false;
+
 		private static MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["Route0Brush"])).Color,
@@ -136,6 +139,7 @@ namespace LolloGPS.Core
 		/// <returns></returns>
 		public async Task OpenAsync()
 		{
+			if (_isClosing) return;
 			try
 			{
 				MyMap.Style = MyPersistentData.MapStyle; // maniman
@@ -144,10 +148,31 @@ namespace LolloGPS.Core
 				_myVM.Open();
 
 				InitMapElements();
+
+				if (_isClosing) return;
 				DrawHistory();
 				DrawRoute0();
-				DrawLandmarks2();
+
+				if (_isClosing) return;
+				await DrawLandmarksAsync();
+				if (_isClosing) return;
 				AddHandlerThisEvents();
+
+				//Task dh = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
+				//{
+				//	DrawHistory();
+				//}).AsTask();
+				//Task dr = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
+				//{
+				//	DrawRoute0();
+				//}).AsTask();
+				//Task dl = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
+				//{
+				//	DrawLandmarks2Async();
+				//}).AsTask();
+				//Task add = Task.WhenAll(dh, dr, dl).ContinueWith(delegate { if (!_isClosing) AddHandlerThisEvents(); });
+
+				// Task addHandlers = Task.WhenAll(DrawHistoryAsync(), DrawRoute0Async(), DrawLandmarks2Async()).ContinueWith(delegate { if (!_isClosing) AddHandlerThisEvents(); });
 			}
 			catch (Exception ex)
 			{
@@ -158,6 +183,8 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				_isClosing = true;
+
 				RemoveHandlerThisEvents();
 				// save last map settings
 				try
@@ -178,6 +205,10 @@ namespace LolloGPS.Core
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				_isClosing = false;
 			}
 		}
 
@@ -439,21 +470,34 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-
 		}
-		private void DrawLandmarks2()
+		private async Task DrawLandmarksAsync()
 		{
+			if (_isClosing) return;
 			try
 			{
-				if (!InitLandmarks2()) // 1600 msec for 256 landmarks
+				await _initLandmarksSemaphore.WaitAsync();
 				{
-					Debug.WriteLine("No landmarks to be drawn, skipping");
-					return;
+					if (!InitLandmarks()) // 1600 msec for 256 landmarks
+					{
+						Debug.WriteLine("No landmarks to be drawn, skipping");
+						return;
+					}
 				}
 				// make geopoints
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_initLandmarksSemaphore);
+			}
+
 #if DEBUG
-				Stopwatch sw0 = new Stopwatch(); sw0.Start();
+			Stopwatch sw0 = new Stopwatch(); sw0.Start();
 #endif
+
+			try
+			{
+				if (_isClosing) return;
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
@@ -470,6 +514,7 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
+				if (_isClosing) return;
 				try
 				{
 					int j = 0;
@@ -477,18 +522,19 @@ namespace LolloGPS.Core
 					{
 						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LandmarkTabIndex))
 						{
-							j++;
+							j++; // MapElement is not a landmark: skip to the next element
 						}
-						MyMap.MapElements[j].Visible = true;
+
 						(MyMap.MapElements[j] as MapIcon).Location = geoPoints[i];
-						(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+						//(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+						MyMap.MapElements[j].Visible = true; // set it last, in the attempt of getting a little more speed
 						j++;
 					}
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
 						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LandmarkTabIndex))
 						{
-							j++;
+							j++; // MapElement is not a landmark: skip to the next element
 						}
 						MyMap.MapElements[j].Visible = false;
 						j++;
@@ -506,10 +552,9 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-
 		}
 
-		private bool InitLandmarks2()
+		private bool InitLandmarks()
 		{
 #if DEBUG
 			Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -526,6 +571,7 @@ namespace LolloGPS.Core
 						Image = _landmarkIconStreamReference,
 						// Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute)),
 						MapTabIndex = LandmarkTabIndex,
+						NormalizedAnchorPoint = new Point(0.5, 0.5),
 						Visible = false
 					};
 
@@ -792,7 +838,10 @@ namespace LolloGPS.Core
 
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			DrawLandmarks2();
+			Task draw1 = RunInUiThreadAsync(delegate
+			{
+				Task draw2 = DrawLandmarksAsync();
+			});
 		}
 
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

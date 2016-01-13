@@ -42,7 +42,7 @@ namespace LolloGPS.Core
 		{
 			Task upd = RunInUiThreadAsync(delegate
 			{
-				DataContext = VM;
+				LayoutRoot.DataContext = VM; // LOLLO NOTE never set DataContent on self in a UserControl
 			});
 		}
 	}

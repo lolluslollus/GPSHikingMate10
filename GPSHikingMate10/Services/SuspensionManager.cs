@@ -91,9 +91,13 @@ namespace LolloGPS.Suspension
 
 				if (readDataFromDb)
 				{
-					Task loadHistory = Task.Run(delegate { PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false); });
-					Task loadRoute0 = Task.Run(delegate { PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false); });
-					Task loadLandmarks = Task.Run(delegate { PersistentData.GetInstance()?.LoadLandmarksFromDbAsync(false); });
+					//Task loadHistory = Task.Run(delegate { PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false); });
+					//Task loadRoute0 = Task.Run(delegate { PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false); });
+					//Task loadLandmarks = Task.Run(delegate { PersistentData.GetInstance()?.LoadLandmarksFromDbAsync(false); });
+
+					Task loadHistory = PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false);
+					Task loadRoute0 = PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false);
+					Task loadLandmarks = PersistentData.GetInstance()?.LoadLandmarksFromDbAsync(false);
 
 					await Task.WhenAll(loadHistory, loadRoute0, loadLandmarks).ConfigureAwait(false);
 					//history = PersistentData.GetHistoryFromDB();

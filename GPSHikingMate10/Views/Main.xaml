@@ -15,7 +15,6 @@
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
 
-	<!-- LOLLO TODO crash when I select the Settings tab -->
 	<Grid x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />

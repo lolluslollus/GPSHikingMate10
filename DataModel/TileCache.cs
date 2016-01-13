@@ -617,29 +617,33 @@ namespace LolloGPS.Data.TileCache
 		public sealed class ProcessingQueue
 		{
 			public static event PropertyChangedEventHandler PropertyChanged;
-			private static void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
+			private static void RaisePropertyChanged([CallerMemberName] string propertyName = "")
 			{
-				try
-				{
-					if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-					{
-						PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
-					}
-					else
-					{
-						Task raise = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-							CoreDispatcherPriority.Low, 
-							delegate { PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName)); }
-							).AsTask();
-					}
-				}
-				catch (InvalidOperationException) // called from a background task: ignore
-				{ }
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
+				PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
 			}
+			//private static void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
+			//{
+			//	try
+			//	{
+			//		if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+			//		{
+			//			PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
+			//		}
+			//		else
+			//		{
+			//			Task raise = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+			//				CoreDispatcherPriority.Low, 
+			//				delegate { PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName)); }
+			//				).AsTask();
+			//		}
+			//	}
+			//	catch (InvalidOperationException) // called from a background task: ignore
+			//	{ }
+			//	catch (Exception ex)
+			//	{
+			//		Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			//	}
+			//}
 
 			private static bool _isFree = true;
 			/// <summary>
@@ -653,7 +657,7 @@ namespace LolloGPS.Data.TileCache
 					if (_isFree != value)
 					{
 						_isFree = value;
-						RaisePropertyChanged_UI();
+						RaisePropertyChanged();
 					}
 				}
 			}

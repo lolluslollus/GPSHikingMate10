@@ -134,7 +134,7 @@ namespace LolloGPS.Core
 		/// <param name="e">Details about the suspend request.</param>
 		private async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
-			Debugger.Break();
+			// Debugger.Break();
 			var deferral = e.SuspendingOperation.GetDeferral();
 
 			await CloseAllAsync().ConfigureAwait(false);
@@ -246,7 +246,7 @@ namespace LolloGPS.Core
 							}
 						}
 						else
-						{
+						{ // LOLLO TODO the following does not open any series , but just sometimes
 							await main.OpenAsync(true, true);
 							if (whichTables != null)
 							{
