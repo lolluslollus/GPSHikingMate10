@@ -51,45 +51,37 @@ namespace LolloGPS.Data
         public const int DefaultMaxTilePixelSize = 1024;
         public const int MaxTechNameLength = 25;
 
-        private string _techName = TileSourceRecord.DefaultTileSourceTechName;
+        private string _techName = DefaultTileSourceTechName;
         [DataMember]
-        public string TechName { get { return _techName; } set{ _techName = value; RaisePropertyChanged(); } }
+        public string TechName { get { return _techName; } set{ _techName = value; RaisePropertyChanged_UI(); } }
 
         private string _displayName = TileSourceRecord.DefaultTileSourceDisplayName;
         [DataMember]
-        public string DisplayName { get { return _displayName; } set{ _displayName = value; RaisePropertyChanged(); } }
+        public string DisplayName { get { return _displayName; } set{ _displayName = value; RaisePropertyChanged_UI(); } }
 
         private string _uriString = SampleUriString;
         [DataMember]
-        public string UriString { get { return _uriString; } set{ _uriString = value; RaisePropertyChanged(); } }
+        public string UriString { get { return _uriString; } set{ _uriString = value; RaisePropertyChanged_UI(); } }
 
         private string _providerUriString = string.Empty;
         [DataMember]
-        public string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged(); } }
+        public string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged_UI(); } }
 
         private int _minZoom = DefaultMinZoom;
         [DataMember]
-        public int MinZoom { get { return _minZoom; } set{ _minZoom = value; RaisePropertyChanged(); } }
+        public int MinZoom { get { return _minZoom; } set{ _minZoom = value; RaisePropertyChanged_UI(); } }
 
         private int _maxZoom = DefaultMaxZoom;
         [DataMember]
-        public int MaxZoom { get { return _maxZoom; } set{ _maxZoom = value; RaisePropertyChanged(); } }
+        public int MaxZoom { get { return _maxZoom; } set{ _maxZoom = value; RaisePropertyChanged_UI(); } }
 
         private int _tilePixelSize = DefaultTilePixelSize;
         [DataMember]
-        public int TilePixelSize { get { return _tilePixelSize; } set{ _tilePixelSize = value; RaisePropertyChanged(); } }
-
-        //private bool _isTesting = false;
-        //[DataMember]
-        //public bool IsTesting { get { return _isTesting; } set { _isTesting = value; RaisePropertyChanged(); } }
+        public int TilePixelSize { get { return _tilePixelSize; } set{ _tilePixelSize = value; RaisePropertyChanged_UI(); } }
 
         private bool _isDeletable = false;
         [DataMember]
-        public bool IsDeletable { get { return _isDeletable; } set{ _isDeletable = value; RaisePropertyChanged(); } }
-
-        //private bool _isValid = false;
-        //[DataMember]
-        //public bool IsValid { get { return _isValid; } set { _isValid = value; RaisePropertyChanged(); } }
+        public bool IsDeletable { get { return _isDeletable; } set{ _isDeletable = value; RaisePropertyChanged_UI(); } }
 
         [IgnoreDataMember]
         public bool IsDefault { get { return _techName == TileSourceRecord.DefaultTileSourceTechName; } }

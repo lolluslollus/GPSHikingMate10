@@ -18,14 +18,14 @@ namespace LolloGPS.Data
 	public abstract class ObservableData : INotifyPropertyChanged
 	{
 		public event PropertyChangedEventHandler PropertyChanged;
-		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			var listener = PropertyChanged;
-			if (listener != null)
-			{
-				listener(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
+		//protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+		//{
+		//	var listener = PropertyChanged;
+		//	if (listener != null)
+		//	{
+		//		listener(this, new PropertyChangedEventArgs(propertyName));
+		//	}
+		//}
 		protected async void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
 			try
@@ -63,13 +63,22 @@ namespace LolloGPS.Data
 		#region UIThread
 		protected static async Task RunInUiThreadAsync(DispatchedHandler action)
 		{
-			if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+			try
 			{
-				action();
+				if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+				{
+					action();
+				}
+				else
+				{
+					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
+				}
 			}
-			else
+			catch (InvalidOperationException) // called from a background task: ignore
+			{ }
+			catch (Exception ex)
 			{
-				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

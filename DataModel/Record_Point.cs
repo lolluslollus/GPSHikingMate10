@@ -35,41 +35,41 @@ namespace LolloGPS.Data
         public int Id { get; set; } // required by SQLite
 
         [DataMember]
-        public double Latitude { get { return _latitude; } set { _latitude = value; RaisePropertyChanged(); } }
+        public double Latitude { get { return _latitude; } set { _latitude = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public double Longitude { get { return _longitude; } set { _longitude = value; RaisePropertyChanged(); } }
+        public double Longitude { get { return _longitude; } set { _longitude = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public double Altitude { get { return _altitude; } set { _altitude = value; RaisePropertyChanged(); } }
+        public double Altitude { get { return _altitude; } set { _altitude = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public double Accuracy { get { return _accuracy; } set { _accuracy = value; RaisePropertyChanged(); } }
+        public double Accuracy { get { return _accuracy; } set { _accuracy = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public double AltitudeAccuracy { get { return _altitudeAccuracy; } set { _altitudeAccuracy = value; RaisePropertyChanged(); } }
+        public double AltitudeAccuracy { get { return _altitudeAccuracy; } set { _altitudeAccuracy = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public UInt32 HowManySatellites { get { return _howManySatellites; } set { _howManySatellites = value; RaisePropertyChanged(); } }
+        public UInt32 HowManySatellites { get { return _howManySatellites; } set { _howManySatellites = value; RaisePropertyChanged_UI(); } }
         //[DataMember]
-        //public double PositionDilutionOfPrecision { get { return _positionDilutionOfPrecision; } set { _positionDilutionOfPrecision = value; RaisePropertyChanged("PositionDilutionOfPrecision"); } }
+        //public double PositionDilutionOfPrecision { get { return _positionDilutionOfPrecision; } set { _positionDilutionOfPrecision = value; RaisePropertyChanged_UI("PositionDilutionOfPrecision"); } }
         //[DataMember]
-        //public double HorizontalDilutionOfPrecision { get { return _horizontalDilutionOfPrecision; } set { _horizontalDilutionOfPrecision = value; RaisePropertyChanged("HorizontalDilutionOfPrecision"); } }
+        //public double HorizontalDilutionOfPrecision { get { return _horizontalDilutionOfPrecision; } set { _horizontalDilutionOfPrecision = value; RaisePropertyChanged_UI("HorizontalDilutionOfPrecision"); } }
         //[DataMember]
-        //public double VerticalDilutionOfPrecision { get { return _verticalDilutionOfPrecision; } set { _verticalDilutionOfPrecision = value; RaisePropertyChanged("LatitudeVerticalDilutionOfPrecision"); } }
+        //public double VerticalDilutionOfPrecision { get { return _verticalDilutionOfPrecision; } set { _verticalDilutionOfPrecision = value; RaisePropertyChanged_UI("LatitudeVerticalDilutionOfPrecision"); } }
         [DataMember]
-        public string PositionSource { get { return _positionSource; } set { _positionSource = value; RaisePropertyChanged(); } }
+        public string PositionSource { get { return _positionSource; } set { _positionSource = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public double SpeedInMetreSec { get { return _speedInMetreSec; } set { _speedInMetreSec = value; RaisePropertyChanged(); } }
+        public double SpeedInMetreSec { get { return _speedInMetreSec; } set { _speedInMetreSec = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public string Status { get { return _status; } set { _status = value; RaisePropertyChanged(); } }
+        public string Status { get { return _status; } set { _status = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public DateTime TimePoint { get { return _timePoint; } set { _timePoint = value; RaisePropertyChanged(); } }
+        public DateTime TimePoint { get { return _timePoint; } set { _timePoint = value; RaisePropertyChanged_UI(); } }
         //[DataMember]
-        //public string GPSName { get { return _gpsName; } set { _gpsName = value; RaisePropertyChanged(); } }
+        //public string GPSName { get { return _gpsName; } set { _gpsName = value; RaisePropertyChanged_UI(); } }
         //[DataMember]
-        //public string GPSComment { get { return _gpsComment; } set { _gpsComment = value; RaisePropertyChanged(); } }
+        //public string GPSComment { get { return _gpsComment; } set { _gpsComment = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public string HumanDescription { get { return _humanDescription; } set { if (_humanDescription != value) { _humanDescription = value; RaisePropertyChanged(); } } }
+        public string HumanDescription { get { return _humanDescription; } set { if (_humanDescription != value) { _humanDescription = value; RaisePropertyChanged_UI(); } } }
         [DataMember]
-        public string HyperLink { get { return _hyperLink; } set { _hyperLink = value; RaisePropertyChanged(); } }
+        public string HyperLink { get { return _hyperLink; } set { _hyperLink = value; RaisePropertyChanged_UI(); } }
         [DataMember]
-        public string HyperLinkText { get { return _hyperLinkText; } set { _hyperLinkText = value; RaisePropertyChanged(); } }
+        public string HyperLinkText { get { return _hyperLinkText; } set { _hyperLinkText = value; RaisePropertyChanged_UI(); } }
         #endregion properties
 
         public PointRecord() { }

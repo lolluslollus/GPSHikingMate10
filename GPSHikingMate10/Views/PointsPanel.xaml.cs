@@ -1,4 +1,5 @@
 ﻿using GPX;
+using LolloBaseUserControls;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.GPSInteraction;
@@ -18,7 +19,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class PointsPanel : UserControl, INotifyPropertyChanged
+    public sealed partial class PointsPanel : ObservableControl
     {
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -27,11 +28,6 @@ namespace LolloGPS.Core
         public Main_VM MyVM { get { return _myVM; } }
         
         #region events       
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
         public event EventHandler CentreOnTargetRequested;
         private void RaiseCentreOnTarget()
         {

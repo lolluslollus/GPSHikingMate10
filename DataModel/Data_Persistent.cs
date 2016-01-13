@@ -12,7 +12,6 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Core;
-using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls.Maps;
@@ -44,18 +43,26 @@ namespace LolloGPS.Data
 		}
 		public const int MaxRecordsInRoute = short.MaxValue;
 		public const int MaxRecordsInHistory = short.MaxValue;
-		private const int MaxLandmarks1 = 100;
+		private const int MaxLandmarks1 = 100; // LOLLO TODO review higher values
 		private const int MaxLandmarks2 = 250;
-		private const int MaxLandmarks3 = 600;
-		private const int MaxLandmarks4 = 1500;
-		private const int MaxLandmarks5 = 4000;
-
+		private const int MaxLandmarks3 = 625;
+		private const int MaxLandmarks4 = 3125;
+		private const int MaxLandmarks5 = 15625;
 		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5;
+
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
+		public const uint DefaultBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MinReportIntervalInMilliSec = 3000u;
 		public const uint MaxReportIntervalInMilliSec = 900000u;
+		public const uint DefaultReportIntervalInMilliSec = 3000u;
 		public const uint MinAccuracyInMetres = 1u;
+		public const uint MaxAccuracyInMetres = 100u;
+		public const uint DefaultAccuracyInMetres = 10u; // high accuracy
+		public const double MinTapTolerance = 1.0;
+		public const double MaxTapTolerance = 50.0;
+		public const double DefaultTapTolerance = 20.0;
+
 		public const string DefaultPositionSource = ConstantData.APPNAME;
 		private const int DefaultSelectedIndex_Base1 = 0;
 
@@ -83,58 +90,74 @@ namespace LolloGPS.Data
 			}
 		}
 
-		public static async Task SetInstanceAsync(PersistentData newData, List<PointRecord> history, List<PointRecord> route0, List<PointRecord> landmarks)
+		//public static async Task SetInstanceAsync(PersistentData newData, List<PointRecord> history, List<PointRecord> route0, List<PointRecord> landmarks)
+		//{
+		//	try
+		//	{
+		//		PersistentData dataToBeChanged = GetInstance();
+		//		//I must clone memberwise, otherwise the current event handlers get lost
+		//		CloneNonDbProperties_internal(newData, ref dataToBeChanged);
+
+		//		if (history != null)
+		//		{
+		//			try
+		//			{
+		//				await _historySemaphore.WaitAsync().ConfigureAwait(false);
+		//				dataToBeChanged.History.Clear();
+		//				dataToBeChanged.History.AddRange(history);
+		//				dataToBeChanged.SetCurrentToLast();
+		//			}
+		//			finally
+		//			{
+		//				SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
+		//			}
+		//		}
+		//		if (route0 != null)
+		//		{
+		//			try
+		//			{
+		//				await _route0Semaphore.WaitAsync().ConfigureAwait(false);
+		//				dataToBeChanged.Route0.Clear();
+		//				dataToBeChanged.Route0.AddRange(route0);
+		//			}
+		//			finally
+		//			{
+		//				SemaphoreSlimSafeRelease.TryRelease(_route0Semaphore);
+		//			}
+		//		}
+		//		if (landmarks != null)
+		//		{
+		//			try
+		//			{
+		//				await _landmarksSemaphore.WaitAsync().ConfigureAwait(false);
+		//				dataToBeChanged.Landmarks.Clear();
+		//				dataToBeChanged.Landmarks.AddRange(landmarks);
+		//			}
+		//			finally
+		//			{
+		//				SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
+		//			}
+		//		}
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+		//	}
+		//}
+		public static Task SetInstanceNonDbPropertiesAsync(PersistentData from)
 		{
 			try
 			{
-				PersistentData dataToBeChanged = PersistentData.GetInstance();
-				//I must clone memberwise, otherwise the current event handlers get lost
-				CloneNonDbProperties_internal(newData, ref dataToBeChanged);
-
-				if (history != null)
+				return RunInUiThreadAsync(delegate
 				{
-					try
-					{
-						await _historySemaphore.WaitAsync().ConfigureAwait(false);
-						dataToBeChanged.History.Clear();
-						dataToBeChanged.History.AddRange(history);
-						dataToBeChanged.SetCurrentToLast();
-					}
-					finally
-					{
-						SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
-					}
-				}
-				if (route0 != null)
-				{
-					try
-					{
-						await _route0Semaphore.WaitAsync().ConfigureAwait(false);
-						dataToBeChanged.Route0.Clear();
-						dataToBeChanged.Route0.AddRange(route0);
-					}
-					finally
-					{
-						SemaphoreSlimSafeRelease.TryRelease(_route0Semaphore);
-					}
-				}
-				if (landmarks != null)
-				{
-					try
-					{
-						await _landmarksSemaphore.WaitAsync().ConfigureAwait(false);
-						dataToBeChanged.Landmarks.Clear();
-						dataToBeChanged.Landmarks.AddRange(landmarks);
-					}
-					finally
-					{
-						SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
-					}
-				}
+					var dataToBeChanged = GetInstance();
+					//I must clone memberwise, otherwise the current event handlers get lost
+					CloneNonDbProperties_internal(from, ref dataToBeChanged);
+				});
 			}
-			catch (Exception exc0)
+			catch (Exception ex)
 			{
-				Logger.Add_TPL(exc0.ToString(), Logger.PersistentDataLogFilename);
+				return Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
 		public PersistentData CloneNonDbProperties()
@@ -148,10 +171,10 @@ namespace LolloGPS.Data
 			if (source != null && target != null)
 			{
 				PointRecord.Clone(source.Selected, ref target._selected);
-				target.RaisePropertyChanged(nameof(PersistentData.Selected));
+				target.RaisePropertyChanged_UI(nameof(Selected));
 
 				if (!source.Target.IsEmpty()) PointRecord.Clone(source.Target, ref target._target);
-				target.RaisePropertyChanged(nameof(PersistentData.Target));
+				target.RaisePropertyChanged_UI(nameof(Target));
 
 				target.SelectedSeries = source.SelectedSeries;
 				target.BackgroundUpdatePeriodInMinutes = source.BackgroundUpdatePeriodInMinutes;
@@ -183,10 +206,10 @@ namespace LolloGPS.Data
 				target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
 
 				TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
-				target.RaisePropertyChanged(nameof(PersistentData.TestTileSource));
+				target.RaisePropertyChanged_UI(nameof(TestTileSource));
 
 				TileSourceRecord.Clone(source.CurrentTileSource, ref target._currentTileSource);
-				target.RaisePropertyChanged(nameof(PersistentData.CurrentTileSource));
+				target.RaisePropertyChanged_UI(nameof(CurrentTileSource));
 
 				if (source.TileSourcez != null && source.TileSourcez.Count > 0) // start with the default values
 				{
@@ -195,10 +218,10 @@ namespace LolloGPS.Data
 						target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
 					}
 				}
-				target.RaisePropertyChanged(nameof(PersistentData.TileSourcez));
+				target.RaisePropertyChanged_UI(nameof(TileSourcez));
 
 				DownloadSession.Clone(source.LastDownloadSession, ref target._lastDownloadSession);
-				target.RaisePropertyChanged(nameof(PersistentData.LastDownloadSession));
+				target.RaisePropertyChanged_UI(nameof(LastDownloadSession));
 			}
 		}
 		static PersistentData()
@@ -269,11 +292,11 @@ namespace LolloGPS.Data
 
 		private int _selectedPivotIndex = -1;
 		[DataMember]
-		public int SelectedPivotIndex { get { return _selectedPivotIndex; } set { if (_selectedPivotIndex != value) { _selectedPivotIndex = value; RaisePropertyChanged(); } } }
+		public int SelectedPivotIndex { get { return _selectedPivotIndex; } set { if (_selectedPivotIndex != value) { _selectedPivotIndex = value; RaisePropertyChanged_UI(); } } }
 
 		private bool _isShowingAltitudeProfiles = false;
 		[DataMember]
-		public bool IsShowingAltitudeProfiles { get { return _isShowingAltitudeProfiles; } set { if (_isShowingAltitudeProfiles != value) { _isShowingAltitudeProfiles = value; RaisePropertyChanged(); } } }
+		public bool IsShowingAltitudeProfiles { get { return _isShowingAltitudeProfiles; } set { if (_isShowingAltitudeProfiles != value) { _isShowingAltitudeProfiles = value; RaisePropertyChanged_UI(); } } }
 
 		private PointRecord _current = new PointRecord();
 		[IgnoreDataMember] // we pick Current from History
@@ -292,36 +315,36 @@ namespace LolloGPS.Data
 		}
 		private bool _isCentreOnCurrent = true;
 		[DataMember]
-		public bool IsCentreOnCurrent { get { return _isCentreOnCurrent; } set { if (_isCentreOnCurrent != value) { _isCentreOnCurrent = value; RaisePropertyChanged(); } } }
+		public bool IsCentreOnCurrent { get { return _isCentreOnCurrent; } set { if (_isCentreOnCurrent != value) { _isCentreOnCurrent = value; RaisePropertyChanged_UI(); } } }
 		private bool _isShowAim = false;
 		[DataMember]
-		public bool IsShowAim { get { return _isShowAim; } set { if (_isShowAim != value) { _isShowAim = value; RaisePropertyChanged(); } } }
+		public bool IsShowAim { get { return _isShowAim; } set { if (_isShowAim != value) { _isShowAim = value; RaisePropertyChanged_UI(); } } }
 		private bool _isShowAimOnce = false;
 		[DataMember]
-		public bool IsShowAimOnce { get { return _isShowAimOnce; } set { if (_isShowAimOnce != value) { _isShowAimOnce = value; RaisePropertyChanged(); } } }
+		public bool IsShowAimOnce { get { return _isShowAimOnce; } set { if (_isShowAimOnce != value) { _isShowAimOnce = value; RaisePropertyChanged_UI(); } } }
 		private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
 		[DataMember]
-		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
+		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged_UI(); } }
 		private Tables _selectedSeries = Tables.nil;
 		[DataMember]
-		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
+		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged_UI(); } }
 		private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
 		[DataMember]
-		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
+		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged_UI(); } }
 		private SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
 		//[DataMember] // we save the history into the DB now!
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<PointRecord> History { get { return _history; } private set { _history = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<PointRecord> History { get { return _history; } private set { _history = value; RaisePropertyChanged_UI(); } }
 		private SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
 		//[DataMember] // we save this into the DB so we don't serialise it anymore
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged_UI(); } }
 		private SwitchableObservableCollection<PointRecord> _landmarks = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInLandmarks);
 																			   //[DataMember] // we save this into the DB so we don't serialise it anymore
 		[IgnoreDataMember]
-		public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged_UI(); } }
 
-		private uint _backgroundUpdatePeriodInMinutes = MinBackgroundUpdatePeriodInMinutes;
+		private uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
 		[DataMember]
 		public uint BackgroundUpdatePeriodInMinutes
 		{
@@ -333,17 +356,21 @@ namespace LolloGPS.Data
 				{
 					_backgroundUpdatePeriodInMinutes = MinBackgroundUpdatePeriodInMinutes;
 				}
+				else if (value > MaxBackgroundUpdatePeriodInMinutes)
+				{
+					_backgroundUpdatePeriodInMinutes = MinBackgroundUpdatePeriodInMinutes;
+				}
 				else
 				{
 					_backgroundUpdatePeriodInMinutes = value;
 				}
 				if (oldValue != _backgroundUpdatePeriodInMinutes)
 				{
-					RaisePropertyChanged();
+					RaisePropertyChanged_UI();
 				}
 			}
 		}
-		private uint _desiredAccuracyInMeters = 10u; // 10 is high accuracy
+		private uint _desiredAccuracyInMeters = DefaultAccuracyInMetres;
 		[DataMember]
 		public uint DesiredAccuracyInMeters
 		{
@@ -355,17 +382,21 @@ namespace LolloGPS.Data
 				{
 					_desiredAccuracyInMeters = MinAccuracyInMetres;
 				}
+				else if (value > MaxAccuracyInMetres)
+				{
+					_desiredAccuracyInMeters = MaxAccuracyInMetres;
+				}
 				else
 				{
 					_desiredAccuracyInMeters = value;
 				}
 				if (_desiredAccuracyInMeters != oldValue)
 				{
-					RaisePropertyChanged();
+					RaisePropertyChanged_UI();
 				}
 			}
 		}
-		private uint _reportIntervalInMilliSec = MinReportIntervalInMilliSec;
+		private uint _reportIntervalInMilliSec = DefaultReportIntervalInMilliSec;
 		[DataMember]
 		public uint ReportIntervalInMilliSec
 		{
@@ -377,72 +408,105 @@ namespace LolloGPS.Data
 				{
 					_reportIntervalInMilliSec = MinReportIntervalInMilliSec;
 				}
+				else if (value > MaxReportIntervalInMilliSec)
+				{
+					_reportIntervalInMilliSec = MaxReportIntervalInMilliSec;
+				}
 				else
 				{
 					_reportIntervalInMilliSec = value;
 				}
 				if (_reportIntervalInMilliSec != oldValue)
 				{
-					RaisePropertyChanged();
+					RaisePropertyChanged_UI();
 				}
 			}
 		}
 		[IgnoreDataMember]
+		[Ignore]
 		public uint MinReportIntervalInMilliSecProp { get { return MinReportIntervalInMilliSec; } }
 		[IgnoreDataMember]
+		[Ignore]
 		public uint MaxReportIntervalInMilliSecProp { get { return MaxReportIntervalInMilliSec; } }
 		[IgnoreDataMember]
+		[Ignore]
 		public uint MinBackgroundUpdatePeriodInMinutesProp { get { return MinBackgroundUpdatePeriodInMinutes; } }
 		[IgnoreDataMember]
+		[Ignore]
 		public uint MaxBackgroundUpdatePeriodInMinutesProp { get { return MaxBackgroundUpdatePeriodInMinutes; } }
 		[IgnoreDataMember]
+		[Ignore]
+		public uint MinDesiredAccuracyInMetresProp { get { return MinDesiredAccuracyInMetresProp; } }
+		[IgnoreDataMember]
+		[Ignore]
+		public uint MaxDesiredAccuracyInMetresProp { get { return MaxDesiredAccuracyInMetresProp; } }
+		[IgnoreDataMember]
+		[Ignore]
 		public int MaxRecordsInLandmarksProp { get { return MaxRecordsInLandmarks; } }
+
 		private string _lastMessage = string.Empty;
 		[DataMember]
 		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 		private bool _isShowSpeed = false;
 		[DataMember]
-		public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged(); } }
+		public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged_UI(); } }
 		private bool _isTracking = false;
 		[DataMember]
-		public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged(); } }
+		public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged_UI(); } }
 		private volatile bool _isBackgroundEnabled = false;
 		[DataMember]
-		public bool IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged(); } }
-		private double _tapTolerance = 20.0;
+		public bool IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged_UI(); } }
+		private double _tapTolerance = DefaultTapTolerance;
 		[DataMember]
-		public double TapTolerance { get { return _tapTolerance; } set { _tapTolerance = value; RaisePropertyChanged(); } }
+		public double TapTolerance
+		{
+			get { return _tapTolerance; }
+			set
+			{
+				if (value > MaxTapTolerance) _tapTolerance = MaxTapTolerance;
+				else if (value < MinTapTolerance) _tapTolerance = MinTapTolerance;
+				else _tapTolerance = value;
+				RaisePropertyChanged_UI();
+			}
+		}
+		[IgnoreDataMember]
+		[Ignore]
+		public double MinTapToleranceProp { get { return MinTapTolerance; } }
+		[IgnoreDataMember]
+		[Ignore]
+		public double MaxTapToleranceProp { get { return MaxTapTolerance; } }
+
 		private bool _isShowDegrees = false;
 		[DataMember]
-		public bool IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged(); } }
+		public bool IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged_UI(); } }
 		private bool _isKeepAlive = false;
 		[DataMember]
-		public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged(); } }
+		public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged_UI(); } }
 		private bool _isAllowMeteredConnection = false;
 		[DataMember]
-		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged(); } }
+		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } }
 
 		private MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
-		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged(); } }
+		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
 		private bool _isMapCached = false;
 		[DataMember]
-		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged(); } } }
+		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
 		private double _mapLastLat = default(double);
 		[DataMember]
-		public double MapLastLat { get { return _mapLastLat; } set { _mapLastLat = value; RaisePropertyChanged(); } }
+		public double MapLastLat { get { return _mapLastLat; } set { _mapLastLat = value; RaisePropertyChanged_UI(); } }
 		private double _mapLastLon = default(double);
 		[DataMember]
-		public double MapLastLon { get { return _mapLastLon; } set { _mapLastLon = value; RaisePropertyChanged(); } }
+		public double MapLastLon { get { return _mapLastLon; } set { _mapLastLon = value; RaisePropertyChanged_UI(); } }
 		private double _mapLastZoom = 2.0;
 		[DataMember]
-		public double MapLastZoom { get { return _mapLastZoom; } set { _mapLastZoom = value; RaisePropertyChanged(); } }
+		public double MapLastZoom { get { return _mapLastZoom; } set { _mapLastZoom = value; RaisePropertyChanged_UI(); } }
 		private double _mapLastHeading = 0.0;
 		[DataMember]
-		public double MapLastHeading { get { return _mapLastHeading; } set { _mapLastHeading = value; RaisePropertyChanged(); } }
+		public double MapLastHeading { get { return _mapLastHeading; } set { _mapLastHeading = value; RaisePropertyChanged_UI(); } }
 		private double _mapLastPitch = 0.0;
 		[DataMember]
-		public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged(); } }
+		public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged_UI(); } }
 
 		private volatile bool _isTilesDownloadDesired = false;
 		[DataMember]
@@ -469,19 +533,19 @@ namespace LolloGPS.Data
 
 		private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
 		[DataMember]
-		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
+		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged_UI(); } }
 
 		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
-		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged_UI(); } }
 
 		private TileSourceRecord _testTileSource = TileSourceRecord.GetSampleTileSource();
 		[DataMember]
-		public TileSourceRecord TestTileSource { get { return _testTileSource; } set { _testTileSource = value; RaisePropertyChanged(); } }
+		public TileSourceRecord TestTileSource { get { return _testTileSource; } set { _testTileSource = value; RaisePropertyChanged_UI(); } }
 
 		private TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
 		[DataMember]
-		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged(); } } }
+		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged_UI(); } } }
 		#endregion properties
 
 		#region all series methods
@@ -621,10 +685,10 @@ namespace LolloGPS.Data
 		#endregion all series methods
 
 		#region historyMethods
-		public static List<PointRecord> GetHistoryFromDB()
-		{
-			return DBManager.GetHistory();
-		}
+		//public static List<PointRecord> GetHistoryFromDB()
+		//{
+		//	return DBManager.GetHistory();
+		//}
 		public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
@@ -788,10 +852,10 @@ namespace LolloGPS.Data
 		#endregion historyMethods
 
 		#region route0Methods
-		public static List<PointRecord> GetRoute0FromDB()
-		{
-			return DBManager.GetRoute0();
-		}
+		//public static List<PointRecord> GetRoute0FromDB()
+		//{
+		//	return DBManager.GetRoute0();
+		//}
 		public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
@@ -853,10 +917,10 @@ namespace LolloGPS.Data
 		#endregion route0Methods
 
 		#region landmarksMethods
-		public static List<PointRecord> GetLandmarksFromDB()
-		{
-			return DBManager.GetLandmarks();
-		}
+		//public static List<PointRecord> GetLandmarksFromDB()
+		//{
+		//	return DBManager.GetLandmarks();
+		//}
 		public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync().ConfigureAwait(false);
@@ -1107,7 +1171,7 @@ namespace LolloGPS.Data
 					TileSourceRecord newRecord = null;
 					TileSourceRecord.Clone(TestTileSource, ref newRecord); // do not overwrite the current instance
 					TileSourcez.Add(newRecord);
-					RaisePropertyChanged(nameof(PersistentData.TileSourcez));
+					RaisePropertyChanged_UI(nameof(TileSourcez));
 					CurrentTileSource = newRecord;
 
 					return Tuple.Create<bool, string>(true, successMessage);
@@ -1146,7 +1210,7 @@ namespace LolloGPS.Data
 						if (CurrentTileSource.TechName == tileSource.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
 						TileSourcez.Remove(tileSource);
 					}
-					RaisePropertyChanged(nameof(TileSourcez));
+					RaisePropertyChanged_UI(nameof(TileSourcez));
 				}).ConfigureAwait(false);
 			}
 			finally
@@ -1162,7 +1226,7 @@ namespace LolloGPS.Data
 		//	if (dr != null)
 		//	{
 		//		PointRecord.Clone(dr, ref _target);
-		//		RaisePropertyChanged(nameof(PersistentData.Target));
+		//		RaisePropertyChanged_UI(nameof(PersistentData.Target));
 		//	}
 		//}
 		//public void SetTargetToGeopoint(BasicGeoposition gp)
@@ -1173,7 +1237,7 @@ namespace LolloGPS.Data
 		//        Longitude = gp.Longitude,
 		//        Altitude = gp.Altitude,
 		//    };
-		//	RaisePropertyChanged(nameof(PersistentData.Target));
+		//	RaisePropertyChanged_UI(nameof(PersistentData.Target));
 		//}
 		public void CycleMapStyle()
 		{

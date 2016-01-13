@@ -12,6 +12,7 @@ using Utilz;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Core;
 
 namespace LolloGPS.Data.TileCache
 {
@@ -396,7 +397,7 @@ namespace LolloGPS.Data.TileCache
 											//    + "response.ContentLength = " + response.ContentLength + Environment.NewLine
 											//    + "Uri4File will be = " + GetUriForFile(fileName) + Environment.NewLine);
 											if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen 
-											// LOLLO TODO check this: it may be wiser to overwrite the file. Just replace the collision option.
+																		// LOLLO TODO check this: it may be wiser to overwrite the file. Just replace the collision option.
 											{
 												where = 99;
 												output = GetUriForFile(fileName);
@@ -616,12 +617,27 @@ namespace LolloGPS.Data.TileCache
 		public sealed class ProcessingQueue
 		{
 			public static event PropertyChangedEventHandler PropertyChanged;
-			private static void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+			private static void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 			{
-				var listener = PropertyChanged;
-				if (listener != null)
+				try
 				{
-					listener(null, new PropertyChangedEventArgs(propertyName));
+					if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
+					{
+						PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
+					}
+					else
+					{
+						Task raise = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+							CoreDispatcherPriority.Low, 
+							delegate { PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName)); }
+							).AsTask();
+					}
+				}
+				catch (InvalidOperationException) // called from a background task: ignore
+				{ }
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 				}
 			}
 
@@ -637,7 +653,7 @@ namespace LolloGPS.Data.TileCache
 					if (_isFree != value)
 					{
 						_isFree = value;
-						RaisePropertyChanged();
+						RaisePropertyChanged_UI();
 					}
 				}
 			}

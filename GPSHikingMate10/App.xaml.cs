@@ -221,26 +221,57 @@ namespace LolloGPS.Core
 
 						whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
 
-						await main.OpenAsync(!isAppAlreadyRunning, !isAppAlreadyRunning); // LOLLO TODO MAYBE avoid reading the same series twice when the app is not already running?
-						if (whichTables != null)
+						if (isAppAlreadyRunning)
 						{
-							// get file data from DB into UI
-							foreach (var series in whichTables)
+							await main.OpenAsync(false, false);
+							if (whichTables != null)
 							{
-								await PersistentData.LoadSeriesFromDbAsync(series);
+								// get file data from DB into UI
+								foreach (var series in whichTables)
+								{
+									await PersistentData.LoadSeriesFromDbAsync(series);
+								}
+								// centre view on the file data
+								if (whichTables.Count > 0)
+								{
+									if (whichTables[0] == PersistentData.Tables.Landmarks)
+									{
+										Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
+									}
+									else if (whichTables[0] == PersistentData.Tables.Route0)
+									{
+										Task centreView = main?.MyVM?.CentreOnRoute0Async();
+									}
+								}
 							}
-							// centre view on the file data
-							if (whichTables.Count > 0)
+						}
+						else
+						{
+							await main.OpenAsync(true, true);
+							if (whichTables != null)
 							{
-								if (whichTables[0] == PersistentData.Tables.Landmarks)
+								//if (isAppAlreadyRunning) 
+								//{
+								//	// get file data from DB into UI
+								//	foreach (var series in whichTables)
+								//	{
+								//		await PersistentData.LoadSeriesFromDbAsync(series);
+								//	}
+								//}
+								// centre view on the file data
+								if (whichTables.Count > 0) // LOLLO TODO check the centering, it does not seem to work, neither here nor in OnLaunched
 								{
-									Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
-								}
-								else if (whichTables[0] == PersistentData.Tables.Route0)
-								{
-									Task centreView = main?.MyVM?.CentreOnRoute0Async();
+									if (whichTables[0] == PersistentData.Tables.Landmarks)
+									{
+										Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
+									}
+									else if (whichTables[0] == PersistentData.Tables.Route0)
+									{
+										Task centreView = main?.MyVM?.CentreOnRoute0Async();
+									}
 								}
 							}
+
 						}
 					}
 				}

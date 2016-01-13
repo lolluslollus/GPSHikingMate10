@@ -15,6 +15,7 @@
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
 
+	<!-- LOLLO TODO crash when I select the Settings tab -->
 	<Grid x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />
@@ -299,12 +300,12 @@
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-							<!-- TODO bind min and max to properties, do not leave them here hard-coded -->
 							<Slider Grid.Row="10" Grid.Column="1"
 								VerticalAlignment="Center"
 								Margin="{StaticResource Thickness2}"
 								Value="{Binding DesiredAccuracyInMeters, Mode=TwoWay}" 
-								Minimum="1" Maximum="100" 
+								Minimum="{Binding MinDesiredAccuracyInMetresProp}"
+								Maximum="{Binding MaxDesiredAccuracyInMetresProp}"
 								SmallChange="1" LargeChange="10"
 								IsThumbToolTipEnabled="False"
 								IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
@@ -324,7 +325,8 @@
 								Margin="{StaticResource Thickness2}"
 								Value="{Binding TapTolerance, Mode=TwoWay}" 
 								IsThumbToolTipEnabled="False"
-								Minimum="1" Maximum="50"
+								Minimum="{Binding MinTapToleranceProp}"
+								Maximum="{Binding MaxTapToleranceProp}"
 								SmallChange="1" LargeChange="3"/>
 							<TextBlock Grid.Row="12" Grid.Column="2"
 								Text="{Binding TapTolerance}"

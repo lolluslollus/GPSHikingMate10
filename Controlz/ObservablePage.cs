@@ -19,15 +19,15 @@ namespace LolloBaseUserControls
 		{
 			PropertyChanged = null;
 		}
-		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+		//protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+		//{
+		//	PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		//}
 		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
 			try
 			{
-				Task raise = RunInUiThreadAsync(delegate { RaisePropertyChanged(propertyName); });
+				Task raise = RunInUiThreadAsync(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
 			}
 			catch (Exception ex)
 			{

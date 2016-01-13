@@ -39,10 +39,10 @@ namespace LolloGPS.Core
 
 
 		private LolloMap_VM _myLolloMap_VM = null;
-		public LolloMap_VM MyLolloMap_VM { get { return _myLolloMap_VM; } set { _myLolloMap_VM = value; RaisePropertyChanged(); } }
+		public LolloMap_VM MyLolloMap_VM { get { return _myLolloMap_VM; } set { _myLolloMap_VM = value; RaisePropertyChanged_UI(); } }
 
 		private AltitudeProfiles_VM _myAltitudeProfiles_VM = null;
-		public AltitudeProfiles_VM MyAltitudeProfiles_VM { get { return _myAltitudeProfiles_VM; } set { _myAltitudeProfiles_VM = value; RaisePropertyChanged(); } }
+		public AltitudeProfiles_VM MyAltitudeProfiles_VM { get { return _myAltitudeProfiles_VM; } set { _myAltitudeProfiles_VM = value; RaisePropertyChanged_UI(); } }
 
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -60,13 +60,13 @@ namespace LolloGPS.Core
 		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged_UI(); } } }
 
 		private string _testTileSourceErrorMsg = "";
-		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } set { _testTileSourceErrorMsg = value; RaisePropertyChanged(); } }
+		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
 		//private bool _isShowingLogsPanel = false;
-		//public bool IsShowingLogsPanel { get { return _isShowingLogsPanel; } set { _isShowingLogsPanel = value; RaisePropertyChanged(); } }
+		//public bool IsShowingLogsPanel { get { return _isShowingLogsPanel; } set { _isShowingLogsPanel = value; RaisePropertyChanged_UI(); } }
 
 		private bool _isLastMessageVisible = false;
-		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged(); } } }
+		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); } } }
 
 		private bool _isLoading = false;
 		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChangedUrgent_UI(); } }
@@ -75,7 +75,7 @@ namespace LolloGPS.Core
 		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChangedUrgent_UI(); } }
 
 		private string _logText;
-		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged(); } }
+		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
 
 		#endregion properties
 

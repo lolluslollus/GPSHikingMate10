@@ -39,13 +39,13 @@ namespace LolloGPS.Core
         private Main_VM _myVM = Main_VM.GetInstance();        
 
         private bool _isGotoPreviousEnabled = false;
-        public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged(); } }
+        public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
         private bool _isGotoNextEnabled = false;
-        public bool IsGotoNextEnabled { get { return _isGotoNextEnabled; } private set { _isGotoNextEnabled = value; RaisePropertyChanged(); } }
+        public bool IsGotoNextEnabled { get { return _isGotoNextEnabled; } private set { _isGotoNextEnabled = value; RaisePropertyChanged_UI(); } }
         private string _distanceFromPrevious = "";
-        public string DistanceFromPrevious { get { return _distanceFromPrevious; } private set { _distanceFromPrevious = value; RaisePropertyChanged(); } }
+        public string DistanceFromPrevious { get { return _distanceFromPrevious; } private set { _distanceFromPrevious = value; RaisePropertyChanged_UI(); } }
         private bool _isSeriesChoicePresented = false;
-        public bool IsSeriesChoicePresented { get { return _isSeriesChoicePresented; } private set { _isSeriesChoicePresented = value; RaisePropertyChanged(); } }
+        public bool IsSeriesChoicePresented { get { return _isSeriesChoicePresented; } private set { _isSeriesChoicePresented = value; RaisePropertyChanged_UI(); } }
 
         public PointInfoPanel()
         {
