@@ -150,7 +150,7 @@
                 TextItemStyle="{StaticResource ListItemTextStyle}"
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache}"
                 ItemSelected="OnClearCustomCacheChooser_ItemSelected"
-                BackPressedRaiser="{x:Bind Path=MyVM}"/>
+                BackPressedRaiser="{x:Bind Path=MyVM, Mode=OneWay}"/>
 
 			<!--<AppBarButton Grid.Row="3" Grid.Column="0"
                     VerticalAlignment="Center"                    

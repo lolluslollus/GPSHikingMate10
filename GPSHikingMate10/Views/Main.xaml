@@ -15,7 +15,7 @@
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
 
-	<Grid>
+	<Grid x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
@@ -28,39 +28,37 @@
 			<VisualStateGroup>
 				<VisualState>
 					<VisualState.StateTriggers>
-						<customTriggers:ProportionsTrigger TargetElement="{x:Bind BottomButtonBar}"/>
+						<customTriggers:ProportionsTrigger TargetElement="{x:Bind LayoutRoot}"/>
+						<!--<customTriggers:ProportionsTrigger TargetElement="{x:Bind BottomButtonBar}"/>-->
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="BottomButtonBar.Visibility" Value="Visible" />
 						<Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
-						<!--<Setter Target="UserInfoGridRow.Height" Value="50"/>-->
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
-		<!-- loading notice -->
+		<!-- loading overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
 			  Opacity=".5"
 			  Canvas.ZIndex="999"
-			  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}}" 
-			  IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
+			  Visibility="{x:Bind Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
 			<TextBlock
 				x:Name="LoadingNoticeTextBlock"
 				Opacity="1"
 				Text="Drawing..." 
 				Foreground="{StaticResource FlashyForeground}"
 				HorizontalAlignment="Center" VerticalAlignment="Center"
-				Style="{StaticResource HugeTextStyle}"
-				Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}}" 
-				IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
+				Style="{StaticResource HugeTextStyle}">
 			</TextBlock>
 		</Grid>
 		<!-- Map, altitude and their overlays -->
 		<Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*" />
-				<RowDefinition x:Name="UserInfoGridRow" Height="Auto"/>
+				<!--<RowDefinition x:Name="UserInfoGridRow" Height="Auto"/>-->
+				<RowDefinition x:Name="UserInfoGridRow" Height="40"/>
 			</Grid.RowDefinitions>
 			<!-- download bar and icons for battery consuming features -->
 			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100" >
@@ -410,6 +408,7 @@
 					</Grid>
 				</PivotItem>
 			</Pivot>
+
 			<!-- user info -->
 			<Border Grid.Row="1"
 					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
@@ -425,7 +424,6 @@
 					<Run Text="@"/>
 					<Run Text="{Binding Current.TimePoint}"/>
 				</TextBlock>
-
 			</Border>
 			<Border Grid.Row="0" Grid.RowSpan="2"
 				VerticalAlignment="Bottom"
@@ -456,7 +454,7 @@
 				</TextBlock>
 			</Border>
 		</Grid>
-		
+
 		<!-- bottom button bar -->
 		<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
 			x:Name="BottomButtonBar" 
@@ -511,7 +509,7 @@
 				</AppBarButton.Icon>
 			</AppBarButton>
 		</Grid>
-		
+
 		<!-- left button bar -->
 		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" 
 			x:Name="LeftButtonBar" 

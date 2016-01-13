@@ -51,37 +51,44 @@
 			</StackPanel>
 		</Canvas>
 		<!--scale-->
-		<Canvas Height="Auto" Canvas.ZIndex="200" 
-				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-				VerticalAlignment="Bottom">
-			<!-- left distance -->
+		<!--
+		<Canvas Height="Auto" Canvas.ZIndex="200" VerticalAlignment="Bottom">
+			-->
+		<!-- left distance -->
+		<!--
 			<TextBlock Text="0" 
-				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-84"
+				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-74"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
 				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
-			<!-- right distance -->
+			-->
+		<!-- right distance -->
+		<!--
 			<Grid
-				Canvas.Top="-84" Canvas.Left="{StaticResource LeftMargin4Scale}" Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
+				Canvas.Top="-74" Canvas.Left="{StaticResource LeftMargin4Scale}" Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
 				<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
 				   HorizontalAlignment="Right"
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
 			</Grid>
-			<!-- internal zoom level -->
+			-->
+		<!-- internal zoom level -->
+		<!--
 			<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
-				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-104"
+				   Canvas.Left="{StaticResource LeftMargin4Scale}" Canvas.Top="-94"
 				   HorizontalAlignment="Center" 
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" 
 				   IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False" 
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
-			<!-- scale bar -->
+			-->
+		<!-- scale bar -->
+		<!--
 			<Image x:Name="ScaleImage"
-				   Canvas.Top="-65" Canvas.Left="{StaticResource LeftMargin4Scale}" 
+				   Canvas.Top="-50" Canvas.Left="{StaticResource LeftMargin4Scale}" 
 				   Source="ms-appx:///Assets/scale-300.png" 
 				   ScrollViewer.VerticalScrollBarVisibility="Disabled" 
 				   Stretch="None" 
@@ -91,7 +98,50 @@
 					<CompositeTransform ScaleX="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform}"/>
 				</Image.RenderTransform>
 			</Image>
-		</Canvas>
+		</Canvas>-->
+		<!--scale-->
+		<Grid Height="Auto" Canvas.ZIndex="200" VerticalAlignment="Bottom" Margin="0" Padding="0">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="28"/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+				<ColumnDefinition />
+			</Grid.ColumnDefinitions>
+			<!-- left distance -->
+			<TextBlock Grid.Row="1" Grid.Column="1"
+				Text="0"
+				FontWeight="Bold" 
+				Style="{StaticResource BaseMessageStyle}" Padding="0"
+				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+			<!-- right distance -->
+			<Grid Grid.Row="1" Grid.Column="1"
+				Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
+				<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
+				   HorizontalAlignment="Right"
+				   FontWeight="Bold" 
+				   Style="{StaticResource BaseMessageStyle}" Padding="0"
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+			</Grid>
+			<!-- internal zoom level -->
+			<TextBlock Grid.Row="0" Grid.Column="1"
+				Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
+				FontWeight="Bold" 
+				Style="{StaticResource BaseMessageStyle}" Padding="0"
+				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+			<!-- scale bar -->
+			<Image x:Name="ScaleImage" Grid.Row="2" Grid.Column="1"
+				Source="ms-appx:///Assets/scale-300.png" 
+				Stretch="None"
+				RenderTransformOrigin="0.0,0.0" >
+				<Image.RenderTransform>
+					<CompositeTransform ScaleX="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform}"/>
+				</Image.RenderTransform>
+			</Image>
+		</Grid>
 		<!--aim centre-->
 		<Image Canvas.ZIndex="200" 
 			Source="ms-appx:///Assets/aim-120.png"

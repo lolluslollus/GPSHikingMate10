@@ -24,45 +24,51 @@
 	<GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Medium">20</GridLength>
     <GridLength x:Key="GridSize4Placeholder_Large">40</GridLength>
-    
-    <SolidColorBrush x:Key="FlashyForeground" Color="Red" />
+
+	<x:Int32 x:Key="MaxHumanDescriptionLength">160</x:Int32>
+
+	<SolidColorBrush x:Key="FlashyForeground" Color="Red" />
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />
     <SolidColorBrush x:Key="ObjectInOverlayForegroundBrush" Color="Red" />
-    <media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
 
-    <x:Int32 x:Key="MaxHumanDescriptionLength">160</x:Int32>
+	<media:FontFamily x:Key="DefaultFontFamily">Segoe UI</media:FontFamily>
+	<FontFamily x:Key="BaseMessageStyleFontFamily">Segoe UI</FontFamily>
+	<FontFamily x:Key="BlackFontFamily">Segoe UI Black</FontFamily>
 
-    <!-- LOLLO get the standard styles in Generic.xaml. To bring it up, press F12 on ApplicationForegroundThemeBrush or other ThemeResource in the code below -->
+	<!--<media:FontFamily x:Key="DefaultFontFamily">Segoe WP</media:FontFamily>
+	<FontFamily x:Key="BaseMessageStyleFontFamily">Segoe WP Semilight</FontFamily>
+	<FontFamily x:Key="BlackFontFamily">Segoe WP Black</FontFamily>-->
+
+	<!-- LOLLO get the standard styles in Generic.xaml. To bring it up, press F12 on ApplicationForegroundThemeBrush or other ThemeResource in the code below -->
     <Style x:Key="SampleHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
+		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="28"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
     </Style>
 
     <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
+		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
 
     <Style x:Key="ScenarioHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Semilight"/>
+        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="28"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="Margin" Value="0,20,0,0"/>
     </Style>
 
     <Style x:Key="HugeTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Segoe WP Black"/>
+		<Setter Property="FontFamily" Value="{StaticResource BlackFontFamily}"/>
         <Setter Property="FontSize" Value="50"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="Margin" Value="0,0,0,0"/>
     </Style>
 
-    <FontFamily x:Key="BaseMessageStyleFontFamily">Segoe WP Semilight</FontFamily>
     <!--<x:Double x:Key="BaseMessageStyleFontSize">14.667</x:Double>-->
-    <x:Double x:Key="BaseMessageStyleFontSize">16</x:Double>
+    <x:Double x:Key="BaseMessageStyleFontSize">15</x:Double>
 
     <Style x:Key="BaseMessageStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
@@ -94,7 +100,7 @@
     <Color x:Key="DetailsPopupColor">#88220000</Color>
     <SolidColorBrush x:Key="DetailsPopupBrush" Color="{StaticResource DetailsPopupColor}" />
 
-    <Thickness x:Key="ToggleSwitchMiniMargin">0, 6, 0, 0</Thickness>
+    <!--<Thickness x:Key="ToggleSwitchMiniMargin">0, 6, 0, 0</Thickness>-->
 
 	<!-- Default style for Windows.UI.Xaml.Controls.ToggleSwitch -->
 	<!--<Style TargetType="ToggleSwitch">
