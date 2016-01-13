@@ -414,7 +414,7 @@
 					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Visibility="{Binding History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"
                     Tapped="OnLastMessage_Tapped">
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
+				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
 					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
