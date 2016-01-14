@@ -47,7 +47,7 @@ namespace LolloGPS.Data
 		private const int MaxLandmarks2 = 200;
 		private const int MaxLandmarks3 = 500;
 		private const int MaxLandmarks4 = 1000; //3125 is too high;
-		private const int MaxLandmarks5 = 4000; //15625 is too high;
+		private const int MaxLandmarks5 = 2000; //15625 is too high;
 		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5;
 
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
