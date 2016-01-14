@@ -69,9 +69,15 @@ namespace LolloGPS.Core
 		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); } } }
 
 		private bool _isLoading = false;
+		/// <summary>
+		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
+		/// </summary>
 		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChangedUrgent_UI(); } }
 
 		private bool _isSaving = false;
+		/// <summary>
+		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
+		/// </summary>
 		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChangedUrgent_UI(); } }
 
 		private string _logText;
@@ -93,8 +99,6 @@ namespace LolloGPS.Core
 		private Main_VM()
 		{
 			_myGPSInteractor = new GPSInteractor(MyPersistentData);
-			//Application.Current.Suspending += OnSuspending;
-			//Application.Current.Resuming += OnResuming;
 		}
 
 		//private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -116,14 +120,7 @@ namespace LolloGPS.Core
 				//    }
 				//}
 
-				//// disable UI commands
-				//RuntimeData.SetIsDBDataRead_UI(false);
-
 				if (readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(readDataFromDb, readSettingsFromDb).ConfigureAwait(false);
-
-				//// enable UI commands
-				//RuntimeData.SetIsSettingsRead_UI(true);
-				//RuntimeData.SetIsDBDataRead_UI(true);
 
 				await _myGPSInteractor.OpenAsync();
 				UpdateClearCacheButtonIsEnabled();
@@ -136,7 +133,6 @@ namespace LolloGPS.Core
 				AddHandlers_DataChanged();
 
 				//_isOpen = true;
-				//await Logger.AddAsync("opened", Logger.ForegroundLogFilename, Logger.Severity.Info);
 			}
 			catch (Exception ex)
 			{
@@ -190,19 +186,6 @@ namespace LolloGPS.Core
 			_fileOpenPickerCts?.Cancel();
 			_fileSavePickerCts?.Cancel();
 		}
-		//private volatile bool _isSuspended = false;
-		//private async void OnResuming(object sender, object e)
-		//{
-		//	//_isSuspended = false;
-		//	await ContinueAfterFileOpenPickAsync().ConfigureAwait(false);
-		//}
-
-		//private void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
-		//{
-		//	var deferral = e.SuspendingOperation.GetDeferral();
-		//	_isSuspended = true;
-		//	deferral.Complete();
-		//}
 		#endregion construct and dispose
 
 		#region updaters
@@ -467,42 +450,6 @@ namespace LolloGPS.Core
 		internal CancellationTokenSource _fileSavePickerCts = null;
 		internal CancellationTokenSource _fileOpenPickerCts = null;
 
-		//private async Task<bool> SetIsLoading(bool newValue)
-		//{
-		//	// LOLLO NOTE this will never be reset if the app quits before it is set to false
-		//	bool isNewValUnlikeOldVal = false;
-		//	try
-		//	{
-		//		await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
-		//		isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsLoadingFile) != newValue.ToString();
-		//		if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsLoadingFile, newValue.ToString());
-		//		IsLoading = newValue;
-		//	}
-		//	finally
-		//	{
-		//		SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
-		//	}
-		//	return isNewValUnlikeOldVal;
-		//}
-
-		//private async Task<bool> SetIsSaving(bool newValue)
-		//{
-		//	// LOLLO NOTE this will never be reset if the app quits before it is set to false
-		//	bool isNewValUnlikeOldVal = false;
-		//	try
-		//	{
-		//		await _loadSaveSemaphore.WaitAsync().ConfigureAwait(false);
-		//		isNewValUnlikeOldVal = RegistryAccess.GetValue(ConstantData.RegIsSavingFile) != newValue.ToString();
-		//		if (isNewValUnlikeOldVal) RegistryAccess.SetValue(ConstantData.RegIsSavingFile, newValue.ToString());
-		//		IsSaving = newValue;
-		//	}
-		//	finally
-		//	{
-		//		SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
-		//	}
-		//	return isNewValUnlikeOldVal;
-		//}
-
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
 			if (IsSaving) return;
@@ -523,8 +470,8 @@ namespace LolloGPS.Core
 
 				if (file != null)
 				{
-					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended
-					await ((App)Application.Current).RunUnderSemaphoreAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
+					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
+					await ((App)Application.Current).RunAfterResumingAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
 					// await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
 				}
 				else
@@ -580,8 +527,8 @@ namespace LolloGPS.Core
 				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
 				if (file != null)
 				{
-					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended
-					await ((App)Application.Current).RunUnderSemaphoreAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
+					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
+					await ((App)Application.Current).RunAfterResumingAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
 					// await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 				}
 				else
@@ -662,6 +609,7 @@ namespace LolloGPS.Core
 		}
 		#endregion save and load with picker
 
+
 		#region continuations
 		internal CancellationTokenSource _fileOpenContinuationCts = null;
 		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
@@ -705,6 +653,7 @@ namespace LolloGPS.Core
 		}
 		#endregion continuations
 	}
+
 	public interface IMapApController
 	{
 		Task CentreOnHistoryAsync();

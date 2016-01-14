@@ -10,11 +10,11 @@ using Windows.UI.Core;
 
 namespace LolloGPS.Data.Runtime
 {
-	public sealed class RuntimeData : ObservableData, IDisposable
+	public sealed class RuntimeData : ObservableData
 	{
+		#region properties
 		private static SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
-		#region properties
 		private bool _isTrial = true;
 		public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
 
@@ -185,9 +185,11 @@ namespace LolloGPS.Data.Runtime
 		}
 		#endregion properties
 
-		#region construct and dispose
+
+		#region lifecycle
 		private static RuntimeData _instance;
 		private static readonly object _instanceLock = new object();
+		private volatile bool _isOpen = false;
 		public static RuntimeData GetInstance()
 		{
 			lock (_instanceLock)
@@ -196,6 +198,7 @@ namespace LolloGPS.Data.Runtime
 				{
 					_instance = new RuntimeData();
 				}
+				_instance.Open();
 				return _instance;
 			}
 		}
@@ -205,24 +208,31 @@ namespace LolloGPS.Data.Runtime
 		{
 			Open();
 		}
-		public void Open()
+		private void Open()
 		{
+			if (_isOpen) return;
+			_isOpen = true;
 			UpdateIsConnectionAvailable();
 			AddHandlers();
 		}
-		public void Dispose()
+		public void Close()
 		{
 			RemoveHandlers();
+			_isOpen = false;
 		}
+		#endregion lifecycle
+
+
+		#region event helpers
 		private bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
 			if (!_isHandlersActive)
 			{
+				_isHandlersActive = true;
 				if (_persistentData == null) _persistentData = PersistentData.GetInstance();
 				NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
 				if (_persistentData != null) _persistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				_isHandlersActive = true;
 			}
 		}
 		private void RemoveHandlers()
@@ -232,7 +242,8 @@ namespace LolloGPS.Data.Runtime
 			if (_persistentData != null) _persistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 			_isHandlersActive = false;
 		}
-		#endregion construct and dispose
+		#endregion event helpers
+
 
 		#region event handlers
 		private void OnNetworkStatusChanged(object sender)
