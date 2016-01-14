@@ -505,7 +505,6 @@ namespace LolloGPS.Core
 
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
-			// if (!await SetIsSaving(true)) return;
 			if (IsSaving) return;
 			try
 			{
@@ -517,29 +516,24 @@ namespace LolloGPS.Core
 				else if (whichSeries == PersistentData.Tables.Landmarks) series = MyPersistentData.Landmarks;
 				else return;
 
-				// disable UI commands
-				RuntimeData.SetIsDBDataRead_UI(false);
 				SetLastMessage_UI("saving GPX file...");
 
 				DateTime fileCreationDateTime = DateTime.Now;
-
 				var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GpxDateTimeFormat, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
 
 				if (file != null)
 				{
-					await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
+					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended
+					await ((App)Application.Current).RunUnderSemaphoreAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
+					// await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
 				}
 				else
 				{
 					SetLastMessage_UI("Saving cancelled");
 				}
-
-				// reactivate UI commands
-				RuntimeData.SetIsDBDataRead_UI(true);
 			}
 			finally
 			{
-				//await SetIsSaving(false).ConfigureAwait(false);
 				IsSaving = false;
 			}
 		}
@@ -552,6 +546,7 @@ namespace LolloGPS.Core
 			{
 				await Task.Run(async delegate
 				{
+					SetLastMessage_UI("saving GPX file...");
 					// initialise cancellation token
 					_fileSavePickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileSavePickerCts.Token;
@@ -575,13 +570,11 @@ namespace LolloGPS.Core
 
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
 		{
-			// if (!await SetIsLoading(true)) return;
 			if (IsLoading) return;
 			try
 			{
 				IsLoading = true;
 
-				//RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
 				SetLastMessage_UI("reading GPX file...");
 
 				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
@@ -598,7 +591,6 @@ namespace LolloGPS.Core
 			}
 			finally
 			{
-				//await SetIsLoading(false).ConfigureAwait(false);
 				IsLoading = false;
 			}
 		}
