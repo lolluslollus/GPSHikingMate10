@@ -38,8 +38,10 @@ namespace LolloGPS.Core
 		public static Data.Runtime.RuntimeData MyRuntimeData { get { return _myRuntimeData; } }
 
 		private static bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
-		#region construct and dispose
+
+		#region lifecycle
 		/// <summary>
 		/// Initializes the singleton application object.  This is the first line of authored code
 		/// executed, and as such is the logical equivalent of main() or WinMain().
@@ -59,11 +61,6 @@ namespace LolloGPS.Core
 			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 
-		private void App_Resuming(object sender, object e)
-		{
-			throw new NotImplementedException();
-		}
-
 		private void OpenData()
 		{
 			_persistentData = PersistentData.GetInstance();
@@ -74,9 +71,34 @@ namespace LolloGPS.Core
 
 			_myRuntimeData.Open();
 
-			_isDataOpen = true;
+			//_isDataOpen = true;
 		}
-		#endregion construct and dispose
+
+		private async Task CloseAllAsync()
+		{
+			Logger.Add_TPL("CloseAll() started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+			//_isDataOpen = false;
+
+			// unregister events and stop long running tasks.
+			if (IsRootFrameMain)
+			{
+				Main main = (Window.Current.Content as Frame).Content as Main;
+				await main.CloseAsync().ConfigureAwait(false);
+			}
+			// back up the app settings
+			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
+			// lock the DBs
+			// await PersistentData.CloseMainDb().ConfigureAwait(false);
+			PersistentData.CloseMainDb();
+			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
+
+			MyRuntimeData?.Dispose();
+
+			Logger.Add_TPL("CloseAll() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+		#endregion lifecycle
+
 
 		#region event handlers
 		private async void OnApp_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -120,7 +142,7 @@ namespace LolloGPS.Core
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
 			}
 
 			// enable UI commands
@@ -157,14 +179,15 @@ namespace LolloGPS.Core
 				Logger.AppEventsLogFilename,
 				Logger.Severity.Info,
 				false);
+
 			await CloseAllAsync().ConfigureAwait(false);
 			Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			deferral.Complete();
 		}
 
-		private volatile bool _isDataOpen = false;
-		public bool IsDataOpen { get { return _isDataOpen; } }
+		//private volatile bool _isDataOpen = false;
+		//public bool IsDataOpen { get { return _isDataOpen; } }
 		/// <summary>
 		/// Invoked when the app is resumed without being terminated.
 		/// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
@@ -223,7 +246,6 @@ namespace LolloGPS.Core
 		}
 		//protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
 
-		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		/// <summary>
 		/// Fires when attempting to open a file, which is associated with the application. Test it with the app running and closed.
 		/// LOLLO NOTE if resuming, the system starts this method an instant after OnResuming(). The awaits cause both methods to run in parallel, alternating on the UI thread.
@@ -331,7 +353,6 @@ namespace LolloGPS.Core
 			}
 			finally
 			{
-
 				// reactivate UI commands
 				RuntimeData.SetIsDBDataRead_UI(true);
 
@@ -341,34 +362,12 @@ namespace LolloGPS.Core
 		}
 		#endregion event handlers
 
+
 		#region services
 		public async Task Quit()
 		{
 			await CloseAllAsync();
 			Exit();
-		}
-		private async Task CloseAllAsync()
-		{
-			Logger.Add_TPL("CloseAll() started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-			_isDataOpen = false;
-
-			// unregister events and stop long running tasks.
-			if (IsRootFrameMain)
-			{
-				Main main = (Window.Current.Content as Frame).Content as Main;
-				await main.CloseAsync().ConfigureAwait(false);
-			}
-			// back up the app settings
-			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
-			// lock the DBs
-			// await PersistentData.CloseMainDb().ConfigureAwait(false);
-			PersistentData.CloseMainDb();
-			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
-
-			MyRuntimeData?.Dispose();
-
-			Logger.Add_TPL("CloseAll() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		private bool IsRootFrameAvailable
 		{
@@ -408,6 +407,7 @@ namespace LolloGPS.Core
 			}
 			return rootFrame;
 		}
+
 		private void NavigateToRootFrameContent(Frame rootFrame)
 		{
 			if (rootFrame != null && rootFrame.Content == null)
@@ -423,6 +423,7 @@ namespace LolloGPS.Core
 				}
 			}
 		}
+
 		public static void ShortVibration()
 		{
 			if (_isVibrationDevicePresent)
@@ -434,10 +435,6 @@ namespace LolloGPS.Core
 		#endregion services
 	}
 
-	/// <summary>
-	/// Implement this interface if your page invokes the file open picker
-	/// API.
-	/// </summary>
 	interface IFileActivatable
 	{
 		/// <summary>

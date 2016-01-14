@@ -35,20 +35,26 @@ namespace GPX
 		/// <param name="whichTable"></param>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
+		public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
 		{
-			int waitIntervals = 0;
-			while (!((App)Application.Current).IsDataOpen)
-			{
-				await Task.Delay(LOAD_WAIT_INTERVAL_MSEC).ConfigureAwait(false);
-				waitIntervals++;
-				if (waitIntervals > LOAD_MAX_WAIT_INTERVALS) return null;
-			}
-
 			if (whichTable == PersistentData.Tables.Route0) return await LoadRoute0Async(gpxFile, token).ConfigureAwait(false);
 			else if (whichTable == PersistentData.Tables.Landmarks) return await LoadLandmarksAsync(gpxFile, token).ConfigureAwait(false);
 			else return null;
 		}
+		//public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
+		//{
+		//	int waitIntervals = 0;
+		//	while (!((App)Application.Current).IsDataOpen)
+		//	{
+		//		await Task.Delay(LOAD_WAIT_INTERVAL_MSEC).ConfigureAwait(false);
+		//		waitIntervals++;
+		//		if (waitIntervals > LOAD_MAX_WAIT_INTERVALS) return null;
+		//	}
+
+		//	if (whichTable == PersistentData.Tables.Route0) return await LoadRoute0Async(gpxFile, token).ConfigureAwait(false);
+		//	else if (whichTable == PersistentData.Tables.Landmarks) return await LoadLandmarksAsync(gpxFile, token).ConfigureAwait(false);
+		//	else return null;
+		//}
 		private async static Task<Tuple<bool, string>> LoadRoute0Async(StorageFile gpxFile, CancellationToken token)
 		{
 			string outMessage = string.Empty;
