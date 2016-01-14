@@ -231,18 +231,6 @@ namespace LolloGPS.Core
 								{
 									await PersistentData.LoadSeriesFromDbAsync(series);
 								}
-								// centre view on the file data
-								if (whichTables.Count > 0)
-								{
-									if (whichTables[0] == PersistentData.Tables.Landmarks)
-									{
-										Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
-									}
-									else if (whichTables[0] == PersistentData.Tables.Route0)
-									{
-										Task centreView = main?.MyVM?.CentreOnRoute0Async();
-									}
-								}
 							}
 						}
 						else
@@ -258,20 +246,19 @@ namespace LolloGPS.Core
 								//		await PersistentData.LoadSeriesFromDbAsync(series);
 								//	}
 								//}
-								// centre view on the file data
-								if (whichTables.Count > 0) // LOLLO TODO check the centering, it does not seem to work, neither here nor in OnLaunched
-								{
-									if (whichTables[0] == PersistentData.Tables.Landmarks)
-									{
-										Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
-									}
-									else if (whichTables[0] == PersistentData.Tables.Route0)
-									{
-										Task centreView = main?.MyVM?.CentreOnRoute0Async();
-									}
-								}
 							}
-
+						}
+						// centre view on the file data
+						if (whichTables?.Count > 0) // LOLLO TODO check the centering, it does not seem to work, neither here nor in OnLaunched
+						{
+							if (whichTables[0] == PersistentData.Tables.Landmarks)
+							{
+								Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
+							}
+							else if (whichTables[0] == PersistentData.Tables.Route0)
+							{
+								Task centreView = main?.MyVM?.CentreOnRoute0Async();
+							}
 						}
 					}
 				}

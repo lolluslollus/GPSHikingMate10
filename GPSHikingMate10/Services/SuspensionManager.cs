@@ -88,7 +88,20 @@ namespace LolloGPS.Suspension
 					}
 					Debug.WriteLine("ended reading non-tabular data");
 				}
+			}
+			catch (Exception ex) // LOLLO TODO if an error happens here, you will lose the settings, history, last route and last landmarks. 
+								 // better quit then. But what if it happens again?
+								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
+								 // LOLLO TODO try to reproduce it
+			{
+				errorMessage = "could not restore the settings, starting afresh";
+				PersistentData.GetInstance().LastMessage = errorMessage;
+				readDataFromDb = true;
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+			}
 
+			try
+			{
 				if (readDataFromDb)
 				{
 					//Task loadHistory = Task.Run(delegate { PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false); });
@@ -105,32 +118,18 @@ namespace LolloGPS.Suspension
 					//landmarks = PersistentData.GetLandmarksFromDB();
 				}
 			}
-			//catch (FileNotFoundException ex) //ignore file not found, this may be the first run just after installing
-			//{
-			//    errorMessage = "starting afresh";
-			//    await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
-			//}
-			catch (Exception ex)                 //must be tolerant or the app might crash when starting
+			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
+								 // better quit then. But what if it happens again?
+								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
 			{
 				errorMessage = "could not restore the data, starting afresh";
-				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
-			}
-			if (!string.IsNullOrWhiteSpace(errorMessage))
-			{
 				PersistentData.GetInstance().LastMessage = errorMessage;
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
 			Logger.Add_TPL("ended method LoadSettingsAndDbDataAsync()", Logger.FileErrorLogFilename, Logger.Severity.Info);
 		}
-		//public static async Task ReadDataAsync()
-		//{
-		//    await Logger.AddAsync("SuspensionManager.ReadData() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
-		//    await PersistentData.SetInstanceAsync(_newPersistentData,
-		//        _history,
-		//        _route0,
-		//        _landmarks).ConfigureAwait(false);
 
-		//}
 		public static async Task SaveSettingsAsync(PersistentData allDataOriginal)
 		{
 			PersistentData allDataClone = allDataOriginal.CloneNonDbProperties();

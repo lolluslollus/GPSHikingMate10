@@ -121,7 +121,6 @@ namespace GPX
 				catch (Exception exc) // OutOfMemoryException
 				{
 					var howMuchMemoryLeft0 = GC.GetTotalMemory(true);
-					//NotifyReadingException_UI(exc);
 					outMessage = "error reading GPX: " + exc.Message;
 					Logger.Add_TPL("Error reading GPX: " + exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
 				}
@@ -162,19 +161,19 @@ namespace GPX
 
 						foreach (XElement xe in mapPoints)
 						{
-							Double latitude = default(Double);
+							double latitude = default(double);
 							var lat = xe.Attribute("lat"); // no xn + with attributes
-							if (lat != null) Double.TryParse(lat.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out latitude);
+							if (lat != null) double.TryParse(lat.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out latitude);
 							else continue; //do not add this point if lat is missing
 
-							Double longitude = default(Double);
+							double longitude = default(double);
 							var lon = xe.Attribute("lon"); // no xn + with attributes
-							if (lon != null) Double.TryParse(lon.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
+							if (lon != null) double.TryParse(lon.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
 							else continue; //do not add this point if lon is missing
 
-							Double altitude = default(Double);
+							double altitude = default(double);
 							var ele = xe.Descendants(xn + "ele").FirstOrDefault();
-							if (ele != null) Double.TryParse(ele.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out altitude);
+							if (ele != null) double.TryParse(ele.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out altitude);
 
 							string positionSource = string.Empty;
 							var src = xe.Descendants(xn + "src").FirstOrDefault();
@@ -188,9 +187,9 @@ namespace GPX
 							var sat = xe.Descendants(xn + "sat").FirstOrDefault();
 							if (sat != null) UInt32.TryParse(sat.Value, out howManySatellites);
 
-							Double speedInMetreSec = default(Double);
+							double speedInMetreSec = default(double);
 							var speed = xe.Descendants(xn + "speed").FirstOrDefault();
-							if (speed != null) Double.TryParse(speed.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out speedInMetreSec);
+							if (speed != null) double.TryParse(speed.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out speedInMetreSec);
 
 							//string gpsName = string.Empty;
 							//var name = xe.Descendants(xn + "name").FirstOrDefault();
