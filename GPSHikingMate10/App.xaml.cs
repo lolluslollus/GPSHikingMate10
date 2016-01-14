@@ -50,11 +50,18 @@ namespace LolloGPS.Core
 				Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
 				Microsoft.ApplicationInsights.WindowsCollectors.Session);
 
+			UnhandledException += OnApp_UnhandledException;
 			Resuming += OnResuming;
 			Suspending += OnSuspending;
-			UnhandledException += OnApp_UnhandledException;
 
 			InitializeComponent();
+
+			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+
+		private void App_Resuming(object sender, object e)
+		{
+			throw new NotImplementedException();
 		}
 
 		private void OpenData()
@@ -65,9 +72,9 @@ namespace LolloGPS.Core
 			PersistentData.OpenTileCacheDb();
 			PersistentData.OpenMainDb();
 
-			_isDataOpen = true;
+			_myRuntimeData.Open();
 
-			_myRuntimeData.Activate();
+			_isDataOpen = true;
 		}
 		#endregion construct and dispose
 
@@ -87,7 +94,10 @@ namespace LolloGPS.Core
 		/// <param name="e">Details about the launch request and process.</param>
 		protected async override void OnLaunched(LaunchActivatedEventArgs e)
 		{
-			Logger.Add_TPL("OnLaunched()", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
+				Logger.AppEventsLogFilename,
+				Logger.Severity.Info,
+				false);
 
 			OpenData();
 			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
@@ -103,7 +113,10 @@ namespace LolloGPS.Core
 				Window.Current.Activate();
 
 				var main = rootFrame.Content as Main;
-				await main.OpenAsync(true, true).ConfigureAwait(false);
+				var yne = await main.OpenAsync(true, true).ConfigureAwait(false);
+				Logger.Add_TPL("OnLaunched opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+				Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
 			{
@@ -113,6 +126,8 @@ namespace LolloGPS.Core
 			// enable UI commands
 			RuntimeData.SetIsSettingsRead_UI(true);
 			RuntimeData.SetIsDBDataRead_UI(true);
+
+			Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 
 		/// <summary>
@@ -120,8 +135,9 @@ namespace LolloGPS.Core
 		/// </summary>
 		/// <param name="sender">The Frame which failed navigation</param>
 		/// <param name="e">Details about the navigation failure</param>
-		void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+		private async void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
 		{
+			await Logger.AddAsync(e.Exception.ToString(), Logger.AppEventsLogFilename);
 			throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
 		}
 
@@ -137,8 +153,12 @@ namespace LolloGPS.Core
 			// Debugger.Break();
 			var deferral = e.SuspendingOperation.GetDeferral();
 
+			Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+				Logger.AppEventsLogFilename,
+				Logger.Severity.Info,
+				false);
 			await CloseAllAsync().ConfigureAwait(false);
-			Logger.Add_TPL("OnSuspending ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			deferral.Complete();
 		}
@@ -154,57 +174,82 @@ namespace LolloGPS.Core
 		/// <param name="e"></param>
 		private async void OnResuming(object sender, object e)
 		{
-			Debugger.Break();
-			Logger.Add_TPL("OnResuming()", Logger.ForegroundLogFilename, Logger.Severity.Info);
-
-			OpenData();
-			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
-			// disable UI commands
-			RuntimeData.SetIsDBDataRead_UI(false);
-
-			if (IsRootFrameMain)
+			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			try
 			{
-				var main = (Window.Current.Content as Frame).Content as Main;
-				// Settings and data are already in.
-				// However, reread the history coz the background task may have changed it while I was suspended.
+				await _resumingActivatingSemaphore.WaitAsync();
+				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				await PersistentData.LoadHistoryFromDbAsync(false);
-				await main.OpenAsync(false, false).ConfigureAwait(false);
+				OpenData();
+				if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
 
-				// In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
-				// but I deregister them when suspending to make sure long running tasks are really stopped.
-				// This also includes the background task state check.
-				// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
-				// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
+				if (IsRootFrameMain)
+				{
+					// disable UI commands
+					RuntimeData.SetIsDBDataRead_UI(false);
+
+					var main = (Window.Current.Content as Frame).Content as Main;
+					// Settings and data are already in.
+					// However, reread the history coz the background task may have changed it while I was suspended.
+
+					await PersistentData.LoadHistoryFromDbAsync(false);
+					Logger.Add_TPL("OnResuming() has read history from db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					var yne = await main.OpenAsync(false, false).ConfigureAwait(false);
+					Logger.Add_TPL("OnResuming() has opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+					// In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
+					// but I deregister them when suspending to make sure long running tasks are really stopped.
+					// This also includes the background task state check.
+					// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
+					// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
+
+					Logger.Add_TPL("OnResuming ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				}
 			}
+			catch (Exception ex)
+			{
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
+			}
+			finally
+			{
+				// enable UI commands
+				RuntimeData.SetIsSettingsRead_UI(true);
+				RuntimeData.SetIsDBDataRead_UI(true);
 
-			// enable UI commands
-			RuntimeData.SetIsSettingsRead_UI(true);
-			RuntimeData.SetIsDBDataRead_UI(true);
-			Logger.Add_TPL("OnResuming() ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+
+				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
 		}
 		//protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
 
+		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		/// <summary>
 		/// Fires when attempting to open a file, which is associated with the application. Test it with the app running and closed.
+		/// LOLLO NOTE if resuming, the system starts this method an instant after OnResuming(). The awaits cause both methods to run in parallel, alternating on the UI thread.
 		/// </summary>
 		protected override async void OnFileActivated(FileActivatedEventArgs e)
 		{
-			Logger.Add_TPL("App.xaml.cs.OnFileActivated() starting with kind = " + e.Kind.ToString() + " and previous execution state = " + e.PreviousExecutionState.ToString(),
-				Logger.ForegroundLogFilename + " and verb = " + e.Verb,
-				Logger.Severity.Info);
-
-			OpenData();
-			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
-			// disable UI commands
-			RuntimeData.SetIsDBDataRead_UI(false);
-
+			Logger.Add_TPL("OnFileActivated() starting with kind = " + e.Kind.ToString() + " and previous execution state = " + e.PreviousExecutionState.ToString() + " and verb = " + e.Verb,
+				Logger.AppEventsLogFilename,
+				Logger.Severity.Info,
+				false);
 			try
 			{
+				await _resumingActivatingSemaphore.WaitAsync();
+				Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+				OpenData();
+
+				bool isAppAlreadyRunning = IsRootFrameMain;
+				if (!isAppAlreadyRunning)
+				{
+					if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+					Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				}
+
 				if (e?.Files?[0]?.Path?.Length > 4 && e.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
 				{
-					bool isAppAlreadyRunning = IsRootFrameMain;
-
 					Frame rootFrame = GetCreateRootFrame(e);
 					if (!isAppAlreadyRunning)
 					{
@@ -212,44 +257,36 @@ namespace LolloGPS.Core
 						Window.Current.Activate();
 					}
 
-					List<PersistentData.Tables> whichTables = null;
+					// disable UI commands
+					RuntimeData.SetIsDBDataRead_UI(false);
+
 					var fileOpener = Main_VM.GetInstance() as IFileActivatable;
 					var main = rootFrame.Content as Main;
 					if (fileOpener != null && main != null)
 					{
-						Logger.Add_TPL("OnFileActivated() is about to open a file, app already running = " + isAppAlreadyRunning, Logger.ForegroundLogFilename, Logger.Severity.Info);
-
-						whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
-
+						var whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
+						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						if (isAppAlreadyRunning)
 						{
-							await main.OpenAsync(false, false);
 							if (whichTables != null)
 							{
 								// get file data from DB into UI
 								foreach (var series in whichTables)
 								{
 									await PersistentData.LoadSeriesFromDbAsync(series);
+									Logger.Add_TPL("just got series " + series.ToString() + " into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 								}
 							}
+							var yne = await main.OpenAsync(false, false); // maniman
+							Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						}
 						else
-						{ // LOLLO TODO the following does not open any series , but just sometimes
-							await main.OpenAsync(true, true);
-							if (whichTables != null)
-							{
-								//if (isAppAlreadyRunning) 
-								//{
-								//	// get file data from DB into UI
-								//	foreach (var series in whichTables)
-								//	{
-								//		await PersistentData.LoadSeriesFromDbAsync(series);
-								//	}
-								//}
-							}
+						{
+							var yne = await main.OpenAsync(true, true);
+							Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app just started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						}
 						// centre view on the file data
-						if (whichTables?.Count > 0) // LOLLO TODO check the centering, it does not seem to work, neither here nor in OnLaunched
+						if (whichTables?.Count > 0)
 						{
 							if (whichTables[0] == PersistentData.Tables.Landmarks)
 							{
@@ -260,17 +297,47 @@ namespace LolloGPS.Core
 								Task centreView = main?.MyVM?.CentreOnRoute0Async();
 							}
 						}
+
+						Logger.Add_TPL("OnFileActivated() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					}
 				}
 			}
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
 			}
+			finally
+			{
+				// enable UI commands
+				RuntimeData.SetIsSettingsRead_UI(true);
+				RuntimeData.SetIsDBDataRead_UI(true);
 
-			// enable UI commands
-			RuntimeData.SetIsSettingsRead_UI(true);
-			RuntimeData.SetIsDBDataRead_UI(true);
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+
+				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
+		}
+		public async Task RunUnderSemaphoreAsync(Func<Task> funcAsync)
+		{
+			try
+			{
+				await _resumingActivatingSemaphore.WaitAsync();
+				Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				// disable UI commands
+				RuntimeData.SetIsDBDataRead_UI(false);
+
+				await funcAsync().ConfigureAwait(false);
+				Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
+			finally
+			{
+
+				// reactivate UI commands
+				RuntimeData.SetIsDBDataRead_UI(true);
+
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+			}
+			Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		#endregion event handlers
 
@@ -282,7 +349,7 @@ namespace LolloGPS.Core
 		}
 		private async Task CloseAllAsync()
 		{
-			Logger.Add_TPL("CloseAll() started", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("CloseAll() started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			_isDataOpen = false;
 
@@ -301,7 +368,7 @@ namespace LolloGPS.Core
 
 			MyRuntimeData?.Dispose();
 
-			Logger.Add_TPL("CloseAll() ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("CloseAll() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		private bool IsRootFrameAvailable
 		{
@@ -328,14 +395,13 @@ namespace LolloGPS.Core
 
 			if (rootFrame == null)  // Do not repeat app initialization when the Window already has content, just ensure that the window is active
 			{
-				Logger.Add_TPL("Creating root frame", Logger.ForegroundLogFilename, Logger.Severity.Info);
 				// Create a Frame to act as the navigation context and navigate to the first page
 				rootFrame = new Frame() { UseLayoutRounding = true };
 				rootFrame.Name = "RootFrame";
 
 				// Set the default language
 				//rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
-				rootFrame.Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag; //this is important and decides for the whole app
+				rootFrame.Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag; // LOLLO NOTE this is important and decides for the whole app
 
 				// Place the frame in the current Window
 				Window.Current.Content = rootFrame;
@@ -352,7 +418,7 @@ namespace LolloGPS.Core
 				// parameter (in theory, but no parameter here, we simply navigate)
 				if (!rootFrame.Navigate(typeof(Main)))
 				{
-					Logger.Add_TPL("Failed to create initial page", Logger.ForegroundLogFilename);
+					Logger.Add_TPL("Failed to create initial page", Logger.AppEventsLogFilename);
 					throw new Exception("Failed to create initial page");
 				}
 			}

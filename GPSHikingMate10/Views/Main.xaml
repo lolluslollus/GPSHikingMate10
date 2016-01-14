@@ -383,6 +383,7 @@
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="*"/>
 						</Grid.RowDefinitions>
 						<StackPanel Grid.Row="0" Orientation="Horizontal">
@@ -393,17 +394,20 @@
 						<StackPanel Grid.Row="1" Orientation="Horizontal">
 							<Button Content="FileError" Click="OnLogButton_Click"/>
 							<Button Content="MyPersistentData" Click="OnLogButton_Click"/>
-							<Button Content="AppExc" Click="OnLogButton_Click"/>
 						</StackPanel>
 						<StackPanel Grid.Row="2" Orientation="Horizontal">
+							<Button Content="AppExc" Click="OnLogButton_Click"/>
+							<Button Content="AppEvents" Click="OnLogButton_Click"/>
+						</StackPanel>
+						<StackPanel Grid.Row="3" Orientation="Horizontal">
 							<Button Content="Clear" Click="OnLogButton_Click"/>
 							<Button Content="Check files in dbg" Click="OnTestFiles_Click"/>
 						</StackPanel>
-						<ScrollViewer Grid.Row="3" 
+						<ScrollViewer Grid.Row="4" 
 							BringIntoViewOnFocusChange="True"
 							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 							Margin="{StaticResource Thickness0}">
-							<TextBlock Grid.Row="3" TextWrapping="Wrap"
+							<TextBlock TextWrapping="Wrap"
 								Text="{Binding ElementName=me, Path=MyVM.LogText}"
 								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
 						</ScrollViewer>

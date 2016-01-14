@@ -89,7 +89,7 @@ namespace LolloGPS.Suspension
 					Debug.WriteLine("ended reading non-tabular data");
 				}
 			}
-			catch (Exception ex) // LOLLO TODO if an error happens here, you will lose the settings, history, last route and last landmarks. 
+			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
 								 // better quit then. But what if it happens again?
 								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
 								 // LOLLO TODO try to reproduce it

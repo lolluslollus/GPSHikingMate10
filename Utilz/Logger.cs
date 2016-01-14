@@ -1,6 +1,7 @@
 ﻿using LolloGPS.Data.Constants;
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -19,8 +20,9 @@ namespace Utilz
 
         private static readonly SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1); // , "LOLLOLoggerSemaphore");
         private const long MAX_SIZE_BYTES = 16000;
+		public const string DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss.fff";
 
-        static Logger()
+		static Logger()
         {
             _logsFolder = ApplicationData.Current.LocalFolder.CreateFolderAsync(LogFolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
         }
@@ -28,7 +30,8 @@ namespace Utilz
         private static StorageFolder _logsFolder = null;
         public const string LogFolderName = "Logs"; // it is placed in the app local folder
         public const string FileErrorLogFilename = "_FileErrorLog.lol";
-        public const string ForegroundLogFilename = "_ForegroundLog.lol";
+		public const string AppEventsLogFilename = "_AppEventsLog.lol";
+		public const string ForegroundLogFilename = "_ForegroundLog.lol";
         public const string BackgroundLogFilename = "_BackgroundLog.lol";
         public const string AppExceptionLogFilename = "_AppExceptionLog.lol";
         public const string BackgroundCancelledLogFilename = "_BackgroundCancelledLog.lol";
@@ -80,13 +83,14 @@ namespace Utilz
         }
         public static void Add_TPL(string msg, string fileName,
             Severity severity = Severity.Error,
-            [CallerMemberName] string memberName = "",
+			bool verbose = true,
+			[CallerMemberName] string memberName = "",
             [CallerFilePath] string sourceFilePath = "",
             [CallerLineNumber] int sourceLineNumber = 0)
         {
             try
             {
-                string fullMessage = GetFullMsg(severity, memberName, sourceFilePath, sourceLineNumber, msg);
+                string fullMessage = GetFullMsg(severity, verbose, memberName, sourceFilePath, sourceLineNumber, msg);
                 Debug.WriteLine(fullMessage);
                 Task ttt = Task.Run(() => Add2Async(fullMessage, fileName));
             }
@@ -98,13 +102,14 @@ namespace Utilz
 
         public static async Task AddAsync(string msg, string fileName,
             Severity severity = Severity.Error,
+			bool verbose = true,
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string sourceFilePath = "",
             [CallerLineNumber] int sourceLineNumber = 0)
         {
             try
             {
-                string fullMessage = GetFullMsg(severity, memberName, sourceFilePath, sourceLineNumber, msg);
+                string fullMessage = GetFullMsg(severity, verbose, memberName, sourceFilePath, sourceLineNumber, msg);
                 Debug.WriteLine(fullMessage);
                 await Task.Run(() => { return Add2Async(fullMessage, fileName); }).ConfigureAwait(false);
             }
@@ -114,17 +119,20 @@ namespace Utilz
             }
         }
 
-        private static string GetFullMsg(Severity severity, string memberName, string sourceFilePath, int sourceLineNumber, string msg)
+        private static string GetFullMsg(Severity severity, bool verbose, string memberName, string sourceFilePath, int sourceLineNumber, string msg)
         {
             if (severity == Severity.Error)
-                return string.Format(Environment.NewLine + DateTime.Now + Environment.NewLine
+                return string.Format(Environment.NewLine + DateTime.Now.ToString(DATE_TIME_FORMAT, CultureInfo.CurrentUICulture) + Environment.NewLine
                     + "ERROR in {0}, source {1}, line {2}: {3}", memberName, sourceFilePath, sourceLineNumber, msg);
-            else
-                return string.Format(Environment.NewLine + DateTime.Now + Environment.NewLine
+            else if(verbose)
+                return string.Format(Environment.NewLine + DateTime.Now.ToString(DATE_TIME_FORMAT, CultureInfo.CurrentUICulture) + Environment.NewLine
                     + "INFO from {0}, source {1}, line {2}: {3}", memberName, sourceFilePath, sourceLineNumber, msg);
-        }
+			else
+				return string.Format(Environment.NewLine + DateTime.Now.ToString(DATE_TIME_FORMAT, CultureInfo.CurrentUICulture) + Environment.NewLine
+					+ msg);
+		}
 
-        private static async Task Add2Async(string msg, string fileName)
+		private static async Task Add2Async(string msg, string fileName)
         {
             try
             {
@@ -241,7 +249,8 @@ namespace Utilz
         private static async Task<string> ReadAllLogsIntoStringAsync()
         {
             var sb = new StringBuilder();
-            sb.Append(await ReadOneLogIntoStringAsync(AppExceptionLogFilename).ConfigureAwait(false));
+			sb.Append(await ReadOneLogIntoStringAsync(AppEventsLogFilename).ConfigureAwait(false));
+			sb.Append(await ReadOneLogIntoStringAsync(AppExceptionLogFilename).ConfigureAwait(false));
             sb.Append(await ReadOneLogIntoStringAsync(BackgroundCancelledLogFilename).ConfigureAwait(false));
             sb.Append(await ReadOneLogIntoStringAsync(BackgroundLogFilename).ConfigureAwait(false));
             sb.Append(await ReadOneLogIntoStringAsync(FileErrorLogFilename).ConfigureAwait(false));

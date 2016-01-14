@@ -203,9 +203,9 @@ namespace LolloGPS.Data.Runtime
 		private static PersistentData _persistentData = null;
 		private RuntimeData()
 		{
-			Activate();
+			Open();
 		}
-		public void Activate()
+		public void Open()
 		{
 			UpdateIsConnectionAvailable();
 			AddHandlers();

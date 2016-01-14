@@ -582,23 +582,19 @@ namespace LolloGPS.Core
 				IsLoading = true;
 
 				//RegistryAccess.SetValue(ConstantData.RegWhichSeries, whichSeries.ToString());
-
-				// disable UI commands
-				RuntimeData.SetIsDBDataRead_UI(false);
 				SetLastMessage_UI("reading GPX file...");
 
 				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
 				if (file != null)
 				{
-					await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
+					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended
+					await ((App)Application.Current).RunUnderSemaphoreAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
+					// await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 				}
 				else
 				{
 					SetLastMessage_UI("Loading cancelled");
 				}
-
-				// reactivate UI commands
-				RuntimeData.SetIsDBDataRead_UI(true);
 			}
 			finally
 			{
@@ -613,6 +609,7 @@ namespace LolloGPS.Core
 
 		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
 		{
+			Logger.Add_TPL("LoadSeriesFromFileAsync() starting", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			if (_fileOpenPickerCts != null || file == null || whichSeries == PersistentData.Tables.nil) return;
 
 			Tuple<bool, string> result = Tuple.Create(false, "");
@@ -620,12 +617,15 @@ namespace LolloGPS.Core
 			{
 				await Task.Run(async delegate
 				{
+					Logger.Add_TPL("LoadSeriesFromFileAsync() started a worker thread", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					SetLastMessage_UI("reading GPX file...");
 					// initialise cancellation token
 					_fileOpenPickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileOpenPickerCts.Token;
 					token.ThrowIfCancellationRequested();
 					// load the file
 					result = await ReaderWriter.LoadSeriesFromFileIntoDbWaitingForDataOpenAsync(file, whichSeries, token).ConfigureAwait(false);
+					Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					token.ThrowIfCancellationRequested();
 					// update the UI with the file data
 					if (result?.Item1 == true)
@@ -636,10 +636,12 @@ namespace LolloGPS.Core
 								break;
 							case PersistentData.Tables.Route0:
 								await MyPersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
+								Logger.Add_TPL("LoadSeriesFromFileAsync() loaded route0 into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 								await CentreOnRoute0Async().ConfigureAwait(false);
 								break;
 							case PersistentData.Tables.Landmarks:
 								await MyPersistentData.LoadLandmarksFromDbAsync(false).ConfigureAwait(false);
+								Logger.Add_TPL("LoadSeriesFromFileAsync() loaded landmarks into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 								await CentreOnLandmarksAsync().ConfigureAwait(false);
 								break;
 							case PersistentData.Tables.nil:
@@ -664,6 +666,7 @@ namespace LolloGPS.Core
 				}
 				else SetLastMessage_UI("could not read file");
 			}
+			Logger.Add_TPL("LoadSeriesFromFileAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		#endregion save and load with picker
 

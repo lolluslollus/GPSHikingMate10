@@ -39,13 +39,14 @@ namespace LolloGPS.Core
 #endif
 		}
 
-		public async Task OpenAsync(bool readDataFromDb, bool readSettingsFromDb)
+		public enum YesNoError { Yes, No, Error };
+		public async Task<YesNoError> OpenAsync(bool readDataFromDb, bool readSettingsFromDb)
 		{
-			if (_isOpen) return;
+			if (_isOpen) return YesNoError.No;
 			try
 			{
 				await _openCloseSemaphore.WaitAsync();
-				if (_isOpen) return;
+				if (_isOpen) return YesNoError.No;
 
 				_myVM = Main_VM.GetInstance();
 				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
@@ -55,6 +56,7 @@ namespace LolloGPS.Core
 				AddHandlers();
 
 				_isOpen = true;
+				return YesNoError.Yes;
 			}
 			catch (Exception ex)
 			{
@@ -64,6 +66,7 @@ namespace LolloGPS.Core
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_openCloseSemaphore);
 			}
+			return YesNoError.Error;
 		}
 
 		public async Task CloseAsync()
@@ -301,6 +304,10 @@ namespace LolloGPS.Core
 			else if (cnt == "AppExc")
 			{
 				_myVM.LogText = await Logger.ReadAsync(Logger.AppExceptionLogFilename);
+			}
+			else if (cnt == "AppEvents")
+			{
+				_myVM.LogText = await Logger.ReadAsync(Logger.AppEventsLogFilename);
 			}
 			else if (cnt == "Clear")
 			{
