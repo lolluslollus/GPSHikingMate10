@@ -66,7 +66,7 @@ namespace LolloGPS.Core
 				HistoryChart.Deactivate();
 				Route0Chart.Deactivate();
 				LandmarksChart.Deactivate();
-				MyPointInfoPanel.Deactivate();
+				MyPointInfoPanel.Close();
 				CancelPendingTasks(); // after removing the handlers
 			}
 			catch (Exception ex)

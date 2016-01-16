@@ -52,7 +52,7 @@ namespace LolloGPS.Core
             InitializeComponent();
             BackPressedRaiser = _myVM;
         }
-        public void Deactivate()
+        public void Close()
         {
             _holdingTimer?.Dispose();
             _holdingTimer = null;

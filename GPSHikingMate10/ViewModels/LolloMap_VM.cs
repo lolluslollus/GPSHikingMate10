@@ -105,7 +105,7 @@ namespace LolloGPS.Core
         //    //_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
         //    //_myMap.Style = MapStyle.None; //so our map will cover the original completely
         //}
-        internal void Deactivate()
+        internal void Close()
         {
             RemoveHandler_DataChanged();
             _tileDownloader.Deactivate();

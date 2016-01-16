@@ -49,14 +49,14 @@ namespace LolloGPS.Core
 		private static SemaphoreSlimSafeRelease _initLandmarksSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isClosing = false;
 
-		private static MapPolyline _mapPolylineRoute0 = new MapPolyline()
+		private MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["Route0Brush"])).Color,
 			StrokeThickness = (double)(App.Current.Resources["Route0Thickness"]),
 			MapTabIndex = Route0TabIndex,
 		};
 
-		private static MapPolyline _mapPolylineHistory = new MapPolyline()
+		private MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["HistoryBrush"])).Color,
 			StrokeThickness = (double)(App.Current.Resources["HistoryThickness"]),
@@ -107,13 +107,12 @@ namespace LolloGPS.Core
 		private static WeakReference _myMapInstance = null;
 		internal static MapControl GetMapControlInstance() // for the converter
 		{
-			if (_myMapInstance != null && _myMapInstance.Target != null && _myMapInstance.Target is MapControl) return _myMapInstance.Target as MapControl;
-			else return null;
+			return _myMapInstance?.Target as MapControl;
 		}
-
 		#endregion properties
 
-		#region construct and dispose
+
+		#region lifecycle
 		public LolloMap()
 		{
 			InitializeComponent();
@@ -199,8 +198,8 @@ namespace LolloGPS.Core
 				{
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 				}
-				_myVM.Deactivate();
-				MyPointInfoPanel.Deactivate();
+				_myVM?.Close();
+				MyPointInfoPanel?.Close();
 			}
 			catch (Exception ex)
 			{
@@ -211,8 +210,9 @@ namespace LolloGPS.Core
 				_isClosing = false;
 			}
 		}
+		#endregion lifecycle
 
-		#endregion construct and dispose
+
 		#region services
 		private Task RestoreViewAsync()
 		{
@@ -361,12 +361,13 @@ namespace LolloGPS.Core
 				MyMap.Heading = 0.0;
 			});
 		}
-		/// <summary>
-		/// Initialises all map elements except for landmarks, which have their dedicated method
-		/// </summary>
+
 		private bool _isHistoryInMap = false;
 		private bool _isRoute0InMap = false;
 		private bool _isFlyoutPointInMap = false;
+		/// <summary>
+		/// Initialises all map elements except for landmarks, which have their dedicated method
+		/// </summary>
 		private void InitMapElements()
 		{
 			_isHistoryInMap = false;
@@ -474,6 +475,7 @@ namespace LolloGPS.Core
 		private async Task DrawLandmarksAsync()
 		{
 			if (_isClosing) return;
+
 			try
 			{
 				await _initLandmarksSemaphore.WaitAsync();
@@ -530,6 +532,7 @@ namespace LolloGPS.Core
 						MyMap.MapElements[j].Visible = true; // set it last, in the attempt of getting a little more speed
 						j++;
 					}
+					if (_isClosing) return;
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
 						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LandmarkTabIndex))
