@@ -3,19 +3,12 @@ using LolloChartMobile;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
-using Windows.Foundation;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // Multithreading documentation:
@@ -25,16 +18,16 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class AltitudeProfiles : OrientationResponsiveUserControl, IMapApController
+	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController
 	{
 		private AltitudeProfiles_VM _myVM = null;
 		public AltitudeProfiles_VM MyVM { get { return _myVM; } }
-		
+
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
 		private CancellationTokenSource _cts = null;
-		static SemaphoreSlimSafeRelease _semaphore = null;
+		//static SemaphoreSlimSafeRelease _semaphore = null;
 
 		public AltitudeProfiles()
 		{
@@ -42,23 +35,26 @@ namespace LolloGPS.Core
 			_myVM = new AltitudeProfiles_VM(this as IMapApController);
 			DataContext = MyPersistentData;
 		}
-		public void Open()
+		protected override Task OpenMayOverrideAsync()
 		{
 			try
 			{
-				if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
+				//if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
 				HistoryChart.Open();
 				Route0Chart.Open();
 				LandmarksChart.Open();
-				UpdateCharts();
+
 				AddHandlers();
+				UpdateCharts();
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+
+			return Task.CompletedTask;
 		}
-		public void Close()
+		protected override Task CloseMayOverrideAsync()
 		{
 			try
 			{
@@ -73,13 +69,47 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+
+			return Task.CompletedTask;
 		}
+		//public void Open()
+		//{
+		//	try
+		//	{
+		//		if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
+		//		HistoryChart.Open();
+		//		Route0Chart.Open();
+		//		LandmarksChart.Open();
+		//		UpdateCharts();
+		//		AddHandlers();
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//}
+		//public void Close()
+		//{
+		//	try
+		//	{
+		//		RemoveHandlers();
+		//		HistoryChart.Deactivate();
+		//		Route0Chart.Deactivate();
+		//		LandmarksChart.Deactivate();
+		//		MyPointInfoPanel.Close();
+		//		CancelPendingTasks(); // after removing the handlers
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//}
 		private void CancelPendingTasks()
 		{
 			_cts?.Cancel();
 			//_cts.Dispose(); This is done in the exception handler that catches the OperationCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
 			//_cts = null;
-			SemaphoreSlimSafeRelease.TryDispose(_semaphore);
+			//SemaphoreSlimSafeRelease.TryDispose(_semaphore);
 		}
 
 		private bool _isHandlersActive = false;
@@ -108,39 +138,60 @@ namespace LolloGPS.Core
 
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (Visibility == Visibility.Visible && MyPersistentData != null && MyPersistentData.History != null)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+				&& Visibility == Visibility.Visible
+				&& MyPersistentData?.History != null)
 			{
-				Task draw = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true));
+				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true);
+				});
 			}
 		}
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (Visibility == Visibility.Visible && MyPersistentData != null && MyPersistentData.Route0 != null)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+				&& Visibility == Visibility.Visible
+				&& MyPersistentData?.Route0 != null)
 			{
-				Task draw = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
+				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true);
+				});
 			}
 		}
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (Visibility == Visibility.Visible && MyPersistentData != null && MyPersistentData.Landmarks != null)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+				&& Visibility == Visibility.Visible
+				&& MyPersistentData?.Landmarks != null)
 			{
-				Task draw = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
+				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false);
+				});
 			}
 		}
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
 			{
-				UpdateCharts();
+				Task upd = RunFunctionIfOpenAsyncA(delegate
+				{
+					UpdateCharts();
+				});
 			}
 		}
 		private void UpdateCharts()
 		{
-			if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles) // even if still invisible!
+			if (MyPersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
 			{
 				Task drawH = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true));
-				Task drawR = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
-				Task drawL = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
+				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
+				{
+					Task drawR = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
+					Task drawL = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
+				}
 			}
 		}
 		private void OnInfoPanelPointChanged(object sender, EventArgs e)
@@ -185,7 +236,7 @@ namespace LolloGPS.Core
 				SelectedPointPopup.IsOpen = false;
 				//BackKeyPressed?.Invoke(this, EventArgs.Empty);
 				//RaiseBackKeyPressed();
-			}            
+			}
 		}
 		//private void OnBackKeyPressed(object sender, EventArgs e)
 		//{
@@ -275,12 +326,16 @@ namespace LolloGPS.Core
 				double maxTime = default(double);
 				double minTime = default(double);
 				double[,] points = null;
+
 				_myVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
 					ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
 
-				await _semaphore.WaitAsync().ConfigureAwait(false); // if another thread is working in this method already, wait.
-				// Otherwise, it might dispose _cts when I still need it, unduly causing an ObjectDisposedException.
-				// Essentially, this semaphore protects the cancellation token.
+				//// if another thread is working in this method already, wait.
+				//// Otherwise, it might dispose _cts when I still need it, unduly causing an ObjectDisposedException.
+				//// Essentially, this semaphore protects the cancellation token.
+				// However, by now, I always run this under _isOpenSemaphore, so I don't need this other semaphore anymore
+				//await _semaphore.WaitAsync().ConfigureAwait(false);
+
 				if (_cts == null) _cts = new CancellationTokenSource();
 				CancellationToken token = _cts.Token;
 
@@ -292,16 +347,16 @@ namespace LolloGPS.Core
 			catch (ObjectDisposedException) { } // fires when I dispose sema and have not rector'd it while the current thread is inside it (unlikely)
 			catch (SemaphoreFullException) { } // fires when I dispose sema and rector it while the current thread is inside it
 			catch (OperationCanceledException) { } // fires when cts is cancelled
-			catch (Exception ex)
-			{
-				if (SemaphoreSlimSafeRelease.IsAlive(_semaphore))
-					await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-			}
+												   //catch (Exception ex)
+												   //{
+												   //	if (SemaphoreSlimSafeRelease.IsAlive(_semaphore))
+												   //		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+												   //}
 			finally
 			{
 				_cts?.Dispose();
 				_cts = null;
-				SemaphoreSlimSafeRelease.TryRelease(_semaphore);
+				//SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 			}
 		}
 
@@ -364,7 +419,7 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
-#region IMapApController
+		#region IMapApController
 		public Task CentreOnHistoryAsync()
 		{
 			try
@@ -406,7 +461,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				return RunInUiThreadAsync(delegate 
+				return RunInUiThreadAsync(delegate
 				{
 					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
 					{
@@ -430,6 +485,6 @@ namespace LolloGPS.Core
 		{
 			return Task.CompletedTask; // to respect the form of the output and interface
 		}
-#endregion IMapApController
+		#endregion IMapApController
 	}
 }

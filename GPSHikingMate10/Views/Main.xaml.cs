@@ -52,7 +52,8 @@ namespace LolloGPS.Core
 				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
 
 				await MyLolloMap.OpenAsync();
-				MyAltitudeProfiles.Open();
+				await MyAltitudeProfiles.OpenAsync();
+				// MyAltitudeProfiles.Open();
 				AddHandlers();
 
 				_isOpen = true;
@@ -87,8 +88,18 @@ namespace LolloGPS.Core
 				{
 					await vm.CloseAsync();
 				}
-				MyLolloMap?.Close();
-				MyAltitudeProfiles?.Close();
+				var myLolloMap = MyLolloMap;
+				if (myLolloMap != null)
+				{
+					await myLolloMap.CloseAsync();
+				}
+				// MyLolloMap?.Close();
+				var myAltProf = MyAltitudeProfiles;
+				if (myAltProf != null)
+				{
+					await myAltProf.CloseAsync();
+				}
+				// MyAltitudeProfiles?.Close();
 
 				//_owner.Storyboard_NewMessage.SkipToFill();
 

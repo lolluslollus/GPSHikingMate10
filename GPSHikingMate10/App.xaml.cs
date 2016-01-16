@@ -3,16 +3,12 @@ using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Suspension;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Core;
 using Windows.Phone.Devices.Notification;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -37,6 +33,9 @@ namespace LolloGPS.Core
 		public static PersistentData PersistentData { get { return _persistentData; } }
 		private static Data.Runtime.RuntimeData _myRuntimeData = null; // RuntimeData.GetInstance();
 		public static Data.Runtime.RuntimeData MyRuntimeData { get { return _myRuntimeData; } }
+
+		private volatile bool _isResuming = false;
+		public bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
 
 		private static bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -74,8 +73,6 @@ namespace LolloGPS.Core
 
 		private async Task CloseAllAsync()
 		{
-			Logger.Add_TPL("CloseAll() started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
 			// unregister events and stop long running tasks.
 			if (IsRootFrameMain)
 			{
@@ -89,8 +86,6 @@ namespace LolloGPS.Core
 			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
 
 			MyRuntimeData?.Close();
-
-			Logger.Add_TPL("CloseAll() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		#endregion lifecycle
 
@@ -189,6 +184,7 @@ namespace LolloGPS.Core
 			try
 			{
 				await _resumingActivatingSemaphore.WaitAsync();
+				IsResuming = true;
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				OpenData();
@@ -225,6 +221,7 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
+				IsResuming = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}

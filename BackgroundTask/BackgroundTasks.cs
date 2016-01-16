@@ -20,10 +20,10 @@ namespace BackgroundTasks
     // Debugging may be easier on x86.
     public sealed class GetLocationBackgroundTask : IBackgroundTask
     {
-        CancellationTokenSource _cts = null;
-        BackgroundTaskDeferral _deferral = null;
-        IBackgroundTaskInstance _taskInstance = null;
-        bool _isCancellationAllowedNow = true;
+		private volatile CancellationTokenSource _cts = null;
+		private BackgroundTaskDeferral _deferral = null;
+		private IBackgroundTaskInstance _taskInstance = null;
+        private volatile bool _isCancellationAllowedNow = true;
         //
         // The Run method is the entry point of a background task.
         //

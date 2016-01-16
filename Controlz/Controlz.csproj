@@ -116,6 +116,7 @@
     <Compile Include="LolloListChooser.xaml.cs" />
     <Compile Include="ObservablePage.cs" />
     <Compile Include="ObservableControl.cs" />
+    <Compile Include="OpObsOrControl.cs" />
     <Compile Include="OrientationResponsiveUserControl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextBlockScaler.cs" />

@@ -216,7 +216,7 @@
                 Click="OnGotoTarget_Click" 
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
-                Icon="Go"
+                Icon="View"
                 TabIndex="1"/>
 		</Grid>
 

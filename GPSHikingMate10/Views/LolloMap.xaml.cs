@@ -13,13 +13,10 @@ using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.System;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 
@@ -28,39 +25,42 @@ using Windows.UI.Xaml.Media.Imaging;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
-	public sealed partial class LolloMap : OrientationResponsiveUserControl, IGeoBoundingBoxProvider, IMapApController
+	public sealed partial class LolloMap : OpObsOrControl, IGeoBoundingBoxProvider, IMapApController
 	{
 		#region properties
 		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number, depending on the available memory. 
 		// It would be nice to have more landmarks though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
-		// Things look better with win 10 on a pc, so I raised the landmark limit to 1000 and used icons, which don't seem slower than images anymore.
+		// Things look better with win 10 on a pc, so I raised the landmark limit depending on the available memory and used icons, which don't seem slower than images anymore.
+		// The MapItemsControl throws weird errors and it loads slowly.
 		internal const double SCALE_IMAGE_WIDTH = 300.0;
-		//internal const string LandmarkTag = "Landmark";
-		internal const int HistoryTabIndex = 20;
-		internal const int Route0TabIndex = 10;
-		internal const int LandmarkTabIndex = 30;
-		internal const int StartStopTabIndex = 40;
-		internal const double MinLat = -85.0511;
-		internal const double MaxLat = 85.0511;
-		internal const double MinLon = -180.0;
-		internal const double MaxLon = 180.0;
 
-		private static SemaphoreSlimSafeRelease _initLandmarksSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private volatile bool _isClosing = false;
+		internal const int HISTORY_TAB_INDEX = 20;
+		internal const int ROUTE0_TAB_INDEX = 10;
+		internal const int LANDMARK_TAB_INDEX = 30;
+		//internal const string LandmarkTag = "Landmark";
+		internal const int START_STOP_TAB_INDEX = 40;
+
+		internal const double MIN_LAT = -85.0511;
+		internal const double MAX_LAT = 85.0511;
+		internal const double MIN_LON = -180.0;
+		internal const double MAX_LON = 180.0;
+
+		//private Point _landmarksNormalisedIconPoint = new Point(0.5, 0.5);
+		//public Point LandmarksNormalisedIconPoint { get { return _landmarksNormalisedIconPoint; } }
 
 		private MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["Route0Brush"])).Color,
 			StrokeThickness = (double)(App.Current.Resources["Route0Thickness"]),
-			MapTabIndex = Route0TabIndex,
+			MapTabIndex = ROUTE0_TAB_INDEX,
 		};
 
 		private MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(App.Current.Resources["HistoryBrush"])).Color,
 			StrokeThickness = (double)(App.Current.Resources["HistoryThickness"]),
-			MapTabIndex = HistoryTabIndex,
+			MapTabIndex = HISTORY_TAB_INDEX,
 		};
 		//private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		//private static Image _imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -69,7 +69,7 @@ namespace LolloGPS.Core
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)),
-			MapTabIndex = StartStopTabIndex,
+			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
 		};
@@ -77,7 +77,7 @@ namespace LolloGPS.Core
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)),
-			MapTabIndex = StartStopTabIndex,
+			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
 		};
@@ -85,11 +85,11 @@ namespace LolloGPS.Core
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)),
-			MapTabIndex = StartStopTabIndex,
+			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = false,
 		};
-		RandomAccessStreamReference _landmarkIconStreamReference;
+		private RandomAccessStreamReference _landmarkIconStreamReference;
 		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		// this uses a new "simple" icon with only 4 bits, so it's much faster to draw
 		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark_simple-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -98,6 +98,8 @@ namespace LolloGPS.Core
 		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark-20.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		//private static List<Image> _landmarkImages = new List<Image>();
 
+		private readonly Point LANDMARKS_ANCHOR_POINT = new Point(0.5, 0.5);
+
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 		private LolloMap_VM _myVM = null;
@@ -105,7 +107,7 @@ namespace LolloGPS.Core
 		public Main_VM MyMainVM { get { return Main_VM.GetInstance(); } }
 
 		private static WeakReference _myMapInstance = null;
-		internal static MapControl GetMapControlInstance() // for the converter
+		internal static MapControl GetMapControlInstance() // for the converters
 		{
 			return _myMapInstance?.Target as MapControl;
 		}
@@ -129,16 +131,9 @@ namespace LolloGPS.Core
 			MyMap.PedestrianFeaturesVisible = true;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
 													  //MyMap.MapElements.Clear(); // no!
-													  //_mapTileManager = new MapTileManager(this);
 		}
-		/// <summary>
-		/// This is the only Activate that is async. It cannot take too long, it merely centers and zooms the map.
-		/// Otherwise, we don't want to hog the UI thread with our Activate() !!
-		/// </summary>
-		/// <returns></returns>
-		public async Task OpenAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
-			if (_isClosing) return;
 			try
 			{
 				MyMap.Style = MyPersistentData.MapStyle; // maniman
@@ -148,43 +143,30 @@ namespace LolloGPS.Core
 
 				InitMapElements();
 
-				if (_isClosing) return;
+				AddHandlers();
+
 				DrawHistory();
-				DrawRoute0();
+				// when resuming, skip drawing the series, which do not update in the background
+				if (!((App)Application.Current).IsResuming)
+				{
+					DrawRoute0();
+					DrawLandmarks();
+				}
 
-				if (_isClosing) return;
-				await DrawLandmarksAsync();
-				if (_isClosing) return;
-				AddHandlerThisEvents();
-
-				//Task dh = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
-				//{
-				//	DrawHistory();
-				//}).AsTask();
-				//Task dr = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
-				//{
-				//	DrawRoute0();
-				//}).AsTask();
-				//Task dl = Dispatcher.RunAsync(CoreDispatcherPriority.Low, delegate
-				//{
-				//	DrawLandmarks2Async();
-				//}).AsTask();
-				//Task add = Task.WhenAll(dh, dr, dl).ContinueWith(delegate { if (!_isClosing) AddHandlerThisEvents(); });
-
-				// Task addHandlers = Task.WhenAll(DrawHistoryAsync(), DrawRoute0Async(), DrawLandmarks2Async()).ContinueWith(delegate { if (!_isClosing) AddHandlerThisEvents(); });
+				Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 			}
 		}
-		public void Close()
+
+		protected override Task CloseMayOverrideAsync()
 		{
+			Logger.Add_TPL("LolloMap closing", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
 			{
-				_isClosing = true;
-
-				RemoveHandlerThisEvents();
+				RemoveHandlers();
 				// save last map settings
 				try
 				{
@@ -205,11 +187,75 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			finally
-			{
-				_isClosing = false;
-			}
+
+			return Task.CompletedTask;
 		}
+		///// <summary>
+		///// This is the only Activate that is async. It cannot take too long, it merely centers and zooms the map.
+		///// Otherwise, we don't want to hog the UI thread with our Activate() !!
+		///// </summary>
+		///// <returns></returns>
+		//public async Task OpenAsync()
+		//{
+		//	if (_isClosing) return;
+		//	try
+		//	{
+		//		MyMap.Style = MyPersistentData.MapStyle; // maniman
+		//		_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
+		//		await RestoreViewAsync();
+		//		_myVM.Open();
+
+		//		InitMapElements();
+
+		//		if (_isClosing) return;
+		//		DrawHistory();
+		//		DrawRoute0();
+
+		//		if (_isClosing) return;
+		//		await DrawLandmarksAsync();
+		//		if (_isClosing) return;
+		//		AddHandlerThisEvents();
+
+		//		Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info);
+
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+		//	}
+		//}
+		//public void Close()
+		//{
+		//	try
+		//	{
+		//		_isClosing = true;
+
+		//		RemoveHandlerThisEvents();
+		//		// save last map settings
+		//		try
+		//		{
+		//			MyPersistentData.MapLastLat = MyMap.Center.Position.Latitude;
+		//			MyPersistentData.MapLastLon = MyMap.Center.Position.Longitude;
+		//			MyPersistentData.MapLastHeading = MyMap.Heading;
+		//			MyPersistentData.MapLastPitch = MyMap.Pitch;
+		//			MyPersistentData.MapLastZoom = MyMap.ZoomLevel;
+		//		}
+		//		catch (Exception ex)
+		//		{
+		//			Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//		}
+		//		_myVM?.Close();
+		//		MyPointInfoPanel?.Close();
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//	finally
+		//	{
+		//		_isClosing = false;
+		//	}
+		//}
 		#endregion lifecycle
 
 
@@ -472,25 +518,46 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
-		private async Task DrawLandmarksAsync()
-		{
-			if (_isClosing) return;
 
-			try
+		//private SwitchableObservableCollection<Geopoint> _landmarkLocations = new SwitchableObservableCollection<Geopoint>();
+		//public SwitchableObservableCollection<Geopoint> LandmarkLocations { get { return _landmarkLocations; } }
+
+		//public async Task DrawLandmarksAsync()
+		//{
+		//	if (_isClosing) return;
+		//	Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info);
+
+		//	List<Geopoint> geoPoints = new List<Geopoint>();
+		//	try
+		//	{
+		//		foreach (var item in MyPersistentData.Landmarks)
+		//		{
+		//			geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
+		//		}
+		//	}
+		//	catch (OutOfMemoryException)
+		//	{
+		//		var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+		//	}
+		//	finally
+		//	{
+		//		if (!_isClosing)
+		//		{
+		//			_landmarkLocations.ReplaceRange(geoPoints);
+		//			Logger.Add_TPL("landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info);
+		//		}
+		//	}
+		//}
+		private void DrawLandmarks()
+		{
+			//if (_isClosing) return;
+			Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+			// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
+			if (!InitLandmarks())
 			{
-				await _initLandmarksSemaphore.WaitAsync();
-				{
-					if (!InitLandmarks()) // 1600 msec for 256 landmarks
-					{
-						Debug.WriteLine("No landmarks to be drawn, skipping");
-						return;
-					}
-				}
-				// make geopoints
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_initLandmarksSemaphore);
+				Debug.WriteLine("No landmarks to be drawn, skipping");
+				return;
 			}
 
 #if DEBUG
@@ -499,7 +566,7 @@ namespace LolloGPS.Core
 
 			try
 			{
-				if (_isClosing) return;
+				//if (_isClosing) return;
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
@@ -516,13 +583,13 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
-				if (_isClosing) return;
+				//if (_isClosing) return;
 				try
 				{
 					int j = 0;
 					for (int i = 0; i < geoPoints.Count; i++)
 					{
-						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LandmarkTabIndex))
+						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LANDMARK_TAB_INDEX))
 						{
 							j++; // MapElement is not a landmark: skip to the next element
 						}
@@ -532,16 +599,17 @@ namespace LolloGPS.Core
 						MyMap.MapElements[j].Visible = true; // set it last, in the attempt of getting a little more speed
 						j++;
 					}
-					if (_isClosing) return;
+					//if (_isClosing) return;
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
-						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LandmarkTabIndex))
+						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LANDMARK_TAB_INDEX))
 						{
 							j++; // MapElement is not a landmark: skip to the next element
 						}
 						MyMap.MapElements[j].Visible = false;
 						j++;
 					}
+					Logger.Add_TPL(geoPoints.Count.ToString() + " landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 				catch (OutOfMemoryException)
 				{
@@ -573,8 +641,8 @@ namespace LolloGPS.Core
 						CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 						Image = _landmarkIconStreamReference,
 						// Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute)),
-						MapTabIndex = LandmarkTabIndex,
-						NormalizedAnchorPoint = new Point(0.5, 0.5),
+						MapTabIndex = LANDMARK_TAB_INDEX,
+						NormalizedAnchorPoint = LANDMARKS_ANCHOR_POINT, // new Point(0.5, 0.5),
 						Visible = false
 					};
 
@@ -651,17 +719,17 @@ namespace LolloGPS.Core
 		}
 		private static void AdjustMinMaxLatLon(ref double minLat, ref double maxLat, ref double minLon, ref double maxLon)
 		{
-			if (minLat < MinLat) minLat = MinLat;
-			if (maxLat < MinLat) maxLat = MinLat;
-			if (minLat > MaxLat) minLat = MaxLat;
-			if (maxLat > MaxLat) maxLat = MaxLat;
+			if (minLat < MIN_LAT) minLat = MIN_LAT;
+			if (maxLat < MIN_LAT) maxLat = MIN_LAT;
+			if (minLat > MAX_LAT) minLat = MAX_LAT;
+			if (maxLat > MAX_LAT) maxLat = MAX_LAT;
 
 			if (minLat > maxLat) LolloMath.Swap(ref minLat, ref maxLat);
 
-			while (minLon < MinLon) minLon += 360.0;
-			while (maxLon < MinLon) maxLon += 360.0;
-			while (minLon > MaxLon) minLon -= 360.0;
-			while (maxLon > MaxLon) maxLon -= 360.0;
+			while (minLon < MIN_LON) minLon += 360.0;
+			while (maxLon < MIN_LON) maxLon += 360.0;
+			while (minLon > MAX_LON) minLon -= 360.0;
+			while (maxLon > MAX_LON) maxLon -= 360.0;
 
 			if (minLon > maxLon) LolloMath.Swap(ref minLon, ref maxLon);
 		}
@@ -679,82 +747,87 @@ namespace LolloGPS.Core
 		#region event handling
 		private void OnMap_Tapped(MapControl sender, MapInputEventArgs args)
 		{
-			try
+			Task resp = RunFunctionIfOpenAsyncA(delegate
 			{
-				double tappedScreenPointX = args.Position.X;
-				double tappedScreenPointY = args.Position.Y;
-
-				// pick up the four points delimiting a square centered on the display point that was tapped. Cull the square so it fits into the displayed area.
-				Point topLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
-				Point topRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
-				Point bottomLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
-				Point bottomRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
-
-				Geopoint topLeftGeoPoint = null;
-				Geopoint topRightGeoPoint = null;
-				Geopoint bottomLeftGeoPoint = null;
-				Geopoint bottomRightGeoPoint = null;
-
-				// pick up the geographic coordinates of those points
-				MyMap.GetLocationFromOffset(topLeftPoint, out topLeftGeoPoint);
-				MyMap.GetLocationFromOffset(topRightPoint, out topRightGeoPoint);
-				MyMap.GetLocationFromOffset(bottomLeftPoint, out bottomLeftGeoPoint);
-				MyMap.GetLocationFromOffset(bottomRightPoint, out bottomRightGeoPoint);
-
-				// work out the maxes and mins, so you can ignore rotation, pitch etc
-				double minLat = Math.Min(bottomRightGeoPoint.Position.Latitude, Math.Min(bottomLeftGeoPoint.Position.Latitude, Math.Min(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
-				double maxLat = Math.Max(bottomRightGeoPoint.Position.Latitude, Math.Max(bottomLeftGeoPoint.Position.Latitude, Math.Max(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
-				double minLon = Math.Min(bottomRightGeoPoint.Position.Longitude, Math.Min(bottomLeftGeoPoint.Position.Longitude, Math.Min(topLeftGeoPoint.Position.Longitude, topRightGeoPoint.Position.Longitude)));
-				double maxLon = Math.Max(bottomRightGeoPoint.Position.Longitude, Math.Max(bottomLeftGeoPoint.Position.Longitude, Math.Max(topLeftGeoPoint.Position.Longitude, topRightGeoPoint.Position.Longitude)));
-
-				//if a point falls within the square, show its details
-				List<PointRecord> selectedRecords = new List<PointRecord>();
-				List<PersistentData.Tables> selectedSeriess = new List<PersistentData.Tables>();
-				foreach (var item in MyPersistentData.History)
+				try
 				{
-					if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
+					double tappedScreenPointX = args.Position.X;
+					double tappedScreenPointY = args.Position.Y;
+
+					// pick up the four points delimiting a square centered on the display point that was tapped. Cull the square so it fits into the displayed area.
+					Point topLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
+					Point topRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
+					Point bottomLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
+					Point bottomRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
+
+					Geopoint topLeftGeoPoint = null;
+					Geopoint topRightGeoPoint = null;
+					Geopoint bottomLeftGeoPoint = null;
+					Geopoint bottomRightGeoPoint = null;
+
+					// pick up the geographic coordinates of those points
+					MyMap.GetLocationFromOffset(topLeftPoint, out topLeftGeoPoint);
+					MyMap.GetLocationFromOffset(topRightPoint, out topRightGeoPoint);
+					MyMap.GetLocationFromOffset(bottomLeftPoint, out bottomLeftGeoPoint);
+					MyMap.GetLocationFromOffset(bottomRightPoint, out bottomRightGeoPoint);
+
+					// work out the maxes and mins, so you can ignore rotation, pitch etc
+					double minLat = Math.Min(bottomRightGeoPoint.Position.Latitude, Math.Min(bottomLeftGeoPoint.Position.Latitude, Math.Min(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
+					double maxLat = Math.Max(bottomRightGeoPoint.Position.Latitude, Math.Max(bottomLeftGeoPoint.Position.Latitude, Math.Max(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
+					double minLon = Math.Min(bottomRightGeoPoint.Position.Longitude, Math.Min(bottomLeftGeoPoint.Position.Longitude, Math.Min(topLeftGeoPoint.Position.Longitude, topRightGeoPoint.Position.Longitude)));
+					double maxLon = Math.Max(bottomRightGeoPoint.Position.Longitude, Math.Max(bottomLeftGeoPoint.Position.Longitude, Math.Max(topLeftGeoPoint.Position.Longitude, topRightGeoPoint.Position.Longitude)));
+
+					//if a point falls within the square, show its details
+					List<PointRecord> selectedRecords = new List<PointRecord>();
+					List<PersistentData.Tables> selectedSeriess = new List<PersistentData.Tables>();
+					foreach (var item in MyPersistentData.History)
 					{
-						selectedRecords.Add(item);
-						selectedSeriess.Add(PersistentData.Tables.History);
-						break; // max 1 record each series
+						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
+						{
+							selectedRecords.Add(item);
+							selectedSeriess.Add(PersistentData.Tables.History);
+							break; // max 1 record each series
+						}
+					}
+					foreach (var item in MyPersistentData.Route0)
+					{
+						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
+						{
+							selectedRecords.Add(item);
+							selectedSeriess.Add(PersistentData.Tables.Route0);
+							break; // max 1 record each series
+						}
+					}
+					foreach (var item in MyPersistentData.Landmarks)
+					{
+						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
+						{
+							selectedRecords.Add(item);
+							selectedSeriess.Add(PersistentData.Tables.Landmarks);
+							break; // max 1 record each series
+						}
+					}
+					if (selectedRecords.Count > 0)
+					{
+						Task vibrate = Task.Run(() => App.ShortVibration());
+						MyPointInfoPanel.SetDetails(selectedRecords, selectedSeriess);
+						// SelectedPointFlyout.ShowAt(MyMap);
+						SelectedPointPopup.IsOpen = true;
 					}
 				}
-				foreach (var item in MyPersistentData.Route0)
+				catch (Exception ex) // there may be errors if I tap in an awkward place, such as the arctic
 				{
-					if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
-					{
-						selectedRecords.Add(item);
-						selectedSeriess.Add(PersistentData.Tables.Route0);
-						break; // max 1 record each series
-					}
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 				}
-				foreach (var item in MyPersistentData.Landmarks)
-				{
-					if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
-					{
-						selectedRecords.Add(item);
-						selectedSeriess.Add(PersistentData.Tables.Landmarks);
-						break; // max 1 record each series
-					}
-				}
-				if (selectedRecords.Count > 0)
-				{
-					Task vibrate = Task.Run(() => App.ShortVibration());
-					MyPointInfoPanel.SetDetails(selectedRecords, selectedSeriess);
-					// SelectedPointFlyout.ShowAt(MyMap);
-					SelectedPointPopup.IsOpen = true;
-				}
-			}
-			catch (Exception ex) // there may be errors if I tap in an awkward place, such as the arctic
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-
+			});
 		}
 		private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
 		{
-			Task vibrate = Task.Run(() => App.ShortVibration());
-			Task cen = CentreOnCurrentAsync();
+			Task resp = RunFunctionIfOpenAsyncA(delegate
+			{
+				Task vibrate = Task.Run(() => App.ShortVibration());
+				Task cen = CentreOnCurrentAsync();
+			});
 		}
 
 		private async void OnInfoPanelPointChanged(object sender, EventArgs e)
@@ -786,25 +859,31 @@ namespace LolloGPS.Core
 			MyPersistentData.IsShowAim = false;
 		}
 
-		private async void OnProvider_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
+		private void OnProvider_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
-			try
+			Task edge = RunFunctionIfOpenAsyncT(async delegate
 			{
-				if (!string.IsNullOrWhiteSpace(MyPersistentData.CurrentTileSource.ProviderUriString) && MyRuntimeData.IsConnectionAvailable)
+				try
 				{
-					await Launcher.LaunchUriAsync(new Uri(MyPersistentData.CurrentTileSource.ProviderUriString, UriKind.Absolute));
+					if (!string.IsNullOrWhiteSpace(MyPersistentData.CurrentTileSource.ProviderUriString) && MyRuntimeData.IsConnectionAvailable)
+					{
+						await Launcher.LaunchUriAsync(new Uri(MyPersistentData.CurrentTileSource.ProviderUriString, UriKind.Absolute));
+					}
 				}
-			}
-			catch (Exception) { }
+				catch (Exception) { }
+			});
 		}
 
 		protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
 		{
-			if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
+			Task back = RunFunctionIfOpenAsyncA(delegate
 			{
-				if (e != null) e.Handled = true;
-				SelectedPointPopup.IsOpen = false;
-			}
+				if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
+				{
+					if (e != null) e.Handled = true;
+					SelectedPointPopup.IsOpen = false;
+				}
+			});
 		}
 
 		private void OnInfoPanelClosed(object sender, object e)
@@ -839,26 +918,50 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			Task draw1 = RunInUiThreadAsync(delegate
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
 			{
-				Task draw2 = DrawLandmarksAsync();
-			});
+				Task draw = RunFunctionIfOpenAsyncT(delegate
+				{
+					return RunInUiThreadAsync(delegate
+					{
+						DrawHistory();
+					});
+				});
+			}
 		}
 
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			DrawRoute0();
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+			{
+				Task draw = RunFunctionIfOpenAsyncT(delegate
+				{
+					return RunInUiThreadAsync(delegate
+					{
+						DrawRoute0();
+					});
+				});
+			}
 		}
 
-		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			DrawHistory();
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+			{
+				Task draw = RunFunctionIfOpenAsyncT(delegate
+				{
+					return RunInUiThreadAsync(delegate
+					{
+						DrawLandmarks();
+					});
+				});
+			}
 		}
 
 		private bool _isHandlerActive = false;
-		private void AddHandlerThisEvents()
+		private void AddHandlers()
 		{
 			if (MyPersistentData != null && !_isHandlerActive)
 			{
@@ -871,7 +974,7 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void RemoveHandlerThisEvents()
+		private void RemoveHandlers()
 		{
 			if (MyPersistentData != null)
 			{

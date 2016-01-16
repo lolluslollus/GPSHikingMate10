@@ -44,7 +44,7 @@
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterHistory_Click"                                    
-			Icon="Go"
+			Icon="View"
 			IsEnabled="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<AppBarButton Grid.Row="1" Grid.Column="2"
 			HorizontalAlignment="Center"
@@ -90,7 +90,7 @@
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterRoute_Click" 
-			Icon="Go"
+			Icon="View"
 			IsEnabled="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<AppBarButton Grid.Row="4" Grid.Column="2"
 			HorizontalAlignment="Center"
@@ -139,7 +139,7 @@
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterLandmarks_Click" 
-			Icon="Go"
+			Icon="View"
 			IsEnabled="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<AppBarButton Grid.Row="7" Grid.Column="2"
 			HorizontalAlignment="Center"

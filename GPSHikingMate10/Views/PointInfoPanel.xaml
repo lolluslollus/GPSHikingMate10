@@ -106,22 +106,22 @@
 				</utilz:UniversalWrapPanel>
 				<!-- point navigation -->
 				<utilz:UniversalWrapPanel Orientation="Horizontal">
-					<AppBarButton x:Name="DeletePointButton"
-                          Click="OnDeletePoint_Click"
-                          Icon="Delete"
-                          IsCompact="True"                          
-                          Style="{StaticResource AppBarButtonRecoloured}"/>
-					<AppBarButton x:Name="GotoPreviousButton"
+					<AppBarButton
                           Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
                           Icon="Previous"
                           IsCompact="True"
                           IsEnabled="{Binding ElementName=me, Path=IsGotoPreviousEnabled}"
                           Style="{StaticResource AppBarButtonRecoloured}"/>
-					<AppBarButton x:Name="GotoNextButton"
+					<AppBarButton
                           Click="OnGotoNext_Click" DoubleTapped="OnGoto100Next_Click" Holding="OnGotoNextButton_Holding" 
                           Icon="Next"
                           IsCompact="True"
                           IsEnabled="{Binding ElementName=me, Path=IsGotoNextEnabled}"
+                          Style="{StaticResource AppBarButtonRecoloured}"/>
+					<AppBarButton
+                          Click="OnDeletePoint_Click"
+                          Icon="Delete"
+                          IsCompact="True"                          
                           Style="{StaticResource AppBarButtonRecoloured}"/>
 				</utilz:UniversalWrapPanel>
 				<!-- data -->
@@ -154,11 +154,15 @@
 
 				<utilz:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
-					<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+					<TextBlock HorizontalAlignment="Left"
+						TextWrapping="Wrap"
+						Style="{StaticResource BaseMessageStyle}"
 						Text="Link to media: "/>
-					<HyperlinkButton HorizontalAlignment="Left" NavigateUri="{Binding Selected.HyperLink}">
+					<HyperlinkButton HorizontalAlignment="Left"
+						NavigateUri="{Binding Selected.HyperLink}" Padding="0">
 						<HyperlinkButton.Content>
-							<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" >
+							<TextBlock TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}">
                                 <Underline>
                                     <Run Text="{Binding Selected.HyperLinkText, Converter={StaticResource HyperLinkLabelConverter}}"/>
                                 </Underline>

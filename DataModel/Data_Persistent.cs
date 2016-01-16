@@ -46,9 +46,9 @@ namespace LolloGPS.Data
 		private const int MaxLandmarks1 = 100;
 		private const int MaxLandmarks2 = 200;
 		private const int MaxLandmarks3 = 500;
-		private const int MaxLandmarks4 = 1000; //3125 is too high;
-		private const int MaxLandmarks5 = 2000; //15625 is too high;
-		public static readonly int MaxRecordsInLandmarks = MaxLandmarks5;
+		private const int MaxLandmarks4 = 1000;
+
+		public static readonly int MaxRecordsInLandmarks = MaxLandmarks4;
 
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
@@ -231,8 +231,7 @@ namespace LolloGPS.Data
 			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = MaxLandmarks1;
 			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = MaxLandmarks2;
 			else if (memUsageLimit < 4e+9) MaxRecordsInLandmarks = MaxLandmarks3;
-			else if (memUsageLimit < 8e+9) MaxRecordsInLandmarks = MaxLandmarks4;
-			else MaxRecordsInLandmarks = MaxLandmarks5;
+			else MaxRecordsInLandmarks = MaxLandmarks4;
 			//Logger.Add_TPL("MaxRecordsInLandmarks = " + MaxRecordsInLandmarks, Logger.ForegroundLogFilename, Logger.Severity.Info);
 		}
 		private PersistentData()
@@ -699,14 +698,14 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					_history.Clear();
+					//_history.Clear();
 
-					if (dataRecords != null)
-					{
+					//if (dataRecords != null)
+					//{
 						try
 						{
 							if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
-							_history.AddRange(dataRecords.Where(a => !a.IsEmpty()));
+							_history.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
 						}
 						catch (IndexOutOfRangeException)
 						{
@@ -718,7 +717,7 @@ namespace LolloGPS.Data
 							LastMessage = "Only part of the history is drawn";
 							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetHistory()", Logger.PersistentDataLogFilename);
 						}
-					}
+					//}
 
 					SetCurrentToLast();
 				}).ConfigureAwait(false);
@@ -866,14 +865,14 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					_route0.Clear();
+					//_route0.Clear();
 
-					if (dataRecords != null)
-					{
+					//if (dataRecords != null)
+					//{
 						try
 						{
 							if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
-							_route0.AddRange(dataRecords.Where(a => !a.IsEmpty()));
+							_route0.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
 						}
 						catch (IndexOutOfRangeException)
 						{
@@ -885,7 +884,7 @@ namespace LolloGPS.Data
 							LastMessage = "Only part of the route is drawn";
 							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetRoute0()", Logger.PersistentDataLogFilename);
 						}
-					}
+					//}
 				}).ConfigureAwait(false);
 			}
 			catch (Exception exc0)
@@ -931,14 +930,14 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					_landmarks.Clear();
+					// _landmarks.Clear();
 
-					if (dataRecords != null)
-					{
+					//if (dataRecords != null)
+					//{
 						try
 						{
 							if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
-							_landmarks.AddRange(dataRecords.Where(a => !a.IsEmpty()));
+							_landmarks.ReplaceRange(dataRecords?.Where(rec => !rec.IsEmpty()));
 						}
 						catch (IndexOutOfRangeException)
 						{
@@ -950,7 +949,11 @@ namespace LolloGPS.Data
 							LastMessage = "Only some landmarks are drawn";
 							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
 						}
+					catch(Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					}
+					//}
 				}).ConfigureAwait(false);
 			}
 			catch (Exception exc0)
