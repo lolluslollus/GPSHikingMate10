@@ -483,11 +483,16 @@ namespace LolloGPS.Core
 
 		public Task CentreOnTargetAsync()
 		{
-			return Task.CompletedTask; // to respect the form of the output and interface
+			return Task.CompletedTask; // altitude profiles has no target
 		}
 
 		public Task Goto2DAsync()
 		{
+			try
+			{
+				MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
+			}
+			catch { }
 			return Task.CompletedTask; // to respect the form of the output and interface
 		}
 		#endregion IMapApController

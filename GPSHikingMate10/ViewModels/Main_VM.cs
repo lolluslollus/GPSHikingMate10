@@ -448,7 +448,7 @@ namespace LolloGPS.Core
 		public Task Goto2DAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			// _myAltitudeProfiles_VM.Goto2D(); // useless, just here to respect interface IMapApController
+			Task alt = _myAltitudeProfiles_VM?.Goto2DAsync();
 			return _myLolloMap_VM?.Goto2DAsync();
 		}
 		#endregion IMapApController
