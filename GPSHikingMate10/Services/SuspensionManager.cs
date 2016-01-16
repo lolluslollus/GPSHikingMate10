@@ -89,6 +89,13 @@ namespace LolloGPS.Suspension
 					Debug.WriteLine("ended reading non-tabular data");
 				}
 			}
+			catch (System.Xml.XmlException ex)
+			{
+				errorMessage = "could not restore the settings, starting afresh";
+				PersistentData.GetInstance().LastMessage = errorMessage;
+				readDataFromDb = true; // try not to lose the series at least
+				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
+			}
 			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
 								 // better quit then. But what if it happens again?
 								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
@@ -96,7 +103,7 @@ namespace LolloGPS.Suspension
 			{
 				errorMessage = "could not restore the settings, starting afresh";
 				PersistentData.GetInstance().LastMessage = errorMessage;
-				readDataFromDb = true;
+				readDataFromDb = true; // try not to lose the series at least
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
