@@ -169,6 +169,7 @@
 					IsLightDismissEnabled="True" 
 					Closed="OnInfoPanelClosed"
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
 						DataContext="{Binding}"
 						PointChanged="OnInfoPanelPointChanged"/>

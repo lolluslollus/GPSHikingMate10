@@ -204,6 +204,7 @@ namespace LolloGPS.Data
 				target.IsShowingPivot = source.IsShowingPivot;
 				target.IsBackButtonEnabled = source.IsBackButtonEnabled;
 				target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
+				target.AltLastVScroll = source.AltLastVScroll;
 
 				TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
 				target.RaisePropertyChanged(nameof(TestTileSource));
@@ -545,6 +546,10 @@ namespace LolloGPS.Data
 		private TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
 		[DataMember]
 		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged(); } } }
+
+		private double _altLastScroll = 0.0;
+		[DataMember]
+		public double AltLastVScroll { get { return _altLastScroll; } set { _altLastScroll = value; RaisePropertyChanged(); } }
 		#endregion properties
 
 		#region all series methods

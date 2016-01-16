@@ -29,7 +29,6 @@ namespace LolloGPS.Core
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
 		private CancellationTokenSource _cts = null;
-		//static SemaphoreSlimSafeRelease _semaphore = null;
 		#endregion properties
 
 
@@ -44,13 +43,24 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				//if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
 				HistoryChart.Open();
 				Route0Chart.Open();
 				LandmarksChart.Open();
 
 				AddHandlers();
 				UpdateCharts();
+
+				if (!((App)Application.Current).IsResuming)
+				{
+					Task centre = RunInUiThreadAsync(delegate
+					{
+						try
+						{
+							MyScrollViewer.ChangeView(0.0, MyPersistentData.AltLastVScroll, 1, true);
+						}
+						catch { }
+					});
+				}
 			}
 			catch (Exception ex)
 			{
@@ -64,10 +74,13 @@ namespace LolloGPS.Core
 			try
 			{
 				RemoveHandlers();
+
+				MyPersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
+
 				HistoryChart.Close();
 				Route0Chart.Close();
 				LandmarksChart.Close();
-				//MyPointInfoPanel?.Close();
+
 				CancelPendingTasks(); // after removing the handlers
 			}
 			catch (Exception ex)
@@ -77,44 +90,12 @@ namespace LolloGPS.Core
 
 			return Task.CompletedTask;
 		}
-		//public void Open()
-		//{
-		//	try
-		//	{
-		//		if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//		HistoryChart.Open();
-		//		Route0Chart.Open();
-		//		LandmarksChart.Open();
-		//		UpdateCharts();
-		//		AddHandlers();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//}
-		//public void Close()
-		//{
-		//	try
-		//	{
-		//		RemoveHandlers();
-		//		HistoryChart.Deactivate();
-		//		Route0Chart.Deactivate();
-		//		LandmarksChart.Deactivate();
-		//		MyPointInfoPanel.Close();
-		//		CancelPendingTasks(); // after removing the handlers
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//}
+
 		private void CancelPendingTasks()
 		{
 			_cts?.Cancel();
 			//_cts.Dispose(); This is done in the exception handler that catches the OperationCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
 			//_cts = null;
-			//SemaphoreSlimSafeRelease.TryDispose(_semaphore);
 		}
 		#endregion lifecycle
 
@@ -218,10 +199,6 @@ namespace LolloGPS.Core
 							break;
 					}
 				}
-				//else
-				//{
-				//	SelectedPointPopup.IsOpen = false;
-				//}
 			}
 			catch (Exception ex)
 			{
@@ -229,20 +206,6 @@ namespace LolloGPS.Core
 			}
 		}
 
-		//protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
-		//{
-		//	if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
-		//	{
-		//		if (e != null) e.Handled = true;
-		//		SelectedPointPopup.IsOpen = false;
-		//		//BackKeyPressed?.Invoke(this, EventArgs.Empty);
-		//		//RaiseBackKeyPressed();
-		//	}
-		//}
-		//private void OnBackKeyPressed(object sender, EventArgs e)
-		//{
-		//    SelectedPointPopup.IsOpen = false;
-		//}
 		public void OnInfoPanelClosed(object sender, object e)
 		{
 			try
@@ -291,8 +254,6 @@ namespace LolloGPS.Core
 				if (e.XMax * MyPersistentData.History.Count > 0)
 				{
 					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History));
-					//MyPointInfoPanel.SetDetails(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History);
-					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -307,8 +268,6 @@ namespace LolloGPS.Core
 				if (e.X / e.XMax * MyPersistentData.Route0.Count > 0)
 				{
 					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0));
-					//MyPointInfoPanel.SetDetails(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0);
-					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -323,8 +282,6 @@ namespace LolloGPS.Core
 				if (e.X / e.XMax * MyPersistentData.Landmarks.Count > 0)
 				{
 					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks));
-					//MyPointInfoPanel.SetDetails(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks);
-					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -390,7 +347,6 @@ namespace LolloGPS.Core
 			{
 				_cts?.Dispose();
 				_cts = null;
-				//SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 			}
 		}
 

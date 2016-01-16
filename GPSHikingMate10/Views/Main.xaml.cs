@@ -86,12 +86,8 @@ namespace LolloGPS.Core
 				}
 
 				MyPointInfoPanel.Close();
-
 				await MyLolloMap.CloseAsync();
-				// MyLolloMap?.Close();
-
 				await MyAltitudeProfiles.CloseAsync();
-				// MyAltitudeProfiles?.Close();
 
 				//_owner.Storyboard_NewMessage.SkipToFill();
 
