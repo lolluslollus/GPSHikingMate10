@@ -3,6 +3,7 @@ using LolloChartMobile;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
@@ -18,8 +19,9 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController
+	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController, IInfoPanelEventReceiver
 	{
+		#region properties
 		private AltitudeProfiles_VM _myVM = null;
 		public AltitudeProfiles_VM MyVM { get { return _myVM; } }
 
@@ -28,7 +30,10 @@ namespace LolloGPS.Core
 
 		private CancellationTokenSource _cts = null;
 		//static SemaphoreSlimSafeRelease _semaphore = null;
+		#endregion properties
 
+
+		#region lifecycle
 		public AltitudeProfiles()
 		{
 			InitializeComponent();
@@ -59,10 +64,10 @@ namespace LolloGPS.Core
 			try
 			{
 				RemoveHandlers();
-				HistoryChart.Deactivate();
-				Route0Chart.Deactivate();
-				LandmarksChart.Deactivate();
-				MyPointInfoPanel.Close();
+				HistoryChart.Close();
+				Route0Chart.Close();
+				LandmarksChart.Close();
+				//MyPointInfoPanel?.Close();
 				CancelPendingTasks(); // after removing the handlers
 			}
 			catch (Exception ex)
@@ -111,7 +116,10 @@ namespace LolloGPS.Core
 			//_cts = null;
 			//SemaphoreSlimSafeRelease.TryDispose(_semaphore);
 		}
+		#endregion lifecycle
 
+
+		#region data event handlers
 		private bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
@@ -182,24 +190,17 @@ namespace LolloGPS.Core
 				});
 			}
 		}
-		private void UpdateCharts()
-		{
-			if (MyPersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
-			{
-				Task drawH = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true));
-				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
-				{
-					Task drawR = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
-					Task drawL = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
-				}
-			}
-		}
-		private void OnInfoPanelPointChanged(object sender, EventArgs e)
+		#endregion data event handlers
+
+
+		#region user event handlers
+		public void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
 			try
 			{
 				if (MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 				{
+					Task centre = CentreOnSeriesAsync(MyPersistentData.SelectedSeries);
 					switch (MyPersistentData.SelectedSeries)
 					{
 						case PersistentData.Tables.History:
@@ -217,10 +218,10 @@ namespace LolloGPS.Core
 							break;
 					}
 				}
-				else
-				{
-					SelectedPointPopup.IsOpen = false;
-				}
+				//else
+				//{
+				//	SelectedPointPopup.IsOpen = false;
+				//}
 			}
 			catch (Exception ex)
 			{
@@ -228,21 +229,21 @@ namespace LolloGPS.Core
 			}
 		}
 
-		protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
-		{
-			if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
-			{
-				if (e != null) e.Handled = true;
-				SelectedPointPopup.IsOpen = false;
-				//BackKeyPressed?.Invoke(this, EventArgs.Empty);
-				//RaiseBackKeyPressed();
-			}
-		}
+		//protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
+		//{
+		//	if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
+		//	{
+		//		if (e != null) e.Handled = true;
+		//		SelectedPointPopup.IsOpen = false;
+		//		//BackKeyPressed?.Invoke(this, EventArgs.Empty);
+		//		//RaiseBackKeyPressed();
+		//	}
+		//}
 		//private void OnBackKeyPressed(object sender, EventArgs e)
 		//{
 		//    SelectedPointPopup.IsOpen = false;
 		//}
-		private void OnInfoPanelClosed(object sender, object e)
+		public void OnInfoPanelClosed(object sender, object e)
 		{
 			try
 			{
@@ -269,14 +270,29 @@ namespace LolloGPS.Core
 			}
 		}
 
+		public event EventHandler<ShowOnePointDetailsRequestedArgs> ShowOnePointDetailsRequested;
+		public class ShowOnePointDetailsRequestedArgs : EventArgs
+		{
+			private PointRecord _selectedRecord;
+			public PointRecord SelectedRecord { get { return _selectedRecord; } }
+			private PersistentData.Tables _selectedSeries;
+			public PersistentData.Tables SelectedSeries { get { return _selectedSeries; } }
+			public ShowOnePointDetailsRequestedArgs(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
+			{
+				_selectedRecord = selectedRecord;
+				_selectedSeries = selectedSeries;
+			}
+		}
+
 		private void OnHistoryChartTapped(object sender, LolloChart.ChartTappedArguments e)
 		{
 			try
 			{
 				if (e.XMax * MyPersistentData.History.Count > 0)
 				{
-					MyPointInfoPanel.SetDetails(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History);
-					SelectedPointPopup.IsOpen = true;
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History));
+					//MyPointInfoPanel.SetDetails(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History);
+					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -290,8 +306,9 @@ namespace LolloGPS.Core
 			{
 				if (e.X / e.XMax * MyPersistentData.Route0.Count > 0)
 				{
-					MyPointInfoPanel.SetDetails(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0);
-					SelectedPointPopup.IsOpen = true;
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0));
+					//MyPointInfoPanel.SetDetails(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0);
+					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -305,13 +322,30 @@ namespace LolloGPS.Core
 			{
 				if (e.X / e.XMax * MyPersistentData.Landmarks.Count > 0)
 				{
-					MyPointInfoPanel.SetDetails(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks);
-					SelectedPointPopup.IsOpen = true;
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks));
+					//MyPointInfoPanel.SetDetails(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks);
+					//SelectedPointPopup.IsOpen = true;
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+		}
+		#endregion user event handlers
+
+
+		#region services
+		private void UpdateCharts()
+		{
+			if (MyPersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
+			{
+				Task drawH = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true));
+				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
+				{
+					Task drawR = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
+					Task drawL = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
+				}
 			}
 		}
 
@@ -419,6 +453,9 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
+		#endregion services
+
+
 		#region IMapApController
 		public Task CentreOnHistoryAsync()
 		{
@@ -438,6 +475,7 @@ namespace LolloGPS.Core
 			}
 			return Task.CompletedTask; // to respect the form of the output
 		}
+
 		public Task CentreOnRoute0Async()
 		{
 			try
@@ -457,6 +495,7 @@ namespace LolloGPS.Core
 			}
 			return Task.CompletedTask; // to respect the form of the output
 		}
+
 		public Task CentreOnLandmarksAsync()
 		{
 			try
@@ -477,10 +516,20 @@ namespace LolloGPS.Core
 			}
 			return Task.CompletedTask; // to respect the form of the output
 		}
+
+		public Task CentreOnSeriesAsync(PersistentData.Tables series)
+		{
+			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
+			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
+			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else return Task.CompletedTask;
+		}
+
 		public Task CentreOnTargetAsync()
 		{
 			return Task.CompletedTask; // to respect the form of the output and interface
 		}
+
 		public Task Goto2DAsync()
 		{
 			return Task.CompletedTask; // to respect the form of the output and interface

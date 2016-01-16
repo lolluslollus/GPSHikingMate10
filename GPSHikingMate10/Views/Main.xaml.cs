@@ -1,15 +1,12 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
 using LolloGPS.Data.Files;
 using LolloGPS.Data.Runtime;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Phone.UI.Input;
-using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -17,7 +14,7 @@ using Windows.UI.Xaml.Navigation;
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 namespace LolloGPS.Core
 {
-	public sealed partial class Main : ObservablePage
+	public sealed partial class Main : ObservablePage, IInfoPanelEventReceiver
 	{
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -53,7 +50,6 @@ namespace LolloGPS.Core
 
 				await MyLolloMap.OpenAsync();
 				await MyAltitudeProfiles.OpenAsync();
-				// MyAltitudeProfiles.Open();
 				AddHandlers();
 
 				_isOpen = true;
@@ -88,17 +84,13 @@ namespace LolloGPS.Core
 				{
 					await vm.CloseAsync();
 				}
-				var myLolloMap = MyLolloMap;
-				if (myLolloMap != null)
-				{
-					await myLolloMap.CloseAsync();
-				}
+
+				MyPointInfoPanel.Close();
+
+				await MyLolloMap.CloseAsync();
 				// MyLolloMap?.Close();
-				var myAltProf = MyAltitudeProfiles;
-				if (myAltProf != null)
-				{
-					await myAltProf.CloseAsync();
-				}
+
+				await MyAltitudeProfiles.CloseAsync();
 				// MyAltitudeProfiles?.Close();
 
 				//_owner.Storyboard_NewMessage.SkipToFill();
@@ -137,14 +129,20 @@ namespace LolloGPS.Core
 			Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 			_isDataChangedHandlerActive = false;
 		}
+
+		private void OnBack_Click(object sender, RoutedEventArgs e)
+		{
+			_myVM?.GoBackMyButtonSoft();
+		}
+
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
-			_myVM.GoBackHard(sender, e);
+			_myVM?.GoBackHard(sender, e);
 		}
 
 		private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
 		{
-			_myVM.GoBackTabletSoft(sender, e);
+			_myVM?.GoBackTabletSoft(sender, e);
 		}
 
 		private DispatcherTimerPlus _animationTimer = null;
@@ -176,6 +174,11 @@ namespace LolloGPS.Core
 					}
 				}
 			}
+			else if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
+			{
+				if (!MyPersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
+				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+			}
 		}
 		private void SetShowForAWhileOnly()
 		{
@@ -202,33 +205,6 @@ namespace LolloGPS.Core
 			_myVM.GetAFix();
 		}
 
-		//private async void OnClearHistory_Click(object sender, RoutedEventArgs e)
-		//{
-		//	//raise confirmation popup
-		//	var dialog = new Windows.UI.Popups.MessageDialog("This will delete all the data. Are you sure?", "Confirm deletion");
-		//	UICommand yesCommand = new UICommand("Yes", (command) => { });
-		//	UICommand noCommand = new UICommand("No", (command) => { });
-		//	dialog.Commands.Add(yesCommand);
-		//	dialog.Commands.Add(noCommand);
-		//	// Set the command that will be invoked by default
-		//	dialog.DefaultCommandIndex = 1;
-		//	// Show the message dialog
-		//	IUICommand reply = await dialog.ShowAsync().AsTask();
-		//	if (reply == yesCommand) { Task res = MyPersistentData.ResetHistoryAsync(); }
-		//}
-
-		//private void OnCenterRoute_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task cr = _myVM.CentreOnRoute0Async();
-		//}
-		//private void OnCenterHistory_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task ch = _myVM.CentreOnHistoryAsync();
-		//}
-		//private void OnCenterLandmarks_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task cl = _myVM.CentreOnLandmarksAsync();
-		//}
 		private void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
 		{
 			Task ct = _myVM.CentreOnTargetAsync();
@@ -237,41 +213,6 @@ namespace LolloGPS.Core
 		{
 			Task gt = _myVM.Goto2DAsync();
 		}
-
-		//private void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task lr = _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0);
-		//}
-
-		//private void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task sth = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
-		//}
-
-		//private void OnSaveRoute0_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task sr = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
-		//}
-
-		//private void OnClearRoute0_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task rr = MyPersistentData.ResetRoute0Async();
-		//}
-
-		//private void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task ll = _myVM.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks);
-		//}
-
-		//private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task cll = MyPersistentData.ResetLandmarksAsync();
-		//}
-
-		//private void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
-		//{
-		//	Task sl = _myVM.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks");
-		//}
 
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
 		{
@@ -344,11 +285,46 @@ namespace LolloGPS.Core
 		{
 			MyPersistentData.CycleMapStyle();
 		}
-
-		private void OnBack_Click(object sender, RoutedEventArgs e)
-		{
-			_myVM.GoBackMyButtonSoft();
-		}
 		#endregion event handling
+
+
+		#region point info panel
+		public void OnInfoPanelPointChanged(object sender, EventArgs e)
+		{
+			if (MyPersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelPointChanged(sender, e);
+			MyLolloMap.OnInfoPanelPointChanged(sender, e);
+
+			try
+			{
+				if (!MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+				{
+					SelectedPointPopup.IsOpen = false;
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+		}
+
+		public void OnInfoPanelClosed(object sender, object e)
+		{
+			if (MyPersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelClosed(sender, e);
+			MyLolloMap.OnInfoPanelClosed(sender, e);
+		}
+
+		private void OnShowOnePointDetailsRequested(object sender, AltitudeProfiles.ShowOnePointDetailsRequestedArgs e)
+		{
+			Task centre = MyLolloMap.CentreOnSeriesAsync(e.SelectedSeries);
+			MyPointInfoPanel.SetDetails(e.SelectedRecord, e.SelectedSeries);
+			SelectedPointPopup.IsOpen = true;
+		}
+
+		private void OnShowManyPointDetailsRequested(object sender, LolloMap.ShowManyPointDetailsRequestedArgs e)
+		{
+			MyPointInfoPanel.SetDetails(e.SelectedRecords, e.SelectedSeriess);
+			SelectedPointPopup.IsOpen = true;
+		}
+		#endregion point info panel
 	}
 }

@@ -13,20 +13,20 @@
     mc:Ignorable="d"
     d:DesignHeight="600"
     d:DesignWidth="400">
+	<lollo:OrientationResponsiveUserControl.Resources>
+		<LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
+			<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
+			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
+			<!--<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.85"/>
+					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0.99"/>-->
+		</LinearGradientBrush>
+	</lollo:OrientationResponsiveUserControl.Resources>
 
 	<Grid Margin="{StaticResource Thickness0}">
 		<!-- choose a series to see the point details -->
 		<Grid x:Name="ChooseSeriesGrid" 
-                Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToVisibleConverter}}">
-			<Grid.Background>
-				<LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1" >
-					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
-					<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
-					<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.85"/>
-					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0.99"/>
-				</LinearGradientBrush>
-			</Grid.Background>
-
+            Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToVisibleConverter}}" 
+			Background="{StaticResource BackgroundBrush}">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -64,16 +64,9 @@
 		</Grid>
 		<!-- info grid -->
 		<ScrollViewer x:Name="InfoGrid"
-                Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToCollapsedConverter}}"
-				ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollMode="Enabled">
-			<ScrollViewer.Background>
-				<LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1" >
-					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
-					<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
-					<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.7"/>
-					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0.99"/>
-				</LinearGradientBrush>
-			</ScrollViewer.Background>
+            Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToCollapsedConverter}}"
+			ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollMode="Enabled"
+			Background="{StaticResource BackgroundBrush}">
 			<StackPanel Orientation="Vertical">
 				<!-- header -->
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 

@@ -24,8 +24,8 @@ namespace LolloBaseUserControls
             //_orientationSensor = SimpleOrientationSensor.GetDefault();
             //if (_orientationSensor != null) { _lastOrientation = _orientationSensor.GetCurrentOrientation(); }
             UseLayoutRounding = true;
-            Loaded += OnLoadedInternal;
-            Unloaded += OnUnloadedInternal;
+            Loaded += Open;
+            Unloaded += Close;
         }
 		//~OrientationResponsiveUserControl() // this fucks up
 		//{
@@ -42,14 +42,14 @@ namespace LolloBaseUserControls
 		private ApplicationView _appView = null;
         public ApplicationView AppView { get { return _appView; } }
 
-        private void OnLoadedInternal(object sender, RoutedEventArgs e)
+        private void Open(object sender, RoutedEventArgs e)
         {
             AddHandlers();
             OnVisibleBoundsChanged(_appView, null);
             OnLoaded();
         }
 
-        private void OnUnloadedInternal(object sender, RoutedEventArgs e)
+        private void Close(object sender, RoutedEventArgs e)
         {
             OnUnloaded();
             RemoveHandlers();
@@ -63,11 +63,11 @@ namespace LolloBaseUserControls
         {
             if (_isHandlersActive == false)
             {
-                if (_appView != null) _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
+				_isHandlersActive = true;
+				if (_appView != null) _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
                 //if (_orientationSensor != null) _orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
                 //if (_isHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareOrSoftwareButtons_BackPressed;
                 if (BackPressedRaiser != null) BackPressedRaiser.BackOrHardSoftKeyPressed += OnHardwareOrSoftwareButtons_BackPressed;
-                    _isHandlersActive = true;
             }
         }
 
@@ -79,75 +79,24 @@ namespace LolloBaseUserControls
             if (BackPressedRaiser != null) BackPressedRaiser.BackOrHardSoftKeyPressed -= OnHardwareOrSoftwareButtons_BackPressed;
             _isHandlersActive = false;
         }
-        #endregion common
+		#endregion common
 
-        #region goBack
-        //private static bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
 
-        /// <summary>
-        /// Gets or sets a value, which overrides the default device behaviour when the user presses the back hardware key.
-        /// </summary>
-        //public bool IsOverrideBackKeyPressed
-        //{
-        //    get { return (bool)GetValue(IsOverrideBackKeyPressedProperty); }
-        //    set { SetValue(IsOverrideBackKeyPressedProperty, value); }
-        //}
-        //public static readonly DependencyProperty IsOverrideBackKeyPressedProperty =
-        //    DependencyProperty.Register("IsOverrideBackKeyPressed", typeof(bool), typeof(OrientationResponsiveUserControl), new PropertyMetadata(false));
+		#region goBack
+		protected virtual void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e) { }
 
-        /// <summary>
-        /// Back key pressed
-        /// </summary>
-        //public event EventHandler BackKeyPressed;
-        //private void RaiseBackKeyPressed()
-        //{
-        //    var listener = BackKeyPressed;
-        //    if (listener != null)
-        //    {
-        //        listener(this, EventArgs.Empty);
-        //    }
-        //}
-        /// <summary>
-        /// Gets or sets the behaviour when the back key is pressed.
-        /// If true, do not respond to the event directly but raise BackKeyPressed instead.
-        /// If false, the framework will run its course.
-        /// </summary>
-        protected virtual void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
+        public IBackPressedRaiser BackPressedRaiser
         {
-            //if (IsOverrideBackKeyPressed && Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
-            //{
-            //    if (e != null) e.Handled = true;
-            //    //BackKeyPressed?.Invoke(this, EventArgs.Empty);
-            //    //RaiseBackKeyPressed();
-            //}
-        }
-
-        public BackPressedRaiser BackPressedRaiser
-        {
-            get { return (BackPressedRaiser)GetValue(BackPressedRaiserProperty); }
+            get { return (IBackPressedRaiser)GetValue(BackPressedRaiserProperty); }
             set { SetValue(BackPressedRaiserProperty, value); }
         }
         public static readonly DependencyProperty BackPressedRaiserProperty =
-            DependencyProperty.Register("BackPressedRaiser", typeof(BackPressedRaiser), typeof(OrientationResponsiveUserControl), new PropertyMetadata(null));
+            DependencyProperty.Register("BackPressedRaiser", typeof(IBackPressedRaiser), typeof(OrientationResponsiveUserControl), new PropertyMetadata(null));
         #endregion goBack
 
+
         #region rotation
-        protected virtual void OnVisibleBoundsChanged(ApplicationView sender, object args)
-        {
-            RaiseVisibleBoundsChanged(args);
-        }
-        /// <summary>
-        /// Raised when the orientation changes, only if rotation for the app is enabled
-        /// </summary>
-        public event TypedEventHandler<ApplicationView, object> VisibleBoundsChanged;
-        private void RaiseVisibleBoundsChanged(object args)
-        {
-            var listener = VisibleBoundsChanged;
-            if (listener != null)
-            {
-                listener(_appView, args);
-            }
-        }
+        protected virtual void OnVisibleBoundsChanged(ApplicationView sender, object args) { }
         #endregion rotation
 
         // the following works but we don't need it
@@ -195,7 +144,11 @@ namespace LolloBaseUserControls
         //#endregion sensor
     }
 
-    public interface BackPressedRaiser
+	/// <summary>
+	/// Only define one IBackPressedRaiser each page.
+	/// The controls within will take it as a dependency property and respond to its events.
+	/// </summary>
+	public interface IBackPressedRaiser
     {
         event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
     }

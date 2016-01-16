@@ -7,7 +7,6 @@
 	xmlns:listChooser="using:LolloListChooser"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:val="using:System.ComponentModel"
 	xmlns:customTriggers="using:Utilz"
 	xmlns:ctl="using:LolloBaseUserControls"
 	mc:Ignorable="d"
@@ -29,15 +28,25 @@
 				<VisualState>
 					<VisualState.StateTriggers>
 						<customTriggers:ProportionsTrigger TargetElement="{x:Bind LayoutRoot}"/>
-						<!--<customTriggers:ProportionsTrigger TargetElement="{x:Bind BottomButtonBar}"/>-->
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
 						<Setter Target="BottomButtonBar.Visibility" Value="Visible" />
 						<Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
 					</VisualState.Setters>
 				</VisualState>
+				<VisualState>
+					<VisualState.StateTriggers>
+						<AdaptiveTrigger MinWindowWidth="1201"/>
+					</VisualState.StateTriggers>
+					<VisualState.Setters>
+						<Setter Target="AltitudeColumn.Width" Value="1*"/>
+						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+						<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>
+					</VisualState.Setters>
+				</VisualState>
 			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
+		
 		<!-- loading overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
@@ -53,14 +62,14 @@
 				Style="{StaticResource HugeTextStyle}">
 			</TextBlock>
 		</Grid>
+		
 		<!-- Map, altitude and their overlays -->
 		<Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="*" />
-				<!--<RowDefinition x:Name="UserInfoGridRow" Height="Auto"/>-->
+				<RowDefinition Height="*"/>
 				<RowDefinition x:Name="UserInfoGridRow" Height="40"/>
 			</Grid.RowDefinitions>
-			<!-- download bar and icons for battery consuming features -->
+			<!-- map overlays -->
 			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100" >
 				<!-- download progress bar -->
 				<Grid Background="{ThemeResource SystemChromeBlackHighColor}"
@@ -116,12 +125,12 @@
 					</Button>
 				</Grid>
 				<!-- icons for battery consuming functions -->
-				<Grid Margin="0" Padding="0">
-					<Grid.ColumnDefinitions>
+				<StackPanel Margin="0" Padding="0" Orientation="Horizontal">
+					<!--<Grid.ColumnDefinitions>
 						<ColumnDefinition />
 						<ColumnDefinition />
 						<ColumnDefinition />
-					</Grid.ColumnDefinitions>
+					</Grid.ColumnDefinitions>-->
 					<AppBarButton Grid.Column="0"
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
@@ -146,18 +155,39 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Pin" Label="Keeping alive"/>
-				</Grid>
+				</StackPanel>
 			</StackPanel>
-			<!-- Map  -->
-			<!-- LOLLO NOTE Must never set visibility = Collapsed, even in code: use height = 0 instead, to avoid stupid catastrophic failure -->
-			<local:LolloMap Grid.Row="0" Canvas.ZIndex="0"
-						x:Name="MyLolloMap"/>
-			<!-- LOLLO TODO MAYBE try a split view to show map and altitude at the same time, on large screens only -->
-			<!-- Altitude profiles -->
-			<local:AltitudeProfiles Grid.Row="0" Canvas.ZIndex="200"
-				x:Name="MyAltitudeProfiles"            
-				Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"/>
-			<!-- Pivot -->
+
+			<Grid Grid.Row="0" Canvas.ZIndex="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="2*"/>
+					<ColumnDefinition Width="0" x:Name="AltitudeColumn"/>
+				</Grid.ColumnDefinitions>
+				<!-- point info panel -->
+				<Popup x:Name="SelectedPointPopup"
+					Grid.ColumnSpan="2"
+					IsLightDismissEnabled="True" 
+					Closed="OnInfoPanelClosed"
+					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
+					<local:PointInfoPanel x:Name="MyPointInfoPanel"
+						DataContext="{Binding}"
+						PointChanged="OnInfoPanelPointChanged"/>
+				</Popup>
+				<!-- Map  -->
+				<!-- LOLLO NOTE Must never set visibility = Collapsed on a map control or its owner, 
+				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
+				<local:LolloMap Canvas.ZIndex="0"
+					x:Name="MyLolloMap"
+					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
+				<!-- Altitude profiles -->
+				<local:AltitudeProfiles Canvas.ZIndex="200"
+					Grid.Column="0"
+					x:Name="MyAltitudeProfiles"
+					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
+					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
+			</Grid>
+			
+			<!-- Menu pivot -->
 			<Pivot Grid.Row="0" Canvas.ZIndex="600"
 				   x:Name="MyPivot"
 				   Visibility="{Binding IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}}"
@@ -329,7 +359,7 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{Binding IsBackButtonEnabled}"
 						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-			<!-- get a fix button -->
+			<!-- get a fix -->
 			<AppBarButton Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
@@ -337,14 +367,14 @@
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
-			<!-- altitude profile button-->
+			<!-- altitude profiles -->
 			<AppBarToggleButton Grid.Column="2"
 						  VerticalAlignment="Center"
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- open pivot -->
+			<!-- open menu pivot -->
 			<AppBarButton Grid.Column="3"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
@@ -369,12 +399,6 @@
 			x:Name="LeftButtonBar" 
 			Visibility="Visible"
 			HorizontalAlignment="Center" VerticalAlignment="Center">
-			<!--<Grid.Background>
-				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-					<GradientStop Color="{ThemeResource PhoneBackgroundColor}" Offset="1"/>
-					<GradientStop Color="Transparent" Offset="0"/>
-				</LinearGradientBrush>
-			</Grid.Background>-->
 
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
@@ -391,7 +415,7 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{Binding IsBackButtonEnabled}"
 						  Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-			<!-- get a fix button -->
+			<!-- get a fix -->
 			<AppBarButton Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
@@ -399,14 +423,14 @@
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
-			<!-- altitude profile button-->
+			<!-- altitude profiles -->
 			<AppBarToggleButton Grid.Row="2"
 						  HorizontalAlignment="Center" 
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- open pivot -->
+			<!-- open menu pivot -->
 			<AppBarButton Grid.Row="3"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"

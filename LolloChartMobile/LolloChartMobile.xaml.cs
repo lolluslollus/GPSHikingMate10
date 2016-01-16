@@ -144,7 +144,7 @@ namespace LolloChartMobile
 			AddHandlers();
 		}
 
-		public void Deactivate()
+		public void Close()
 		{
 			RemoveHandlers();
 		}

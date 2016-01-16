@@ -25,7 +25,7 @@ using Windows.UI.Xaml.Media;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
-	public sealed partial class LolloMap : OpObsOrControl, IGeoBoundingBoxProvider, IMapApController
+	public sealed partial class LolloMap : OpObsOrControl, IGeoBoundingBoxProvider, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
 		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number, depending on the available memory. 
@@ -181,7 +181,7 @@ namespace LolloGPS.Core
 					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 				}
 				_myVM?.Close();
-				MyPointInfoPanel?.Close();
+				//MyPointInfoPanel?.Close();
 			}
 			catch (Exception ex)
 			{
@@ -355,6 +355,13 @@ namespace LolloGPS.Core
 		public Task CentreOnHistoryAsync()
 		{
 			return CentreAsync(MyPersistentData.History);
+		}
+		public Task CentreOnSeriesAsync(PersistentData.Tables series)
+		{
+			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
+			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
+			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else return Task.CompletedTask;
 		}
 		public Task CentreOnTargetAsync()
 		{
@@ -683,6 +690,7 @@ namespace LolloGPS.Core
 		}
 		#endregion services
 
+
 		#region IGeoBoundingBoxProvider
 		public async Task<GeoboundingBox> GetMinMaxLatLonAsync()
 		{
@@ -744,7 +752,22 @@ namespace LolloGPS.Core
 		}
 		#endregion IGeoBoundingBoxProvider
 
-		#region event handling
+
+		#region user event handlers
+		public event EventHandler<ShowManyPointDetailsRequestedArgs> ShowManyPointDetailsRequested;
+		public class ShowManyPointDetailsRequestedArgs : EventArgs
+		{
+			private List<PointRecord> _selectedRecords;
+			public List<PointRecord> SelectedRecords { get { return _selectedRecords; } }
+			private List<PersistentData.Tables> _selectedSeriess;
+			public List<PersistentData.Tables> SelectedSeriess { get { return _selectedSeriess; } }
+			public ShowManyPointDetailsRequestedArgs(List<PointRecord> selectedRecords, List<PersistentData.Tables> selectedSeriess)
+			{
+				_selectedRecords = selectedRecords;
+				_selectedSeriess = selectedSeriess;
+			}
+		}
+
 		private void OnMap_Tapped(MapControl sender, MapInputEventArgs args)
 		{
 			Task resp = RunFunctionIfOpenAsyncA(delegate
@@ -810,9 +833,10 @@ namespace LolloGPS.Core
 					if (selectedRecords.Count > 0)
 					{
 						Task vibrate = Task.Run(() => App.ShortVibration());
-						MyPointInfoPanel.SetDetails(selectedRecords, selectedSeriess);
-						// SelectedPointFlyout.ShowAt(MyMap);
-						SelectedPointPopup.IsOpen = true;
+						ShowManyPointDetailsRequested?.Invoke(this, new ShowManyPointDetailsRequestedArgs(selectedRecords, selectedSeriess));
+						//MyPointInfoPanel.SetDetails(selectedRecords, selectedSeriess);
+						//SelectedPointPopup.IsOpen = true;
+						//// SelectedPointFlyout.ShowAt(MyMap);
 					}
 				}
 				catch (Exception ex) // there may be errors if I tap in an awkward place, such as the arctic
@@ -821,6 +845,25 @@ namespace LolloGPS.Core
 				}
 			});
 		}
+
+		public async void OnInfoPanelPointChanged(object sender, EventArgs e)
+		{
+			if (MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+			{
+				DrawFlyoutPoint();
+				await CentreOnSelectedPointAsync();
+			}
+			//else
+			//{
+			//	SelectedPointPopup.IsOpen = false;
+			//}
+		}
+
+		public void OnInfoPanelClosed(object sender, object e)
+		{
+			HideFlyoutPoint();
+		}
+
 		private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
 		{
 			Task resp = RunFunctionIfOpenAsyncA(delegate
@@ -828,19 +871,6 @@ namespace LolloGPS.Core
 				Task vibrate = Task.Run(() => App.ShortVibration());
 				Task cen = CentreOnCurrentAsync();
 			});
-		}
-
-		private async void OnInfoPanelPointChanged(object sender, EventArgs e)
-		{
-			if (MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
-			{
-				DrawFlyoutPoint();
-				await CentreOnSelectedPointAsync();
-			}
-			else
-			{
-				SelectedPointPopup.IsOpen = false;
-			}
 		}
 
 		private async void OnAim_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -873,23 +903,21 @@ namespace LolloGPS.Core
 				catch (Exception) { }
 			});
 		}
+		#endregion user event handlers
 
-		protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
-		{
-			Task back = RunFunctionIfOpenAsyncA(delegate
-			{
-				if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
-				{
-					if (e != null) e.Handled = true;
-					SelectedPointPopup.IsOpen = false;
-				}
-			});
-		}
 
-		private void OnInfoPanelClosed(object sender, object e)
-		{
-			HideFlyoutPoint();
-		}
+		#region data event handlers
+		//protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
+		//{
+		//	Task back = RunFunctionIfOpenAsyncA(delegate
+		//	{
+		//		if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
+		//		{
+		//			if (e != null) e.Handled = true;
+		//			SelectedPointPopup.IsOpen = false;
+		//		}
+		//	});
+		//}
 
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
@@ -912,7 +940,7 @@ namespace LolloGPS.Core
 		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
-			if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent && (SelectedPointPopup == null || !SelectedPointPopup.IsOpen))
+			if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent) // && (SelectedPointPopup == null || !SelectedPointPopup.IsOpen)) // LOLLO TODO check this, I have commented it out
 			{
 				Task cen = CentreOnCurrentAsync();
 			}
@@ -986,7 +1014,7 @@ namespace LolloGPS.Core
 				_isHandlerActive = false;
 			}
 		}
-		#endregion event handling
+		#endregion data event handlers
 	}
 
 	#region converters
@@ -1109,6 +1137,5 @@ namespace LolloGPS.Core
 			throw new Exception("should never get here");
 		}
 	}
-
 	#endregion converters
 }

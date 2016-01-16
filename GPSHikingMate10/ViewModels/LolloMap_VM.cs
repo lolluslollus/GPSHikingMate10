@@ -240,7 +240,14 @@ namespace LolloGPS.Core
         {
             return _mapController?.CentreOnRoute0Async();
         }
-        public Task CentreOnTargetAsync()
+		public Task CentreOnSeriesAsync(PersistentData.Tables series)
+		{
+			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
+			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
+			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else return Task.CompletedTask;
+		}
+		public Task CentreOnTargetAsync()
         {
             return _mapController?.CentreOnTargetAsync();
         }

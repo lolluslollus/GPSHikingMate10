@@ -52,12 +52,12 @@
 			  Data="M 0,0 L 19,19 M 19,0 L 0,19"/>
 		</Canvas>-->
 		<!-- point details -->
-		<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed"
+		<!--<Popup x:Name="SelectedPointPopup" IsLightDismissEnabled="True" Closed="OnInfoPanelClosed"
 			ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 			<local:PointInfoPanel DataContext="{Binding}" x:Name="MyPointInfoPanel"
 				PointChanged="OnInfoPanelPointChanged"/>
-			<!--PopupContainer="{x:Bind Path=RootGrid}"/>-->
-		</Popup>
+			--><!--PopupContainer="{x:Bind Path=RootGrid}"/>--><!--
+		</Popup>-->
 		<!--compass-->
 		<Canvas Canvas.ZIndex="200"
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"

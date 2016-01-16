@@ -25,11 +25,12 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed class Main_VM : ObservableData, BackPressedRaiser, IMapApController, IFileActivatable
+	public sealed class Main_VM : ObservableData, IBackPressedRaiser, IMapApController, IFileActivatable
 	{
-		#region events
+		#region IBackPressedRaiser
 		public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
-		#endregion events
+		#endregion IBackPressedRaiser
+
 
 		#region properties
 		//public const string WhichTable = "WhichTable";
@@ -431,6 +432,13 @@ namespace LolloGPS.Core
 			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnLandmarksAsync();
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnLandmarksAsync().ConfigureAwait(false);
 		}
+		public Task CentreOnSeriesAsync(PersistentData.Tables series)
+		{
+			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
+			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
+			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else return Task.CompletedTask;
+		}
 		public async Task CentreOnTargetAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
@@ -659,6 +667,7 @@ namespace LolloGPS.Core
 		Task CentreOnHistoryAsync();
 		Task CentreOnLandmarksAsync();
 		Task CentreOnRoute0Async();
+		Task CentreOnSeriesAsync(PersistentData.Tables series);
 		Task CentreOnTargetAsync();
 		Task Goto2DAsync();
 	}
