@@ -45,6 +45,8 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
+				UpdateAltitudeColumnMaxWidth();
+
 				_myVM = Main_VM.GetInstance();
 				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
 
@@ -172,9 +174,13 @@ namespace LolloGPS.Core
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
 			{
-				if (!MyPersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
-				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+				UpdateAltitudeColumnMaxWidth();
 			}
+		}
+		private void UpdateAltitudeColumnMaxWidth()
+		{
+			if (!MyPersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
+			else AltitudeColumn.MaxWidth = double.PositiveInfinity;
 		}
 		private void SetShowForAWhileOnly()
 		{
