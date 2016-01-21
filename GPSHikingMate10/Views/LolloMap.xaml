@@ -96,12 +96,14 @@
 			</Grid.ColumnDefinitions>
 			<!-- left distance -->
 			<TextBlock Grid.Row="1" Grid.Column="1"
+				HorizontalAlignment="Left"
 				Text="0"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
 			<!-- right distance -->
 			<Grid Grid.Row="1" Grid.Column="1"
+				HorizontalAlignment="Left"
 				Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
 				<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
 				   HorizontalAlignment="Right"
@@ -111,12 +113,14 @@
 			</Grid>
 			<!-- internal zoom level -->
 			<TextBlock Grid.Row="0" Grid.Column="1"
+				HorizontalAlignment="Left"
 				Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
 			<!-- scale bar -->
-			<Image x:Name="ScaleImage" Grid.Row="2" Grid.Column="1"
+			<Image Grid.Row="2" Grid.Column="1"
+				HorizontalAlignment="Left"
 				Source="ms-appx:///Assets/scale-300.png" 
 				Stretch="None"
 				RenderTransformOrigin="0.0,0.0" >
