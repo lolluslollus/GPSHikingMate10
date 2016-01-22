@@ -29,7 +29,6 @@
             <conv:CurrentToBooleanConverter x:Key="CurrentToBooleanConverter"/>
             <conv:CurrentToVisibilityConverter x:Key="CurrentToVisibilityConverter"/>
             <conv:MetreSecToKmHConverter x:Key="MetreSecToKmHConverter"/>
-            <conv:MetreSecToKmHConverter_OnlyNumber x:Key="MetreSecToKmHConverter_OnlyNumber"/>
             <conv:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter"/>
             <conv:NumberNotNullToVisibilityConverter x:Key="NumberNotNullToVisibilityConverter"/>
             <conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>

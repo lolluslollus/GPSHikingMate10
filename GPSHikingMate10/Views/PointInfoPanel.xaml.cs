@@ -1,5 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
+using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -307,7 +308,6 @@ namespace LolloGPS.Core
 
 	public sealed class DistanceMBetweenLocations
 	{
-		public static readonly double PiHalf = Math.PI / 180.0;
 		public const double EarthRadiusKm = 6376.5;
 		public static double Calc(double lat1, double lon1, double lat2, double lon2)
 		{
@@ -330,11 +330,11 @@ namespace LolloGPS.Core
                         spherical coordinates (longitude and 
                         latitude) are lon1,lat1 and lon2, lat2.
             */
-			double dDistance = Double.MinValue;
-			double dLat1InRad = lat1 * (PiHalf);
-			double dLong1InRad = lon1 * (PiHalf);
-			double dLat2InRad = lat2 * (PiHalf);
-			double dLong2InRad = lon2 * (PiHalf);
+			double dDistance = double.MinValue;
+			double dLat1InRad = lat1 * (ConstantData.DEG_TO_RAD);
+			double dLong1InRad = lon1 * (ConstantData.DEG_TO_RAD);
+			double dLat2InRad = lat2 * (ConstantData.DEG_TO_RAD);
+			double dLong2InRad = lon2 * (ConstantData.DEG_TO_RAD);
 
 			double dLongitude = dLong2InRad - dLong1InRad;
 			double dLatitude = dLat2InRad - dLat1InRad;
@@ -348,7 +348,7 @@ namespace LolloGPS.Core
 			double c = 2.0 * Math.Asin(Math.Sqrt(a));
 
 			// Distance.
-			// const Double kEarthRadiusMiles = 3956.0;
+			// const double kEarthRadiusMiles = 3956.0;
 
 			dDistance = EarthRadiusKm * c * 1000.0;
 

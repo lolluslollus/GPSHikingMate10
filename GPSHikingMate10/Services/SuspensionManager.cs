@@ -24,7 +24,7 @@ namespace LolloGPS.Suspension
 	{
 		//private static Dictionary<string, object> _sessionState = new Dictionary<string, object>();
 		//private static List<Type> _knownTypes = new List<Type>() { typeof(PointRecord) };
-		//private const string SessionStateFilename = "_sessionState.xml"; //we don't need this
+
 		private const string SessionDataFilename = "LolloSessionData.xml";
 		/// <summary>
 		/// Provides access to global session state for the current session.  This state is

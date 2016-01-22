@@ -1,5 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
+using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloListChooser;
 using System;
@@ -64,7 +65,7 @@ namespace LolloGPS.Core
                 Collection<TextAndTag> tts = new Collection<TextAndTag>();
                 foreach (var item in howManyTiles4DifferentZooms)
                 {
-                    if (item.Item2 <= TileDownloader.MaxTilesToLeech && item.Item1 > 0 && item.Item2 > 0)
+                    if (item.Item2 <= ConstantData.MAX_TILES_TO_LEECH && item.Item1 > 0 && item.Item2 > 0)
                     {
                         string message = "Zoom  " + item.Item1 + " gets up to " + item.Item2 + " tiles";
                         tts.Add(new TextAndTag(message, item.Item1));

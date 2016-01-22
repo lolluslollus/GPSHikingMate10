@@ -545,17 +545,7 @@ namespace LolloGPS.Converters
 			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
-	public class MetreSecToKmHConverter_OnlyNumber : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, string language)
-		{
-			return SpeedConverter.GetSpeed(value, false);
-		}
-		public object ConvertBack(object value, Type targetType, object parameter, string language)
-		{
-			throw new Exception("this is a one-way binding, it should never come here");
-		}
-	}
+
 	internal class SpeedConverter
 	{
 		internal static object GetSpeed(object value, bool showUnit)

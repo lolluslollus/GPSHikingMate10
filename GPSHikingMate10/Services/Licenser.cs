@@ -415,7 +415,7 @@ namespace Utilz
 			}
 			public static bool IsDatesEqual(DateTimeOffset one, DateTimeOffset two)
 			{
-				return one.UtcDateTime.ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture).Equals(two.UtcDateTime.ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture));
+				return one.UtcDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture).Equals(two.UtcDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture));
 			}
 		}
 	}

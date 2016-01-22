@@ -24,8 +24,6 @@ namespace GPX
 	public sealed class ReaderWriter
 	{
 		#region load route
-		private const int LOAD_WAIT_INTERVAL_MSEC = 50;
-		private const int LOAD_MAX_WAIT_INTERVALS = 200;
 		/// <summary>
 		/// Read a file and put it into the DB - not into its PersistentData.Collection.
 		/// This method returns a task that is completed after reading the data and queues ui and db operations on the ui thread and on the threadpool.
@@ -395,7 +393,7 @@ namespace GPX
 			nodeTrkpt.AppendChild(nodeTrkptEle);
 
 			XmlElement nodeTrkptTime = gpxDoc.CreateElementNS(nameSpaceUri, "time");
-			nodeTrkptTime.InnerText = dataRecord.TimePoint.ToUniversalTime().ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
+			nodeTrkptTime.InnerText = dataRecord.TimePoint.ToUniversalTime().ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
 			nodeTrkpt.AppendChild(nodeTrkptTime);
 
 			if (!string.IsNullOrWhiteSpace(dataRecord.PositionSource))
@@ -458,7 +456,7 @@ namespace GPX
 					XmlElement nodeMetadata = gpxDoc.GetElementsByTagName("metadata")[0] as XmlElement;
 					//string strMetadata = nodeMetadata.GetXml();
 					XmlElement nodeTime = nodeMetadata.GetElementsByTagName("time")[0] as XmlElement;
-					nodeTime.FirstChild.NodeValue = fileCreationDateTime.ToUniversalTime().ToString(ConstantData.DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
+					nodeTime.FirstChild.NodeValue = fileCreationDateTime.ToUniversalTime().ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
 
 					XmlElement nodeBounds = nodeMetadata.GetElementsByTagName("bounds")[0] as XmlElement;
 					if (coll.Count > 0)

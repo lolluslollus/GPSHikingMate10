@@ -1090,7 +1090,12 @@ namespace LolloGPS.Core
 						Calc(mapControl);
 						_lastZoomScale = currentZoomScale; //remember this to avoid repeating the same calculation
 					}
-					catch (Exception ex) { } // there may be exceptions if I am in a very awkward place in the map, such as the arctic
+					catch (Exception ex)
+					{
+						// there may be exceptions if I am in a very awkward place in the map, such as the arctic.
+						// I took care of most, so we log the rest.
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
 				}
 			}
 			string param = parameter.ToString();
@@ -1137,7 +1142,7 @@ namespace LolloGPS.Core
 				if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeridianBarY1 *= 1.5; /*Debug.WriteLine("halfMapHeight + ");*/ }
 				else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeridianBarY1 *= .5; /*Debug.WriteLine("halfMapHeight - ");*/ }
 
-				double headingRadians = mapControl.Heading * Math.PI / 180.0;
+				double headingRadians = mapControl.Heading * ConstantData.DEG_TO_RAD;
 
 				//Point pointN = new Point(halfMapWidth, halfMapHeight);
 
@@ -1149,7 +1154,7 @@ namespace LolloGPS.Core
 				//mapControl.GetLocationFromOffset(pointS, out locationS);
 
 				Point pointW = new Point(hypotheticalParallelBarX1, hypotheticalMeridianBarY1);
-				Point pointE = new Point(hypotheticalParallelBarX1 + hypotheticalMeridianBarLength * Math.Sin(headingRadians + Math.PI / 2.0), hypotheticalMeridianBarY1 + hypotheticalMeridianBarLength * Math.Cos(headingRadians + Math.PI / 2.0));
+				Point pointE = new Point(hypotheticalParallelBarX1 + hypotheticalMeridianBarLength * Math.Sin(headingRadians + ConstantData.PI_HALF), hypotheticalMeridianBarY1 + hypotheticalMeridianBarLength * Math.Cos(headingRadians + ConstantData.PI_HALF));
 				Geopoint locationW = null;
 				Geopoint locationE = null;
 				mapControl.GetLocationFromOffset(pointW, out locationW);

@@ -118,10 +118,9 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		public string GetFileNameFromKey(int x, int y, int z, int zoom)
 		{
-			return string.Format(_tileFileFormat, zoom, x, y, _tileSource.TechName); // was
-																					 // return string.Format(_tileFileFormat, zoom, x, y, _tileSource.TechName) + ".jpg"; // test (useless)
+			return string.Format(_tileFileFormat, zoom, x, y, _tileSource.TechName);
 		}
-		//public abstract string GetWebUriFormat();
+
 		public int GetTilePixelSize()
 		{
 			return _tileSource.TilePixelSize;
@@ -134,113 +133,8 @@ namespace LolloGPS.Data.TileCache
 		{
 			return _tileSource.MaxZoom;
 		}
-		//public bool GetIsTesting()
-		//{
-		//    return _tileSource.IsTesting;
-		//}
-		//public bool GetIsDefault()
-		//{
-		//    return _tileSource.IsDefault;
-		//}
 		#endregion getters
 
-		//public async Task<RandomAccessStreamReference> GetTileStreamRef(int x, int y, int z, int zoom)
-		//{
-		//	// out of range? get out, no more thoughts
-		//	if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
-		//	// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
-		//	string fileName = GetFileNameFromKey(x, y, z, zoom);
-		//	// not working on this set of data? Mark it as busy, closing the gate for other threads
-		//	// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
-		//	if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null;
-		//	// from now on, any returns must be preceded by removing the current fileName from the processing queue, to reopen the gate!
-		//	RandomAccessStreamReference output = null;
-		//	int where = 0;
-		//	string sWebUri = GetWebUri(x, y, z, zoom);
-		//	// check if I have this tile in the cache already
-		//	string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-		//	try
-		//	{
-		//		// tile is not in cache: 
-		//		// download it, save it and return an uri pointing at it; 
-		//		if (string.IsNullOrWhiteSpace(fileNameFromDb))
-		//		{
-		//			where = 1;
-		//			// download the tile, save it and return an uri pointing at it (ie at its file)
-		//			if (RuntimeData.GetInstance().IsConnectionAvailable)
-		//			{
-		//				var request = WebRequest.CreateHttp(sWebUri); request.Accept = MimeTypeImageAny;
-		//				request.AllowReadStreamBuffering = true;
-		//				request.ContinueTimeout = WebRequestTimeoutMsec;
-		//				where = 2;
-		//				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
-		//				{
-		//					if (IsWebResponseHeaderOk(response))
-		//					{
-		//						where = 3;
-		//						using (var readStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
-		//						{
-		//							where = 4;
-		//							// read response stream into a new record. 
-		//							// This extra step is the price to pay if we want to check the stream content
-		//							TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-		//							await readStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
-
-		//							// using (var writeStream = await _imageFolder.OpenStreamForWriteAsync(fileName, CreationCollisionOption.OpenIfExists).ConfigureAwait(false))
-		//							// check readStream: at least one byte must not be empty
-		//							if (IsWebResponseContentOk(newRecord))
-		//							{
-		//								StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-		//								using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
-		//								{
-		//									if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen
-		//									{
-		//										where = 99;
-		//										// string testFileName = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-		//										// Debug.WriteLine("GetTileUri() attempted to overwrite existing file " + fileName);
-		//										output = await TileCacheRecord.GetPixelStreamRefFromByteArray(newRecord.Img).ConfigureAwait(false);
-		//									}
-		//									else
-		//									{
-		//										where = 7;
-		//										await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
-		//										where = 8;
-		//										writeStream.Flush();
-		//										// check file vs stream
-		//										var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-		//										var fileSize = fileProps.Size;
-		//										where = 9;
-		//										if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
-		//										{
-		//											where = 10;
-		//											bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
-		//											output = await TileCacheRecord.GetPixelStreamRefFromByteArray(newRecord.Img).ConfigureAwait(false);
-		//										}
-		//									}
-		//								}
-		//							}
-		//						}
-		//					}
-		//				}
-		//			}
-		//		}
-		//		// tile is in cache: return an uri pointing at it (ie at its file)
-		//		else
-		//		{
-		//			output = await TileCacheRecord.GetPixelStreamRefFromImgFolder(_imageFolder, fileName).ConfigureAwait(false);
-		//			if (fileName != fileNameFromDb)
-		//			{
-		//				Task update = UpdateFileNameAsync(fileNameFromDb, fileName, _tileSource.TechName, x, y, z, zoom);
-		//			}
-		//		}
-		//	}
-		//	catch (Exception exc0)
-		//	{
-		//		Debug.WriteLine("ERROR in GetTileStreamRef(): " + exc0.Message + " ; I made it to where = " + where + exc0.StackTrace);
-		//	}
-		//	await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
-		//	return output;
-		//}
 		public static async Task<int> TryClearAsync(TileSourceRecord tileSource)
 		{
 			Debug.WriteLine("About to call ProcessingQueue.ClearCacheIfQueueEmptyAsync");
@@ -261,7 +155,7 @@ namespace LolloGPS.Data.TileCache
 			string[] folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
 			if (folderNamesToBeDeleted != null && folderNamesToBeDeleted.Length > 0)
 			{
-				StorageFolder localFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
+				StorageFolder localFolder = ApplicationData.Current.LocalFolder;
 
 				foreach (var folderName in folderNamesToBeDeleted)
 				{
@@ -301,7 +195,7 @@ namespace LolloGPS.Data.TileCache
 						}
 						catch (Exception ex)
 						{
-							Debug.WriteLine("ERROR in TryClearAsync: " + ex.Message + ex.StackTrace);
+							Logger.Add_TPL("ERROR in TryClearAsync: " + ex.Message + ex.StackTrace, Logger.ForegroundLogFilename);
 						}
 					}
 				}
@@ -335,8 +229,6 @@ namespace LolloGPS.Data.TileCache
 		}
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
 		{
-			//bool isOnUIThread = CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess;
-			//if (isOnUIThread) Debug.WriteLine("GetTileUri() is running on the UI thread!");
 			// out of range? get out, no more thoughts
 			if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
@@ -371,6 +263,7 @@ namespace LolloGPS.Data.TileCache
 						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
 						request.AllowReadStreamBuffering = true;
 						request.ContinueTimeout = WebRequestTimeoutMsec;
+
 						where = 2;
 						using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 						{
@@ -385,7 +278,6 @@ namespace LolloGPS.Data.TileCache
 									TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 									await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
-									// using (var writeStream = await _imageFolder.OpenStreamForWriteAsync(fileName, CreationCollisionOption.OpenIfExists).ConfigureAwait(false))
 									// check readStream: at least one byte must not be empty
 									if (IsWebResponseContentOk(newRecord))
 									{
@@ -482,7 +374,6 @@ namespace LolloGPS.Data.TileCache
 		}
 		public async Task<bool> SaveTileAsync(int x, int y, int z, int zoom) //int x, int y, int z, int zoom)
 		{
-			//if (GetIsTesting()) return false;
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
@@ -502,28 +393,27 @@ namespace LolloGPS.Data.TileCache
 				if (string.IsNullOrWhiteSpace(fileNameFromDb))
 				{
 					where = 1;
-					// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file)
+					// tile is not in cache and caching is on: download the tile, save it and return an uri pointing at it (ie at its file)
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						var request = WebRequest.CreateHttp(sWebUri); request.Accept = MimeTypeImageAny;
+						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
 						request.AllowReadStreamBuffering = true;
 						request.ContinueTimeout = WebRequestTimeoutMsec;
-
+												
 						where = 2;
 						using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 						{
 							if (IsWebResponseHeaderOk(response))
 							{
 								where = 3;
-								using (var readStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
+								using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
 								{
 									where = 4;
 									// read response stream into a new record. 
 									// This extra step is the price to pay if we want to check the stream content
 									TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-									await readStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
+									await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
-									// using (var writeStream = await _imageFolder.OpenStreamForWriteAsync(fileName, CreationCollisionOption.OpenIfExists).ConfigureAwait(false))
 									// check readStream: at least one byte must not be empty
 									if (IsWebResponseContentOk(newRecord))
 									{
@@ -533,8 +423,6 @@ namespace LolloGPS.Data.TileCache
 											if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen
 											{
 												where = 99;
-												// string testFileName = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-												// Debug.WriteLine("GetTileUri() attempted to overwrite existing file " + fileName);
 												output = true;
 												Debug.WriteLine("SaveTileAsync() avoided overwriting a file with name = " + fileName);
 											}
@@ -553,7 +441,7 @@ namespace LolloGPS.Data.TileCache
 													where = 10;
 													bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
 													output = true;
-													Debug.WriteLine("SaveTileAsync() saved a file with name = ");
+													Debug.WriteLine("SaveTileAsync() saved a file");
 												}
 											}
 										}
@@ -617,35 +505,10 @@ namespace LolloGPS.Data.TileCache
 		public sealed class ProcessingQueue
 		{
 			public static event PropertyChangedEventHandler PropertyChanged;
-			private static void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-			{
-				PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
-			}
-			//private static void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
-			//{
-			//	try
-			//	{
-			//		if (CoreApplication.MainView.CoreWindow.Dispatcher.HasThreadAccess)
-			//		{
-			//			PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
-			//		}
-			//		else
-			//		{
-			//			Task raise = CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
-			//				CoreDispatcherPriority.Low, 
-			//				delegate { PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName)); }
-			//				).AsTask();
-			//		}
-			//	}
-			//	catch (InvalidOperationException) // called from a background task: ignore
-			//	{ }
-			//	catch (Exception ex)
-			//	{
-			//		Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-			//	}
-			//}
 
-			private static bool _isFree = true;
+			private static SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1);
+
+			private static volatile bool _isFree = true;
 			/// <summary>
 			/// Tells if the processing queue is free or busy at the moment.
 			/// </summary>
@@ -657,16 +520,11 @@ namespace LolloGPS.Data.TileCache
 					if (_isFree != value)
 					{
 						_isFree = value;
-						RaisePropertyChanged();
+						PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFree)));
 					}
 				}
 			}
-			private static void UpdateIsFree()
-			{
-				IsFree = (_fileNames_InProcess.Count == 0);
-			}
 
-			private static SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1);
 			private static List<string> _fileNames_InProcess = new List<string>();
 
 			/// <summary>
@@ -690,7 +548,7 @@ namespace LolloGPS.Data.TileCache
 				catch (Exception) { } // semaphore disposed
 				finally
 				{
-					UpdateIsFree();
+					IsFree = (_fileNames_InProcess.Count == 0);
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 				return false;
@@ -705,7 +563,7 @@ namespace LolloGPS.Data.TileCache
 				catch (Exception) { } // semaphore disposed
 				finally
 				{
-					UpdateIsFree();
+					IsFree = (_fileNames_InProcess.Count == 0);
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 			}
@@ -720,20 +578,18 @@ namespace LolloGPS.Data.TileCache
 						IsFree = false;
 						try
 						{
-							Debug.WriteLine("About to invoke the action");
-							output = await TileCache.ClearAsync(tileSource).ConfigureAwait(false);
-							Debug.WriteLine("Action invoked");
+							output = await ClearAsync(tileSource).ConfigureAwait(false);
 						}
 						catch (Exception ex)
 						{
-							Debug.WriteLine("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.Message + ex.StackTrace);
-						}
-						IsFree = true;
+							Logger.Add_TPL("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.Message + ex.StackTrace, Logger.ForegroundLogFilename);
+						}						
 					}
 				}
 				catch (Exception) { } // semaphore disposed
 				finally
 				{
+					IsFree = true;
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 				return output;
@@ -741,312 +597,17 @@ namespace LolloGPS.Data.TileCache
 		}
 	}
 
-	//public const string TileFilePathFormat = "ms-appx:///TileSourceAssets/OpenStretTest_{0}_{1}_{2}.png";
-	//public const string TileFilePathFormat = "ms-appdata:///local/TileSourceAssets/OpenStretTest_{0}_{1}_{2}.png";
-	//public class TileCacheOSM : TileCache
-	//{
-	//    private readonly string TileFileFormat = "OpenStretTest_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://a.tile.openstreetmap.org/{0}/{1}/{2}.png"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://a.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 18;
-	//    private readonly int MinZoom = 0;
-
-	//    internal TileCacheOSM(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        string fileName = string.Format(TileFileFormat, zoom, x, y);
-	//        return fileName;
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        string sWebUri = string.Format(WebUriFormatInternal, zoom, x, y);
-	//        return sWebUri;
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCacheOpenSeaMap : TileCache
-	//{
-	//    private readonly string TileFileFormat = "OpenStretTest_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://tiles.openseamap.org/seamark/{0}/{1}/{2}.png"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://tiles.openseamap.org/seamark/{zoomlevel}/{x}/{y}.png"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 18;
-	//    private readonly int MinZoom = 9;
-
-	//    internal TileCacheOpenSeaMap(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        string fileName = string.Format(TileFileFormat, zoom, x, y);
-	//        return fileName;
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        string sWebUri = string.Format(WebUriFormatInternal, zoom, x, y);
-	//        return sWebUri;
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//// to add more sources check out http://windowsmobile.navicomputer.com/blog/?p=37
-	//public class TileCacheSwisstopo : TileCache
-	//{
-	//    private readonly string TileFileFormat = "Swisstopo_{0}_{1}_{2}.jpg";
-	//    private readonly string WebUriFormatInternal = "http://mpa3.mapplus.ch/swisstopo/{0}/{1}/{2}.jpg";
-	//    //private readonly string WebUriFormat = "http://mpa3.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 16;
-	//    private readonly int MinZoom = 7;
-
-	//    internal TileCacheSwisstopo(TileSources tileSource) : base(tileSource) { }
-
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCacheWanderreitkarte : TileCache
-	//{
-	//    private readonly string TileFileFormat = "Wanderreitkarte_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://topo.wanderreitkarte.de/topo/{0}/{1}/{2}.png"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://topo.wanderreitkarte.de/topo/{zoomlevel}/{x}/{y}.png"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 18;
-	//    private readonly int MinZoom = 2;
-
-	//    internal TileCacheWanderreitkarte(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCacheOS : TileCache
-	//{
-	//    private readonly string TileFileFormat = "OS_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://a.os.openstreetmap.org/sv/{0}/{1}/{2}.png"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://a.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 17;
-	//    private readonly int MinZoom = 7;
-
-	//    internal TileCacheOS(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCache4UMaps : TileCache
-	//{
-	//    private readonly string TileFileFormat = "ForUMaps_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://4umaps.eu/{0}/{1}/{2}.png"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://4umaps.eu/{zoomlevel}/{x}/{y}.png"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 15;
-	//    private readonly int MinZoom = 2;
-
-	//    internal TileCache4UMaps(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCacheUTTopoLight : TileCache
-	//{
-	//    private readonly string TileFileFormat = "TileCacheUTTopoLight_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://a-kartcache.nrk.no/tiles/ut_topo_light/{0}/{1}/{2}.jpg"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://a-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 16;
-	//    private readonly int MinZoom = 5;
-
-	//    internal TileCacheUTTopoLight(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//public class TileCacheArcGIS : TileCache
-	//{
-	//    private readonly string TileFileFormat = "ArcGIS_{0}_{1}_{2}.png";
-	//    private readonly string WebUriFormatInternal = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{0}/{2}/{1}"; // tha a after http:// can be a, b or c
-	//    //private readonly string WebUriFormat = "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomLevel}/{y}/{x}"; // documented at https://msdn.microsoft.com/en-us/library/windows.ui.xaml.controls.maps.httpmaptiledatasource.uriformatstring.aspx
-	//    private readonly int TilePixelSize = 256;
-	//    private readonly int MaxZoom = 16;
-	//    private readonly int MinZoom = 0;
-
-	//    internal TileCacheArcGIS(TileSources tileSource) : base(tileSource) { }
-	//    public override string GetFileNameFromKey(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(TileFileFormat, zoom, x, y);
-	//    }
-	//    public override string GetWebUri(int x, int y, int z, int zoom)
-	//    {
-	//        return string.Format(WebUriFormatInternal, zoom, x, y);
-	//    }
-	//    //public override string GetWebUriFormat()
-	//    //{
-	//    //    return WebUriFormat;
-	//    //}
-	//    public override int GetMaxZoom()
-	//    {
-	//        return MaxZoom;
-	//    }
-	//    public override int GetMinZoom()
-	//    {
-	//        return MinZoom;
-	//    }
-	//    public override int GetTilePixelSize()
-	//    {
-	//        return TilePixelSize;
-	//    }
-	//}
-	//[Table("TileCache")]
 	/// <summary>
 	/// TileCacheRecord like in the db
 	/// </summary>
 	public sealed class TileCacheRecord
 	{
-		//[PrimaryKey]
 		public string TileSourceTechName { get { return _tileSourceTechName; } set { _tileSourceTechName = value; } }
-		//[PrimaryKey] //, Indexed(Name = "index0", Order = 0, Unique = true)]
 		public int X { get { return _x; } set { _x = value; } }
-		//[PrimaryKey] //, Indexed(Name = "index0", Order = 0, Unique = true)]
 		public int Y { get { return _y; } set { _y = value; } }
-		//[PrimaryKey] //, Indexed(Name = "index0", Order = 0, Unique = true)]
 		public int Z { get { return _z; } set { _z = value; } }
-		//[PrimaryKey] //, Indexed(Name = "index0", Order = 0, Unique = true)]
 		public int Zoom { get { return _zoom; } set { _zoom = value; } }
 		public string FileName { get { return _fileName; } set { _fileName = value; } }
-		//[Ignore]
 		public byte[] Img { get { return _img; } set { _img = value; } } // this field has a setter, so SQLite may use it
 
 		private string _tileSourceTechName = string.Empty; // = TileSources.Nokia;
@@ -1066,10 +627,6 @@ namespace LolloGPS.Data.TileCache
 			_z = z;
 			_zoom = zoom;
 		}
-		//internal string GetXYZ(int x, int y, int z, int zoom)
-		//{
-		//    return x + "_" + y + "_" + zoom;
-		//}
 
 		internal async static Task<string> GetFilenameFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
 		{
@@ -1080,8 +637,7 @@ namespace LolloGPS.Data.TileCache
 			}
 			catch (Exception ex)
 			{
-				string exception = ex.ToString();
-				Debug.WriteLine("ERROR in GetFilenameFromDbAsync(): " + ex.Message + ex.StackTrace);
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 			return null;
 		}

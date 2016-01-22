@@ -9,7 +9,7 @@ namespace LolloGPS.Data.Constants
 {
     public static class ConstantData
     {
-        public const string DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
+        public const string GPX_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
         public const string MYMAIL = "lollus@hotmail.co.uk";
         public const string APPNAME = "GPS Hiking Mate for Windows 10";
         public const string APPNAME_ALL_IN_ONE = "GPSHikingMate";
@@ -25,6 +25,11 @@ namespace LolloGPS.Data.Constants
 		public const double M_TO_FOOT = 3.2808;
 		public const double MILE_TO_FOOT = 5280.0;
 		public const double KM_TO_M = 1000.0;
+		public static readonly double PI_DOUBLE = Math.PI * 2.0;
+		public static readonly double PI_HALF = Math.PI / 2.0;
+		public static readonly double DEG_TO_RAD = Math.PI / 180.0;
+		public static readonly double RAD_TO_DEG = 180.0 / Math.PI;
+		public const int MAX_TILES_TO_LEECH = 10000;
 		//public const string RegIsSavingFile = "IsSavingFile";
 		//public const string RegIsLoadingFile = "IsLoadingFile";
 		//public const string RegWhichSeries = "WhichSeries";

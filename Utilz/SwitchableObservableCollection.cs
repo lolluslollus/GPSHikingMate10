@@ -80,6 +80,7 @@ namespace Utilz
 				OnPropertyChanged(new PropertyChangedEventArgs("Count"));
 				OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
 				// this is tricky: call Reset first to make sure the controls will respond properly and not only add one item
+				// when clearing a collection, only .Reset is thrown!
 				OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Reset));
 				OnCollectionChanged(new NotifyCollectionChangedEventArgs(action: NotifyCollectionChangedAction.Add, changedItems: newItems, startingIndex: newStartingIndex));
 			}
