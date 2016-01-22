@@ -18,6 +18,11 @@ namespace LolloGPS.Data.Constants
         public const string GPX_EXTENSION = ".gpx";
         public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
+		public const double MILE_TO_KM = 1.609344;
+		public const double KM_TO_MILE = 0.621371192237;
+		public const double FOOT_TO_M = 0.3048;
+		public const double M_TO_FOOT = 3.2808;
+		public const double MILE_TO_FOOT = 5280;
 		//public const string RegIsSavingFile = "IsSavingFile";
 		//public const string RegIsLoadingFile = "IsLoadingFile";
 		//public const string RegWhichSeries = "WhichSeries";

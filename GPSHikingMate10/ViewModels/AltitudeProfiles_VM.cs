@@ -33,6 +33,7 @@ namespace LolloGPS.Core
             if (coll == null || coll.Count == 0) return;
 
             Stopwatch sw0 = new Stopwatch(); sw0.Start();
+			bool isImperialUnits = PersistentData.GetInstance().IsShowImperialUnits;
             double[,] points = new double[coll.Count, 2];
 
             bool isDateTimeAlwaysPresent = GetDatesAndTimesAlwaysPresent(coll, respectDatesAndTimes);
@@ -40,7 +41,7 @@ namespace LolloGPS.Core
             // set first point, maxes and mins
             if (isDateTimeAlwaysPresent) points[0, 0] = coll[0].TimePoint.ToBinary();
             else points[0, 0] = 0.0;
-            points[0, 1] = Main_VM.RoundAndRangeAltitude(coll[0].Altitude);
+            points[0, 1] = Main_VM.RoundAndRangeAltitude(coll[0].Altitude, isImperialUnits);
 
             minTime = maxTime = points[0, 0];
             minAltitude = maxAltitude = points[0, 1];
@@ -49,7 +50,7 @@ namespace LolloGPS.Core
             {
                 if (isDateTimeAlwaysPresent) points[i, 0] = coll[i].TimePoint.ToBinary();
                 else points[i, 0] = i;
-                points[i, 1] = Main_VM.RoundAndRangeAltitude(coll[i].Altitude);
+                points[i, 1] = Main_VM.RoundAndRangeAltitude(coll[i].Altitude, isImperialUnits);
 
                 if (points[i, 0] > maxTime) maxTime = points[i, 0];
                 if (points[i, 0] < minTime) minTime = points[i, 0];

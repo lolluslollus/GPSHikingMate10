@@ -1,5 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
+using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -928,6 +929,23 @@ namespace LolloGPS.Core
 					MyMap.Style = MyPersistentData.MapStyle;
 				});
 			}
+			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+			{
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					if (MyPersistentData?.Current != null) MyPersistentData.Current.SpeedInMetreSec = MyPersistentData.Current.SpeedInMetreSec;
+					Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = MyMap.Center.Position.Latitude, Longitude = MyMap.Center.Position.Longitude });
+
+					double oldZoom = MyMap.ZoomLevel;
+					double newZoom = oldZoom > MyMap.MinZoomLevel ? Math.Max(MyMap.MinZoomLevel, oldZoom * .9) : MyMap.MinZoomLevel * 1.1;
+					
+					Task det = MyMap.TryZoomToAsync(newZoom).AsTask().ContinueWith(delegate
+					{
+						return MyMap.TryZoomToAsync(oldZoom).AsTask();
+					});
+					// MyMap.ZoomLevel = MyMap.ZoomLevel; does nothing
+				});
+			}
 			//else if (e.PropertyName == "IsCentreOnCurrent")
 			//{
 			//    if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent)
@@ -948,7 +966,7 @@ namespace LolloGPS.Core
 
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.History?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -962,7 +980,7 @@ namespace LolloGPS.Core
 
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Route0?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -976,7 +994,7 @@ namespace LolloGPS.Core
 
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Landmarks?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -1105,7 +1123,17 @@ namespace LolloGPS.Core
 				Geopoint locationS = null;
 				mapControl.GetLocationFromOffset(pointN, out locationN);
 				mapControl.GetLocationFromOffset(pointS, out locationS);
-				double dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
+
+				double dist = 0.0;
+				bool isImperial = PersistentData.GetInstance().IsShowImperialUnits;
+				if (isImperial)
+				{
+					dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * ConstantData.KM_TO_MILE * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
+				}
+				else
+				{
+					dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
+				}
 				string distStr = Math.Truncate(dist).ToString(CultureInfo.InvariantCulture);
 				//work out next lower round distance because the scale must always be very round
 				string distStrRounded = distStr.Substring(0, 1);
@@ -1116,13 +1144,27 @@ namespace LolloGPS.Core
 				double distRounded = 0.0;
 				double.TryParse(distStrRounded, out distRounded);
 
-				if (distRounded > 1000)
+				if (isImperial)
 				{
-					_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " km";
+					if (distRounded > 100)
+					{
+						_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " mi";
+					}
+					else
+					{
+						_distRoundedFormatted = (distRounded / 1000 * ConstantData.MILE_TO_FOOT).ToString(CultureInfo.CurrentUICulture) + " ft";
+					}
 				}
 				else
 				{
-					_distRoundedFormatted = distRounded.ToString(CultureInfo.CurrentUICulture) + " m";
+					if (distRounded > 1000)
+					{
+						_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " km";
+					}
+					else
+					{
+						_distRoundedFormatted = distRounded.ToString(CultureInfo.CurrentUICulture) + " m";
+					}
 				}
 
 				if (dist != 0.0) _imageScaleTransform = distRounded / dist;

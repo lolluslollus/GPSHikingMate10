@@ -32,7 +32,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0" Grid.Column="0"
-                Text="Allow download on metered connections."
+                Text="Allow download on metered connections"
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>
@@ -44,7 +44,7 @@
                 Icon="Permissions"/>
 
         <TextBlock Grid.Row="1" Grid.Column="0" 
-                Text="Restore 2D view and point north."
+                Text="Restore 2D view and point north"
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>
@@ -98,7 +98,7 @@
         </StackPanel>
 
         <TextBlock Grid.Row="4" Grid.Column="0" 
-                Text="As you visit a part of a map, cache it for offline use."
+                Text="As you visit a part of a map, cache it for offline use"
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>
@@ -111,7 +111,7 @@
                 Icon="Camera"/>
 
         <TextBlock Grid.Row="5" Grid.Column="0" 
-                Text="Download all map tiles in the frame for offline use."
+                Text="Download all map tiles in the frame for offline use"
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>
@@ -145,7 +145,7 @@
                 ItemSelected="OnZoomLevelChooser_ItemSelected"/>
 
         <TextBlock Grid.Row="7" Grid.Column="0" 
-                Text="Clear the cache."
+                Text="Clear the cache"
                 TextWrapping="Wrap"
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>

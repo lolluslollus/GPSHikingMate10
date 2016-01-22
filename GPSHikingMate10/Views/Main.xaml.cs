@@ -176,6 +176,14 @@ namespace LolloGPS.Core
 			{
 				UpdateAltitudeColumnMaxWidth();
 			}
+			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+			{
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					if (MyPersistentData?.Current != null) MyPersistentData.Current.Altitude = MyPersistentData.Current.Altitude;
+				});
+			}
+
 		}
 		private void UpdateAltitudeColumnMaxWidth()
 		{

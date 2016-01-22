@@ -205,6 +205,7 @@ namespace LolloGPS.Data
 				target.IsBackButtonEnabled = source.IsBackButtonEnabled;
 				target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
 				target.AltLastVScroll = source.AltLastVScroll;
+				target.IsShowImperialUnits = source.IsShowImperialUnits;
 
 				TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
 				target.RaisePropertyChanged(nameof(TestTileSource));
@@ -550,6 +551,10 @@ namespace LolloGPS.Data
 		private double _altLastScroll = 0.0;
 		[DataMember]
 		public double AltLastVScroll { get { return _altLastScroll; } set { _altLastScroll = value; RaisePropertyChanged(); } }
+
+		private bool _isShowImperialUnits = false;
+		[DataMember]
+		public bool IsShowImperialUnits { get { return _isShowImperialUnits; } set { if (_isShowImperialUnits != value) { _isShowImperialUnits = value; RaisePropertyChanged_UI(); } } }
 		#endregion properties
 
 		#region all series methods

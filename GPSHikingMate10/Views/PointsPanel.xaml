@@ -225,7 +225,7 @@
             VerticalAlignment="Center"
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
-            Text="Add / merge this point into your landmarks."/>
+            Text="Add / merge this point into your landmarks"/>
 		<AppBarButton Grid.Row="5" Grid.Column="1"
             VerticalAlignment="Center"
             Click="OnAddTargetToLandmarks_Click"
@@ -247,7 +247,7 @@
             VerticalAlignment="Center"
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
-            Text="Add the current location to your landmarks."/>
+            Text="Add the current location to your landmarks"/>
 		<ContentControl Grid.Row="7" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -286,7 +286,7 @@
             VerticalAlignment="Center" 
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
-            Text="Move around the map and tap the aim to add one landmark."/>
+            Text="Move around the map and tap the aim to add one landmark"/>
 		<ContentControl Grid.Row="9" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
@@ -307,7 +307,7 @@
             VerticalAlignment="Center" 
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
-            Text="Clear landmarks."/>
+            Text="Clear landmarks"/>
 		<AppBarButton Grid.Row="10" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsCompact="True"

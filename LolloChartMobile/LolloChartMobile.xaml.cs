@@ -381,7 +381,7 @@ namespace LolloChartMobile
 			if (XPrimaryGridLines != null && XGridLabels != null)
 			{
 				if (_XGridLabels_Internal == null) _XGridLabels_Internal = new XGridLabels_Internal(CanvasXLabelsBottom, XGridScale.ScaleType, XGridLabels.Points, XGridLabels.DataPointsFormat, ChartObjectTag.XGridLabels);
-				else _XGridLabels_Internal.ReInit(XGridScale.ScaleType, XGridLabels.Points);
+				else _XGridLabels_Internal.ReInit(XGridScale.ScaleType, XGridLabels.Points, XGridLabels.DataPointsFormat);
 			}
 
 			if (YPrimaryGridLines != null)
@@ -397,12 +397,12 @@ namespace LolloChartMobile
 			if (YPrimaryGridLines != null && Y1GridLabels != null)
 			{
 				if (_Y1GridLabels_Internal == null) _Y1GridLabels_Internal = new YGridLabels_Internal(CanvasYLabelsLeft, Y1GridScale.ScaleType, Y1GridLabels.Points, Y1GridLabels.DataPointsFormat, ChartObjectTag.Y1GridLabels);
-				else _Y1GridLabels_Internal.ReInit(Y1GridScale.ScaleType, Y1GridLabels.Points);
+				else _Y1GridLabels_Internal.ReInit(Y1GridScale.ScaleType, Y1GridLabels.Points, Y1GridLabels.DataPointsFormat);
 			}
 			if (YPrimaryGridLines != null && Y2GridLabels != null)
 			{
 				if (_Y2GridLabels_Internal == null) _Y2GridLabels_Internal = new YGridLabels_Internal(CanvasYLabelsRight, Y2GridScale.ScaleType, Y2GridLabels.Points, Y2GridLabels.DataPointsFormat, ChartObjectTag.Y2GridLabels);
-				else _Y2GridLabels_Internal.ReInit(Y2GridScale.ScaleType, Y2GridLabels.Points);
+				else _Y2GridLabels_Internal.ReInit(Y2GridScale.ScaleType, Y2GridLabels.Points, Y2GridLabels.DataPointsFormat);
 			}
 		}
 
@@ -639,12 +639,12 @@ namespace LolloChartMobile
 		internal GridLabels_Internal(Panel container, ScaleType scaleType, double[] points, string dataPointsFormat, ChartObjectTag tag)
 			: base(container, scaleType, tag)
 		{
-			DataPointsFormat = dataPointsFormat;
-			ReInit(scaleType, points);
+			ReInit(scaleType, points, dataPointsFormat);
 		}
-		internal virtual void ReInit(ScaleType scaleType, double[] points)
+		internal virtual void ReInit(ScaleType scaleType, double[] points, string dataPointsFormat)
 		{
 			if (Container.ActualHeight == 0.0 || Container.ActualWidth == 0.0) return; // LOLLO added this
+			DataPointsFormat = dataPointsFormat;
 			if (scaleType != ScaleType || points != DataPoints)
 			{
 				DataPoints = points;

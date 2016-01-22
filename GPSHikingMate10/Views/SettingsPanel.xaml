@@ -29,6 +29,8 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*"/>
@@ -144,7 +146,7 @@
 								Margin="{StaticResource Thickness0404}"/>
 
 		<TextBlock Grid.Row="14" Grid.ColumnSpan="2"
-								Text="Show angles in degrees."
+								Text="Show angles in degrees"
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
@@ -154,12 +156,22 @@
 								  IsOn="{Binding MyPersistentData.IsShowDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 		<TextBlock Grid.Row="16" Grid.ColumnSpan="2"
-								Text="Show speedometre."
+								Text="Imperial units"
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
 		<ToggleSwitch Grid.Row="16" Grid.Column="2"
+								VerticalAlignment="Center"
+								IsOn="{Binding MyPersistentData.IsShowImperialUnits, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+		<TextBlock Grid.Row="18" Grid.ColumnSpan="2"
+								Text="Show speedometre"
+								TextWrapping="Wrap" 
+								Style="{StaticResource BaseMessageStyle}"
+								Margin="{StaticResource Thickness0404}"
+								VerticalAlignment="Center"/>
+		<ToggleSwitch Grid.Row="18" Grid.Column="2"
 								VerticalAlignment="Center"
 								IsOn="{Binding MyPersistentData.IsShowSpeed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 	</Grid>

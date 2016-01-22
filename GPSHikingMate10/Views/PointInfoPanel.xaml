@@ -127,18 +127,18 @@
 					<Run Text="{Binding Selected.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
-					<Run Text="Altitude (m): "/>
-					<Run Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverter}}"/>
+					<Run Text="Altitude: "/>
+					<Run Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.Accuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
-					<Run Text="Accuracy (m): "/>
-					<Run Text="{Binding Selected.Accuracy}" />
+					<Run Text="Accuracy: "/>
+					<Run Text="{Binding Selected.Accuracy, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
-					<Run Text="Altitude accuracy (m): "/>
-					<Run Text="{Binding Selected.AltitudeAccuracy}"/>
+					<Run Text="Altitude accuracy: "/>
+					<Run Text="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
 					<Run Text="Source: "/>
@@ -165,13 +165,13 @@
 				</utilz:UniversalWrapPanel>
 
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
-					<Run Text="Speed (kmh): "/>
-					<Run Text="{Binding Selected.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter_OnlyNumber}}"/>
+					<Run Text="Speed: "/>
+					<Run Text="{Binding Selected.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding ElementName=me, Path=IsGotoPreviousEnabled, Converter={StaticResource BooleanToVisibleConverter}}">
-					<Run Text="Km from previous: "/>
-					<Run Text="{Binding ElementName=me, Path=DistanceFromPrevious}"/>
+					<Run Text="Distance from previous: "/>
+					<Run Text="{Binding ElementName=me, Path=DistanceFromPrevious, Converter={StaticResource FloatConverter}, ConverterParameter=KM}"/>
 				</TextBlock>
 
 				<!-- point n of m -->

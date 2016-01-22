@@ -35,8 +35,10 @@ namespace LolloGPS.Core
 		#region properties
 		//public const string WhichTable = "WhichTable";
 		//public const string FileCreationDateTime = "FileCreationDateTime";
-		private const double MIN_ALTITUDE_ABS = .1;
-		private const double MAX_ALTITUDE_ABS = 10000.0;
+		private const double MIN_ALTITUDE_M_ABS = .1;
+		private const double MAX_ALTITUDE_M_ABS = 10000.0;
+		private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
+		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
 
 		private LolloMap_VM _myLolloMap_VM = null;
@@ -398,17 +400,26 @@ namespace LolloGPS.Core
 		/// </summary>
 		/// <param name="dblIn"></param>
 		/// <returns></returns>
-		internal static double RoundAndRangeAltitude(double dblIn)
+		internal static double RoundAndRangeAltitude(double dblIn, bool isImperialUnits)
 		{
-			if (Math.Abs(dblIn) < MIN_ALTITUDE_ABS)
+			if (Math.Abs(dblIn) < MIN_ALTITUDE_M_ABS)
 			{
 				return 0.0;
 			}
 			else
 			{
-				if (dblIn > MAX_ALTITUDE_ABS) return MAX_ALTITUDE_ABS;
-				if (dblIn < -MAX_ALTITUDE_ABS) return -MAX_ALTITUDE_ABS;
-				return dblIn;
+				if (isImperialUnits)
+				{
+					if (dblIn > MAX_ALTITUDE_M_ABS) return MAX_ALTITUDE_FT_ABS;
+					if (dblIn < -MAX_ALTITUDE_M_ABS) return -MAX_ALTITUDE_FT_ABS;
+					return dblIn * ConstantData.M_TO_FOOT;
+				}
+				else
+				{
+					if (dblIn > MAX_ALTITUDE_M_ABS) return MAX_ALTITUDE_M_ABS;
+					if (dblIn < -MAX_ALTITUDE_M_ABS) return -MAX_ALTITUDE_M_ABS;
+					return dblIn;
+				}
 			}
 		}
 		#endregion services

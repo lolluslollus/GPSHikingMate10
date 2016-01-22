@@ -1,6 +1,7 @@
 ﻿using LolloBaseUserControls;
 using LolloChartMobile;
 using LolloGPS.Data;
+using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -127,7 +128,7 @@ namespace LolloGPS.Core
 
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.History?.Count == 0)
 				&& Visibility == Visibility.Visible
 				&& MyPersistentData?.History != null)
 			{
@@ -139,7 +140,7 @@ namespace LolloGPS.Core
 		}
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Route0?.Count == 0)
 				&& Visibility == Visibility.Visible
 				&& MyPersistentData?.Route0 != null)
 			{
@@ -151,7 +152,7 @@ namespace LolloGPS.Core
 		}
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Landmarks?.Count == 0)
 				&& Visibility == Visibility.Visible
 				&& MyPersistentData?.Landmarks != null)
 			{
@@ -168,6 +169,13 @@ namespace LolloGPS.Core
 				Task upd = RunFunctionIfOpenAsyncA(delegate
 				{
 					UpdateCharts();
+				});
+			}
+			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+			{
+				Task upd = RunFunctionIfOpenAsyncA(delegate
+				{
+					if (Visibility == Visibility.Visible) UpdateCharts();
 				});
 			}
 		}
@@ -363,20 +371,21 @@ namespace LolloGPS.Core
 					Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
 					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
-					chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
 					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
 					double[] xLabels = { maxTime, minTime };
 					//chart.XGridLabels = new GridLabels(xLabels);
 					chart.XPrimaryGridLines = new GridLines(xLabels);
 
+					chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
 					double[] yLabels = {
 						maxAltitude,
 						minAltitude + (maxAltitude - minAltitude) * .75,
 						minAltitude + (maxAltitude - minAltitude) * .5,
 						minAltitude + (maxAltitude - minAltitude) * .25,
 						minAltitude };
-					chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 					chart.YPrimaryGridLines = new GridLines(yLabels);
+					if (MyPersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
+					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
 					token.ThrowIfCancellationRequested();
 					chart.Draw();
