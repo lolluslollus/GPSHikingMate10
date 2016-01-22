@@ -450,7 +450,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				Debug.WriteLine("ERROR in GetTileUri(): " + exc0.Message + " ; I made it to where = " + where + exc0.StackTrace);
 			}
-			Debug.WriteLine("GetTileUri() ended with where = " + where);
+			// Debug.WriteLine("GetTileUri() ended with where = " + where);
 			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 			return output;
 		}
@@ -567,7 +567,7 @@ namespace LolloGPS.Data.TileCache
 				else
 				{
 					output = true;
-					Debug.WriteLine("SaveTileAsync() found a file with name = " + fileName + " and returned its uri = " + output.ToString());
+					// Debug.WriteLine("SaveTileAsync() found a file with name = " + fileName + " and returned its uri = " + output.ToString());
 					if (fileName != fileNameFromDb) Debug.WriteLine("ERROR in SaveTileAsync(): file name in db is " + fileNameFromDb + " but the calculated file name is " + fileName);
 				}
 			}
@@ -575,7 +575,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				Debug.WriteLine("ERROR in SaveTileAsync(): " + exc0.Message + " ; I made it to where = " + where + exc0.StackTrace);
 			}
-			Debug.WriteLine("SaveTileAsync() ended with where = " + where);
+			// Debug.WriteLine("SaveTileAsync() ended with where = " + where);
 			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 
 			return output;

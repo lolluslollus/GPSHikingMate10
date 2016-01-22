@@ -45,13 +45,13 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				UpdateAltitudeColumnMaxWidth();
-
 				_myVM = Main_VM.GetInstance();
 				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
 
 				await MyLolloMap.OpenAsync();
+				UpdateAltitudeColumnMaxWidth();
 				await MyAltitudeProfiles.OpenAsync();
+
 				AddHandlers();
 
 				_isOpen = true;

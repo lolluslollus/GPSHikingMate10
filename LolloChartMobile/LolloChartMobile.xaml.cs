@@ -13,6 +13,7 @@ namespace LolloChartMobile
 {
 	public sealed partial class LolloChart : UserControl // where T : class, new()
 	{
+		#region properties
 		private XYDataSeries_Internal _XY1DataSeries_Internal;
 		private XYDataSeries_Internal _XY2DataSeries_Internal;
 		private XYDataSeries_Internal _XY3DataSeries_Internal;
@@ -101,32 +102,30 @@ namespace LolloChartMobile
 
 		private ApplicationView _appView = null;
 		private ApplicationViewOrientation _prevOrientation;
+		#endregion properties
 
+
+		#region lifecycle
 		private bool IsHandlersActive = false;
 		private void AddHandlers()
 		{
 			if (IsHandlersActive == false)
 			{
 				_appView.VisibleBoundsChanged += OnAppView_VisibleBoundsChanged;
-				//_appView.Consolidated += OnAppView_Consolidated;
 				IsEnabledChanged += new DependencyPropertyChangedEventHandler(OnIsEnabledChanged);
 				SizeChanged += new SizeChangedEventHandler(OnSizeChanged);
-				// (Parent as Panel).SizeChanged +=new SizeChangedEventHandler(LolloChart_SizeChanged);
 				IsHandlersActive = true;
 			}
 		}
 
 		private void RemoveHandlers()
 		{
-			// IsVisibleChanged -= LolloChart_IsVisibleChanged;
 			_appView.VisibleBoundsChanged -= OnAppView_VisibleBoundsChanged;
-			//_appView.Consolidated -= OnAppView_Consolidated;
 			IsEnabledChanged -= OnIsEnabledChanged;
 			SizeChanged -= OnSizeChanged;
-			//(Parent as Panel).SizeChanged -= LolloChart_SizeChanged;
 			IsHandlersActive = false;
 		}
-		//constructor
+
 		public LolloChart()
 		{
 			InitializeComponent();
@@ -134,8 +133,6 @@ namespace LolloChartMobile
 			_prevOrientation = _appView.Orientation;
 
 			DataContext = this;
-			SetFixedSizes();
-			//SetVariableGridSize();
 			SetLineStyles();
 		}
 
@@ -148,6 +145,9 @@ namespace LolloChartMobile
 		{
 			RemoveHandlers();
 		}
+		#endregion lifecycle
+
+
 		#region events
 		public class ChartTappedArguments
 		{
@@ -166,21 +166,7 @@ namespace LolloChartMobile
 			}
 		}
 		#endregion events
-		private void SetFixedSizes()
-		{
-			////variable centre area, fix border areas
-			//MainRow0.MinHeight = MainRow0.MaxHeight = (double)Resources["GridHeightSmall"];
-			////MainRow0.Height = new GridLength(MainRow0.MinHeight, GridUnitType.Auto);
-			//MainRow1.MinHeight = MainRow1.MaxHeight = (double)Resources["GridHeightSmall"];
-			//MainRow2.MinHeight = (double)Resources["GridHeightLarge"];
-			//MainRow3.MinHeight = MainRow3.MaxHeight = (double)Resources["GridHeightSmall"];
-			//MainRow4.MinHeight = MainRow4.MaxHeight = (double)Resources["GridHeightSmall"];
-			//MainCol0.MinWidth = MainCol0.MaxWidth = (double)Resources["GridWidthSmall"];
-			//MainCol1.MinWidth = (double)Resources["GridWidthLarge"];
-			//MainCol2.MinWidth = MainCol2.MaxWidth = (double)Resources["GridWidthSmall"];
-			//MinHeight = MainRow0.MinHeight + MainRow1.MinHeight + MainRow2.MinHeight + MainRow3.MinHeight + MainRow4.MinHeight;
-			//MinWidth = MainCol0.MinWidth + MainCol1.MinWidth + MainCol2.MinWidth;
-		}
+
 		private void SetLineStyles()
 		{
 			if (IsEnabled == false)
@@ -235,13 +221,8 @@ namespace LolloChartMobile
 			{
 				_prevOrientation = _appView.Orientation;
 				InvalidateMeasure();
-				//SetVariableGridSize();
 			}
 		}
-		//private void OnAppView_Consolidated(ApplicationView sender, ApplicationViewConsolidatedEventArgs args)
-		//{
-		//    bool bs = args.IsUserInitiated;
-		//}
 
 		private void OnGridChartArea_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
@@ -251,10 +232,6 @@ namespace LolloChartMobile
 				RaiseChartTapped(new ChartTappedArguments() { X = touchPosition.X, Y = touchPosition.Y, XMax = GridChartArea.ActualWidth, YMax = GridChartArea.ActualHeight });
 			}
 		}
-		//protected override Size ArrangeOverride(Size finalSize)
-		//{
-		//    return base.ArrangeOverride(finalSize);
-		//}
 
 		protected override Size MeasureOverride(Size availableSize)
 		{
@@ -290,7 +267,7 @@ namespace LolloChartMobile
 				double widthAvailableForCentre = Math.Max(maxAcceptableWidth - MainCol0.Width.Value - MainCol2.Width.Value, 0.0);
 				double heightAvailableForCentre = Math.Max(maxAcceptableHeight - MainRow0.Height.Value - MainRow1.Height.Value - MainRow3.Height.Value - MainRow4.Height.Value, 0.0);
 
-				LBTitle.Width = maxAcceptableWidth;
+				TitleGrid.Width = maxAcceptableWidth;
 				GridXLabelsTop.Width = widthAvailableForCentre;
 				GridYLabelsLeft.Height = heightAvailableForCentre;
 				GridChartArea.Width = widthAvailableForCentre;
@@ -298,46 +275,17 @@ namespace LolloChartMobile
 				GridYLabelsRight.Height = heightAvailableForCentre;
 				GridXLabelsBottom.Width = widthAvailableForCentre;
 
-				LBTitle.Measure(new Size(maxAcceptableWidth, LBTitle.Height));
+				TitleGrid.Measure(new Size(maxAcceptableWidth, TitleGrid.Height));
 				GridXLabelsTop.Measure(new Size(widthAvailableForCentre, GridXLabelsTop.Height));
 				GridYLabelsLeft.Measure(new Size(GridYLabelsLeft.Width, heightAvailableForCentre));
 				GridChartArea.Measure(new Size(widthAvailableForCentre, heightAvailableForCentre));
 				GridYLabelsRight.Measure(new Size(GridYLabelsRight.Width, heightAvailableForCentre));
 				GridXLabelsBottom.Measure(new Size(widthAvailableForCentre, GridXLabelsBottom.Height));
 
-				//Size gridChartSize = GridChartArea.DesiredSize;
-
-				//if (gridChartSize.Height == 0.0 || gridChartSize.Width == 0.0) return new Size(0.0, 0.0);
-				// else return new Size(Math.Max(widthAvailableForCentre, 0.0), Math.Max(heightAvailableForCentre, 0.0));
 				if (maxAcceptableWidth == 0.0 || maxAcceptableHeight == 0.0) return new Size(0.0, 0.0);
 				else return new Size(maxAcceptableWidth, maxAcceptableHeight);
 			}
 		}
-
-		//protected override Size ArrangeOverride(Size finalSize)
-		//{
-		//	double imposedWidth = NormaliseDouble(Width);
-		//	double imposedMaxWidth = NormaliseDouble(MaxWidth);
-		//	double imposedHeight = NormaliseDouble(Height);
-		//	double imposedMaxHeight = NormaliseDouble(MaxHeight);
-		//	//double availableWidth = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Width; // available bounds all out, no good
-		//	//double availableHeight = Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Bounds.Height; // available bounds all out, no good
-		//	double availableWidth = _appView.VisibleBounds.Width; // available bounds minus chrome, ie minus app bars
-		//	double availableHeight = _appView.VisibleBounds.Height; // available bounds minus chrome, ie minus app bars
-
-		//	double maxAcceptableWidth = Math.Min(Math.Min(imposedWidth, imposedMaxWidth), availableWidth);
-		//	double maxAcceptableHeight = Math.Min(Math.Min(imposedHeight, imposedMaxHeight), availableHeight);
-
-		//	double widthAvailableForCentre = maxAcceptableWidth - MainCol0.MinWidth - MainCol2.MinWidth; //- afterLeft.Width - afterRight.Width;
-		//	double heightAvailableForCentre = maxAcceptableHeight - MainRow0.MinHeight - MainRow1.MinHeight - MainRow3.MinHeight - MainRow4.MinHeight;
-
-		//	LBTitle.Arrange(new Rect(0, 0, maxAcceptableWidth, MainRow0.MaxHeight));
-		//	GridYLabelsLeft.Arrange(new Rect(0, MainRow0.MaxHeight, MainCol0.MaxWidth, heightAvailableForCentre));
-		//	GridChartArea.Arrange(new Rect(MainCol0.MaxWidth, MainRow0.MaxHeight, widthAvailableForCentre, heightAvailableForCentre));
-
-		//	var arr = base.ArrangeOverride(finalSize);
-		//	return arr;
-		//}
 
 		// this method is simpler than MeasureOverride but it does not take into account that the owner may have reserved some space for other stuff.
 		//private void SetVariableGridSize()
@@ -367,20 +315,8 @@ namespace LolloChartMobile
 		//	}
 		//}
 
-		//void LolloChart_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-		//{
-		//    if (IsVisible && IsMeasureValid) //has worked out the right size
-		//    { Draw(); }
-		//    else if (IsVisible) //is working out the right size: catch when it's done
-		//    { AddHandlerSizeChanged(); }
-		//    else if (IsVisible == false)
-		//    { RemoveHandlerSizeChanged(); }
-		//    else Debug.Assert(false, "WWW");
-		//}
-
 		public void Draw()
 		{
-			//RemoveHandlerSizeChanged();
 			//if (_XAxis != null) _XAxis.Draw();
 			//if (_YAxis != null) _YAxis.Draw();
 			if (XGridScale == null || Y1GridScale == null) return;

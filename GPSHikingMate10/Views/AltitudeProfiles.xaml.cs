@@ -400,9 +400,13 @@ namespace LolloGPS.Core
 			try
 			{
 				if (HistoryChart.Visibility == Visibility.Collapsed && Route0Chart.Visibility == Visibility.Collapsed && LandmarksChart.Visibility == Visibility.Collapsed)
-					TBNoData.Visibility = Visibility.Visible;
+				{
+					TBNoDataGrid.Visibility = Visibility.Visible;
+				}
 				else
-					TBNoData.Visibility = Visibility.Collapsed;
+				{
+					TBNoDataGrid.Visibility = Visibility.Collapsed;
+				}
 			}
 			catch (Exception ex)
 			{

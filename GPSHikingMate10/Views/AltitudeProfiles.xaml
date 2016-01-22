@@ -31,11 +31,9 @@
 
             <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Large}"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
@@ -43,25 +41,31 @@
                     <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Small}"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TBNoData" 
-					Text="No altitude data available" 
-					HorizontalAlignment="Center" VerticalAlignment="Center" 
-					Style="{StaticResource ScenarioHeaderTextStyle}"/>
-                <chart:LolloChart Grid.Row="1" Grid.Column="1" x:Name="HistoryChart" 
+				<Grid Height="200" Grid.Column="1" x:Name="TBNoDataGrid">
+					<TextBlock x:Name="TBNoData"
+						Text="No altitude data available"
+						TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"
+						Style="{StaticResource ScenarioHeaderTextStyle}"/>
+				</Grid>
+
+				<chart:LolloChart Grid.Row="0" Grid.Column="1" x:Name="HistoryChart" 
 					Title="Tracking history" 
 					ChartTapped="OnHistoryChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
-                    Foreground="{StaticResource HistoryBrushOpaque}"/>
-                <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="Route0Chart" 
+                    Foreground="{StaticResource HistoryBrushOpaque}"
+					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
+                <chart:LolloChart Grid.Row="1" Grid.Column="1" x:Name="Route0Chart" 
 					Title="Route"
 					ChartTapped="OnRoute0ChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
-                    Foreground="{StaticResource Route0BrushOpaque}"/>
-                <chart:LolloChart Grid.Row="3" Grid.Column="1" x:Name="LandmarksChart" 
+                    Foreground="{StaticResource Route0BrushOpaque}"
+					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
+                <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="LandmarksChart" 
 					Title="Landmarks" 
 					ChartTapped="OnLandmarksChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
-                    Foreground="{StaticResource LandmarksBrushOpaque}"/>
+                    Foreground="{StaticResource LandmarksBrushOpaque}"
+					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
             </Grid>
         </ScrollViewer>
     </Grid>
