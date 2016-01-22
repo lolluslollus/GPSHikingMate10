@@ -48,7 +48,7 @@
                 x:Name="LatFloat"
                 VerticalAlignment="Center"
 				Style="{StaticResource BaseTextBoxStyle}"
-                Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter}}" 
+                Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter8Decimals}}" 
                 InputScope="NumberFullWidth" 
                 LostFocus="LatFloat_LostFocus"/>
 			<!-- lon float -->
@@ -60,7 +60,7 @@
                 x:Name="LonFloat"
                 VerticalAlignment="Center"
                 Style="{StaticResource BaseTextBoxStyle}"
-                Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter}}" 
+                Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter8Decimals}}" 
                 InputScope="NumberFullWidth"
                 LostFocus="LonFloat_LostFocus"/>
 		</Grid>

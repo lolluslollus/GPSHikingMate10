@@ -79,8 +79,6 @@ namespace LolloGPS.Core
                 else
                 {
                     _myVM.SetLastMessage_UI("No downloads possible for this area");
-                    // LOLLO NOTE this happens when I zoom out and go north to the arctic.
-                    // the error happens in MapControl.GetLocationFromOffset(). It seems difficult to fix.
                 }
             }
             else MyPersistentData.LastMessage = "Download busy";
@@ -91,7 +89,6 @@ namespace LolloGPS.Core
             int maxZoom = (int)(e.Tag);
             MyPersistentData.SetIsTilesDownloadDesired(true, maxZoom);
             MyPersistentData.IsShowingPivot = false;
-            //MyVM.IsShowingMapSourcePanel = false;
         }
         //protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackSoftKeyPressedEventArgs e)
         //{

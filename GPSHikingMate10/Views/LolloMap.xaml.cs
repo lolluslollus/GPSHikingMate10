@@ -44,6 +44,8 @@ namespace LolloGPS.Core
 
 		internal const double MIN_LAT = -85.0511;
 		internal const double MAX_LAT = 85.0511;
+		internal const double MIN_LAT_NEARLY = -80.0;
+		internal const double MAX_LAT_NEARLY = 80.0;
 		internal const double MIN_LON = -180.0;
 		internal const double MAX_LON = 180.0;
 
@@ -131,7 +133,8 @@ namespace LolloGPS.Core
 			MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
 			MyMap.PedestrianFeaturesVisible = true;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
-													  //MyMap.MapElements.Clear(); // no!
+			MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly; // .GestureAndControl;
+																		//MyMap.MapElements.Clear(); // no!
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
@@ -154,7 +157,7 @@ namespace LolloGPS.Core
 					DrawLandmarks();
 				}
 
-				Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				//Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
 			{
@@ -164,30 +167,24 @@ namespace LolloGPS.Core
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			Logger.Add_TPL("LolloMap closing", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			//Logger.Add_TPL("LolloMap closing", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+			RemoveHandlers();
+			// save last map settings
 			try
 			{
-				RemoveHandlers();
-				// save last map settings
-				try
-				{
-					MyPersistentData.MapLastLat = MyMap.Center.Position.Latitude;
-					MyPersistentData.MapLastLon = MyMap.Center.Position.Longitude;
-					MyPersistentData.MapLastHeading = MyMap.Heading;
-					MyPersistentData.MapLastPitch = MyMap.Pitch;
-					MyPersistentData.MapLastZoom = MyMap.ZoomLevel;
-				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-				_myVM?.Close();
-				//MyPointInfoPanel?.Close();
+				MyPersistentData.MapLastLat = MyMap.Center.Position.Latitude;
+				MyPersistentData.MapLastLon = MyMap.Center.Position.Longitude;
+				MyPersistentData.MapLastHeading = MyMap.Heading;
+				MyPersistentData.MapLastPitch = MyMap.Pitch;
+				MyPersistentData.MapLastZoom = MyMap.ZoomLevel;
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			_myVM?.Close();
+			//MyPointInfoPanel?.Close();
 
 			return Task.CompletedTask;
 		}
@@ -559,7 +556,7 @@ namespace LolloGPS.Core
 		private void DrawLandmarks()
 		{
 			//if (_isClosing) return;
-			Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			//Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 			if (!InitLandmarks())
@@ -617,7 +614,7 @@ namespace LolloGPS.Core
 						MyMap.MapElements[j].Visible = false;
 						j++;
 					}
-					Logger.Add_TPL(geoPoints.Count.ToString() + " landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//Logger.Add_TPL(geoPoints.Count.ToString() + " landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 				catch (OutOfMemoryException)
 				{
@@ -698,16 +695,34 @@ namespace LolloGPS.Core
 			GeoboundingBox output = null;
 			await RunInUiThreadAsync(delegate
 			{
-				Geopoint topLeftGeopoint = null;
-				Geopoint topRightGeopoint = null;
-				Geopoint bottomLeftGeopoint = null;
-				Geopoint bottomRightGeopoint = null;
+				Geopoint topLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 });
+				Geopoint topRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 });
+				Geopoint bottomLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 });
+				Geopoint bottomRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 });
 				try
 				{
-					MyMap.GetLocationFromOffset(new Point(0.0, 0.0), out topLeftGeopoint);
-					MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
-					MyMap.GetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
-					MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
+					// LOLLO when you zoom out and then in with the north pole
+					// in the middle of the map, then start downloading tiles, the following may fail.
+					try
+					{
+						MyMap.GetLocationFromOffset(new Point(0.0, 0.0), out topLeftGeopoint);
+					}
+					catch { }
+					try
+					{
+						MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
+					}
+					catch { }
+					try
+					{
+						MyMap.GetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
+					}
+					catch { }
+					try
+					{
+						MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
+					}
+					catch { }
 
 					double minLat = Math.Min(Math.Min(Math.Min(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
 					double maxLat = Math.Max(Math.Max(Math.Max(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
@@ -934,11 +949,9 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					if (MyPersistentData?.Current != null) MyPersistentData.Current.SpeedInMetreSec = MyPersistentData.Current.SpeedInMetreSec;
-					Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = MyMap.Center.Position.Latitude, Longitude = MyMap.Center.Position.Longitude });
 
 					double oldZoom = MyMap.ZoomLevel;
-					double newZoom = oldZoom > MyMap.MinZoomLevel ? Math.Max(MyMap.MinZoomLevel, oldZoom * .9) : MyMap.MinZoomLevel * 1.1;
-					
+					double newZoom = oldZoom > MyMap.MinZoomLevel ? Math.Max(MyMap.MinZoomLevel, oldZoom * .99) : MyMap.MinZoomLevel * 1.01;
 					Task det = MyMap.TryZoomToAsync(newZoom).AsTask().ContinueWith(delegate
 					{
 						return MyMap.TryZoomToAsync(oldZoom).AsTask();
@@ -958,7 +971,8 @@ namespace LolloGPS.Core
 		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
-			if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent) // && (SelectedPointPopup == null || !SelectedPointPopup.IsOpen)) // LOLLO TODO check this, I have commented it out
+			// Unless the tracking is on and the autocentre too.
+			if (MyPersistentData?.IsCentreOnCurrent == true && MyRuntimeData.IsAllowCentreOnCurrent)
 			{
 				Task cen = CentreOnCurrentAsync();
 			}
@@ -1076,7 +1090,7 @@ namespace LolloGPS.Core
 						Calc(mapControl);
 						_lastZoomScale = currentZoomScale; //remember this to avoid repeating the same calculation
 					}
-					catch (Exception) { } // there may be exceptions if I am in a very awkward place in the map, such as the arctic
+					catch (Exception ex) { } // there may be exceptions if I am in a very awkward place in the map, such as the arctic
 				}
 			}
 			string param = parameter.ToString();
@@ -1103,75 +1117,104 @@ namespace LolloGPS.Core
 		// LOLLO the mercator formulas are at http://wiki.openstreetmap.org/wiki/Mercator
 		// and http://wiki.openstreetmap.org/wiki/EPSG:3857
 		// and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
-
+		private enum DistanceUnits { Metres, Kilometres, Feet, Miles }
 		private static void Calc(MapControl mapControl)
 		{
 			if (mapControl != null)
 			{
-				//we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
-				double halfMapWidth = mapControl.ActualWidth / 2.0;
-				double halfMapHeight = mapControl.ActualHeight / 2.0;
-				if (halfMapHeight <= 0 || halfMapWidth <= 0) return;
+				// we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
+				// in practise, we can also move along the parallels, it works anyway
+				// we put a hypothetical bar on the map, and we ask the map to measure where it starts and ends.
+				// then we compare the bar length with the scale length, so we find out the distance in metres between the scale ends.
+				double hypotheticalParallelBarX1 = mapControl.ActualWidth / 2.0;
+				double hypotheticalMeridianBarY1 = mapControl.ActualHeight / 2.0;
+				if (hypotheticalMeridianBarY1 <= 0 || hypotheticalParallelBarX1 <= 0) return;
+				double hypotheticalMeridianBarLength = 99.0; // I use a shortish bar length so it always fits snugly in the MapControl. Too short would be inaccurate.
+															 // The map may be shifted badly; these maps can shift vertically so badly, that the north or the south pole can be in the centre of the control.
+															 // If this happens, we place the hypothetical bar lower or higher, so it is always safely on the Earth.
+															 // Since these shifts happen vertically, it is easier to use a horizontal hypothetical bar.
+				Geopoint centre = mapControl.Center;
+				if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeridianBarY1 *= 1.5; /*Debug.WriteLine("halfMapHeight + ");*/ }
+				else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeridianBarY1 *= .5; /*Debug.WriteLine("halfMapHeight - ");*/ }
 
 				double headingRadians = mapControl.Heading * Math.PI / 180.0;
-				Point pointN = new Point(halfMapWidth, halfMapHeight);
-				double barLength = 99.0; // LolloMap.scaleImageWidth - 1; //I use a shortish bar length so it always fits snugly in the MapControl
-										 //                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
-				Point pointS = new Point(halfMapWidth + barLength * Math.Sin(headingRadians), halfMapHeight + barLength * Math.Cos(headingRadians));
-				//double checkIpotenusa = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
-				Geopoint locationN = null;
-				Geopoint locationS = null;
-				mapControl.GetLocationFromOffset(pointN, out locationN);
-				mapControl.GetLocationFromOffset(pointS, out locationS);
 
-				double dist = 0.0;
-				bool isImperial = PersistentData.GetInstance().IsShowImperialUnits;
-				if (isImperial)
-				{
-					dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * ConstantData.KM_TO_MILE * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
-				}
-				else
-				{
-					dist = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (barLength + 1); //need the abs for when the map is rotated
-				}
-				string distStr = Math.Truncate(dist).ToString(CultureInfo.InvariantCulture);
-				//work out next lower round distance because the scale must always be very round
-				string distStrRounded = distStr.Substring(0, 1);
-				for (int i = 0; i < distStr.Length - 1; i++)
-				{
-					distStrRounded += "0";
-				}
-				double distRounded = 0.0;
-				double.TryParse(distStrRounded, out distRounded);
+				//Point pointN = new Point(halfMapWidth, halfMapHeight);
 
-				if (isImperial)
+				//                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
+				//Point pointS = new Point(halfMapWidth + hypotheticalMeridianBarLength * Math.Sin(headingRadians), halfMapHeight + hypotheticalMeridianBarLength * Math.Cos(headingRadians));
+				//double checkIpotenusaMustBeSameAsBarLength = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
+				//Geopoint locationN = null; Geopoint locationS = null;
+				//mapControl.GetLocationFromOffset(pointN, out locationN);
+				//mapControl.GetLocationFromOffset(pointS, out locationS);
+
+				Point pointW = new Point(hypotheticalParallelBarX1, hypotheticalMeridianBarY1);
+				Point pointE = new Point(hypotheticalParallelBarX1 + hypotheticalMeridianBarLength * Math.Sin(headingRadians + Math.PI / 2.0), hypotheticalMeridianBarY1 + hypotheticalMeridianBarLength * Math.Cos(headingRadians + Math.PI / 2.0));
+				Geopoint locationW = null;
+				Geopoint locationE = null;
+				mapControl.GetLocationFromOffset(pointW, out locationW);
+				mapControl.GetLocationFromOffset(pointE, out locationE);
+
+				//double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
+				double scaleEndsDistanceMetres = Math.Abs(locationE.Position.Longitude - locationW.Position.Longitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
+
+				double distInChosenUnit = 0.0;
+				double distInChosenUnitRounded = 0.0;
+
+				if (PersistentData.GetInstance().IsShowImperialUnits)
 				{
-					if (distRounded > 100)
+					if (scaleEndsDistanceMetres > ConstantData.MILE_TO_M)
 					{
-						_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " mi";
+						distInChosenUnit = scaleEndsDistanceMetres / ConstantData.MILE_TO_M;
+						distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+						_distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " mi";
 					}
 					else
 					{
-						_distRoundedFormatted = (distRounded / 1000 * ConstantData.MILE_TO_FOOT).ToString(CultureInfo.CurrentUICulture) + " ft";
+						distInChosenUnit = scaleEndsDistanceMetres * ConstantData.M_TO_FOOT;
+						distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+						_distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " ft";
 					}
 				}
 				else
 				{
-					if (distRounded > 1000)
+					if (scaleEndsDistanceMetres > ConstantData.KM_TO_M)
 					{
-						_distRoundedFormatted = (distRounded / 1000).ToString(CultureInfo.CurrentUICulture) + " km";
+						distInChosenUnit = scaleEndsDistanceMetres / ConstantData.KM_TO_M;
+						distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+						_distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " km";
 					}
 					else
 					{
-						_distRoundedFormatted = distRounded.ToString(CultureInfo.CurrentUICulture) + " m";
+						distInChosenUnit = scaleEndsDistanceMetres;
+						distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+						_distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " m";
 					}
 				}
 
-				if (dist != 0.0) _imageScaleTransform = distRounded / dist;
+				if (distInChosenUnit != 0.0) _imageScaleTransform = distInChosenUnitRounded / distInChosenUnit;
 				else _imageScaleTransform = 999.999;
 
 				_rightLabelX = LolloMap.SCALE_IMAGE_WIDTH * _imageScaleTransform;
 			}
+		}
+
+		/// <summary>
+		/// work out next lower round distance because the scale must always be very round
+		/// </summary>
+		/// <param name="distMetres"></param>
+		/// <returns>double</returns>
+		private static double GetDistRounded(double distMetres)
+		{
+			string distMetres_String = Math.Truncate(distMetres).ToString(CultureInfo.InvariantCulture);
+			string distStrRounded = distMetres_String.Substring(0, 1);
+			for (int i = 0; i < distMetres_String.Length - 1; i++)
+			{
+				distStrRounded += "0";
+			}
+			double distRounded = 0.0;
+			double.TryParse(distStrRounded, out distRounded);
+			return distRounded;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)

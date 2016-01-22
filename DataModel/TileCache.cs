@@ -368,7 +368,7 @@ namespace LolloGPS.Data.TileCache
 					// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
 					if (IsCaching && isConnectionAvailable)
 					{
-						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny; // LOLLO TODO this was not commented out, check it
+						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
 						request.AllowReadStreamBuffering = true;
 						request.ContinueTimeout = WebRequestTimeoutMsec;
 						where = 2;
@@ -401,7 +401,7 @@ namespace LolloGPS.Data.TileCache
 											{
 												where = 99;
 												output = GetUriForFile(fileName);
-												Debug.WriteLine("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + output.ToString());
+												Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + output.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 											}
 											else
 											{

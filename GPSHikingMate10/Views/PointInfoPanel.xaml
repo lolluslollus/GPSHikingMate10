@@ -128,17 +128,17 @@
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Altitude: "/>
-					<Run Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
+					<Run Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.Accuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
 					<Run Text="Accuracy: "/>
-					<Run Text="{Binding Selected.Accuracy, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
+					<Run Text="{Binding Selected.Accuracy, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
 					<Run Text="Altitude accuracy: "/>
-					<Run Text="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatConverter}, ConverterParameter=M}"/>
+					<Run Text="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
 					<Run Text="Source: "/>
@@ -171,7 +171,7 @@
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding ElementName=me, Path=IsGotoPreviousEnabled, Converter={StaticResource BooleanToVisibleConverter}}">
 					<Run Text="Distance from previous: "/>
-					<Run Text="{Binding ElementName=me, Path=DistanceFromPrevious, Converter={StaticResource FloatConverter}, ConverterParameter=KM}"/>
+					<Run Text="{Binding ElementName=me, Path=DistanceMFromPrevious, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM}"/>
 				</TextBlock>
 
 				<!-- point n of m -->

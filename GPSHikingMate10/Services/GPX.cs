@@ -312,22 +312,13 @@ namespace GPX
 					//whichTable).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 
-					// Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync. 
-					CachedFileManager.DeferUpdates(gpxFile); // http://msdn.microsoft.com/en-us/library/windows/apps/windows.storage.cachedfilemanager(v=win.10).aspx
+					// we don't need this Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync. 
+					// CachedFileManager.DeferUpdates(gpxFile); // http://msdn.microsoft.com/en-us/library/windows/apps/windows.storage.cachedfilemanager(v=win.10).aspx
 					await gpxDoc.SaveToFileAsync(gpxFile).AsTask().ConfigureAwait(false);
-					FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(gpxFile).AsTask().ConfigureAwait(false);
 
-					if (status == FileUpdateStatus.Complete)
-					{
-						Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info);
-						outIsOk = true;
-						outMessage = "file saved";
-					}
-					else
-					{
-						await Logger.AddAsync("File " + gpxFile.Name + " could not be saved", Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-						outMessage = "file could not be saved";
-					}
+					Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					outIsOk = true;
+					outMessage = "file saved";
 
 					// this is only for testing
 					//string contentString = null;

@@ -109,16 +109,19 @@ namespace LolloGPS.Core
 			{
 				_isHandlersActive = true;
 				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				MyPersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				MyPersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
 				MyPersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
 				MyPersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
 			}
 		}
+
 		private void RemoveHandlers()
 		{
 			if (MyPersistentData != null)
 			{
 				MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				MyPersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
 				MyPersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
 				MyPersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
 				MyPersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
@@ -173,10 +176,24 @@ namespace LolloGPS.Core
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
 			{
-				Task upd = RunFunctionIfOpenAsyncA(delegate
+				Task upd = RunFunctionIfOpenAsyncT(async delegate
 				{
-					if (Visibility == Visibility.Visible) UpdateCharts();
+					bool doUpdate = false;
+					await RunInUiThreadAsync(delegate
+					{
+						doUpdate = (Visibility == Visibility.Visible);
+					}).ConfigureAwait(false);
+					UpdateCharts();
 				});
+			}
+		}
+		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
+		{
+			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
+			// Unless the tracking is on and the autocentre too.
+			if (MyPersistentData?.IsCentreOnCurrent == true && MyRuntimeData.IsAllowCentreOnCurrent)
+			{
+				Task cen = CentreOnHistoryAsync();
 			}
 		}
 		#endregion data event handlers

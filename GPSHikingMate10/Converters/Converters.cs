@@ -417,13 +417,55 @@ namespace LolloGPS.Converters
 			throw new Exception("this is a one-way binding, it should never get here");
 		}
 	}
-	public class FloatConverter : IValueConverter
+
+	public class FloatConverter8Decimals : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
 
-			string format = @"#0.########";
+			return FloatConverterHelper.Convert(value, parameter, @"#0.########");
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
+		}
+	}
+
+	public class FloatConverter1Decimals : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
+
+			return FloatConverterHelper.Convert(value, parameter, @"#0.#");
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
+		}
+	}
+
+	public class FloatConverterNoDecimals : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
+
+			return FloatConverterHelper.Convert(value, parameter, @"#0");
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
+		}
+	}
+
+	public class FloatConverterHelper
+	{
+		public static object Convert(object value, object parameter, string format = @"#0.########")
+		{
+			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
+
 			bool isImperialUnits = PersistentData.GetInstance().IsShowImperialUnits;
 
 			double dbl = default(double);
@@ -449,6 +491,34 @@ namespace LolloGPS.Converters
 					}
 					else format += " km";
 				}
+				if (parameter.ToString() == "M_KM")
+				{
+					if (isImperialUnits)
+					{
+						if (dbl > ConstantData.MILE_TO_M)
+						{
+							format += " mi";
+							dbl *= (ConstantData.KM_TO_MILE / 1000.0);
+						}
+						else
+						{
+							format += " ft";
+							dbl *= ConstantData.M_TO_FOOT;
+						}
+					}
+					else
+					{
+						if (dbl > 1000.0)
+						{
+							format += " km";
+							dbl /= 1000.0;
+						}
+						else
+						{
+							format += " m";
+						}
+					}
+				}
 				else if (parameter.ToString() == "KMH")
 				{
 					if (isImperialUnits)
@@ -461,10 +531,6 @@ namespace LolloGPS.Converters
 			}
 
 			return dbl.ToString(format, CultureInfo.CurrentUICulture);
-		}
-		public object ConvertBack(object value, Type targetType, object parameter, string language)
-		{
-			throw new Exception("this is a one-way binding, it should never get here");
 		}
 	}
 

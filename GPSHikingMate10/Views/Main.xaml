@@ -306,7 +306,7 @@
 					<Run Text="Lon"/>
 					<Run Text="{Binding Current.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
 					<Run Text="Alt"/>
-					<Run Text="{Binding Current.Altitude, Converter={StaticResource FloatConverter}, ConverterParameter='M'}"/>
+					<Run Text="{Binding Current.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter='M'}"/>
 					<Run Text="@"/>
 					<Run Text="{Binding Current.TimePoint}"/>
 				</TextBlock>

@@ -98,7 +98,7 @@ namespace LolloGPS.Suspension
 			}
 			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
 								 // better quit then. But what if it happens again?
-								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
+								 // This happened once, on the phone: a funny error message came up, after I opened a hyperlink contained in a location and went back to the app.
 								 // LOLLO TODO try to reproduce it
 			{
 				errorMessage = "could not restore the settings, starting afresh";

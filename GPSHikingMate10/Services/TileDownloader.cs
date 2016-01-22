@@ -56,12 +56,12 @@ namespace LolloGPS.Core
         {
             _gbbProvider = gbbProvider;
         }
-        internal void Activate()
+        internal void Open()
         {
             IsCancelledBySuspend = false;
             IsCancelledByUser = false;
         }
-        internal void Deactivate()
+        internal void Close()
         {
             IsCancelledBySuspend = true;
         }

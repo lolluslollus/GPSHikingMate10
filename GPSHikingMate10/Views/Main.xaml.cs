@@ -145,45 +145,40 @@ namespace LolloGPS.Core
 
 		private DispatcherTimerPlus _animationTimer = null;
 
-		private async void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PersistentData.LastMessage))
 			{
 				if (!string.IsNullOrWhiteSpace(MyPersistentData.LastMessage))
 				{
-					try
+					Task gt = RunInUiThreadAsync(delegate
 					{
-						if (_animationTimer == null)
+						try
 						{
-							_animationTimer = new DispatcherTimerPlus(StopShowingNotice, 5);
+							if (_animationTimer == null)
+							{
+								_animationTimer = new DispatcherTimerPlus(StopShowingNotice, 5);
+							}
+							else
+							{
+								_animationTimer.Stop();
+							}
+							SetShowForAWhileOnly();
+							_animationTimer.Start();
+							//Storyboard_NewMessage.SkipToFill(); // LOLLO disable Storyboard_NewMessage to see if crash goes away
+							//Storyboard_NewMessage.Begin();
 						}
-						else
+						catch (Exception ex)
 						{
-							_animationTimer.Stop();
+							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 						}
-						SetShowForAWhileOnly();
-						_animationTimer.Start();
-						//Storyboard_NewMessage.SkipToFill(); // LOLLO disable Storyboard_NewMessage to see if crash goes away
-						//Storyboard_NewMessage.Begin();
-					}
-					catch (Exception ex)
-					{
-						await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-					}
+					});
 				}
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
 			{
 				UpdateAltitudeColumnMaxWidth();
 			}
-			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
-			{
-				Task gt = RunInUiThreadAsync(delegate
-				{
-					if (MyPersistentData?.Current != null) MyPersistentData.Current.Altitude = MyPersistentData.Current.Altitude;
-				});
-			}
-
 		}
 		private void UpdateAltitudeColumnMaxWidth()
 		{

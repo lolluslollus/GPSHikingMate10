@@ -2,18 +2,15 @@
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
 {
-    public sealed class LolloMap_VM : IMapApController
+    public sealed class LolloMap_VM : ObservableData, IMapApController
     {
         // http://josm.openstreetmap.de/wiki/Maps
 
@@ -41,12 +38,12 @@ namespace LolloGPS.Core
         }
         internal void Open()
         {
-            _tileDownloader.Activate();
+            _tileDownloader.Open();
             Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-            if (!MyPersistentData.CurrentTileSource.IsDefault) ActivateAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
+            if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
             AddHandler_DataChanged();
         }
-        private void ActivateAlternativeMap_Http(TileSourceRecord tileSource, bool isCaching)
+        private void OpenAlternativeMap_Http(TileSourceRecord tileSource, bool isCaching)
         {
             _tileCache = new TileCache(tileSource, isCaching);
 
@@ -108,11 +105,11 @@ namespace LolloGPS.Core
         internal void Close()
         {
             RemoveHandler_DataChanged();
-            _tileDownloader.Deactivate();
-            DeactivateAlternativeMap_Http();
+            _tileDownloader.Close();
+            CloseAlternativeMap_Http();
         }
 
-        private void DeactivateAlternativeMap_Http()
+        private void CloseAlternativeMap_Http()
         {
             if (_tileDataSource_http != null) _tileDataSource_http.UriRequested -= OnDataSource_UriRequested;
             //if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
@@ -164,8 +161,11 @@ namespace LolloGPS.Core
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSource) || e.PropertyName == nameof(PersistentData.IsMapCached))
             {
-                DeactivateAlternativeMap_Http();
-                if (!MyPersistentData.CurrentTileSource.IsDefault) ActivateAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					CloseAlternativeMap_Http();
+					if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
+				});
             }
         }
         private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -33,11 +33,9 @@ namespace LolloGPS.Core
 
 
 		#region properties
-		//public const string WhichTable = "WhichTable";
-		//public const string FileCreationDateTime = "FileCreationDateTime";
 		private const double MIN_ALTITUDE_M_ABS = .1;
 		private const double MAX_ALTITUDE_M_ABS = 10000.0;
-		private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
+		//private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
 
@@ -132,6 +130,8 @@ namespace LolloGPS.Core
 				UpdateDownloadButtonIsEnabled();
 
 				KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+
+				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 
 				AddHandlers_DataChanged();
 
@@ -244,25 +244,47 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.IsShowDegrees))
 			{
-				MyPersistentData.Current.Latitude = MyPersistentData.Current.Latitude; // trigger PropertyChanged to make it reraw the fields bound to it
-				MyPersistentData.Current.Longitude = MyPersistentData.Current.Longitude; // trigger PropertyChanged to make it reraw the fields bound to it
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					MyPersistentData.Current.Latitude = MyPersistentData.Current.Latitude; // trigger PropertyChanged to make it reraw the fields bound to it
+					MyPersistentData.Current.Longitude = MyPersistentData.Current.Longitude; // trigger PropertyChanged to make it reraw the fields bound to it
+				});
+			}
+			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+			{
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					if (MyPersistentData?.Current != null) MyPersistentData.Current.Altitude = MyPersistentData.Current.Altitude;
+				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsKeepAlive))
 			{
-				KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
 			{
-				UpdateDownloadButtonIsEnabled();
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					UpdateDownloadButtonIsEnabled();
+				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
 			{
-				UpdateDownloadButtonIsEnabled();
-				UpdateCacheButtonIsEnabled();
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					UpdateDownloadButtonIsEnabled();
+					UpdateCacheButtonIsEnabled();
+				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.TileSourcez))
 			{
-				UpdateClearCustomCacheButtonIsEnabled();
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					UpdateClearCustomCacheButtonIsEnabled();
+				});
 			}
 		}
 
@@ -270,7 +292,10 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
 			{
-				UpdateDownloadButtonIsEnabled();
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					UpdateDownloadButtonIsEnabled();
+				});
 			}
 		}
 		private void OnProcessingQueue_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -561,7 +586,7 @@ namespace LolloGPS.Core
 			}
 		}
 
-		// LOLLO TODO check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
+		// LOLLO NOTE check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
 		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 

@@ -1,5 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
+using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,8 +32,8 @@ namespace LolloGPS.Core
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
 		private bool _isGotoNextEnabled = false;
 		public bool IsGotoNextEnabled { get { return _isGotoNextEnabled; } private set { _isGotoNextEnabled = value; RaisePropertyChanged_UI(); } }
-		private string _distanceFromPrevious = "";
-		public string DistanceFromPrevious { get { return _distanceFromPrevious; } private set { _distanceFromPrevious = value; RaisePropertyChanged_UI(); } }
+		private double _distanceMFromPrevious = default(double);
+		public double DistanceMFromPrevious { get { return _distanceMFromPrevious; } private set { _distanceMFromPrevious = value; RaisePropertyChanged_UI(); } }
 		private bool _isSeriesChoicePresented = false;
 		public bool IsSeriesChoicePresented { get { return _isSeriesChoicePresented; } private set { _isSeriesChoicePresented = value; RaisePropertyChanged_UI(); } }
 
@@ -181,12 +182,14 @@ namespace LolloGPS.Core
 		{
 			PersistentData.GetInstance().IsShowingPivot = false;
 			PersistentData.GetInstance().IsBackButtonEnabled = true;
+			RuntimeData.GetInstance().IsAllowCentreOnCurrent = false;
 			UpdateWidth();
 			UpdateHeight();
 		}
 		protected override void OnUnloaded()
 		{
 			PersistentData.GetInstance().IsBackButtonEnabled = false;
+			RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 		}
 		private void UpdateWidth()
 		{
@@ -294,7 +297,7 @@ namespace LolloGPS.Core
 				{
 					var prev = myDataModel.GetRecordBeforeSelectedFromAnySeries();
 					var curr = myDataModel.Selected;
-					if (prev != null && curr != null) DistanceFromPrevious = DistanceBetweenLocations.Calc(prev.Latitude, prev.Longitude, curr.Latitude, curr.Longitude).ToString("#0.###", CultureInfo.CurrentUICulture);
+					if (prev != null && curr != null) DistanceMFromPrevious = DistanceMBetweenLocations.Calc(prev.Latitude, prev.Longitude, curr.Latitude, curr.Longitude); //.ToString("#0.###", CultureInfo.CurrentUICulture);
 				}
 			}
 			PointChanged?.Invoke(this, EventArgs.Empty);
@@ -302,7 +305,7 @@ namespace LolloGPS.Core
 		#endregion services
 	}
 
-	public sealed class DistanceBetweenLocations
+	public sealed class DistanceMBetweenLocations
 	{
 		public static readonly double PiHalf = Math.PI / 180.0;
 		public const double EarthRadiusKm = 6376.5;
@@ -347,7 +350,7 @@ namespace LolloGPS.Core
 			// Distance.
 			// const Double kEarthRadiusMiles = 3956.0;
 
-			dDistance = EarthRadiusKm * c;
+			dDistance = EarthRadiusKm * c * 1000.0;
 
 			return dDistance;
 		}

@@ -46,8 +46,10 @@
             <conv:AngleConverterMin x:Key="AngleConverterMin"/>
             <conv:AngleConverterSec x:Key="AngleConverterSec"/>
             <conv:AngleConverterDec x:Key="AngleConverterDec"/>
-            <conv:FloatConverter x:Key="FloatConverter"/>
-            <conv:AngleConverter x:Key="AngleConverter"/>
+            <conv:FloatConverter8Decimals x:Key="FloatConverter8Decimals"/>
+			<conv:FloatConverter1Decimals x:Key="FloatConverter1Decimals"/>
+			<conv:FloatConverterNoDecimals x:Key="FloatConverterNoDecimals"/>
+			<conv:AngleConverter x:Key="AngleConverter"/>
             <conv:SeriesTextConverter x:Key="SeriesTextConverter"/>
             <conv:SeriesToVisibilityConverter x:Key="SeriesToVisibilityConverter"/>
             <conv:StringFormatterConverter x:Key="StringFormatterConverter"/>

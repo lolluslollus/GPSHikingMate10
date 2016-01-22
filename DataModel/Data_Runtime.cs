@@ -24,6 +24,9 @@ namespace LolloGPS.Data.Runtime
 		private bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
 		public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
 
+		private bool _isAllowCentreOnCurrent = false;
+		public bool IsAllowCentreOnCurrent { get { return _isAllowCentreOnCurrent; } set { if (_isAllowCentreOnCurrent != value) { _isAllowCentreOnCurrent = value; RaisePropertyChanged_UI(); } } }
+
 		private bool _isSettingsRead = false;
 		public bool IsSettingsRead { get { return _isSettingsRead; } }
 		private async Task Set_IsSettingsRead_Async(bool value)
