@@ -99,7 +99,7 @@ namespace LolloGPS.Core
 		}
 		private Main_VM()
 		{
-			_myGPSInteractor = new GPSInteractor(MyPersistentData);
+			_myGPSInteractor = GPSInteractor.GetInstance(MyPersistentData);
 		}
 
 		//private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -156,8 +156,8 @@ namespace LolloGPS.Core
 				//Logger.Add_TPL("closing", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
 				RemoveHandlers_DataChanged();
-				_myGPSInteractor.Close();
 				KeepAlive.StopKeepAlive();
+				await _myGPSInteractor.CloseAsync().ConfigureAwait(false);
 
 				CancelPendingTasks(); // after removing the handlers
 
@@ -336,9 +336,9 @@ namespace LolloGPS.Core
 		{
 			PersistentData.GetInstance().LastMessage = message;
 		}
-		public async void GetAFix()
+		public void GetAFix()
 		{
-			var fix = await _myGPSInteractor.GetGeoLocationAsync().ConfigureAwait(false);
+			Task getLoc = _myGPSInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
 		public async Task<int> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{

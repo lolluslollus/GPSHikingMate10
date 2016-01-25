@@ -22,7 +22,7 @@ using Windows.UI.Xaml.Controls.Maps;
 namespace LolloGPS.Data
 {
 	[DataContract]
-	public sealed class PersistentData : ObservableData //, INotifyDataErrorInfo //does not work
+	public sealed class PersistentData : ObservableData, IGPSDataModel //, INotifyDataErrorInfo //does not work
 	{
 		public enum Tables { History, Route0, Landmarks, nil }
 		public static string GetTextForSeries(Tables whichSeries)
@@ -59,6 +59,7 @@ namespace LolloGPS.Data
 		public const uint MinDesiredAccuracyInMetres = 1u;
 		public const uint MaxDesiredAccuracyInMetres = 100u;
 		public const uint DefaultDesiredAccuracyInMetres = 10u; // high accuracy
+		public uint GetDefaultDesiredAccuracyInMetres { get { return DefaultDesiredAccuracyInMetres; } }
 		public const double MinTapTolerance = 1.0;
 		public const double MaxTapTolerance = 50.0;
 		public const double DefaultTapTolerance = 20.0;
@@ -261,9 +262,9 @@ namespace LolloGPS.Data
 		/// </summary>
 		/// <param name="dbAction"></param>
 		/// <returns></returns>
-		public static Task<bool> RunDbOpInOtherTaskAsync(Func<bool> action)
+		public static bool RunDbOpInOtherTask(Func<bool> action)
 		{
-			return LolloSQLiteConnectionPoolMT.RunInOtherTaskAsync(action);
+			return LolloSQLiteConnectionPoolMT.RunInOtherTask(action);
 		}
 		/// <summary>
 		/// Waits for current DB operations to terminate and then locks the DB.
@@ -694,10 +695,6 @@ namespace LolloGPS.Data
 		#endregion all series methods
 
 		#region historyMethods
-		//public static List<PointRecord> GetHistoryFromDB()
-		//{
-		//	return DBManager.GetHistory();
-		//}
 		public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
@@ -708,27 +705,25 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					//_history.Clear();
-
-					//if (dataRecords != null)
-					//{
-						try
-						{
-							if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
-							_history.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
-						}
-						catch (IndexOutOfRangeException)
-						{
-							LastMessage = "Only part of the history is drawn";
-						}
-						catch (OutOfMemoryException)
-						{
-							var howMuchMemoryLeft = GC.GetTotalMemory(true);
-							LastMessage = "Only part of the history is drawn";
-							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetHistory()", Logger.PersistentDataLogFilename);
-						}
-					//}
-
+					try
+					{
+						if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
+						_history.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
+					}
+					catch (IndexOutOfRangeException)
+					{
+						LastMessage = "Only part of the history is drawn";
+					}
+					catch (OutOfMemoryException)
+					{
+						var howMuchMemoryLeft = GC.GetTotalMemory(true);
+						LastMessage = "Only part of the history is drawn";
+						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetHistory()", Logger.PersistentDataLogFilename);
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					}
 					SetCurrentToLast();
 				}).ConfigureAwait(false);
 			}
@@ -746,7 +741,10 @@ namespace LolloGPS.Data
 			try
 			{
 				await _historySemaphore.WaitAsync();
-				History.Clear();
+				await RunInUiThreadAsync(delegate
+				{
+					History.Clear();
+				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromHistoryAsync().ConfigureAwait(false);
 			}
 			finally
@@ -772,7 +770,7 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
 			}
 		}
-		public bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
+		public static bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
 		{
 			try
 			{
@@ -823,9 +821,9 @@ namespace LolloGPS.Data
 				return false;
 			}
 		}
-		private bool AddHistoryRecord2OnlyDb(PointRecord dataRecord, bool checkMaxEntries)
+		private static bool AddHistoryRecord2OnlyDb(PointRecord dataRecord, bool checkMaxEntries)
 		{
-			if (dataRecord != null && !dataRecord.IsEmpty() && History.Count < MaxRecordsInHistory)
+			if (dataRecord != null && !dataRecord.IsEmpty())
 			{
 				try
 				{
@@ -861,10 +859,6 @@ namespace LolloGPS.Data
 		#endregion historyMethods
 
 		#region route0Methods
-		//public static List<PointRecord> GetRoute0FromDB()
-		//{
-		//	return DBManager.GetRoute0();
-		//}
 		public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
@@ -875,26 +869,25 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					//_route0.Clear();
-
-					//if (dataRecords != null)
-					//{
-						try
-						{
-							if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
-							_route0.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
-						}
-						catch (IndexOutOfRangeException)
-						{
-							LastMessage = "Only part of the route is drawn";
-						}
-						catch (OutOfMemoryException)
-						{
-							var howMuchMemoryLeft = GC.GetTotalMemory(true);
-							LastMessage = "Only part of the route is drawn";
-							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetRoute0()", Logger.PersistentDataLogFilename);
-						}
-					//}
+					try
+					{
+						if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
+						_route0.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
+					}
+					catch (IndexOutOfRangeException)
+					{
+						LastMessage = "Only part of the route is drawn";
+					}
+					catch (OutOfMemoryException)
+					{
+						var howMuchMemoryLeft = GC.GetTotalMemory(true);
+						LastMessage = "Only part of the route is drawn";
+						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetRoute0()", Logger.PersistentDataLogFilename);
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					}
 				}).ConfigureAwait(false);
 			}
 			catch (Exception exc0)
@@ -915,7 +908,10 @@ namespace LolloGPS.Data
 			try
 			{
 				await _route0Semaphore.WaitAsync();
-				Route0.Clear();
+				await RunInUiThreadAsync(delegate
+				{
+					Route0.Clear();
+				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromRoute0Async().ConfigureAwait(false);
 			}
 			finally
@@ -926,10 +922,6 @@ namespace LolloGPS.Data
 		#endregion route0Methods
 
 		#region landmarksMethods
-		//public static List<PointRecord> GetLandmarksFromDB()
-		//{
-		//	return DBManager.GetLandmarks();
-		//}
 		public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess = true)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync().ConfigureAwait(false);
@@ -940,30 +932,25 @@ namespace LolloGPS.Data
 
 				await RunInUiThreadAsync(delegate
 				{
-					// _landmarks.Clear();
-
-					//if (dataRecords != null)
-					//{
-						try
-						{
-							if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
-							_landmarks.ReplaceRange(dataRecords?.Where(rec => !rec.IsEmpty()));
-						}
-						catch (IndexOutOfRangeException)
-						{
-							LastMessage = "Only some landmarks are drawn";
-						}
-						catch (OutOfMemoryException)
-						{
-							var howMuchMemoryLeft = GC.GetTotalMemory(true);
-							LastMessage = "Only some landmarks are drawn";
-							Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
-						}
+					try
+					{
+						if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
+						_landmarks.ReplaceRange(dataRecords?.Where(rec => !rec.IsEmpty()));
+					}
+					catch (IndexOutOfRangeException)
+					{
+						LastMessage = "Only some landmarks are drawn";
+					}
+					catch (OutOfMemoryException)
+					{
+						var howMuchMemoryLeft = GC.GetTotalMemory(true);
+						LastMessage = "Only some landmarks are drawn";
+						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
+					}
 					catch(Exception ex)
 					{
 						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					}
-					//}
 				}).ConfigureAwait(false);
 			}
 			catch (Exception exc0)
@@ -984,7 +971,10 @@ namespace LolloGPS.Data
 			try
 			{
 				await _landmarksSemaphore.WaitAsync();
-				Landmarks.Clear();
+				await RunInUiThreadAsync(delegate
+				{
+					Landmarks.Clear();
+				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromLandmarksAsync().ConfigureAwait(false);
 			}
 			finally
@@ -1005,8 +995,11 @@ namespace LolloGPS.Data
 						int index = Landmarks.IndexOf(samePointInLandmarks);
 						if (index > -1)
 						{
-							Landmarks[index] = point;
-							Task update = DBManager.UpdateLandmarksAsync(point, false);
+							await RunInUiThreadAsync(delegate
+							{
+								Landmarks[index] = point;
+							}).ConfigureAwait(false);
+							Task updateDb = DBManager.UpdateLandmarksAsync(point, false);
 							LastMessage = "Landmarks updated";
 							return true;
 						}
@@ -1020,8 +1013,11 @@ namespace LolloGPS.Data
 					{
 						if (Landmarks.Count < MaxRecordsInLandmarks)
 						{
-							Landmarks.Add(point);
-							Task insert = DBManager.InsertIntoLandmarksAsync(point, false);
+							await RunInUiThreadAsync(delegate
+							{
+								Landmarks.Add(point);
+							}).ConfigureAwait(false);
+							Task insertDb = DBManager.InsertIntoLandmarksAsync(point, false);
 							LastMessage = "Target added to landmarks";
 							return true;
 						}
@@ -1052,7 +1048,7 @@ namespace LolloGPS.Data
 			LastMessage = "Error updating landmarks";
 			return false;
 		}
-		public Task<bool> TryAddTargetToLandmarksAsync()
+		public Task<bool> TryAddTargetCloneToLandmarksAsync()
 		{
 			PointRecord targetClone = null;
 			PointRecord.Clone(Target, ref targetClone);
@@ -1085,7 +1081,11 @@ namespace LolloGPS.Data
 			else if (_selectedSeries == Tables.Landmarks) return _landmarks.Count > 0;
 			else return false;
 		}
-		public void SelectRecordFromSeries(PointRecord dataRecord, PersistentData.Tables whichTable, int index = -1)
+		//public void SelectCurrentHistoryRecord()
+		//{
+		//	SelectRecordFromSeries(Current, Tables.History);
+		//}
+		public void SelectRecordFromSeries(PointRecord dataRecord, Tables whichTable, int index = -1)
 		{
 			if (dataRecord != null && !dataRecord.IsEmpty())
 			{
@@ -1334,19 +1334,19 @@ namespace LolloGPS.Data
 
 		private static void Float_To_DegMinSecDec(object value, object parameter, out int deg, out int min, out int sec, out int dec)
 		{
-			Double coord = 0.0;
-			if (Double.TryParse(value.ToString(), out coord))
+			double coord = 0.0;
+			if (double.TryParse(value.ToString(), out coord))
 			{
 				deg = (int)Math.Truncate(coord);
 				min = (int)Math.Abs(Math.Truncate((coord - deg) * 60.0));
-				Double secDbl = Math.Abs(Math.Abs(coord - deg) * 3600 - min * 60);
+				double secDbl = Math.Abs(Math.Abs(coord - deg) * 3600 - min * 60);
 				sec = (Int32)secDbl;
 				dec = (Int32)((secDbl - sec) * TenPowerMaxDecimalPlaces);
 
 				Debug.WriteLine(coord);
 				Int32 sign = Math.Sign(deg);
 				if (sign == 0) sign = 1;
-				Debug.WriteLine(sign * Math.Abs(dec) / (Double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg); //this is the inverse function, by the way
+				Debug.WriteLine(sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg); //this is the inverse function, by the way
 			}
 			else
 			{
@@ -1356,7 +1356,7 @@ namespace LolloGPS.Data
 			//if (parameter != null) sec = Math.Round(sec, System.Convert.ToInt32(parameter.ToString())); // in case we need this again in future...
 		}
 
-		public static Double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)
+		public static double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)
 		{
 			Int32 deg = 0;
 			Int32.TryParse(degStr, out deg);
@@ -1368,8 +1368,21 @@ namespace LolloGPS.Data
 			Int32.TryParse(decStr, out dec);
 			Int32 sign = Math.Sign(deg);
 			if (sign == 0) sign = 1;
-			return sign * Math.Abs(dec) / (Double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg;
+			return sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg;
 		}
 	}
 	#endregion conversion
+	public interface IGPSDataModel : INotifyPropertyChanged
+	{
+		uint DesiredAccuracyInMeters { get; }
+		uint ReportIntervalInMilliSec { get; }
+		uint BackgroundUpdatePeriodInMinutes { get; }
+		uint GetDefaultDesiredAccuracyInMetres { get; }
+		bool IsTracking { get; }
+		bool IsBackgroundEnabled { get; set; }
+
+		string LastMessage { get; set; }
+
+		Task<bool> AddHistoryRecordAsync(PointRecord dataRecord, bool checkMaxEntries);
+	}
 }

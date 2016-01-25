@@ -1,14 +1,11 @@
 ﻿using SQLite;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LolloGPS.Data
 {
-    [DataContract]
+	[DataContract]
     public sealed class PointRecord : ObservableData
     {
         #region properties
@@ -139,10 +136,13 @@ namespace LolloGPS.Data
         //        Task updateLandmarks = DBManager.UpdateLandmarksAsync(this, false);
         //    }
         //}
-        public void UpdateHumanDescription_TPL(string newValue)
+        public async Task UpdateHumanDescriptionAsync(string newValue)
         {
             if (HumanDescription == newValue) return;
-            HumanDescription = newValue;
+			await RunInUiThreadAsync(delegate
+			{
+				HumanDescription = newValue;
+			}).ConfigureAwait(false);
 
             PersistentData myData = PersistentData.GetInstance();
             switch (myData.SelectedSeries)

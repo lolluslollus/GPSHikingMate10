@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -62,7 +63,7 @@ namespace LolloGPS.Core
 		private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			string currentText = (sender as TextBox).Text;
-			PersistentData.GetInstance().Selected.UpdateHumanDescription_TPL(currentText);
+			Task upd = PersistentData.GetInstance().Selected.UpdateHumanDescriptionAsync(currentText);
 		}
 
 		// horrid BODGE because TextBox with IsTabStop=False won't acquire focus (and won't show the keyboard, making it as dumb as a TextBlock)

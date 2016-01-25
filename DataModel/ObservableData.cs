@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.UI.Core;
 
 namespace LolloGPS.Data

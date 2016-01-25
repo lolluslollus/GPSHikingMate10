@@ -653,7 +653,7 @@ namespace LolloGPS.Data
 		/// </summary>
 		/// <param name="dbAction"></param>
 		/// <returns></returns>
-		public static async Task<bool> RunInOtherTaskAsync(Func<bool> dbAction)
+		public static bool RunInOtherTask(Func<bool> dbAction)
 		{
 			bool isOk = false;
 			try
@@ -665,7 +665,7 @@ namespace LolloGPS.Data
 			catch (Exception ex)
 			{
 				isOk = false;
-				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 			finally
 			{

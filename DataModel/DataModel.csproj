@@ -120,6 +120,7 @@
     <Compile Include="DBManager.cs" />
     <Compile Include="DBManager_TileCache.cs" />
     <Compile Include="ObservableData.cs" />
+    <Compile Include="OpenableObservableData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Record_DownloadSession.cs" />
     <Compile Include="Record_Point.cs" />

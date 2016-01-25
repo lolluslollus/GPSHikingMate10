@@ -1,17 +1,10 @@
-﻿using GPX;
-using LolloBaseUserControls;
+﻿using LolloBaseUserControls;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.GPSInteraction;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using Windows.Storage.Pickers;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -19,16 +12,18 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class PointsPanel : ObservableControl
+	public sealed partial class PointsPanel : ObservableControl
     {
-        public PersistentData PersistentData { get { return App.PersistentData; } }
+		#region properties
+		public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
         private Main_VM _myVM = Main_VM.GetInstance();
         public Main_VM MyVM { get { return _myVM; } }
-        
-        #region events       
-        public event EventHandler CentreOnTargetRequested;
+		#endregion properties
+
+		#region events       
+		public event EventHandler CentreOnTargetRequested;
         private void RaiseCentreOnTarget()
         {
             CentreOnTargetRequested?.Invoke(this, EventArgs.Empty);
@@ -46,7 +41,7 @@ namespace LolloGPS.Core
         }
 
         #region event handlers
-        private void LatLon_GotFocus(object sender, RoutedEventArgs e)
+        private void OnLatLon_GotFocus(object sender, RoutedEventArgs e)
         {
             //these textboxes have a limited maxlength and the user must not be forced to delete the leading zero whenever they want to type in data
             TextBox tb = (sender as TextBox);
@@ -63,7 +58,7 @@ namespace LolloGPS.Core
             }
         }
 
-        private void LatFloat_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLatFloat_LostFocus(object sender, RoutedEventArgs e)
         {
             double dbl;
             if (double.TryParse(LatFloat.Text, out dbl) && dbl >= -90.0 && dbl <= 90) PersistentData.Target.Latitude = dbl;
@@ -71,7 +66,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void LonFloat_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLonFloat_LostFocus(object sender, RoutedEventArgs e)
         {
             double dbl;
             if (double.TryParse(LonFloat.Text, out dbl) && dbl >= -180.0 && dbl <= 180) PersistentData.Target.Longitude = dbl;
@@ -79,7 +74,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
-        private void LatMin_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLatMin_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LatMin.Text, out intg) && intg >= 0 && intg < 60)
@@ -89,7 +84,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void LatSec_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLatSec_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LatSec.Text, out intg) && intg >= 0 && intg < 60)
@@ -99,7 +94,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void LatDec_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLatDec_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LatDec.Text, out intg) && intg >= 0)
@@ -109,7 +104,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void LatDeg_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLatDeg_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LatDeg.Text, out intg) && intg >= -90 && intg <= 90)
@@ -119,7 +114,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void LonMin_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLonMin_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LonMin.Text, out intg) && intg >= 0 && intg < 60)
@@ -129,7 +124,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
-        private void LonSec_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLonSec_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LonSec.Text, out intg) && intg >= 0 && intg < 60)
@@ -139,7 +134,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
-        private void LonDec_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLonDec_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LonDec.Text, out intg) && intg >= 0)
@@ -149,7 +144,7 @@ namespace LolloGPS.Core
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
-        private void LonDeg_LostFocus(object sender, RoutedEventArgs e)
+        private void OnLonDeg_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LonDeg.Text, out intg) && intg >= -180 && intg <= 180)
@@ -166,29 +161,24 @@ namespace LolloGPS.Core
 
         private async void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)
         {
-            GPSInteractor gpsInteractor = new GPSInteractor(PersistentData);
-            if (gpsInteractor != null)
+            GPSInteractor gpsInteractor = GPSInteractor.GetInstance(PersistentData);
+			if (gpsInteractor == null) return;
+
+            Task vibrate = Task.Run(() => App.ShortVibration());
+            var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
+            if (currrent != null)
             {
-                Task vibrate = Task.Run(() => App.ShortVibration());
-                var geoPosTuple = await gpsInteractor.GetGeoLocationAsync();
-                if (geoPosTuple != null && PersistentData != null)
-                {
-                    if (geoPosTuple.Item2 != null) geoPosTuple.Item2.HumanDescription = PersistentData?.Target?.HumanDescription;
-                    //if (geoPosTuple.Item1) // disable bkg task if the app has no access to location? No, the user might grant it later
-                    //{
-                    //    Task dis = RunInUiThreadAsync(() => PersistentData.IsBackgroundEnabled = false);
-                    //}
-                    //else
-                    //{
-                        Task uuu = PersistentData.TryAddPointToLandmarksAsync(geoPosTuple.Item2);
-                    //}
-                }
+				Task upd = currrent.UpdateHumanDescriptionAsync(PersistentData?.Target?.HumanDescription).ContinueWith(delegate
+				{
+					// this is not a clone, ie it is the same object that is added to the history a few lines above. This is meant to be a nice feature.
+					Task add = PersistentData?.TryAddPointToLandmarksAsync(currrent);
+				});
             }
         }
 
         private void OnAddTargetToLandmarks_Click(object sender, RoutedEventArgs e)
         {
-            Task uuu = PersistentData.TryAddTargetToLandmarksAsync();
+            Task uuu = PersistentData.TryAddTargetCloneToLandmarksAsync();
         }
 
         private void OnAim_Click(object sender, RoutedEventArgs e)

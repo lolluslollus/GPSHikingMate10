@@ -1,157 +1,155 @@
-﻿using LolloGPS.Data;
-using LolloGPS.GPSInteraction;
+﻿using LolloGPS.GPSInteraction;
 using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Background;
-using Windows.Devices.Geolocation;
 
 namespace BackgroundTasks
 {
-    // check this: http://msdn.microsoft.com/en-us/library/windowsphone/develop/hh202942(v=vs.105).aspx
-    //
-    // A background task always implements the IBackgroundTask interface. 
-    // It also requires its own project, compiled as a windows runtime component.
-    // Reference it in the main project and set CopyLocal = true
-    // Add BackgroundTasks.GetLocationBackgroundTask (ie NamespaceName.className) to the "declarations" section of the appmanifest.
-    // Throughout the background task, calls to CoreApplication.MainView.CoreWindow.Dispatcher result in errors.
-    // Debugging may be easier on x86.
-    public sealed class GetLocationBackgroundTask : IBackgroundTask
-    {
+	// check this: http://msdn.microsoft.com/en-us/library/windowsphone/develop/hh202942(v=vs.105).aspx
+	//
+	// A background task always implements the IBackgroundTask interface. 
+	// It also requires its own project, compiled as a windows runtime component.
+	// Reference it in the main project and set CopyLocal = true
+	// Add BackgroundTasks.GetLocationBackgroundTask (ie NamespaceName.className) to the "declarations" section of the appmanifest.
+	// Throughout the background task, calls to CoreApplication.MainView.CoreWindow.Dispatcher result in errors.
+	// Debugging may be easier on x86.
+	public sealed class GetLocationBackgroundTask : IBackgroundTask
+	{
 		private volatile CancellationTokenSource _cts = null;
 		private BackgroundTaskDeferral _deferral = null;
 		private IBackgroundTaskInstance _taskInstance = null;
-        private volatile bool _isCancellationAllowedNow = true;
-        //
-        // The Run method is the entry point of a background task.
-        //
-        public async void Run(IBackgroundTaskInstance taskInstance)
-        {
-            try
-            {
-                // LOLLO Background tasks may take up max 40 MB. We should keep it as stupid as possible,
-                // so we only add a line to the db without reading anything.
-                // Query BackgroundWorkCost
-                // Guidance: If BackgroundWorkCost is high, then perform only the minimum amount
-                // of work in the background task and return immediately.
-                //
-                //
-                // Associate a cancellation handler with the background task.
-                //
-                _cts = new CancellationTokenSource();
-                CancellationToken token = _cts.Token;
+		//private volatile bool _isCancellationAllowedNow = true;
+		//
+		// The Run method is the entry point of a background task.
+		//
+		public async void Run(IBackgroundTaskInstance taskInstance)
+		{
+			try
+			{
+				// LOLLO Background tasks may take up max 40 MB. We should keep it as stupid as possible,
+				// so we only add a line to the db without reading anything.
+				// Query BackgroundWorkCost
+				// Guidance: If BackgroundWorkCost is high, then perform only the minimum amount
+				// of work in the background task and return immediately.
+				//
+				//
+				// Associate a cancellation handler with the background task.
+				//
+				_cts = new CancellationTokenSource();
+				CancellationToken token = _cts.Token;
 
-                _taskInstance = taskInstance;
-                _taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
-                _deferral = _taskInstance.GetDeferral();
+				_taskInstance = taskInstance;
+				_taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
+				_deferral = _taskInstance.GetDeferral();
 
-                // LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
-                // only in the background task and only if called before GetDeferral and only if awaited
-                Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info);
+				// LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
+				// only in the background task and only if called before GetDeferral and only if awaited
+				Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info);
 
-                if (!GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) // if app is not listening to this task. Otherwise, skip, the app will have to take care of it.
-                {
-                    PersistentData myData = PersistentData.GetInstance(); // note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
-                    Debug.WriteLine("GetLocationBackgroundTask done initialising variables");
+				if (!GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) // if app is not listening to this task. Otherwise, skip, the app will have to take care of it.
+				{
+					bool isSaved = await GPSInteractor.GetGeoLocationAppendingHistoryStaticAsync(token).ConfigureAwait(false);
+					//PersistentData myData = PersistentData.GetInstance(); // note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
+					//Debug.WriteLine("GetLocationBackgroundTask done initialising variables");
 
-                    _taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
+					//_taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 
-                    // I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
-                    //SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
+					//// I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
+					////SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
 
-                    //this takes time
-                    Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = myData.DesiredAccuracyInMeters }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
-                    Geoposition pos = null;
-                    if (geolocator != null) pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
+					////this takes time
+					//Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = myData.DesiredAccuracyInMeters }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
+					//Geoposition pos = null;
+					//if (geolocator != null) pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
 
-                    Debug.WriteLine("GetLocationBackgroundTask done getting geoposition");
+					//Debug.WriteLine("GetLocationBackgroundTask done getting geoposition");
 
-                    // save to the db, synchronously, otherwise the background task may be cancelled before the db is updated.
-                    // this would fail to save the new value and leave around named semaphores, which block everything else.
+					//// save to the db, synchronously, otherwise the background task may be cancelled before the db is updated.
+					//// this would fail to save the new value and leave around named semaphores, which block everything else.
 
-                    if (_taskInstance != null) _taskInstance.Canceled -= OnCanceled; // do not interrupt the db operation
-                    if (pos != null)
-                    {
-                        _isCancellationAllowedNow = false;
-                        bool isSaved = false;
-                        isSaved = await PersistentData.RunDbOpInOtherTaskAsync(() => GPSInteractor.AppendGeoPositionOnlyDb(myData, pos, true)).ConfigureAwait(false);
-                        if (isSaved)
-                        {
-                            Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
-                            //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
-                            //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                        }
-                        _isCancellationAllowedNow = true;
-                    }
-                    else
-                    {
-                        Debug.WriteLine("GetLocationBackgroundTask has failed to acquire a location");
-                        //await Logger.AddAsync("GetLocationBackgroundTask has failed to acquire a location", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                    }                   
-                }
-                else
-                {
-                    Debug.WriteLine("GetLocationBackgroundTask did nothing because the app is running");
-                    //await Logger.AddAsync("GetLocationBackgroundTask did nothing because the app is running", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                }
-            }
-            catch (Exception exc0)
-            {
-                await Logger.AddAsync(exc0.ToString(), Logger.BackgroundLogFilename).ConfigureAwait(false);
-            }
-            finally
-            {
-                _cts?.Dispose();
-                _cts = null;
-                if (_taskInstance != null) _taskInstance.Canceled -= OnCanceled;
-                Logger.Add_TPL("GetLocationBackgroundTask ended", Logger.BackgroundLogFilename, Logger.Severity.Info);
-                _deferral?.Complete();
-            }
-        }
+					//if (_taskInstance != null) _taskInstance.Canceled -= OnCanceled; // do not interrupt the db operation
+					//if (pos != null)
+					//{
+					//    _isCancellationAllowedNow = false;
+					//    bool isSaved = false;
+					//    isSaved = await PersistentData.RunDbOpInOtherTaskAsync(() => GPSInteractor.AppendGeoPositionOnlyDb(myData, pos, true)).ConfigureAwait(false);
+					if (isSaved)
+					{
+						Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
+						//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					}
+					else
+					{
+						Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
+						//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					}
+					//_isCancellationAllowedNow = true;
+					//}
+					//else
+					//{
+					//    Debug.WriteLine("GetLocationBackgroundTask has failed to acquire a location");
+					//    //await Logger.AddAsync("GetLocationBackgroundTask has failed to acquire a location", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					//}                   
+				}
+				else
+				{
+					Debug.WriteLine("GetLocationBackgroundTask did nothing because the app is running");
+					//await Logger.AddAsync("GetLocationBackgroundTask did nothing because the app is running", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+				}
+			}
+			catch (Exception exc0)
+			{
+				await Logger.AddAsync(exc0.ToString(), Logger.BackgroundLogFilename).ConfigureAwait(false);
+			}
+			finally
+			{
+				_cts?.Dispose();
+				_cts = null;
+				if (_taskInstance != null) _taskInstance.Canceled -= OnCanceled;
+				Logger.Add_TPL("GetLocationBackgroundTask ended", Logger.BackgroundLogFilename, Logger.Severity.Info);
+				_deferral?.Complete();
+			}
+		}
 
-        private async void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
-        {
-            if (_isCancellationAllowedNow)
-            {
-                _cts?.Cancel();
-            }
-            await Logger.AddAsync("Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = " + reason + "; _isCancellationAllowedNow = " + _isCancellationAllowedNow, Logger.BackgroundCancelledLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-        }
+		private async void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+		{
+			//if (_isCancellationAllowedNow)
+			//{
+			_cts?.Cancel();
+			//}
+			await Logger.AddAsync("Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = " + reason /*+ "; _isCancellationAllowedNow = " + _isCancellationAllowedNow*/, Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
+		}
 
-        //
-        // Simulate the background task activity.
-        //
-        //private void PeriodicTimerCallback(ThreadPoolTimer timer)
-        //{
-        //    if ((_cancelRequested == false) && (_progress < 100))
-        //    {
-        //        _progress += 10;
-        //        _taskInstance.Progress = _progress;
-        //    }
-        //    else
-        //    {
-        //        _periodicTimer?.Cancel();
+		//
+		// Simulate the background task activity.
+		//
+		//private void PeriodicTimerCallback(ThreadPoolTimer timer)
+		//{
+		//    if ((_cancelRequested == false) && (_progress < 100))
+		//    {
+		//        _progress += 10;
+		//        _taskInstance.Progress = _progress;
+		//    }
+		//    else
+		//    {
+		//        _periodicTimer?.Cancel();
 
-        //        var settings = ApplicationData.Current.LocalSettings;
-        //        var key = _taskInstance.Task.Name;
+		//        var settings = ApplicationData.Current.LocalSettings;
+		//        var key = _taskInstance.Task.Name;
 
-        //        //
-        //        // Write to LocalSettings to indicate that this background task ran.
-        //        //
-        //        settings.Values[key] = (_progress < 100) ? "Canceled with reason: " + _cancelReason.ToString() : "Completed";
-        //        Debug.WriteLine("Background " + _taskInstance.Task.Name + settings.Values[key]);
+		//        //
+		//        // Write to LocalSettings to indicate that this background task ran.
+		//        //
+		//        settings.Values[key] = (_progress < 100) ? "Canceled with reason: " + _cancelReason.ToString() : "Completed";
+		//        Debug.WriteLine("Background " + _taskInstance.Task.Name + settings.Values[key]);
 
-        //        //
-        //        // Indicate that the background task has completed.
-        //        //
-        //        _deferral.Complete();
-        //    }
-        //}
-    }
+		//        //
+		//        // Indicate that the background task has completed.
+		//        //
+		//        _deferral.Complete();
+		//    }
+		//}
+	}
 }
