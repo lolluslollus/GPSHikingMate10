@@ -690,6 +690,17 @@ namespace LolloGPS.Core
 
 
 		#region IGeoBoundingBoxProvider
+		private const double ABSURD_LON = 999.0;
+		private static void UpdateMinLon(ref double minLon, BasicGeoposition pos)
+		{
+			if (minLon != ABSURD_LON) minLon = Math.Min(pos.Longitude, minLon);
+			else minLon = pos.Longitude;
+		}
+		private static void UpdateMaxLon(ref double maxLon, BasicGeoposition pos)
+		{
+			if (maxLon != ABSURD_LON) maxLon = Math.Max(pos.Longitude, maxLon);
+			else maxLon = pos.Longitude;
+		}
 		public async Task<GeoboundingBox> GetMinMaxLatLonAsync()
 		{
 			GeoboundingBox output = null;
@@ -702,32 +713,41 @@ namespace LolloGPS.Core
 				try
 				{
 					// LOLLO when you zoom out and then in with the north pole
-					// in the middle of the map, then start downloading tiles, the following may fail.
+					// in the middle of the map, then start downloading tiles, the following may fail, so we have fallbacks.
+					// LOLLO TODO double check it
+					double minLon = ABSURD_LON;
+					double maxLon = ABSURD_LON;
 					try
 					{
 						MyMap.GetLocationFromOffset(new Point(0.0, 0.0), out topLeftGeopoint);
+						UpdateMinLon(ref minLon, topLeftGeopoint.Position);
+						UpdateMaxLon(ref maxLon, topLeftGeopoint.Position);
 					}
 					catch { }
 					try
 					{
 						MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
+						UpdateMinLon(ref minLon, topRightGeopoint.Position);
+						UpdateMaxLon(ref maxLon, topRightGeopoint.Position);
 					}
 					catch { }
 					try
 					{
 						MyMap.GetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
+						UpdateMinLon(ref minLon, bottomLeftGeopoint.Position);
+						UpdateMaxLon(ref maxLon, bottomLeftGeopoint.Position);
 					}
 					catch { }
 					try
 					{
 						MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
+						UpdateMinLon(ref minLon, bottomRightGeopoint.Position);
+						UpdateMaxLon(ref maxLon, bottomRightGeopoint.Position);
 					}
 					catch { }
 
 					double minLat = Math.Min(Math.Min(Math.Min(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
 					double maxLat = Math.Max(Math.Max(Math.Max(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
-					double minLon = Math.Min(Math.Min(Math.Min(topLeftGeopoint.Position.Longitude, topRightGeopoint.Position.Longitude), bottomLeftGeopoint.Position.Longitude), bottomRightGeopoint.Position.Longitude);
-					double maxLon = Math.Max(Math.Max(Math.Max(topLeftGeopoint.Position.Longitude, topRightGeopoint.Position.Longitude), bottomLeftGeopoint.Position.Longitude), bottomRightGeopoint.Position.Longitude);
 
 					AdjustMinMaxLatLon(ref minLat, ref maxLat, ref minLon, ref maxLon);
 
@@ -757,6 +777,7 @@ namespace LolloGPS.Core
 
 			if (minLon > maxLon) LolloMath.Swap(ref minLon, ref maxLon);
 		}
+
 		public async Task<BasicGeoposition> GetCentreAsync()
 		{
 			BasicGeoposition result = default(BasicGeoposition);
