@@ -42,52 +42,38 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
-			try
+			HistoryChart.Open();
+			Route0Chart.Open();
+			LandmarksChart.Open();
+
+			AddHandlers();
+			UpdateCharts();
+
+			if (!((App)Application.Current).IsResuming)
 			{
-				HistoryChart.Open();
-				Route0Chart.Open();
-				LandmarksChart.Open();
-
-				AddHandlers();
-				UpdateCharts();
-
-				if (!((App)Application.Current).IsResuming)
+				Task centre = RunInUiThreadAsync(delegate
 				{
-					Task centre = RunInUiThreadAsync(delegate
+					try
 					{
-						try
-						{
-							MyScrollViewer.ChangeView(0.0, MyPersistentData.AltLastVScroll, 1, true);
-						}
-						catch { }
-					});
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+						MyScrollViewer.ChangeView(0.0, MyPersistentData.AltLastVScroll, 1, true);
+					}
+					catch { }
+				});
 			}
 
 			return Task.CompletedTask;
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
-			try
-			{
-				RemoveHandlers();
+			RemoveHandlers();
 
-				MyPersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
+			MyPersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
 
-				HistoryChart.Close();
-				Route0Chart.Close();
-				LandmarksChart.Close();
+			HistoryChart.Close();
+			Route0Chart.Close();
+			LandmarksChart.Close();
 
-				CancelPendingTasks(); // after removing the handlers
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
+			CancelPendingTasks(); // after removing the handlers
 
 			return Task.CompletedTask;
 		}
@@ -500,7 +486,7 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.CompletedTask; // to respect the form of the output
+			return Task.CompletedTask;
 		}
 
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
@@ -523,7 +509,7 @@ namespace LolloGPS.Core
 				MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
 			}
 			catch { }
-			return Task.CompletedTask; // to respect the form of the output and interface
+			return Task.CompletedTask;
 		}
 		#endregion IMapApController
 	}

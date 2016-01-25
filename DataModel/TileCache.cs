@@ -582,7 +582,7 @@ namespace LolloGPS.Data.TileCache
 						}
 						catch (Exception ex)
 						{
-							Logger.Add_TPL("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.Message + ex.StackTrace, Logger.ForegroundLogFilename);
+							Logger.Add_TPL("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Error, false);
 						}						
 					}
 				}

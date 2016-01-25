@@ -2,6 +2,7 @@
 using LolloGPS.Data.Constants;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
@@ -17,13 +18,13 @@ namespace LolloGPS.GPSInteraction
     {
         private PersistentData _myPersistentData = null;
         private Geolocator _geolocator = null;
-        private static SemaphoreSlimSafeRelease _bkgTrackingSemaphore = null;
+        private static SemaphoreSlimSafeRelease _trackingPropsSemaphore = null;
         private CancellationTokenSource _getLocationCts = null;
 
         private bool _isGpsWorking = false;
         public bool IsGPSWorking { get { return _isGpsWorking; } private set { _isGpsWorking = value; RaisePropertyChanged_UI(); } }
 
-        private volatile IBackgroundTaskRegistration _getlocTask = null;
+        private volatile IBackgroundTaskRegistration _getlocBkgTask = null;
 
         #region construct and dispose
         public GPSInteractor(PersistentData persistentData)
@@ -45,24 +46,25 @@ namespace LolloGPS.GPSInteraction
         {
             try
             {
-                if (!SemaphoreSlimSafeRelease.IsAlive(_bkgTrackingSemaphore)) _bkgTrackingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-                await Task.Run(async delegate
+                if (!SemaphoreSlimSafeRelease.IsAlive(_trackingPropsSemaphore)) _trackingPropsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+				AddHandlers_DataModelPropertyChanged();
+
+				await Task.Run(async delegate
                 {
                     try
                     {
-                        await _bkgTrackingSemaphore.WaitAsync().ConfigureAwait(false);
-                        await TryUpdatePropsAfterPropsChanged_Background().ConfigureAwait(false);
-                        UpdateAfterIsTrackingChanged_Foreground(false);
-                        AddHandler_DataModelProperty();
+						await _trackingPropsSemaphore.WaitAsync().ConfigureAwait(false);
+                        await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false);
+                        UpdateForegroundPropsAfterIsTrackingChanged(false);
                     }
                     catch (Exception ex)
                     {
-                        if (SemaphoreSlimSafeRelease.IsAlive(_bkgTrackingSemaphore))
+                        if (SemaphoreSlimSafeRelease.IsAlive(_trackingPropsSemaphore))
                             Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                     }
                     finally
                     {
-                        SemaphoreSlimSafeRelease.TryRelease(_bkgTrackingSemaphore);
+                        SemaphoreSlimSafeRelease.TryRelease(_trackingPropsSemaphore);
                     }
                 }).ConfigureAwait(false);
             }
@@ -71,10 +73,10 @@ namespace LolloGPS.GPSInteraction
                 await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
             }
         }
-        public void Deactivate()
+        public void Close()
         {
             RemoveHandlers_GeoLocator();
-            RemoveHandlers_DataModelProperty();
+            RemoveHandlers_DataModelPropertyChanged();
             RemoveHandlers_GetLocBackgroundTask();
             CancelPendingTasks(); // after removing the handlers
         }
@@ -83,7 +85,7 @@ namespace LolloGPS.GPSInteraction
             _getLocationCts?.Cancel();
             //_getLocationCts.Dispose(); This is done in the exception handler that catches the IsCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
             //_getLocationCts = null;
-            SemaphoreSlimSafeRelease.TryDispose(_bkgTrackingSemaphore);
+            SemaphoreSlimSafeRelease.TryDispose(_trackingPropsSemaphore);
         }
         #endregion construct and dispose
 
@@ -102,7 +104,7 @@ namespace LolloGPS.GPSInteraction
 
             try
             {
-                await _bkgTrackingSemaphore.WaitAsync().ConfigureAwait(false); // both properties affect the same parameter, so I need a semaphore.
+                await _trackingPropsSemaphore.WaitAsync().ConfigureAwait(false); // both properties affect the same parameter, so I need a semaphore.
 
                 if (e.PropertyName == nameof(PersistentData.DesiredAccuracyInMeters)
                 || e.PropertyName == nameof(PersistentData.ReportIntervalInMilliSec))
@@ -121,7 +123,7 @@ namespace LolloGPS.GPSInteraction
                 }
                 else if (e.PropertyName == nameof(PersistentData.IsTracking))
                 {
-                    UpdateAfterIsTrackingChanged_Foreground(true);
+                    UpdateForegroundPropsAfterIsTrackingChanged(true);
                 }
                 else if (e.PropertyName == nameof(PersistentData.BackgroundUpdatePeriodInMinutes)
                 || e.PropertyName == nameof(PersistentData.IsBackgroundEnabled))
@@ -134,12 +136,12 @@ namespace LolloGPS.GPSInteraction
                         if (_myPersistentData.IsBackgroundEnabled)
                         {
                             UnregisterGetLocBackgroundTask_All(); // need to deregister
-                            await TryUpdatePropsAfterPropsChanged_Background().ConfigureAwait(false); // and reregister with the new value (if registration is possible at this time)
+                            await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false); // and reregister with the new value (if registration is possible at this time)
                         }
                     }
                     else if (e.PropertyName == nameof(PersistentData.IsBackgroundEnabled))
                     {
-                        bool isOk = await TryUpdatePropsAfterPropsChanged_Background().ConfigureAwait(false);
+                        bool isOk = await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false);
                         // if just switched on and ok, get a location now. The foreground tracking does it, so we do it here as well
                         if (isOk && _myPersistentData.IsBackgroundEnabled)
                         {
@@ -150,15 +152,15 @@ namespace LolloGPS.GPSInteraction
             }
             catch (Exception ex)
             {
-                if (SemaphoreSlimSafeRelease.IsAlive(_bkgTrackingSemaphore))
+                if (SemaphoreSlimSafeRelease.IsAlive(_trackingPropsSemaphore))
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
             }
             finally
             {
-                SemaphoreSlimSafeRelease.TryRelease(_bkgTrackingSemaphore);
+                SemaphoreSlimSafeRelease.TryRelease(_trackingPropsSemaphore);
             }
         }
-        private void AddHandler_DataModelProperty()
+        private void AddHandlers_DataModelPropertyChanged()
         {
             if (!_isDataModelHandlersActive)
             {
@@ -169,7 +171,7 @@ namespace LolloGPS.GPSInteraction
                 }
             }
         }
-        private void RemoveHandlers_DataModelProperty()
+        private void RemoveHandlers_DataModelPropertyChanged()
         {
             if (_myPersistentData != null)
             {
@@ -200,10 +202,10 @@ namespace LolloGPS.GPSInteraction
         {
             if (!_isGetLocTaskHandlersActive)
             {
-                if (_getlocTask != null)
+                if (_getlocBkgTask != null)
                 {
                     GetLocBackgroundTaskSemaphoreManager.TryWait();
-                    _getlocTask.Completed += new BackgroundTaskCompletedEventHandler(OnGetLocBackgroundTaskCompleted);
+                    _getlocBkgTask.Completed += new BackgroundTaskCompletedEventHandler(OnGetLocBackgroundTaskCompleted);
                     _isGetLocTaskHandlersActive = true;
                 }
             }
@@ -211,9 +213,9 @@ namespace LolloGPS.GPSInteraction
 
         private void RemoveHandlers_GetLocBackgroundTask()
         {
-            if (_getlocTask != null)
+            if (_getlocBkgTask != null)
             {
-                _getlocTask.Completed -= OnGetLocBackgroundTaskCompleted;
+                _getlocBkgTask.Completed -= OnGetLocBackgroundTaskCompleted;
                 _isGetLocTaskHandlersActive = false;
             }
             GetLocBackgroundTaskSemaphoreManager.Release();
@@ -263,7 +265,7 @@ namespace LolloGPS.GPSInteraction
             }
         }
 
-        private void UpdateAfterIsTrackingChanged_Foreground(bool setUserMessage)
+        private void UpdateForegroundPropsAfterIsTrackingChanged(bool setUserMessage)
         {
             if (_myPersistentData.IsTracking)
             {
@@ -298,9 +300,9 @@ namespace LolloGPS.GPSInteraction
 
             string errorMsg = string.Empty;
             BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
-            _getlocTask = GetTaskIfAlreadyRegistered();
+            _getlocBkgTask = GetTaskIfAlreadyRegistered();
 
-            if (_getlocTask == null) // bkg task not registered yet: register it
+            if (_getlocBkgTask == null) // bkg task not registered yet: register it
             {
                 try
                 {
@@ -314,24 +316,25 @@ namespace LolloGPS.GPSInteraction
                     // Regardless of the answer, register the background task. If the user later adds this application
                     // to the lock screen, the background task will be ready to run.
                     // Create a new background task builder
-                    BackgroundTaskBuilder geolocTaskBuilder = new BackgroundTaskBuilder();
+                    BackgroundTaskBuilder geolocTaskBuilder = new BackgroundTaskBuilder()
+					{
+						Name = ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME,
+						TaskEntryPoint = ConstantData.GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT
+					};
 
-                    geolocTaskBuilder.Name = ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME;
-                    geolocTaskBuilder.TaskEntryPoint = ConstantData.GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT;
-
-                    // Create a new timer triggering at a 15 minute interval 
-                    uint period = _myPersistentData.BackgroundUpdatePeriodInMinutes; // less than 15 will throw an exception, this is how this class works
-                    var trigger = new TimeTrigger(period, false);
-                    // Associate the timer trigger with the background task builder
-                    geolocTaskBuilder.SetTrigger(trigger);
+					// Create a new timer triggering at a 15 minute interval 
+					// and associate it with the background task builder
+					// Less than 15 will throw an exception, this is how this class works
+					geolocTaskBuilder.SetTrigger(new TimeTrigger(_myPersistentData.BackgroundUpdatePeriodInMinutes, false));
 
                     // Register the background task
-                    _getlocTask = geolocTaskBuilder.Register();
+                    _getlocBkgTask = geolocTaskBuilder.Register();
                 }
                 catch (Exception ex)
                 {
                     errorMsg = ex.ToString();
                     backgroundAccessStatus = BackgroundAccessStatus.Denied;
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
             }
             else // bkg task registered: see if it is ok
@@ -344,8 +347,10 @@ namespace LolloGPS.GPSInteraction
                 {
                     errorMsg = ex.ToString();
                     backgroundAccessStatus = BackgroundAccessStatus.Denied;
-                }
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
             }
+
             switch (backgroundAccessStatus)
             {
                 case BackgroundAccessStatus.Unspecified:
@@ -358,47 +363,61 @@ namespace LolloGPS.GPSInteraction
                     else msg = errorMsg;
                     break;
                 default:
-                    // Associate an event handler with the new background task
                     AddHandlers_GetLocBackgroundTask();
                     msg = "Background task on";
                     isOk = true;
                     break;
             }
-            return Tuple.Create<bool, string>(isOk, msg);
+
+            return Tuple.Create(isOk, msg);
         }
 
         private void UnregisterGetLocBackgroundTask_Current()
         {
-            if (_getlocTask != null)
+            if (_getlocBkgTask != null)
             {
                 RemoveHandlers_GetLocBackgroundTask();
-                _getlocTask.Unregister(true);
-                _getlocTask = null;
+                _getlocBkgTask.Unregister(true);
+                _getlocBkgTask = null;
             }
         }
 
         private void UnregisterGetLocBackgroundTask_All()
         {
             UnregisterGetLocBackgroundTask_Current();
-            foreach (var item in BackgroundTaskRegistration.AllTasks)
-            {
-                if (item.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME)
-                {
-                    _getlocTask = item.Value;
-                    UnregisterGetLocBackgroundTask_Current();
-                }
-            }
-        }
 
-        private void OnGetLocBackgroundTaskCompleted(IBackgroundTaskRegistration sender, BackgroundTaskCompletedEventArgs e)
+			// LOLLO BEGIN new
+			var allBkgTasks = BackgroundTaskRegistration.AllTasks.Values.ToList(); // clone
+			foreach (var item in allBkgTasks)
+			{
+				if (item.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME)
+				{
+					_getlocBkgTask = item;
+					UnregisterGetLocBackgroundTask_Current();
+				}
+			}
+			// LOLLO END new
+
+			// LOLLO BEGIN old
+			//foreach (var item in BackgroundTaskRegistration.AllTasks)
+			//         {
+			//             if (item.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME)
+			//             {
+			//                 _getlocTask = item.Value;
+			//                 UnregisterGetLocBackgroundTask_Current();
+			//             }
+			//         }
+			// LOLLO END old
+		}
+
+		private void OnGetLocBackgroundTaskCompleted(IBackgroundTaskRegistration sender, BackgroundTaskCompletedEventArgs e)
         {
             Debug.WriteLine("BackgroundTask completed, event caught");
             Task getLoc = GetGeoLocationAsync();
         }
 
-        private async Task<bool> TryUpdatePropsAfterPropsChanged_Background()
+        private async Task<bool> TryUpdateBackgroundPropsAfterPropsChanged()
         {
-            //this runs in the UI thread
             if (_myPersistentData.IsBackgroundEnabled)
             {
                 Tuple<bool, string> result = await TryActivateGetLocBackgroundTaskAsync().ConfigureAwait(false);
@@ -414,7 +433,7 @@ namespace LolloGPS.GPSInteraction
                 }
                 // BODGE change the value back to false in a deferred cycle, otherwise the control won't update, even if the property will.
                 // the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
-                // it could also be a problem with the binding engine, which I have seen already.
+                // it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
                 // In any case, this change must take place on the UI thread, so no issue really.
                 if (!result.Item1)
                 {

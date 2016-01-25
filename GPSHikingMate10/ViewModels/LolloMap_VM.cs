@@ -73,7 +73,7 @@ namespace LolloGPS.Core
                 _tileDataSource_http.UriRequested += OnDataSource_UriRequested;
             }
 
-            Logger.Add_TPL("ActivateAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+            Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
             //_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
             //_myMap.Style = MapStyle.None; //so our map will cover the original completely
         }
@@ -114,7 +114,7 @@ namespace LolloGPS.Core
             if (_tileDataSource_http != null) _tileDataSource_http.UriRequested -= OnDataSource_UriRequested;
             //if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
             if (_mapTileSources != null && _mapTileSource != null) _mapTileSources.Remove(_mapTileSource);
-            Logger.Add_TPL("DeactivateAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info);
+            Logger.Add_TPL("CloseAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
         }
         #endregion construct and dispose
         /// <summary>
@@ -186,9 +186,9 @@ namespace LolloGPS.Core
                 var newUri = await _tileCache.GetTileUri(args.X, args.Y, 0, args.ZoomLevel).ConfigureAwait(false);
                 if (newUri != null) args.Request.Uri = newUri;
             }
-            catch (Exception exc)
+            catch (Exception ex)
             {
-                Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
             }
             deferral.Complete();
         }

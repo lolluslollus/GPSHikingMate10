@@ -58,7 +58,7 @@ namespace GPX
 			string outMessage = string.Empty;
 			bool outIsOk = false;
 
-			Logger.Add_TPL("Start reading Route0", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("Start reading Route0", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			if (gpxFile != null) // I could use class MemoryFailPoint in the following, to catch OutOfMemoryExceptions before they happen but it's old.
 			{
 				try
@@ -69,12 +69,12 @@ namespace GPX
 					if (newDataRecords == null || newDataRecords.Count < 1)
 					{
 						outMessage = "invalid route";
-						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					}
 					else
 					{
 						await PersistentData.SetRoute0InDBAsync(newDataRecords).ConfigureAwait(false);
-						Logger.Add_TPL("Route0 has been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("Route0 has been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " route points loaded";
 					}
@@ -84,7 +84,7 @@ namespace GPX
 					var howMuchMemoryLeft0 = GC.GetTotalMemory(true);
 					outMessage = "error reading GPX: " + exc.Message;
 					//NotifyReadingException_UI(exc);
-					Logger.Add_TPL("Error reading GPX: " + exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+					Logger.Add_TPL("Error reading GPX: " + exc.ToString(), Logger.ForegroundLogFilename);
 				}
 				GC.GetTotalMemory(true);
 			}
@@ -101,7 +101,7 @@ namespace GPX
 			string outMessage = string.Empty;
 			bool outIsOk = false;
 
-			Logger.Add_TPL("Start reading Landmarks", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("Start reading Landmarks", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			if (gpxFile != null) // I could use class MemoryFailPoint in the following, to catch OutOfMemoryExceptions before they happen but it's old.
 			{
 				try
@@ -112,12 +112,12 @@ namespace GPX
 					if (newDataRecords == null || newDataRecords.Count < 1)
 					{
 						outMessage = "invalid landmarks";
-						Logger.Add_TPL("New landmarks are empty, landmarks have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("New landmarks are empty, landmarks have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					}
 					else
 					{
 						await PersistentData.SetLandmarksInDBAsync(newDataRecords).ConfigureAwait(false);
-						Logger.Add_TPL("Landmarks have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info);
+						Logger.Add_TPL("Landmarks have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " landmarks loaded";
 					}
@@ -126,7 +126,7 @@ namespace GPX
 				{
 					var howMuchMemoryLeft0 = GC.GetTotalMemory(true);
 					outMessage = "error reading GPX: " + exc.Message;
-					Logger.Add_TPL("Error reading GPX: " + exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+					Logger.Add_TPL("Error reading GPX: " + exc.ToString(), Logger.ForegroundLogFilename);
 				}
 				GC.GetTotalMemory(true);
 			}
@@ -294,7 +294,7 @@ namespace GPX
 			string outMessage = string.Empty;
 			bool outIsOk = false;
 
-			Logger.Add_TPL("Start writing GPX", Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("Start writing GPX", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			if (gpxFile != null)
 			{
 				try
@@ -314,7 +314,7 @@ namespace GPX
 					// CachedFileManager.DeferUpdates(gpxFile); // http://msdn.microsoft.com/en-us/library/windows/apps/windows.storage.cachedfilemanager(v=win.10).aspx
 					await gpxDoc.SaveToFileAsync(gpxFile).AsTask().ConfigureAwait(false);
 
-					Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					outIsOk = true;
 					outMessage = "file saved";
 
@@ -334,7 +334,7 @@ namespace GPX
 				}
 				catch (Exception exc1)
 				{
-					await Logger.AddAsync("Error writing GPX: " + exc1.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+					await Logger.AddAsync("Error writing GPX: " + exc1.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
 					outMessage = "file could not be saved, " + exc1.Message;
 				}
 			}
@@ -474,9 +474,9 @@ namespace GPX
 						nodeBounds.SetAttribute("maxlon", "0");
 					}
 				}
-				catch (Exception exc0)
+				catch (Exception ex)
 				{
-					Logger.Add_TPL(exc0.ToString(), Logger.ForegroundLogFilename);
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 				}
 			}
 		}

@@ -51,7 +51,6 @@ namespace LolloGPS.Data.Runtime
 			[CallerFilePath] string sourceFilePath = "",
 			[CallerLineNumber] int sourceLineNumber = 0)
 		{
-			Logger.Add_TPL(sourceFilePath + " line " + sourceLineNumber + memberName + " set isSettingsRead to " + isSettingsRead, Logger.ForegroundLogFilename, Logger.Severity.Info);
 			Task set = GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
 		}
 

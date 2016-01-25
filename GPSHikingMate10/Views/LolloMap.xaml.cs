@@ -138,37 +138,26 @@ namespace LolloGPS.Core
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
-			try
+			MyMap.Style = MyPersistentData.MapStyle; // maniman
+			_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
+			await RestoreViewAsync();
+			_myVM.Open();
+
+			InitMapElements();
+
+			AddHandlers();
+
+			DrawHistory();
+			// when resuming, skip drawing the series, which do not update in the background
+			if (!((App)Application.Current).IsResuming)
 			{
-				MyMap.Style = MyPersistentData.MapStyle; // maniman
-				_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
-				await RestoreViewAsync();
-				_myVM.Open();
-
-				InitMapElements();
-
-				AddHandlers();
-
-				DrawHistory();
-				// when resuming, skip drawing the series, which do not update in the background
-				if (!((App)Application.Current).IsResuming)
-				{
-					DrawRoute0();
-					DrawLandmarks();
-				}
-
-				//Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+				DrawRoute0();
+				DrawLandmarks();
 			}
 		}
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			//Logger.Add_TPL("LolloMap closing", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
 			RemoveHandlers();
 			// save last map settings
 			try
@@ -323,7 +312,6 @@ namespace LolloGPS.Core
 					_maxLongitude = coll.Max(a => a.Longitude);
 					_minLatitude = coll.Min(a => a.Latitude);
 					_maxLatitude = coll.Max(a => a.Latitude);
-					//bool isOK = await MyMap.TrySetViewBoundsAsync(new GeoboundingBox(new BasicGeoposition() { Latitude = _maxLatitude, Longitude = _minLongitude }, new BasicGeoposition() { Latitude = _minLatitude, Longitude = _maxLongitude }), new Thickness(20), Windows.UI.Xaml.Controls.Maps.MapAnimationKind.Default);
 
 					return RunInUiThreadAsync(delegate
 					{
@@ -555,9 +543,6 @@ namespace LolloGPS.Core
 		//}
 		private void DrawLandmarks()
 		{
-			//if (_isClosing) return;
-			//Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
 			// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 			if (!InitLandmarks())
 			{
@@ -571,7 +556,6 @@ namespace LolloGPS.Core
 
 			try
 			{
-				//if (_isClosing) return;
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
@@ -588,7 +572,6 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
-				//if (_isClosing) return;
 				try
 				{
 					int j = 0;
@@ -944,18 +927,6 @@ namespace LolloGPS.Core
 
 
 		#region data event handlers
-		//protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackOrHardSoftKeyPressedEventArgs e)
-		//{
-		//	Task back = RunFunctionIfOpenAsyncA(delegate
-		//	{
-		//		if (Visibility == Visibility.Visible) // && ActualHeight > 0.0 && ActualWidth > 0.0)
-		//		{
-		//			if (e != null) e.Handled = true;
-		//			SelectedPointPopup.IsOpen = false;
-		//		}
-		//	});
-		//}
-
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PersistentData.MapStyle))

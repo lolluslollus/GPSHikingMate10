@@ -156,7 +156,7 @@ namespace LolloGPS.Core
 				//Logger.Add_TPL("closing", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
 				RemoveHandlers_DataChanged();
-				_myGPSInteractor.Deactivate();
+				_myGPSInteractor.Close();
 				KeepAlive.StopKeepAlive();
 
 				CancelPendingTasks(); // after removing the handlers
