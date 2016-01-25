@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
@@ -54,15 +55,15 @@ namespace LolloGPS.Core
 
 		private MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
-			StrokeColor = ((SolidColorBrush)(App.Current.Resources["Route0Brush"])).Color,
-			StrokeThickness = (double)(App.Current.Resources["Route0Thickness"]),
+			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["Route0Brush"])).Color,
+			StrokeThickness = (double)(Application.Current.Resources["Route0Thickness"]),
 			MapTabIndex = ROUTE0_TAB_INDEX,
 		};
 
 		private MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
-			StrokeColor = ((SolidColorBrush)(App.Current.Resources["HistoryBrush"])).Color,
-			StrokeThickness = (double)(App.Current.Resources["HistoryThickness"]),
+			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["HistoryBrush"])).Color,
+			StrokeThickness = (double)(Application.Current.Resources["HistoryThickness"]),
 			MapTabIndex = HISTORY_TAB_INDEX,
 		};
 		//private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -114,6 +115,8 @@ namespace LolloGPS.Core
 		{
 			return _myMapInstance?.Target as MapControl;
 		}
+
+		private CancellationTokenSource _cts = null;
 		#endregion properties
 
 
@@ -172,11 +175,21 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+
+			CancelPendingTasks(); // after removing the handlers
+
 			_myVM?.Close();
 			//MyPointInfoPanel?.Close();
 
 			return Task.CompletedTask;
 		}
+		private void CancelPendingTasks()
+		{
+			_cts?.Cancel();
+			//_cts.Dispose(); This is done in the exception handler that catches the OperationCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
+			//_cts = null;
+		}
+
 		///// <summary>
 		///// This is the only Activate that is async. It cannot take too long, it merely centers and zooms the map.
 		///// Otherwise, we don't want to hog the UI thread with our Activate() !!
@@ -417,6 +430,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				if (_cts == null) _cts = new CancellationTokenSource();
+				CancellationToken token = _cts.Token;
+
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -429,6 +445,8 @@ namespace LolloGPS.Core
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
 				}
+
+				token.ThrowIfCancellationRequested();
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -451,6 +469,8 @@ namespace LolloGPS.Core
 					_iconEndHistory.Location = new Geopoint(lastGeoposition);
 				}
 
+				token.ThrowIfCancellationRequested();
+
 				if (!_isHistoryInMap)
 				{
 					if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
@@ -462,9 +482,15 @@ namespace LolloGPS.Core
 				}
 
 			}
+			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				_cts?.Dispose();
+				_cts = null;
 			}
 		}
 
@@ -472,6 +498,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				if (_cts == null) _cts = new CancellationTokenSource();
+				CancellationToken token = _cts.Token;
+
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -485,6 +514,8 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
 				}
 
+				token.ThrowIfCancellationRequested();
+
 				if (basicGeoPositions.Count > 0)
 				{
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
@@ -497,6 +528,8 @@ namespace LolloGPS.Core
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 				}
 
+				token.ThrowIfCancellationRequested();
+
 				if (!_isRoute0InMap)
 				{
 					if (!MyMap.MapElements.Contains(_mapPolylineRoute0))
@@ -506,9 +539,15 @@ namespace LolloGPS.Core
 					_isRoute0InMap = true;
 				}
 			}
+			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				_cts?.Dispose();
+				_cts = null;
 			}
 		}
 
@@ -543,19 +582,24 @@ namespace LolloGPS.Core
 		//}
 		private void DrawLandmarks()
 		{
-			// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
-			if (!InitLandmarks())
-			{
-				Debug.WriteLine("No landmarks to be drawn, skipping");
-				return;
-			}
-
-#if DEBUG
-			Stopwatch sw0 = new Stopwatch(); sw0.Start();
-#endif
-
 			try
 			{
+				if (_cts == null) _cts = new CancellationTokenSource();
+				CancellationToken token = _cts.Token;
+
+				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
+				if (!InitLandmarks())
+				{
+					Debug.WriteLine("No landmarks to be drawn, skipping");
+					return;
+				}
+
+				token.ThrowIfCancellationRequested();
+
+#if DEBUG
+				Stopwatch sw0 = new Stopwatch(); sw0.Start();
+#endif
+
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
@@ -572,6 +616,8 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
+				token.ThrowIfCancellationRequested();
+
 				try
 				{
 					int j = 0;
@@ -587,7 +633,9 @@ namespace LolloGPS.Core
 						MyMap.MapElements[j].Visible = true; // set it last, in the attempt of getting a little more speed
 						j++;
 					}
-					//if (_isClosing) return;
+
+					token.ThrowIfCancellationRequested();
+
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
 						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LANDMARK_TAB_INDEX))
@@ -607,9 +655,15 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("attaching icons to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif
 			}
+			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				_cts?.Dispose();
+				_cts = null;
 			}
 		}
 

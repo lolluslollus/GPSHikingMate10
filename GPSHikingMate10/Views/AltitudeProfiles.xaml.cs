@@ -346,8 +346,8 @@ namespace LolloGPS.Core
 					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, token);
 				}).ConfigureAwait(false);
 			}
-			catch (ObjectDisposedException) { } // fires when I dispose sema and have not rector'd it while the current thread is inside it (unlikely)
-			catch (SemaphoreFullException) { } // fires when I dispose sema and rector it while the current thread is inside it
+			//catch (ObjectDisposedException) { } // fires when I dispose sema and have not rector'd it while the current thread is inside it (unlikely)
+			//catch (SemaphoreFullException) { } // fires when I dispose sema and rector it while the current thread is inside it
 			catch (OperationCanceledException) { } // fires when cts is cancelled
 												   //catch (Exception ex)
 												   //{
