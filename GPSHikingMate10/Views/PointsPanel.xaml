@@ -216,10 +216,12 @@
             PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- hyperlink name -->
 		<TextBlock Grid.Row="6" Grid.Column="0"
+			Visibility="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
             Text="Hyperlink name"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center" />
 		<TextBox Grid.Row="7" Grid.Column="0"
+			Visibility="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
             HorizontalAlignment="Stretch" 
             VerticalAlignment="Center"
             Style="{StaticResource BaseTextBoxStyle}" 

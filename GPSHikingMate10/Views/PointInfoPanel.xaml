@@ -196,13 +196,14 @@
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
 				</utilz:UniversalWrapPanel>
-				<utilz:UniversalWrapPanel Orientation="Horizontal">
+				<!-- name of media -->
+				<utilz:UniversalWrapPanel Orientation="Horizontal"
+					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
 					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
 						TextWrapping="Wrap"
 						Style="{StaticResource BaseMessageStyle}"
 						Text="Name of media: "/>
 					<TextBox TextWrapping="Wrap"
-						Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
 						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
@@ -215,8 +216,7 @@
 						PlaceholderText="you can name your link here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
-					<AppBarButton 
-						Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
+					<AppBarButton						
 						Click="OnHyperlink_Click"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 						Icon="View"

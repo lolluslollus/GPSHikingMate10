@@ -128,9 +128,9 @@ namespace LolloGPS.Data
 			if (IsEqualTo(newValue)) return;
 			await RunInUiThreadAsync(delegate
 			{
-				HumanDescription = newValue.HumanDescription;
-				HyperLink = newValue.HyperLink;
-				HyperLinkText = newValue.HyperLinkText;
+				HumanDescription = newValue?.HumanDescription;
+				HyperLink = newValue?.HyperLink;
+				HyperLinkText = newValue?.HyperLinkText;
 			}).ConfigureAwait(false);
 
 			UpdateDb(whichSeries);

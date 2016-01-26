@@ -1,12 +1,9 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
-using LolloGPS.GPSInteraction;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Windows.System;
-using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -166,33 +163,20 @@ namespace LolloGPS.Core
 			RaiseCentreOnTarget();
 		}
 
-		private async void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)
+		private void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)
 		{
-			GPSInteractor gpsInteractor = GPSInteractor.GetInstance(PersistentData);
-			if (gpsInteractor == null) return;
-
-			Task vibrate = Task.Run(() => App.ShortVibration());
-			var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
-			if (currrent != null)
-			{
-				Task upd = currrent.UpdateUIEditablePropertiesAsync(PersistentData?.Target, PersistentData.Tables.History).ContinueWith(delegate
-				{
-					// this is not a clone, ie it is the same object that is added to the history a few lines above. This is meant to be a nice feature.
-					// LOLLO TODO clone instead? It looks better.
-					// Task add = PersistentData?.TryAddPointToLandmarksAsync(currrent);
-
-					PointRecord currentClone = null;
-					PointRecord.Clone(currrent, ref currentClone);
-					Task add = PersistentData?.TryAddPointToLandmarksAsync(currentClone);
-				});
-			}
+			Task set = _myVM?.SetTargetToCurrentAsync();
 		}
 
 		private void OnAddTargetToLandmarks_Click(object sender, RoutedEventArgs e)
 		{
 			Task uuu = PersistentData.TryAddTargetCloneToLandmarksAsync();
 		}
-
+		/// <summary>
+		/// This method completes the binding of IsShowAim
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void OnAim_Click(object sender, RoutedEventArgs e)
 		{
 			if (MyVM.MyPersistentData.IsShowAim)
@@ -201,6 +185,11 @@ namespace LolloGPS.Core
 				MyVM.MyPersistentData.IsShowingPivot = false;
 			}
 		}
+		/// <summary>
+		/// This method completes the binding of IsShowAim
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		private void OnAimOnce_Click(object sender, RoutedEventArgs e)
 		{
 			if (MyVM.MyPersistentData.IsShowAim)

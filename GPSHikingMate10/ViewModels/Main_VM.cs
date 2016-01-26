@@ -461,6 +461,20 @@ namespace LolloGPS.Core
 			}
 			catch { }
 		}
+		public async Task SetTargetToCurrentAsync()
+		{
+			GPSInteractor gpsInteractor = GPSInteractor.GetInstance(MyPersistentData);
+			if (gpsInteractor == null) return;
+
+			Task vibrate = Task.Run(() => App.ShortVibration());
+			var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
+			Task upd = currrent?.UpdateUIEditablePropertiesAsync(MyPersistentData?.Target, PersistentData.Tables.History).ContinueWith(delegate
+			{
+				PointRecord currentClone = null;
+				PointRecord.Clone(currrent, ref currentClone);
+				Task add = MyPersistentData?.TryAddPointToLandmarksAsync(currentClone);
+			});
+		}
 		#endregion services
 
 		#region IMapApController
@@ -552,12 +566,12 @@ namespace LolloGPS.Core
 				await Task.Run(async delegate
 				{
 					SetLastMessage_UI("saving GPX file...");
-					// initialise cancellation token
-					_fileSavePickerCts = new CancellationTokenSource();
+				// initialise cancellation token
+				_fileSavePickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileSavePickerCts.Token;
 					token.ThrowIfCancellationRequested();
-					// save file
-					result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, token).ConfigureAwait(false);
+				// save file
+				result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 				}).ConfigureAwait(false);
 			}
@@ -616,16 +630,16 @@ namespace LolloGPS.Core
 				{
 					Logger.Add_TPL("LoadSeriesFromFileAsync() started a worker thread", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					SetLastMessage_UI("reading GPX file...");
-					// initialise cancellation token
-					_fileOpenPickerCts = new CancellationTokenSource();
+				// initialise cancellation token
+				_fileOpenPickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileOpenPickerCts.Token;
 					token.ThrowIfCancellationRequested();
-					// load the file
-					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
+				// load the file
+				result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
 					Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					token.ThrowIfCancellationRequested();
-					// update the UI with the file data
-					if (result?.Item1 == true)
+				// update the UI with the file data
+				if (result?.Item1 == true)
 					{
 						switch (whichSeries)
 						{
