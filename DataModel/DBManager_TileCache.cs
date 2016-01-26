@@ -12,495 +12,487 @@ using Windows.Storage;
 // Add a reference to it in the project that uses it.
 namespace LolloGPS.Data.TileCache
 {
-    internal static class DBManager
-    {
-        internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
-        internal static readonly bool _isStoreDateTimeAsTicks = true;
-        internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create; //.FullMutex;
-        internal static SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+	internal static class DBManager
+	{
+		internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
+		internal static readonly bool _isStoreDateTimeAsTicks = true;
+		internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone; //.FullMutex; // LOLLO TODO try no mutex
+		internal static SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
-        internal static async Task<TileCacheRecord> GetTileRecordAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
-        {
-            try
-            {
-                TileCacheRecord primaryKey = new TileCacheRecord(tileSource.TechName, x, y, z, zoom);
-                return await LolloSQLiteConnectionMT.ReadRecordAsync(_tileCacheDbPath, _openFlags, _isStoreDateTimeAsTicks, _writingSemaphore, primaryKey).ConfigureAwait(false);
-            }
-            catch (Exception exc)
-            {
-                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-                return null;
-            }
-        }
-        internal static async Task<bool> TryInsertIntoTileCacheAsync(TileCacheRecord record, bool checkMaxEntries)
-        {
-            try
-            {
-                return await LolloSQLiteConnectionMT.InsertRecordAsync(_tileCacheDbPath, _openFlags, _isStoreDateTimeAsTicks, record, checkMaxEntries, _writingSemaphore).ConfigureAwait(false);
-            }
-            catch (Exception exc)
-            {
-                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-            }
-            return false;
-        }
-        internal static async Task<bool> UpdateTileCacheRecordAsync(TileCacheRecord record)
-        {
-            try
-            {
-                return await LolloSQLiteConnectionMT.UpdateRecordAsync(_tileCacheDbPath, _openFlags, _isStoreDateTimeAsTicks, record, _writingSemaphore).ConfigureAwait(false);
-            }
-            catch (Exception exc)
-            {
-                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-            }
-            return false;
-        }
-        internal static async Task<int> DeleteTileCacheAsync(string folderNameToBeDeleted)
-        {
-            int howManyRecordsDeleted = -3;
-            try
-            {
-                string[] folderNamesToBeDeleted = new string[1] { folderNameToBeDeleted };
-                howManyRecordsDeleted = await LolloSQLiteConnectionMT.DeleteAsync(_tileCacheDbPath, _openFlags, _isStoreDateTimeAsTicks, _writingSemaphore, folderNamesToBeDeleted).ConfigureAwait(false);
-            }
-            catch (Exception exc)
-            {
-                Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
-            }
-            return howManyRecordsDeleted;
-        }
-        internal static int GetHowManyEntriesMax(string dbPath)
-        {
-            return TileCache.MaxRecords;
-        }
+		internal static async Task<TileCacheRecord> GetTileRecordAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
+		{
+			try
+			{
+				TileCacheRecord primaryKey = new TileCacheRecord(tileSource.TechName, x, y, z, zoom);
+				return await ReadRecordAsync(_openFlags, primaryKey).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+				return null;
+			}
+		}
+		internal static async Task<bool> TryInsertIntoTileCacheAsync(TileCacheRecord record, bool checkMaxEntries)
+		{
+			try
+			{
+				return await InsertRecordAsync(_openFlags, record, checkMaxEntries).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return false;
+		}
+		internal static async Task<bool> UpdateTileCacheRecordAsync(TileCacheRecord record)
+		{
+			try
+			{
+				return await UpdateRecordAsync(_openFlags, record).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return false;
+		}
+		internal static async Task<int> DeleteTileCacheAsync(string folderNameToBeDeleted)
+		{
+			int howManyRecordsDeleted = -3;
+			try
+			{
+				string[] folderNamesToBeDeleted = new string[1] { folderNameToBeDeleted };
+				howManyRecordsDeleted = await DeleteAsync(_openFlags, folderNamesToBeDeleted).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
+			}
+			return howManyRecordsDeleted;
+		}
+		private static int GetHowManyEntriesMax()
+		{
+			return TileCache.MaxRecords;
+		}
 
-        private class LolloSQLiteConnectionMT
-        {
-            public static Task<TileCacheRecord> ReadRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
-            {
-                return Task.Run(delegate
-                {
-                    return ReadRecord(dbPath, openFlags, storeDateTimeAsTicks, semaphore, primaryKey);
-                });
-            }
-            private static TileCacheRecord ReadRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, TileCacheRecord primaryKey) // where T : new()
-            {
-                if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
-                TileCacheRecord pk_mt = primaryKey;
-                TileCacheRecord result = null;
-                var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
+		private static Task<TileCacheRecord> ReadRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()
+		{
+			return Task.Run(delegate
+			{
+				return ReadRecord(openFlags, primaryKey);
+			});
+		}
+		private static TileCacheRecord ReadRecord(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()
+		{
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return null;
+			TileCacheRecord result = null;
 
-                try
-                {
-                    semaphore.Wait();
-                    if (!LolloSQLiteConnectionPoolMT.IsClosed)
-                    {
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-                        var command = conn.CreateGetOneRecordCommand(pk_mt) as TileCacheCommand;
-                        result = command.GetOneRecord();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Ignore semaphore disposed or semaphore null exceptions
-                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(semaphore);
-                }
-                return result;
-            }
-            public static Task<int> DeleteAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, SemaphoreSlimSafeRelease semaphore, string[] folderNamesToBeDeleted)
-            {
-                return Task.Run(delegate
-                {
-                    if (LolloSQLiteConnectionPoolMT.IsClosed) return -2;
-                    var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                    int howManyRecordsProcessed = -1;
+			try
+			{
+				_writingSemaphore.Wait();
+				if (LolloSQLiteConnectionPoolMT.IsOpen)
+				{
+					var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
+					var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+					var command = conn.CreateGetOneRecordCommand(primaryKey) as TileCacheCommand;
+					result = command.GetOneRecord();
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
+			}
+			return result;
+		}
+		private static Task<int> DeleteAsync(SQLiteOpenFlags openFlags, string[] folderNamesToBeDeleted)
+		{
+			return Task.Run(delegate
+			{
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return -2;
+				int howManyRecordsProcessed = -1;
 
-                    try
-                    {
-                        semaphore.Wait();
-                        if (!LolloSQLiteConnectionPoolMT.IsClosed)
-                        {
-                            var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-                            foreach (var item in folderNamesToBeDeleted)
-                            {
-                                var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + item + "\"");
-                                howManyRecordsProcessed = deleteAllCommand.ExecuteNonQuery();
-                                if (conn.Trace) Debug.WriteLine(howManyRecordsProcessed + " records were deleted");
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Ignore semaphore disposed or semaphore null exceptions
-                        if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-                            Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-                    }
-                    finally
-                    {
-                        SemaphoreSlimSafeRelease.TryRelease(semaphore);
-                    }
-                    return howManyRecordsProcessed;
-                });
-            }
-            public static Task<bool> InsertRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
-            {
-                return Task.Run(delegate
-                {
-                    return InsertRecord(dbPath, openFlags, storeDateTimeAsTicks, item, checkMaxEntries, semaphore);
-                });
-            }
-            private static bool InsertRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, bool checkMaxEntries, SemaphoreSlimSafeRelease semaphore)
-            {
-                if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
-                TileCacheRecord item_mt = item;
-                var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                bool result = false;
+				try
+				{
+					_writingSemaphore.Wait();
+					if (LolloSQLiteConnectionPoolMT.IsOpen)
+					{
+						var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
+						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+						foreach (var item in folderNamesToBeDeleted)
+						{
+							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + item + "\"");
+							howManyRecordsProcessed = deleteAllCommand.ExecuteNonQuery();
+							if (conn.Trace) Debug.WriteLine(howManyRecordsProcessed + " records were deleted");
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					// Ignore semaphore disposed or semaphore null exceptions
+					if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
+						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
+				}
+				return howManyRecordsProcessed;
+			});
+		}
+		private static Task<bool> InsertRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item, bool checkMaxEntries)
+		{
+			return Task.Run(delegate
+			{
+				return InsertRecord(openFlags, item, checkMaxEntries);
+			});
+		}
+		private static bool InsertRecord(SQLiteOpenFlags openFlags, TileCacheRecord item, bool checkMaxEntries)
+		{
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
+			bool result = false;
 
-                try
-                {
-                    semaphore.Wait();
-                    if (!LolloSQLiteConnectionPoolMT.IsClosed)
-                    {
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+			try
+			{
+				_writingSemaphore.Wait();
+				if (LolloSQLiteConnectionPoolMT.IsOpen)
+				{
+					var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
+					var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 
-                        string sCommandInsert = "insert or ignore into \"TileCache\" (\"TileSource\", \"X\", \"Y\", \"Z\", \"Zoom\", \"FileName\") values (";
-                        sCommandInsert += ("\"" + item_mt.TileSourceTechName + "\", ");
-                        sCommandInsert += item_mt.X + ", ";
-                        sCommandInsert += item_mt.Y + ", ";
-                        sCommandInsert += item_mt.Z + ", ";
-                        sCommandInsert += item_mt.Zoom + ", ";
-                        sCommandInsert += ("\"" + item_mt.FileName + "\")");
+					string sCommandInsert = "insert or ignore into \"TileCache\" (\"TileSource\", \"X\", \"Y\", \"Z\", \"Zoom\", \"FileName\") values (";
+					sCommandInsert += ("\"" + item.TileSourceTechName + "\", ");
+					sCommandInsert += item.X + ", ";
+					sCommandInsert += item.Y + ", ";
+					sCommandInsert += item.Z + ", ";
+					sCommandInsert += item.Zoom + ", ";
+					sCommandInsert += ("\"" + item.FileName + "\")");
 
-                        //if (checkMaxEntries)
-                        //{
-                        //    var count = conn.Table<TileCacheRecord>().Count();// LOLLO NOTE If you want to use this, 
-                        // make a specialised count command like CreateGetOneRecordCommand()
-                        //    if (count < GetHowManyEntriesMax(dbPath))
-                        //    {
-                        //        var commandInsert = conn.CreateCommand(sCommandInsert);
-                        //        int res = commandInsert.ExecuteNonQuery();
-                        //        result = (res > 0);
-                        //    }
-                        //}
-                        //else
-                        //{
-                        var commandInsert = conn.CreateCommand(sCommandInsert);
-                        int res = commandInsert.ExecuteNonQuery();
+					//if (checkMaxEntries) // LOLLO TODO do it or get rid of it
+					//{
+					//    var count = conn.Table<TileCacheRecord>().Count();// LOLLO NOTE If you want to use this, 
+					// make a specialised count command like CreateGetOneRecordCommand()
+					//    if (count < GetHowManyEntriesMax())
+					//    {
+					//        var commandInsert = conn.CreateCommand(sCommandInsert);
+					//        int res = commandInsert.ExecuteNonQuery();
+					//        result = (res > 0);
+					//    }
+					//}
+					//else
+					//{
+					var commandInsert = conn.CreateCommand(sCommandInsert);
+					int res = commandInsert.ExecuteNonQuery();
 
-                        Debug.WriteLine("InsertRecord() has run the command " + sCommandInsert);
-                        result = (res > 0);
-                        if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
-                        //}
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Ignore semaphore disposed or semaphore null exceptions
-                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(semaphore);
-                }
-                return result;
-            }
-            public static Task<bool> UpdateRecordAsync(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
-            {
-                return Task.Run(delegate
-                {
-                    return UpdateRecord(dbPath, openFlags, storeDateTimeAsTicks, item, semaphore);
-                });
-            }
-            private static bool UpdateRecord(string dbPath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks, TileCacheRecord item, SemaphoreSlimSafeRelease semaphore)
-            {
-                if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
-                TileCacheRecord item_mt = item;
-                var connectionString = new SQLiteConnectionString(dbPath, storeDateTimeAsTicks);
-                bool result = false;
+					Debug.WriteLine("InsertRecord() has run the command " + sCommandInsert);
+					result = (res > 0);
+					if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
+					//}
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
+			}
+			return result;
+		}
+		private static Task<bool> UpdateRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
+		{
+			return Task.Run(delegate
+			{
+				return UpdateRecord(openFlags, item);
+			});
+		}
+		private static bool UpdateRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
+		{
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
+			bool result = false;
 
-                try
-                {
-                    semaphore.Wait();
-                    if (!LolloSQLiteConnectionPoolMT.IsClosed)
-                    {
-                        var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+			try
+			{
+				_writingSemaphore.Wait();
+				if (LolloSQLiteConnectionPoolMT.IsOpen)
+				{
+					var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
+					var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 
-                        string sCommandUpdate = "update or ignore \"TileCache\" set "; // (\"TileSource\", \"X\", \"Y\", \"Z\", \"Zoom\", \"FileName\") values (";
-                        sCommandUpdate += ("\"TileSource\" = \"" + item_mt.TileSourceTechName + "\", ");
-                        sCommandUpdate += ("\"X\" = " + item_mt.X + ", ");
-                        sCommandUpdate += ("\"Y\" = " + item_mt.Y + ", ");
-                        sCommandUpdate += ("\"Z\" = " + item_mt.Z + ", ");
-                        sCommandUpdate += ("\"Zoom\" = " + item_mt.Zoom + ", ");
-                        sCommandUpdate += ("\"FileName\" = \"" + item_mt.FileName + "\"");
-                        sCommandUpdate += (" where ");
-                        sCommandUpdate += ("\"TileSource\" = \"" + item_mt.TileSourceTechName + "\" and ");
-                        sCommandUpdate += ("\"X\" = \"" + item_mt.X + "\" and ");
-                        sCommandUpdate += ("\"Y\" = \"" + item_mt.Y + "\" and ");
-                        sCommandUpdate += ("\"Z\" = \"" + item_mt.Z + "\" and ");
-                        sCommandUpdate += ("\"Zoom\" = \"" + item_mt.Zoom + "\"");
-                        //sCommandUpdate += ")";
+					string sCommandUpdate = "update or ignore \"TileCache\" set "; // (\"TileSource\", \"X\", \"Y\", \"Z\", \"Zoom\", \"FileName\") values (";
+					sCommandUpdate += ("\"TileSource\" = \"" + item.TileSourceTechName + "\", ");
+					sCommandUpdate += ("\"X\" = " + item.X + ", ");
+					sCommandUpdate += ("\"Y\" = " + item.Y + ", ");
+					sCommandUpdate += ("\"Z\" = " + item.Z + ", ");
+					sCommandUpdate += ("\"Zoom\" = " + item.Zoom + ", ");
+					sCommandUpdate += ("\"FileName\" = \"" + item.FileName + "\"");
+					sCommandUpdate += (" where ");
+					sCommandUpdate += ("\"TileSource\" = \"" + item.TileSourceTechName + "\" and ");
+					sCommandUpdate += ("\"X\" = \"" + item.X + "\" and ");
+					sCommandUpdate += ("\"Y\" = \"" + item.Y + "\" and ");
+					sCommandUpdate += ("\"Z\" = \"" + item.Z + "\" and ");
+					sCommandUpdate += ("\"Zoom\" = \"" + item.Zoom + "\"");
+					//sCommandUpdate += ")";
 
-                        var commandUpdate = conn.CreateCommand(sCommandUpdate);
-                        int res = commandUpdate.ExecuteNonQuery();
-                        result = (res > 0);
-                        if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
-                        //}
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Ignore semaphore disposed or semaphore null exceptions
-                    if (SemaphoreSlimSafeRelease.IsAlive(semaphore))
-                        Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(semaphore);
-                }
-                return result;
-            }
-        }
-    }
+					var commandUpdate = conn.CreateCommand(sCommandUpdate);
+					int res = commandUpdate.ExecuteNonQuery();
+					result = (res > 0);
+					if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
+					//}
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
+			}
+			return result;
+		}
+	}
 
-    internal static class LolloSQLiteConnectionPoolMT
-    {
-        private sealed class Entry : IDisposable
-        {
-            public SQLiteConnectionString ConnectionString { get; private set; }
-            public TileSQLiteConnection Connection { get; private set; }
+	internal static class LolloSQLiteConnectionPoolMT
+	{
+		private sealed class Entry : IDisposable
+		{
+			public SQLiteConnectionString ConnectionString { get; private set; }
+			public TileSQLiteConnection Connection { get; private set; }
 
-            public Entry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
-            {
-                ConnectionString = connectionString;
-                Connection = new TileSQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
-            }
+			public Entry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+			{
+				ConnectionString = connectionString;
+				Connection = new TileSQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
+			}
 
-            public void Dispose()
-            {
-                if (Connection != null)
-                {
-                    Connection.Dispose();
-                    Connection = null;
-                }
-            }
-        }
+			public void Dispose()
+			{
+				if (Connection != null)
+				{
+					Connection.Dispose();
+					Connection = null;
+				}
+			}
+		}
 
-        static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
-        private static SemaphoreSlimSafeRelease _entriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-        private static SemaphoreSlimSafeRelease _isClosedSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-        private static volatile bool _isClosed = true;
-        /// <summary>
-        /// Gets a value telling if the DB is suspended.
-        /// </summary>
-        public static bool IsClosed { get { return _isClosed; } }
-        internal static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
-        {
-            Entry entry = null;
-            try
-            {
-                _entriesSemaphore.Wait();
-                string key = connectionString.ConnectionString;
+		static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
+		private static SemaphoreSlimSafeRelease _entriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static volatile bool _isOpen = true;
+		/// <summary>
+		/// Gets a value telling if the DB is suspended.
+		/// </summary>
+		public static bool IsOpen { get { return _isOpen; } }
+		internal static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+		{
+			Entry entry = null;
+			try
+			{
+				_entriesSemaphore.Wait();
+				string key = connectionString.ConnectionString;
 
-                if (!_entries.TryGetValue(key, out entry))
-                {
-                    entry = new Entry(connectionString, openFlags);
-                    _entries[key] = entry;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Ignore semaphore disposed or semaphore null exceptions
-                if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
-            }
-            if (entry != null) return entry.Connection;
-            return null;
-        }
+				if (!_entries.TryGetValue(key, out entry))
+				{
+					entry = new Entry(connectionString, openFlags);
+					_entries[key] = entry;
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+			}
+			return entry?.Connection;
+		}
 
-        /// <summary>
-        /// Closes all connections managed by this pool.
-        /// </summary>
-        private static void ResetAllConnections()
-        {
-            try
-            {
-                DBManager._writingSemaphore.Wait();
-                _entriesSemaphore.Wait();
-                foreach (var entry in _entries.Values)
-                {
-                    entry.Dispose();
-                }
-                _entries.Clear();
-            }
-            catch (Exception ex) {
-                // Ignore semaphore disposed or semaphore null exceptions
-                if (SemaphoreSlimSafeRelease.IsAlive(DBManager._writingSemaphore) && SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
-                SemaphoreSlimSafeRelease.TryRelease(DBManager._writingSemaphore);
-            }
-        }
-        /// <summary>
-        /// Closes a given connection managed by this pool. 
-        /// </summary>
-        internal static void ResetConnection(string connectionString)
-        {
-            try
-            {
-                _entriesSemaphore.Wait();
-                Entry entry;
-                if (_entries.TryGetValue(connectionString, out entry))
-                {
-                    entry.Dispose();
-                    _entries.Remove(connectionString);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Ignore semaphore disposed or semaphore null exceptions
-                if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
-            }
-        }
-        /// <summary>
-        /// Call this method when the application is suspended.
-        /// </summary>
-        /// <remarks>Behaviour here is to close any open connections.</remarks>
-        public static async Task CloseAsync()
-        {
-            try
-            {
-                // block any new db operations
-                _isClosed = true;
-                // wait until there is a free slot between operations taking place
-                // and break off all queued operations
-                await Task.Run(() => ResetAllConnections()).ConfigureAwait(false);
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_isClosedSemaphore);
-            }
-        }
-        public static void Open()
-        {
-            try
-            {
-                if (_isClosed)
-                {
-                    _isClosedSemaphore.Wait();
-                    if (_isClosed)
-                    {
-                        _isClosed = false;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Ignore semaphore disposed or semaphore null exceptions
-                if (SemaphoreSlimSafeRelease.IsAlive(_isClosedSemaphore))
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-            }
-        }
-    }
+		/// <summary>
+		/// Closes all connections managed by this pool.
+		/// </summary>
+		private static void ResetAllConnections()
+		{
+			try
+			{
+				DBManager._writingSemaphore.Wait();
+				_entriesSemaphore.Wait();
+				foreach (var entry in _entries.Values)
+				{
+					entry.Dispose();
+				}
+				_entries.Clear();
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(DBManager._writingSemaphore) && SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(DBManager._writingSemaphore);
+			}
+		}
+		/// <summary>
+		/// Closes a given connection managed by this pool. 
+		/// </summary>
+		internal static void ResetConnection(string connectionString)
+		{
+			try
+			{
+				_entriesSemaphore.Wait();
+				Entry entry;
+				if (_entries.TryGetValue(connectionString, out entry))
+				{
+					entry.Dispose();
+					_entries.Remove(connectionString);
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+			}
+		}
+		/// <summary>
+		/// Close any open connections.
+		/// </summary>
+		public static async Task CloseAsync()
+		{
+			if (!_isOpen) return;
+			try
+			{
+				// block any new db operations
+				_isOpen = false;
+				// wait until there is a free slot between operations taking place
+				// and break off all queued operations
+				await Task.Run(() => ResetAllConnections()).ConfigureAwait(false);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+			}
+		}
+		public static void Open()
+		{
+			if (_isOpen) return;
+			try
+			{
+				_isOpenSemaphore.Wait();
+				if (!_isOpen)
+				{
+					_isOpen = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore semaphore disposed or semaphore null exceptions
+				if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+		}
+	}
 
-    internal sealed class TileSQLiteConnection : SQLiteConnection
-    {
-        public TileSQLiteConnection(string databasePath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks = false)
-            : base(databasePath, openFlags, storeDateTimeAsTicks)
-        {
-            //string sDropCommand = "drop table if exists \"TileCache\"";
-            //var dropTableCommand = CreateCommand(sDropCommand);
-            //int res0 = dropTableCommand.ExecuteNonQuery();
-            //            string sCreateCommand = "create table if not exists \"TileCache\"(\n\"TileSource\" varchar not null ,\n\"X\" integer not null ,\n\"Y\" integer not null ,\n\"Z\" integer not null ,\n\"Zoom\" integer not null ,\n\"FileName\" varchar , primary key(TileSource, X, Y, Z, Zoom))";
-            //string sCreateCommand = "create table if not exists \"TileCache\"(\n\"TileSource\" varchar not null ,\n\"X\" integer not null ,\n\"Y\" integer not null ,\n\"Z\" integer not null ,\n\"Zoom\" integer not null ,\n\"FileName\" varchar, primary key(TileSource, X, Y, Z, Zoom)) without rowid ";
-            string sCreateCommand = "create table if not exists \"TileCache\"(\"TileSource\" varchar not null, \"X\" integer not null, \"Y\" integer not null, \"Z\" integer not null, \"Zoom\" integer not null, \"FileName\" varchar not null, primary key(TileSource, X, Y, Z, Zoom)) without rowid ";
-            var createTableCommand = CreateCommand(sCreateCommand);
-            int res = createTableCommand.ExecuteNonQuery();
-            //var createIndexCommand = _conn.CreateCommand("create unique index if not exists \"Index0\" on \"TileCache\"(\"XYZ\")");
-            //int res1 = createIndexCommand.ExecuteNonQuery();
-            Debug.WriteLine("connection opened, table created with result " + res);
-            Trace = false; // true;
-        }
-        protected override SQLiteCommand NewCommand()
-        {
-            return new TileCacheCommand(this);
-            //            return base.NewCommand();
-        }
-        public SQLiteCommand CreateGetOneRecordCommand(TileCacheRecord pk)
-        {
-            string sCommand = "select * from \"TileCache\" where TileSource = \"" + pk.TileSourceTechName + "\" and X = \"" + pk.X + "\" and Y = \"" + pk.Y + "\" and Z = \"" + pk.Z + "\" and Zoom = \"" + pk.Zoom + "\"";
-            return CreateCommand(sCommand);
-        }
-    }
-    internal sealed class TileCacheCommand : SQLiteCommand
-    {
-        public TileCacheCommand(SQLiteConnection conn) : base(conn) { }
-        public LolloGPS.Data.TileCache.TileCacheRecord GetOneRecord()
-        {
-            if (_conn.Trace)
-            {
-                Debug.WriteLine("Executing Query: " + this);
-            }
+	internal sealed class TileSQLiteConnection : SQLiteConnection
+	{
+		public TileSQLiteConnection(string databasePath, SQLiteOpenFlags openFlags, bool storeDateTimeAsTicks = false)
+			: base(databasePath, openFlags, storeDateTimeAsTicks)
+		{
+			//string sDropCommand = "drop table if exists \"TileCache\"";
+			//var dropTableCommand = CreateCommand(sDropCommand);
+			//int res0 = dropTableCommand.ExecuteNonQuery();
+			//            string sCreateCommand = "create table if not exists \"TileCache\"(\n\"TileSource\" varchar not null ,\n\"X\" integer not null ,\n\"Y\" integer not null ,\n\"Z\" integer not null ,\n\"Zoom\" integer not null ,\n\"FileName\" varchar , primary key(TileSource, X, Y, Z, Zoom))";
+			//string sCreateCommand = "create table if not exists \"TileCache\"(\n\"TileSource\" varchar not null ,\n\"X\" integer not null ,\n\"Y\" integer not null ,\n\"Z\" integer not null ,\n\"Zoom\" integer not null ,\n\"FileName\" varchar, primary key(TileSource, X, Y, Z, Zoom)) without rowid ";
+			string sCreateCommand = "create table if not exists \"TileCache\"(\"TileSource\" varchar not null, \"X\" integer not null, \"Y\" integer not null, \"Z\" integer not null, \"Zoom\" integer not null, \"FileName\" varchar not null, primary key(TileSource, X, Y, Z, Zoom)) without rowid ";
+			var createTableCommand = CreateCommand(sCreateCommand);
+			int res = createTableCommand.ExecuteNonQuery();
+			//var createIndexCommand = _conn.CreateCommand("create unique index if not exists \"Index0\" on \"TileCache\"(\"XYZ\")");
+			//int res1 = createIndexCommand.ExecuteNonQuery();
+			Debug.WriteLine("connection opened, table created with result " + res);
+			Trace = false; // true;
+		}
+		protected override SQLiteCommand NewCommand()
+		{
+			return new TileCacheCommand(this);
+			//            return base.NewCommand();
+		}
+		public SQLiteCommand CreateGetOneRecordCommand(TileCacheRecord pk)
+		{
+			string sCommand = "select * from \"TileCache\" where TileSource = \"" + pk.TileSourceTechName + "\" and X = \"" + pk.X + "\" and Y = \"" + pk.Y + "\" and Z = \"" + pk.Z + "\" and Zoom = \"" + pk.Zoom + "\"";
+			return CreateCommand(sCommand);
+		}
+	}
+	internal sealed class TileCacheCommand : SQLiteCommand
+	{
+		public TileCacheCommand(SQLiteConnection conn) : base(conn) { }
+		public LolloGPS.Data.TileCache.TileCacheRecord GetOneRecord()
+		{
+			if (_conn.Trace)
+			{
+				Debug.WriteLine("Executing Query: " + this);
+			}
 
-            var stmt = Prepare();
-            try
-            {
-                int howManyCols = SQLite3.ColumnCount(stmt);
-                if (_conn.Trace)
-                {
-                    Debug.WriteLine("SQLite says that the table has " + howManyCols + " columns");
-                }
+			var stmt = Prepare();
+			try
+			{
+				int howManyCols = SQLite3.ColumnCount(stmt);
+				if (_conn.Trace)
+				{
+					Debug.WriteLine("SQLite says that the table has " + howManyCols + " columns");
+				}
 
-                var stepResult = SQLite3.Step(stmt);
-                if (_conn.Trace)
-                {
-                    Debug.WriteLine("SQLite step returned " + stepResult);
-                }
-                if (stepResult == SQLite3.Result.Row)
-                {
-                    if (_conn.Trace)
-                    {
-                        Debug.WriteLine("SQLite found one record");
-                    }
+				var stepResult = SQLite3.Step(stmt);
+				if (_conn.Trace)
+				{
+					Debug.WriteLine("SQLite step returned " + stepResult);
+				}
+				if (stepResult == SQLite3.Result.Row)
+				{
+					if (_conn.Trace)
+					{
+						Debug.WriteLine("SQLite found one record");
+					}
 
-                    TileCacheRecord obj = new TileCacheRecord();
+					TileCacheRecord obj = new TileCacheRecord();
 
-                    obj.TileSourceTechName = SQLite3.ColumnString(stmt, 0);
-                    obj.X = SQLite3.ColumnInt(stmt, 1);
-                    obj.Y = SQLite3.ColumnInt(stmt, 2);
-                    obj.Z = SQLite3.ColumnInt(stmt, 3);
-                    obj.Zoom = SQLite3.ColumnInt(stmt, 4);
-                    obj.FileName = SQLite3.ColumnString(stmt, 5);
-                    if (_conn.Trace)
-                    {
-                        Debug.WriteLine("Query returned: " + obj.TileSourceTechName + " " + obj.X + " " + obj.Y + " " + obj.Z + " " + obj.Zoom + " " + obj.FileName); //  + " and readTileSource was " + readTileSource
-                    }
-                    return obj;
-                }
-            }
-            finally
-            {
-                SQLite3.Finalize(stmt);
-            }
-            return null;
-        }
-    }
+					obj.TileSourceTechName = SQLite3.ColumnString(stmt, 0);
+					obj.X = SQLite3.ColumnInt(stmt, 1);
+					obj.Y = SQLite3.ColumnInt(stmt, 2);
+					obj.Z = SQLite3.ColumnInt(stmt, 3);
+					obj.Zoom = SQLite3.ColumnInt(stmt, 4);
+					obj.FileName = SQLite3.ColumnString(stmt, 5);
+					if (_conn.Trace)
+					{
+						Debug.WriteLine("Query returned: " + obj.TileSourceTechName + " " + obj.X + " " + obj.Y + " " + obj.Z + " " + obj.Zoom + " " + obj.FileName); //  + " and readTileSource was " + readTileSource
+					}
+					return obj;
+				}
+			}
+			finally
+			{
+				SQLite3.Finalize(stmt);
+			}
+			return null;
+		}
+	}
 }
