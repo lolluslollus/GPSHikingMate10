@@ -537,6 +537,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
+		// LOLLO TODO when using several custom map sources, they may be repeated in the list
 		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
