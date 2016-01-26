@@ -37,6 +37,7 @@ namespace LolloGPS.Core
 		public SettingsPanel()
 		{
 			InitializeComponent();
+			UpdateDataContext();
 		}
 		private void UpdateDataContext()
 		{

@@ -69,8 +69,39 @@
 			Background="{StaticResource BackgroundBrush}">
 			<StackPanel Orientation="Vertical">
 				<!-- header -->
-				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
-					Text="{Binding SelectedSeries, Converter={StaticResource SeriesTextConverter}}"/>
+				<utilz:UniversalWrapPanel Orientation="Horizontal">
+					<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+						Text="{Binding SelectedSeries, Converter={StaticResource SeriesTextConverter}}"/>
+					<!-- point n of m -->
+					<TextBlock TextWrapping="Wrap" 
+						Style="{StaticResource BaseMessageStyle}" 
+						HorizontalAlignment="Left"  
+						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}">
+						<Run Text=" - "/>
+						<Run Text="Record "/>
+						<Run Text="{Binding SelectedIndex_Base1}"/>
+						<Run Text=" of "/>
+						<Run Text="{Binding History.Count}"/>
+					</TextBlock>
+					<TextBlock TextWrapping="Wrap" 
+						Style="{StaticResource BaseMessageStyle}" 
+						HorizontalAlignment="Left"  
+						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}">
+						<Run Text="Record "/>
+						<Run Text="{Binding SelectedIndex_Base1}"/>
+						<Run Text=" of "/>
+						<Run Text="{Binding Route0.Count}"/>
+					</TextBlock>
+					<TextBlock TextWrapping="Wrap" 
+						Style="{StaticResource BaseMessageStyle}" 
+						HorizontalAlignment="Left"  
+						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}">
+						<Run Text="Record "/>
+						<Run Text="{Binding SelectedIndex_Base1}"/>
+						<Run Text=" of "/>
+						<Run Text="{Binding Landmarks.Count}"/>
+					</TextBlock>
+				</utilz:UniversalWrapPanel>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.TimePoint, Converter={StaticResource DateNotNullToVisibilityConverter}}">
 					<Run Text="Time: "/>
@@ -184,15 +215,15 @@
 						PlaceholderText="you can name your link here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
+					<AppBarButton 
+						Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
+						Click="OnHyperlink_Click"
+						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+						Icon="View"
+						IsCompact="True"
+						Style="{StaticResource AppBarButtonRecoloured}"/>
 				</utilz:UniversalWrapPanel>
-				<AppBarButton 
-					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
-                    Click="OnHyperlink_Click"
-                    VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                    Icon="View"
-					IsCompact="True"
-                    Style="{StaticResource AppBarButtonRecoloured}"/>
-
+				
 				<!--<utilz:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
 					<TextBlock HorizontalAlignment="Left"
@@ -222,7 +253,7 @@
 					<Run Text="{Binding ElementName=me, Path=DistanceMFromPrevious, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM}"/>
 				</TextBlock>
 
-				<!-- point n of m -->
+				<!-- point n of m --><!--
 				<TextBlock TextWrapping="Wrap" 
 					Style="{StaticResource BaseMessageStyle}" 
 					HorizontalAlignment="Left"  
@@ -249,7 +280,7 @@
 					<Run Text="{Binding SelectedIndex_Base1}"/>
 					<Run Text=" of "/>
 					<Run Text="{Binding Landmarks.Count}"/>
-				</TextBlock>
+				</TextBlock>-->
 			</StackPanel>
 		</ScrollViewer>
 	</Grid>

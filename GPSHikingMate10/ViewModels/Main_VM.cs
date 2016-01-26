@@ -456,7 +456,7 @@ namespace LolloGPS.Core
 				if (!string.IsNullOrWhiteSpace(uri))
 				{
 					var ub = new UriBuilder(uri);
-					Task upd = Launcher.LaunchUriAsync(ub.Uri, new LauncherOptions() { DesiredRemainingView = ViewSizePreference.Default }).AsTask();
+					Task upd = Launcher.LaunchUriAsync(ub.Uri, new LauncherOptions() { DesiredRemainingView = ViewSizePreference.UseHalf }).AsTask();
 				}
 			}
 			catch { }

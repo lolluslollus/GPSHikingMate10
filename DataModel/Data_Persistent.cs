@@ -604,7 +604,7 @@ namespace LolloGPS.Data
 				try
 				{
 					await semaphore.WaitAsync();
-					var matchingPointInSeries = series.FirstOrDefault(a => a.Latitude == Selected.Latitude && a.Longitude == Selected.Longitude);
+					var matchingPointInSeries = series.FirstOrDefault(point => point.Latitude == Selected.Latitude && point.Longitude == Selected.Longitude);
 					if (matchingPointInSeries != null)
 					{
 						if (series.IndexOf(matchingPointInSeries) == 0)
@@ -707,8 +707,8 @@ namespace LolloGPS.Data
 				{
 					try
 					{
+						_history.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
-						_history.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
 					}
 					catch (IndexOutOfRangeException)
 					{
@@ -727,9 +727,9 @@ namespace LolloGPS.Data
 					SetCurrentToLast();
 				}).ConfigureAwait(false);
 			}
-			catch (Exception exc0)
+			catch (Exception ex)
 			{
-				await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -743,7 +743,7 @@ namespace LolloGPS.Data
 				await _historySemaphore.WaitAsync();
 				await RunInUiThreadAsync(delegate
 				{
-					History.Clear();
+					_history.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromHistoryAsync().ConfigureAwait(false);
 			}
@@ -763,20 +763,8 @@ namespace LolloGPS.Data
 				{
 					result = AddHistoryRecord2(dataRecord, checkMaxEntries);
 				}).ConfigureAwait(false);
+				if (result) await DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries).ConfigureAwait(false);
 				return result;
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
-			}
-		}
-		public static bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
-		{
-			try
-			{
-				_historySemaphore.Wait();
-				bool isOk = AddHistoryRecord2OnlyDb(dataRecord, checkMaxEntries);
-				return isOk;
 			}
 			finally
 			{
@@ -786,15 +774,13 @@ namespace LolloGPS.Data
 
 		private bool AddHistoryRecord2(PointRecord dataRecord, bool checkMaxEntries)
 		{
-			if (dataRecord != null && !dataRecord.IsEmpty() && History.Count < MaxRecordsInHistory)
+			if (!dataRecord?.IsEmpty() == true && _history?.Count < MaxRecordsInHistory)
 			{
 				try
 				{
 					//int index = GetIndexCheckingDateAscending(dataRecord, this); // no more needed if we update on the go!
 					//History.Insert(index, dataRecord);
 					_history.Add(dataRecord); // we don't need to need to clone the record first, if the callers always instantiate a new record
-
-					Task insert = DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries);
 
 					Current = dataRecord;
 					LastMessage = dataRecord.Status;
@@ -821,31 +807,29 @@ namespace LolloGPS.Data
 				return false;
 			}
 		}
-		private static bool AddHistoryRecord2OnlyDb(PointRecord dataRecord, bool checkMaxEntries)
+		public static bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
 		{
 			if (dataRecord != null && !dataRecord.IsEmpty())
 			{
 				try
 				{
-					bool isOk = DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
-					return isOk;
+					return DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
 				}
-				catch (IndexOutOfRangeException ex0)
+				catch (IndexOutOfRangeException ex)
 				{
-					Logger.Add_TPL(ex0.ToString(), Logger.PersistentDataLogFilename);
-					return false;
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 				}
-				catch (OutOfMemoryException ex1)
+				catch (OutOfMemoryException ex)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
-					Logger.Add_TPL(ex1.ToString(), Logger.PersistentDataLogFilename);
-					return false;
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 				}
 			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
 
 		private void SetCurrentToLast()
@@ -871,8 +855,8 @@ namespace LolloGPS.Data
 				{
 					try
 					{
+						_route0.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
-						_route0.ReplaceRange(dataRecords?.Where(a => !a.IsEmpty()));
 					}
 					catch (IndexOutOfRangeException)
 					{
@@ -890,9 +874,9 @@ namespace LolloGPS.Data
 					}
 				}).ConfigureAwait(false);
 			}
-			catch (Exception exc0)
+			catch (Exception ex)
 			{
-				await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -910,7 +894,7 @@ namespace LolloGPS.Data
 				await _route0Semaphore.WaitAsync();
 				await RunInUiThreadAsync(delegate
 				{
-					Route0.Clear();
+					_route0.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromRoute0Async().ConfigureAwait(false);
 			}
@@ -934,8 +918,8 @@ namespace LolloGPS.Data
 				{
 					try
 					{
+						_landmarks.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
-						_landmarks.ReplaceRange(dataRecords?.Where(rec => !rec.IsEmpty()));
 					}
 					catch (IndexOutOfRangeException)
 					{
@@ -947,15 +931,11 @@ namespace LolloGPS.Data
 						LastMessage = "Only some landmarks are drawn";
 						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
 					}
-					catch(Exception ex)
+					catch (Exception ex)
 					{
 						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					}
 				}).ConfigureAwait(false);
-			}
-			catch (Exception exc0)
-			{
-				await Logger.AddAsync(exc0.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -967,13 +947,13 @@ namespace LolloGPS.Data
 			return DBManager.ReplaceLandmarksAsync(dataRecords, true);
 		}
 		public async Task ResetLandmarksAsync()
-		{
+		{// LOLLO TODO this is broken, but only sometimes...
 			try
 			{
 				await _landmarksSemaphore.WaitAsync();
 				await RunInUiThreadAsync(delegate
 				{
-					Landmarks.Clear();
+					_landmarks.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromLandmarksAsync().ConfigureAwait(false);
 			}
@@ -982,27 +962,27 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
 			}
 		}
-		public async Task<bool> TryAddPointToLandmarksAsync(PointRecord point)
+		public async Task<bool> TryAddPointToLandmarksAsync(PointRecord newPoint)
 		{
-			if (point != null && !point.IsEmpty())
+			if (newPoint != null && !newPoint.IsEmpty())
 			{
 				try
 				{
 					await _landmarksSemaphore.WaitAsync();
-					var samePointInLandmarks = Landmarks.FirstOrDefault(a => a.Latitude == point.Latitude && a.Longitude == point.Longitude);
+					var samePointInLandmarks = _landmarks.FirstOrDefault(oldPoint => oldPoint.Latitude == newPoint.Latitude && oldPoint.Longitude == newPoint.Longitude);
 					if (samePointInLandmarks != null)
 					{
-						int index = Landmarks.IndexOf(samePointInLandmarks);
+						int index = _landmarks.IndexOf(samePointInLandmarks);
 						if (index > -1)
 						{
 							await RunInUiThreadAsync(delegate
 							{
-								var id = Landmarks[index].Id;
-								Landmarks[index] = point;
+								var id = _landmarks[index].Id;
+								Landmarks[index] = newPoint;
 								Landmarks[index].Id = id; // otherwise I overwrite Id, and db update will not update
 							}).ConfigureAwait(false);
-							Task updateDb = DBManager.UpdateLandmarksAsync(point, false);
-							LastMessage = "Landmarks updated";
+							await DBManager.UpdateLandmarksAsync(newPoint, false).ConfigureAwait(false);
+							LastMessage = "Data merged into landmarks";
 							return true;
 						}
 						else
@@ -1013,14 +993,14 @@ namespace LolloGPS.Data
 					}
 					else
 					{
-						if (Landmarks.Count < MaxRecordsInLandmarks)
+						if (_landmarks.Count < MaxRecordsInLandmarks)
 						{
 							await RunInUiThreadAsync(delegate
 							{
-								Landmarks.Add(point);
+								_landmarks.Add(newPoint);
 							}).ConfigureAwait(false);
-							Task insertDb = DBManager.InsertIntoLandmarksAsync(point, false);
-							LastMessage = "Target added to landmarks";
+							await DBManager.InsertIntoLandmarksAsync(newPoint, false).ConfigureAwait(false);
+							LastMessage = "Data added to landmarks";
 							return true;
 						}
 						else
@@ -1040,6 +1020,11 @@ namespace LolloGPS.Data
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
 					LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
 					Logger.Add_TPL("OutOfMemoryException in PersistentData.TryAddTargetToLandmarks()", Logger.PersistentDataLogFilename);
+					return false;
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 					return false;
 				}
 				finally

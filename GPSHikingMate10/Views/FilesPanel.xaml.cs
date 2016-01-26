@@ -28,6 +28,7 @@ namespace LolloGPS.Core
 		public FilesPanel()
 		{
 			InitializeComponent();
+			UpdateDataContext();
 		}
 		private void UpdateDataContext()
 		{

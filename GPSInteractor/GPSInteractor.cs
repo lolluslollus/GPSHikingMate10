@@ -472,38 +472,44 @@ namespace LolloGPS.GPSInteraction
 		/// </summary>
 		/// <param name="token"></param>
 		/// <returns></returns>
-		public static async Task<bool> GetGeoLocationAppendingHistoryStaticAsync(CancellationToken token)
-		{
-			bool isSaved = false;
-			// note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
-			// and I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
-			// SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
+		//public static async Task<bool> GetGeoLocationAppendingHistoryStaticAsync(CancellationToken token)
+		//{
+		//	bool isSaved = false;
+		//	// note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
+		//	// and I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
+		//	// SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
 
-			//this takes time
-			Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
+		//	//this takes time
+		//	try
+		//	{
+		//		Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
 
-			token.ThrowIfCancellationRequested();
+		//		token.ThrowIfCancellationRequested();
 
-			if (geolocator != null)
-			{
-				var pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
-				Debug.WriteLine("GetLocationBackgroundTask done getting geoposition");
+		//		if (geolocator != null)
+		//		{
+		//			var pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
 
-				token.ThrowIfCancellationRequested();
+		//			token.ThrowIfCancellationRequested();
 
-				// save to the db, synchronously, otherwise the background task may be cancelled before the db is updated.
-				// this would fail to save the new value and leave around named semaphores, which block everything else.
-				if (pos != null)
-				{
-					isSaved = PersistentData.RunDbOpInOtherTask(delegate
-					{
-						var newDataRecord = GetNewHistoryRecord(pos);
-						return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
-					});
-				}
-			}
-			return isSaved;
-		}
+		//			// save to the db, synchronously, otherwise the background task may be cancelled before the db is updated.
+		//			// this would fail to save the new value and leave around named semaphores, which block everything else.
+		//			if (pos != null)
+		//			{
+		//				isSaved = PersistentData.RunDbOpInOtherTask(delegate
+		//				{
+		//					var newDataRecord = GetNewHistoryRecord(pos);
+		//					return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
+		//				});
+		//			}
+		//		}
+		//	}
+		//	catch(Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.BackgroundLogFilename);
+		//	}
+		//	return isSaved;
+		//}
 		//public static bool AppendGeoPositionOnlyDb(PersistentData persistentData, Geoposition pos, bool checkMaxEntries)
 		//{
 		//	PointRecord newDataRecord = new PointRecord();
@@ -512,7 +518,7 @@ namespace LolloGPS.GPSInteraction
 		//	return isOk;
 		//}
 
-		private static PointRecord GetNewHistoryRecord(Geoposition pos)
+		public static PointRecord GetNewHistoryRecord(Geoposition pos)
 		{
 			PointRecord newDataRecord = null;
 			if (pos != null)
