@@ -29,6 +29,7 @@
 	<x:Double x:Key="Size4Placeholder_Large">40</x:Double>
 
 	<x:Int32 x:Key="MaxHumanDescriptionLength">160</x:Int32>
+	<x:Int32 x:Key="MaxHyperLinkLength">2000</x:Int32>
 
 	<SolidColorBrush x:Key="FlashyForeground" Color="Red" />
     <SolidColorBrush x:Key="EmailForeground" Color="Blue" />

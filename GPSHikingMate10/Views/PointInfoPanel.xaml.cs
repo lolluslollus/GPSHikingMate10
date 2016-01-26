@@ -4,9 +4,8 @@ using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Threading.Tasks;
+using Windows.System;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -63,15 +62,44 @@ namespace LolloGPS.Core
 		private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			string currentText = (sender as TextBox).Text;
-			Task upd = PersistentData.GetInstance().Selected.UpdateHumanDescriptionAsync(currentText);
+			var persistentData = PersistentData.GetInstance();
+			if (persistentData != null)
+			{
+				Task upd = persistentData.Selected?.UpdateHumanDescriptionAsync(currentText, persistentData.SelectedSeries);
+			}
 		}
 
 		// horrid BODGE because TextBox with IsTabStop=False won't acquire focus (and won't show the keyboard, making it as dumb as a TextBlock)
-		private void OnHumanDescriptionTextBox_PointerEntered(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+		private void OnTextBox_PointerEntered(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
 		{
 			(sender as TextBox).IsTabStop = true;
-			bool isOK = (sender as TextBox).Focus(Windows.UI.Xaml.FocusState.Pointer);
+			bool isOK = (sender as TextBox).Focus(FocusState.Pointer);
 			(sender as TextBox).IsTabStop = false;
+		}
+
+		private void OnHyperlinkTextBox_LostFocus(object sender, RoutedEventArgs e)
+		{
+			string currentText = (sender as TextBox).Text;
+			var persistentData = PersistentData.GetInstance();
+			if (persistentData != null)
+			{
+				Task upd = persistentData.Selected?.UpdateHyperlinkAsync(currentText, persistentData.SelectedSeries);
+			}
+		}
+
+		private void OnHyperlinkTextTextBox_LostFocus(object sender, RoutedEventArgs e)
+		{
+			string currentText = (sender as TextBox).Text;
+			var persistentData = PersistentData.GetInstance();
+			if (persistentData != null)
+			{
+				Task upd = persistentData.Selected?.UpdateHyperlinkTextAsync(currentText, persistentData.SelectedSeries);
+			}
+		}
+
+		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
+		{
+			_myVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
 		}
 
 		private void OnGotoPrevious_Click(object sender, RoutedEventArgs e)

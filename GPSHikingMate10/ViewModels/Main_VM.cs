@@ -20,7 +20,9 @@ using Windows.Foundation;
 using Windows.Phone.UI.Input;
 using Windows.Storage;
 using Windows.Storage.Pickers;
+using Windows.System;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
@@ -446,6 +448,18 @@ namespace LolloGPS.Core
 					return dblIn;
 				}
 			}
+		}
+		internal void NavigateToUri(string uri)
+		{
+			try
+			{
+				if (!string.IsNullOrWhiteSpace(uri))
+				{
+					var ub = new UriBuilder(uri);
+					Task upd = Launcher.LaunchUriAsync(ub.Uri, new LauncherOptions() { DesiredRemainingView = ViewSizePreference.Default }).AsTask();
+				}
+			}
+			catch { }
 		}
 		#endregion services
 

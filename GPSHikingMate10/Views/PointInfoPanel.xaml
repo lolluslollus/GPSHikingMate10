@@ -95,7 +95,7 @@
 						IsTabStop="False" 
 						PlaceholderText="you can type a note here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
-						PointerEntered="OnHumanDescriptionTextBox_PointerEntered"/>
+						PointerEntered="OnTextBox_PointerEntered"/>
 				</utilz:UniversalWrapPanel>
 				<!-- point navigation -->
 				<utilz:UniversalWrapPanel Orientation="Horizontal">
@@ -140,13 +140,61 @@
 					<Run Text="Altitude accuracy: "/>
 					<Run Text="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
-				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" Visibility="{Binding Selected.PositionSource, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
 					<Run Text="Source: "/>
 					<Run Text="{Binding Selected.PositionSource}" />
 				</TextBlock>
 
-				<utilz:UniversalWrapPanel Orientation="Horizontal"
-					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+				<!-- link to media -->
+				<utilz:UniversalWrapPanel Orientation="Horizontal">
+					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+						TextWrapping="Wrap"
+						Style="{StaticResource BaseMessageStyle}"
+						Text="Link to media: "/>
+					<TextBox TextWrapping="Wrap"
+						Style="{StaticResource BaseTextBoxStyle}" 
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						MaxLength="{StaticResource MaxHyperLinkLength}"
+						AcceptsReturn="True" 
+						Width="250"
+                        Text="{Binding Selected.HyperLink, Mode=OneWay}"
+                        LostFocus="OnHyperlinkTextBox_LostFocus" 
+						IsTabStop="False" 
+						PlaceholderText="you can type a link here" 
+						PreventKeyboardDisplayOnProgrammaticFocus="True" 
+						PointerEntered="OnTextBox_PointerEntered"/>
+				</utilz:UniversalWrapPanel>
+				<utilz:UniversalWrapPanel Orientation="Horizontal">
+					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+						TextWrapping="Wrap"
+						Style="{StaticResource BaseMessageStyle}"
+						Text="Name of media: "/>
+					<TextBox TextWrapping="Wrap"
+						Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
+						Style="{StaticResource BaseTextBoxStyle}" 
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						MaxLength="{StaticResource MaxHumanDescriptionLength}"
+						AcceptsReturn="True" 
+						Width="250"
+                        Text="{Binding Selected.HyperLinkText, Mode=OneWay}"
+                        LostFocus="OnHyperlinkTextTextBox_LostFocus" 
+						IsTabStop="False" 
+						PlaceholderText="you can name your link here" 
+						PreventKeyboardDisplayOnProgrammaticFocus="True" 
+						PointerEntered="OnTextBox_PointerEntered"/>
+				</utilz:UniversalWrapPanel>
+				<AppBarButton 
+					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
+                    Click="OnHyperlink_Click"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                    Icon="View"
+					IsCompact="True"
+                    Style="{StaticResource AppBarButtonRecoloured}"/>
+
+				<!--<utilz:UniversalWrapPanel Orientation="Horizontal"
+					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
 					<TextBlock HorizontalAlignment="Left"
 						TextWrapping="Wrap"
 						Style="{StaticResource BaseMessageStyle}"
@@ -162,7 +210,7 @@
 							</TextBlock>
 						</HyperlinkButton.Content>
 					</HyperlinkButton>
-				</utilz:UniversalWrapPanel>
+				</utilz:UniversalWrapPanel>-->
 
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Speed: "/>

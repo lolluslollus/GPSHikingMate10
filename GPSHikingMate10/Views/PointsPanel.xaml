@@ -9,11 +9,15 @@
 	xmlns:ctl="using:LolloBaseUserControls"
     UseLayoutRounding="True"
     mc:Ignorable="d"
-    d:DesignHeight="600"
+    d:DesignHeight="800"
     d:DesignWidth="400">
 
 	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -186,7 +190,6 @@
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center" />
 		<TextBox Grid.Row="3" Grid.Column="0"
-            x:Name="HumanDescriptionTB"
             HorizontalAlignment="Stretch" 
             VerticalAlignment="Center"
             Style="{StaticResource BaseTextBoxStyle}" 
@@ -196,11 +199,40 @@
             Text="{Binding Target.HumanDescription, Mode=TwoWay}"
             PlaceholderText="you can type a note here" 
             PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+		<!-- hyperlink -->
+		<TextBlock Grid.Row="4" Grid.Column="0"
+            Text="Hyperlink"
+            Style="{StaticResource BaseMessageStyle}"
+            VerticalAlignment="Center" />
+		<TextBox Grid.Row="5" Grid.Column="0"
+            HorizontalAlignment="Stretch" 
+            VerticalAlignment="Center"
+            Style="{StaticResource BaseTextBoxStyle}" 
+            MaxLength="{StaticResource MaxHyperLinkLength}"
+            TextWrapping="Wrap" 
+            AcceptsReturn="True"
+            Text="{Binding Target.HyperLink, Mode=TwoWay}"
+            PlaceholderText="you can type a link here" 
+            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+		<!-- hyperlink name -->
+		<TextBlock Grid.Row="6" Grid.Column="0"
+            Text="Hyperlink name"
+            Style="{StaticResource BaseMessageStyle}"
+            VerticalAlignment="Center" />
+		<TextBox Grid.Row="7" Grid.Column="0"
+            HorizontalAlignment="Stretch" 
+            VerticalAlignment="Center"
+            Style="{StaticResource BaseTextBoxStyle}" 
+            MaxLength="{StaticResource MaxHumanDescriptionLength}"
+            TextWrapping="Wrap" 
+            AcceptsReturn="True"
+            Text="{Binding Target.HyperLinkText, Mode=TwoWay}"
+            PlaceholderText="you can name your link here" 
+            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- lat lon commands -->
-		<Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="5"
+		<Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
             VerticalAlignment="Center">
 			<Grid.RowDefinitions>
-				<RowDefinition/>
 				<RowDefinition/>
 				<RowDefinition/>
 			</Grid.RowDefinitions>
@@ -212,7 +244,7 @@
                 Icon="Clock"
                 TabIndex="2"/>
 			<!--Label="Go to target"-->
-			<AppBarButton Grid.Row="2"
+			<AppBarButton Grid.Row="1"
                 Click="OnGotoTarget_Click" 
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
@@ -220,13 +252,22 @@
                 TabIndex="1"/>
 		</Grid>
 
+		<!-- hyperlink commands -->
+		<AppBarButton Grid.Row="4" Grid.Column="1" Grid.RowSpan="4"
+			IsEnabled="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}}"
+            VerticalAlignment="Center"
+            Click="OnHyperlink_Click"
+            IsCompact="True"
+            Style="{StaticResource AppBarButtonRecoloured}"
+            Icon="View"/>
+
 		<!--target commands-->
-		<TextBlock Grid.Row="5" Grid.Column="0"
+		<TextBlock Grid.Row="9" Grid.Column="0"
             VerticalAlignment="Center"
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Add / merge this point into your landmarks"/>
-		<AppBarButton Grid.Row="5" Grid.Column="1"
+		<AppBarButton Grid.Row="9" Grid.Column="1"
             VerticalAlignment="Center"
             Click="OnAddTargetToLandmarks_Click"
             IsCompact="True"
@@ -235,7 +276,7 @@
             Icon="Add"/>
 
 		<!-- too many landmarks notice-->
-		<TextBlock Grid.Row="6" Grid.Column="0"
+		<TextBlock Grid.Row="10" Grid.Column="0"
             VerticalAlignment="Center" 
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}" 
@@ -243,15 +284,15 @@
             Foreground="{StaticResource FlashyForeground}"
             Visibility="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountEqualMaxToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<TextBlock Grid.Row="7" Grid.Column="0"
+		<TextBlock Grid.Row="11" Grid.Column="0"
             VerticalAlignment="Center"
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Add the current location to your landmarks"/>
-		<ContentControl Grid.Row="7" Grid.Column="1"
+		<ContentControl Grid.Row="11" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
-			<AppBarButton Grid.Row="7" Grid.Column="1"
+			<AppBarButton Grid.Row="11" Grid.Column="1"
 				VerticalAlignment="Center"
 				IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
 				Click="OnSetTargetToCurrentPoint_Click" 
@@ -261,12 +302,12 @@
 				Icon="Map"/>
 		</ContentControl>
 
-		<TextBlock Grid.Row="8" Grid.Column="0"
+		<TextBlock Grid.Row="12" Grid.Column="0"
             VerticalAlignment="Center" 
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Move around the map and tap the aim to add a landmark. Hold the aim to hide it."/>
-		<ContentControl Grid.Row="8" Grid.Column="1"
+		<ContentControl Grid.Row="12" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
 			<AppBarToggleButton Grid.Row="8" Grid.Column="1"
@@ -282,12 +323,12 @@
 			</AppBarToggleButton>
 		</ContentControl>
 
-		<TextBlock Grid.Row="9" Grid.Column="0"
+		<TextBlock Grid.Row="13" Grid.Column="0"
             VerticalAlignment="Center" 
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Move around the map and tap the aim to add one landmark"/>
-		<ContentControl Grid.Row="9" Grid.Column="1"
+		<ContentControl Grid.Row="13" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
 			<AppBarToggleButton Grid.Row="9" Grid.Column="1"
@@ -303,12 +344,12 @@
 			</AppBarToggleButton>
 		</ContentControl>
 
-		<TextBlock Grid.Row="10" Grid.Column="0"
+		<TextBlock Grid.Row="14" Grid.Column="0"
             VerticalAlignment="Center" 
             Style="{StaticResource BaseMessageStyle}"
             TextWrapping="WrapWholeWords"
             Text="Clear landmarks"/>
-		<AppBarButton Grid.Row="10" Grid.Column="1"
+		<AppBarButton Grid.Row="14" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsCompact="True"
 			Foreground="{StaticResource LandmarksBrushOpaque}"

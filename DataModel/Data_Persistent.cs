@@ -997,7 +997,9 @@ namespace LolloGPS.Data
 						{
 							await RunInUiThreadAsync(delegate
 							{
+								var id = Landmarks[index].Id;
 								Landmarks[index] = point;
+								Landmarks[index].Id = id; // otherwise I overwrite Id, and db update will not update
 							}).ConfigureAwait(false);
 							Task updateDb = DBManager.UpdateLandmarksAsync(point, false);
 							LastMessage = "Landmarks updated";
