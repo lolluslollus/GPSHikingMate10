@@ -477,6 +477,7 @@ namespace LolloGPS.Core
 		}
 		#endregion services
 
+
 		#region IMapApController
 		public async Task CentreOnRoute0Async()
 		{
@@ -516,6 +517,7 @@ namespace LolloGPS.Core
 			return _myLolloMap_VM?.Goto2DAsync();
 		}
 		#endregion IMapApController
+
 
 		#region save and load with picker
 		private SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -566,12 +568,12 @@ namespace LolloGPS.Core
 				await Task.Run(async delegate
 				{
 					SetLastMessage_UI("saving GPX file...");
-				// initialise cancellation token
-				_fileSavePickerCts = new CancellationTokenSource();
+					// initialise cancellation token
+					_fileSavePickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileSavePickerCts.Token;
 					token.ThrowIfCancellationRequested();
-				// save file
-				result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, token).ConfigureAwait(false);
+					// save file
+					result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 				}).ConfigureAwait(false);
 			}
@@ -630,16 +632,16 @@ namespace LolloGPS.Core
 				{
 					Logger.Add_TPL("LoadSeriesFromFileAsync() started a worker thread", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					SetLastMessage_UI("reading GPX file...");
-				// initialise cancellation token
-				_fileOpenPickerCts = new CancellationTokenSource();
+					// initialise cancellation token
+					_fileOpenPickerCts = new CancellationTokenSource();
 					CancellationToken token = _fileOpenPickerCts.Token;
 					token.ThrowIfCancellationRequested();
-				// load the file
-				result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
+					// load the file
+					result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, token).ConfigureAwait(false);
 					Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					token.ThrowIfCancellationRequested();
-				// update the UI with the file data
-				if (result?.Item1 == true)
+					// update the UI with the file data
+					if (result?.Item1 == true)
 					{
 						switch (whichSeries)
 						{
@@ -714,7 +716,18 @@ namespace LolloGPS.Core
 					_fileOpenContinuationCts = null;
 					// inform the user about the result
 					if ((landmarksResult == null || !landmarksResult.Item1) && (route0Result == null || !route0Result.Item1)) SetLastMessage_UI("could not read file");
-					else SetLastMessage_UI(route0Result.Item2 + " and " + landmarksResult.Item2);
+					else if (landmarksResult?.Item1 == true && route0Result?.Item1 == true)
+					{
+						SetLastMessage_UI(route0Result.Item2 + " and " + landmarksResult.Item2);
+					}
+					else if (route0Result?.Item1 == true)
+					{
+						SetLastMessage_UI(route0Result.Item2);
+					}
+					else if (landmarksResult?.Item1 == true)
+					{
+						SetLastMessage_UI(landmarksResult.Item2);
+					}
 					// fill output
 					if (landmarksResult?.Item1 == true) output.Add(PersistentData.Tables.Landmarks);
 					if (route0Result?.Item1 == true) output.Add(PersistentData.Tables.Route0);
