@@ -239,7 +239,7 @@ namespace LolloGPS.Core
 		{
 			PersistentData persistentData = PersistentData.GetInstance();
 			var currentTileSource_mt = persistentData.CurrentTileSource;
-			var isMapCached_mt = persistentData.IsMapCached;
+			//var isMapCached_mt = persistentData.IsMapCached;
 
 			IsCancelledByUser = false;
 			List<Tuple<int, int>> output = new List<Tuple<int, int>>();
