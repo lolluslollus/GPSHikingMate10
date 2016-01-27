@@ -85,7 +85,7 @@ namespace LolloGPS.Data.TileCache
 		#region getters
 		public Uri GetUriForFile(string fileName)
 		{
-			return new UriBuilder(System.IO.Path.Combine(_imageFolder.Path, fileName)).Uri;
+			return new UriBuilder(Path.Combine(_imageFolder.Path, fileName)).Uri;
 		}
 		/// <summary>
 		/// gets the web uri of the tile (TileSource, X, Y, Z and Zoom)
@@ -236,7 +236,7 @@ namespace LolloGPS.Data.TileCache
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
 			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
-			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null;
+			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return GetUriForFile(fileName); // was null; // LOLLO TODO check this, it's new
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			Uri result = null;
 
@@ -307,7 +307,7 @@ namespace LolloGPS.Data.TileCache
 						where = 4;
 						// read response stream into a new record. 
 						// This extra step is the price to pay if we want to check the stream content
-						TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
+						var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 						await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
 						// check readStream: at least one byte must not be empty
@@ -366,7 +366,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				try
 				{
-					StorageFile file = await _imageFolder.GetFileAsync(oldTileCacheRecord.FileName).AsTask().ConfigureAwait(false);
+					var file = await _imageFolder.GetFileAsync(oldTileCacheRecord.FileName).AsTask().ConfigureAwait(false);
 					if (file != null)
 					{
 						// like when you clear: update the file first, then the db, it the file update went well.
@@ -393,7 +393,7 @@ namespace LolloGPS.Data.TileCache
 			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
 			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
-			bool output = false;
+			bool result = false;
 
 			string sWebUri = GetWebUri(x, y, z, zoom);
 			// try to get this tile from the cache
@@ -406,13 +406,13 @@ namespace LolloGPS.Data.TileCache
 					// tile is not in cache: download it and save it
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						output = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
+						result = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
 					}
 				}
 				// tile is in cache: return ok
 				else
 				{
-					output = true;
+					result = true;
 					if (fileName != tileCacheRecordFromDb.FileName)
 					{
 						await UpdateFileNameAsync(tileCacheRecordFromDb, fileName, _tileSource.TechName, x, y, z, zoom).ConfigureAwait(false);
@@ -425,7 +425,7 @@ namespace LolloGPS.Data.TileCache
 			}
 
 			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
-			return output;
+			return result;
 		}
 
 		private static bool IsWebResponseContentOk(TileCacheRecord newRecord)
