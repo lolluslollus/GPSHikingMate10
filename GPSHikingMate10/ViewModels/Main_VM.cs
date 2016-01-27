@@ -507,8 +507,14 @@ namespace LolloGPS.Core
 		public async Task CentreOnTargetAsync()
 		{
 			MyPersistentData.IsShowingPivot = false;
-			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless, just here to respect interface IMapApController
+			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless
 			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnTargetAsync().ConfigureAwait(false);
+		}
+		public async Task CentreOnCurrentAsync()
+		{
+			MyPersistentData.IsShowingPivot = false;
+			// await _myAltitudeProfiles_VM?.CentreOnCurrentAsync(); // useless
+			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnCurrentAsync().ConfigureAwait(false);
 		}
 		public Task Goto2DAsync()
 		{
@@ -746,6 +752,7 @@ namespace LolloGPS.Core
 		Task CentreOnRoute0Async();
 		Task CentreOnSeriesAsync(PersistentData.Tables series);
 		Task CentreOnTargetAsync();
+		Task CentreOnCurrentAsync();
 		Task Goto2DAsync();
 	}
 }

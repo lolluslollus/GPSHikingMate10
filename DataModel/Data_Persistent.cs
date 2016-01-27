@@ -1133,8 +1133,8 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync();
-				if (TestTileSource == null) return Tuple.Create<bool, string>(false, "Record not found");
-				if (string.IsNullOrWhiteSpace(TestTileSource.TechName)) return Tuple.Create<bool, string>(false, "Name is empty");
+				if (TestTileSource == null) return Tuple.Create(false, "Record not found");
+				if (string.IsNullOrWhiteSpace(TestTileSource.TechName)) return Tuple.Create(false, "Name is empty");
 				// set non-screen properties
 				TestTileSource.DisplayName = TestTileSource.TechName; // we always set it automatically
 				TestTileSource.IsDeletable = true;
@@ -1142,17 +1142,17 @@ namespace LolloGPS.Data
 
 				if (!string.IsNullOrEmpty(errorMsg))
 				{
-					return Tuple.Create<bool, string>(false, errorMsg);
+					return Tuple.Create(false, errorMsg);
 				}
 				else
 				{
 					string successMessage = string.Format("Source {0} added", TestTileSource.DisplayName);
-					var recordsWithSameName = TileSourcez.Where(a => a.TechName == TestTileSource.TechName || a.DisplayName == TestTileSource.TechName);
+					var recordsWithSameName = TileSourcez.Where(tileSource => tileSource.TechName == TestTileSource.TechName || tileSource.DisplayName == TestTileSource.TechName);
 					if (recordsWithSameName != null)
 					{
 						if (recordsWithSameName.Count() > 1)
 						{
-							return Tuple.Create<bool, string>(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
+							return Tuple.Create(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
 						}
 						else if (recordsWithSameName.Count() == 1)
 						{
@@ -1164,7 +1164,7 @@ namespace LolloGPS.Data
 							}
 							else
 							{
-								return Tuple.Create<bool, string>(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
+								return Tuple.Create(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
 							}
 						}
 					}
@@ -1175,7 +1175,7 @@ namespace LolloGPS.Data
 					RaisePropertyChanged(nameof(TileSourcez));
 					CurrentTileSource = newRecord;
 
-					return Tuple.Create<bool, string>(true, successMessage);
+					return Tuple.Create(true, successMessage);
 				}
 			}
 			finally

@@ -277,7 +277,7 @@ namespace LolloGPS.Core
 			return Task.CompletedTask;
 		}
 
-		private Task CentreOnCurrentAsync()
+		public Task CentreOnCurrentAsync()
 		{
 			try
 			{
@@ -938,14 +938,14 @@ namespace LolloGPS.Core
 			HideFlyoutPoint();
 		}
 
-		private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
-		{
-			Task resp = RunFunctionIfOpenAsyncA(delegate
-			{
-				Task vibrate = Task.Run(() => App.ShortVibration());
-				Task cen = CentreOnCurrentAsync();
-			});
-		}
+		//private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
+		//{
+		//	Task resp = RunFunctionIfOpenAsyncA(delegate
+		//	{
+		//		Task vibrate = Task.Run(() => App.ShortVibration());
+		//		Task cen = CentreOnCurrentAsync();
+		//	});
+		//}
 
 		private async void OnAim_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{

@@ -37,7 +37,7 @@ namespace LolloGPS.Data.TileCache
 		/// </summary>
 		public StorageFolder ImageFolder { get { return _imageFolder; } }
 
-		private bool _isCaching = false;
+		private volatile bool _isCaching = false;
 		/// <summary>
 		/// Gets if this cache writes away (ie caches) the data it picks up.
 		/// Only relevant for supplying map tiles on the fly.
@@ -49,7 +49,7 @@ namespace LolloGPS.Data.TileCache
 		private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
 		#region construct and dispose
-		public TileCache(TileSourceRecord tileSource, bool isCaching)
+		public TileCache(TileSourceRecord tileSource, bool isCaching) // LOLLO TODO do not base the instance on IsCaching, only on the tile source
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 			TileSourceRecord.Clone(tileSource, ref _tileSource);

@@ -352,6 +352,7 @@
 				<ColumnDefinition />
 				<ColumnDefinition />
 				<ColumnDefinition />
+				<ColumnDefinition />
 			</Grid.ColumnDefinitions>
 			<!-- back -->
 			<AppBarButton Grid.Column="0"
@@ -369,21 +370,29 @@
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+			<!-- go to last -->
+			<AppBarButton Grid.Column="2"
+						  VerticalAlignment="Center"
+						  Label="Go to last" Icon="Target"
+						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
+						  Click="OnGotoLast_Click" 
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- altitude profiles -->
-			<AppBarToggleButton Grid.Column="2"
+			<AppBarToggleButton Grid.Column="3"
 						  VerticalAlignment="Center"
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
-			<AppBarButton Grid.Column="3"
+			<AppBarButton Grid.Column="4"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
 						  Click="OnOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Column="4"
+			<AppBarButton Grid.Column="5"
                 HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
@@ -408,6 +417,7 @@
 				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
+				<RowDefinition />
 			</Grid.RowDefinitions>
 			<!-- back -->
 			<AppBarButton Grid.Row="0"
@@ -425,21 +435,29 @@
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+			<!-- go to last -->
+			<AppBarButton Grid.Row="2"
+						  VerticalAlignment="Center"
+						  Label="Go to last" Icon="Target"
+						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
+						  Click="OnGotoLast_Click" 
+						  Style="{StaticResource AppBarButtonRecoloured}"
+						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- altitude profiles -->
-			<AppBarToggleButton Grid.Row="2"
+			<AppBarToggleButton Grid.Row="3"
 						  HorizontalAlignment="Center" 
 						  Label="Altitude" Icon="List"
 						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
 						  Click="OnAltitude_Click"
 						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
-			<AppBarButton Grid.Row="3"
+			<AppBarButton Grid.Row="4"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
 						  Click="OnOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Row="4"
+			<AppBarButton Grid.Row="5"
                 HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"

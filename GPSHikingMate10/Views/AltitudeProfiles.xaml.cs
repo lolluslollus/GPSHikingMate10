@@ -502,6 +502,11 @@ namespace LolloGPS.Core
 			return Task.CompletedTask; // altitude profiles has no target
 		}
 
+		public Task CentreOnCurrentAsync()
+		{
+			return Task.CompletedTask; // altitude profiles has no current view
+		}
+
 		public Task Goto2DAsync()
 		{
 			try

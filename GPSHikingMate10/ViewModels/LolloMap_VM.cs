@@ -251,7 +251,11 @@ namespace LolloGPS.Core
         {
             return _mapController?.CentreOnTargetAsync();
         }
-        public Task Goto2DAsync()
+		public Task CentreOnCurrentAsync()
+		{
+			return _mapController?.CentreOnCurrentAsync();
+		}
+		public Task Goto2DAsync()
         {
             return _mapController?.Goto2DAsync();
         }

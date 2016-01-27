@@ -210,6 +210,12 @@ namespace LolloGPS.Core
 			_myVM.GetAFix();
 		}
 
+		private void OnGotoLast_Click(object sender, RoutedEventArgs e)
+		{
+			Task vibrate = Task.Run(() => App.ShortVibration());
+			Task go = _myVM.CentreOnCurrentAsync();
+		}
+
 		private void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
 		{
 			Task ct = _myVM.CentreOnTargetAsync();

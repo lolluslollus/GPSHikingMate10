@@ -162,11 +162,12 @@
 		</Border>
 		<!--MapControl-->
 		<!--CenterChanged="OnMyMap_CenterChanged" HeadingChanged="OnMyMap_HeadingChanged" PitchChanged="OnMyMap_PitchChanged" ZoomLevelChanged="OnMyMap_ZoomLevelChanged"-->
+		<!--MapHolding="OnMap_Holding"-->
 		<Maps:MapControl Canvas.ZIndex="100"
 			x:Name="MyMap"
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
-			MapTapped="OnMap_Tapped" MapHolding="OnMap_Holding"
+			MapTapped="OnMap_Tapped"
 			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False">
 			<!--<Maps:MapItemsControl x:Name="LandmarksMIC"
 				ItemTemplate="{StaticResource LandmarksTemplate}"
