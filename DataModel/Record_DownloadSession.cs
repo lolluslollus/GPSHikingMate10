@@ -78,9 +78,11 @@ namespace LolloGPS.Data.Leeching
 			TileSourceRecord tsr = persistentData.TileSourcez.FirstOrDefault(a => a.TechName == TileSourceTechName);
 			if (tsr != null)
 			{
-				TileCache.TileCache tileCache = new TileCache.TileCache(tsr, persistentData.IsMapCached);
-				MinZoom = Math.Max(MinZoom, tileCache.GetMinZoom());
-				MaxZoom = Math.Min(MaxZoom, tileCache.GetMaxZoom());
+				//TileCache.TileCache tileCache = new TileCache.TileCache(tsr, persistentData.IsMapCached);
+				//MinZoom = Math.Max(MinZoom, tileCache.GetMinZoom());
+				//MaxZoom = Math.Min(MaxZoom, tileCache.GetMaxZoom());
+				MinZoom = Math.Max(MinZoom, tsr.MinZoom);
+				MaxZoom = Math.Min(MaxZoom, tsr.MaxZoom);
 			}
 
 			if (MinZoom > MaxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman

@@ -132,7 +132,7 @@ namespace LolloGPS.Core
 		}
 		private Tuple<int, int> DownloadTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
 		{
-			var output = Tuple.Create<int, int>(0, 0);
+			var output = Tuple.Create(0, 0);
 			if (RuntimeData.GetInstance().IsConnectionAvailable)
 			{
 				output = SaveTiles_RespondingToCancel(tileCache, session);
@@ -246,17 +246,20 @@ namespace LolloGPS.Core
 
 			try
 			{
-				TileCache tileCache = new TileCache(currentTileSource_mt, isMapCached_mt);
+				//TileCache tileCache = new TileCache(currentTileSource_mt, isMapCached_mt);
 
 				var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
 				if (gbb != null)
 				{
 					// now I have a geobounding box that certainly encloses the screen.
 					DownloadSession session = new DownloadSession(
-						tileCache.GetMinZoom(),
-						tileCache.GetMaxZoom(),
+						//tileCache.GetMinZoom(),
+						currentTileSource_mt.MinZoom,
+						//tileCache.GetMaxZoom(),
+						currentTileSource_mt.MaxZoom,
 						gbb,
-						tileCache.TileSource.TechName);
+						//tileCache.TileSource.TechName);
+						currentTileSource_mt.TechName);
 					if (session.IsValid)
 					{
 						List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
@@ -264,7 +267,7 @@ namespace LolloGPS.Core
 						for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
 						{
 							int howManyAtOrBeforeZoom = tilesOrderedByZoom.Count(a => a.Zoom <= zoom);
-							output.Add(Tuple.Create<int, int>(zoom, howManyAtOrBeforeZoom));
+							output.Add(Tuple.Create(zoom, howManyAtOrBeforeZoom));
 						}
 					}
 				}
