@@ -43,13 +43,13 @@ namespace LolloGPS.Data.TileCache
 		/// Only relevant for supplying map tiles on the fly.
 		/// We could read this from PersistentData whenever we need it, but it does not work well.
 		/// </summary>
-		public bool IsCaching { get { return _isCaching; } }
+		public bool IsCaching { get { return _isCaching; } set { _isCaching = value; } }
 
 		private readonly string _webUriFormat = string.Empty;
 		private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
 		#region construct and dispose
-		public TileCache(TileSourceRecord tileSource, bool isCaching) // LOLLO TODO do not base the instance on IsCaching, only on the tile source
+		public TileCache(TileSourceRecord tileSource, bool isCaching)
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 			TileSourceRecord.Clone(tileSource, ref _tileSource);

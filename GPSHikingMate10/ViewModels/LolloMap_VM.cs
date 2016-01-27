@@ -50,7 +50,7 @@ namespace LolloGPS.Core
             _tileDataSource_http = new HttpMapTileDataSource()
             {
                 // UriFormatString = _tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
-                AllowCaching = false, //true,                
+                AllowCaching = false, //true, // we do our own caching
             };
 
             _mapTileSource = new MapTileSource(
@@ -159,7 +159,7 @@ namespace LolloGPS.Core
             {
                 Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
             }
-            else if (e.PropertyName == nameof(PersistentData.CurrentTileSource) || e.PropertyName == nameof(PersistentData.IsMapCached))
+            else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
             {
 				Task gt = RunInUiThreadAsync(delegate
 				{
@@ -167,8 +167,13 @@ namespace LolloGPS.Core
 					if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
 				});
             }
-        }
-        private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
+			{
+				var tileCache = _tileCache;
+				if (tileCache != null) tileCache.IsCaching = MyPersistentData.IsMapCached;
+			}
+		}
+		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
             {

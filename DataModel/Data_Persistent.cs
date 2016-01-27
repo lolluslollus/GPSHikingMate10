@@ -242,16 +242,11 @@ namespace LolloGPS.Data
 			_landmarks = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInLandmarks);
 		}
 
-		/// <summary>
-		/// Unlocks the TileCache DB.
-		/// </summary>
 		public static void OpenTileCacheDb()
 		{
 			TileCache.LolloSQLiteConnectionPoolMT.Open();
 		}
-		/// <summary>
-		/// Unlocks the main DB.
-		/// </summary>
+
 		public static void OpenMainDb()
 		{
 			LolloSQLiteConnectionPoolMT.Open();
@@ -278,7 +273,6 @@ namespace LolloGPS.Data
 		/// </summary>
 		public static void CloseMainDb()
 		{
-			// await LolloSQLiteConnectionPoolMT.Close().ConfigureAwait(false);
 			LolloSQLiteConnectionPoolMT.Close();
 		}
 		#endregion construct dispose and clone
@@ -334,16 +328,13 @@ namespace LolloGPS.Data
 		[DataMember]
 		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 		private SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
-		//[DataMember] // we save the history into the DB now!
-		[IgnoreDataMember]
+		[IgnoreDataMember] // we save the history into the DB 
 		public SwitchableObservableCollection<PointRecord> History { get { return _history; } private set { _history = value; RaisePropertyChanged(); } }
 		private SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
-		//[DataMember] // we save this into the DB so we don't serialise it anymore
-		[IgnoreDataMember]
+		[IgnoreDataMember] // we save the route into the DB 
 		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
 		private SwitchableObservableCollection<PointRecord> _landmarks = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInLandmarks);
-																			   //[DataMember] // we save this into the DB so we don't serialise it anymore
-		[IgnoreDataMember]
+		[IgnoreDataMember] // we save the landmarks into the DB 
 		public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged(); } }
 
 		private uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
@@ -491,7 +482,7 @@ namespace LolloGPS.Data
 		private MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
 		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
-		private bool _isMapCached = false;
+		private volatile bool _isMapCached = false;
 		[DataMember]
 		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
 		private double _mapLastLat = default(double);
@@ -526,8 +517,8 @@ namespace LolloGPS.Data
 			_isTilesDownloadDesired = isTilesDownloadDesired;
 			_maxZoomForDownloadingTiles = maxZoom;
 
-			if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(PersistentData.IsTilesDownloadDesired));
-			if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(PersistentData.MaxDesiredZoomForDownloadingTiles));
+			if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(IsTilesDownloadDesired));
+			if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
 		}
 		private volatile DownloadSession _lastDownloadSession;
 		[DataMember]
@@ -537,7 +528,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
-		// LOLLO TODO when using several custom map sources, they may be repeated in the list
+		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times.
 		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
@@ -1112,7 +1103,7 @@ namespace LolloGPS.Data
 			else if (_selectedSeries == Tables.Landmarks) return Landmarks[SelectedIndex_Base1 - 2];
 			return null;
 		}
-		private void SelectNeighbourRecord(Collection<PointRecord> series, PersistentData.Tables whichSeries, int step)
+		private void SelectNeighbourRecord(Collection<PointRecord> series, Tables whichSeries, int step)
 		{
 			int newIndex = series.IndexOf(Selected) + step;
 			if (newIndex < 0) newIndex = 0;
@@ -1222,24 +1213,6 @@ namespace LolloGPS.Data
 		#endregion tileSourcesMethods
 
 		#region otherMethods
-		//public void SetTargetToGeopoint(PointRecord dr)
-		//{
-		//	if (dr != null)
-		//	{
-		//		PointRecord.Clone(dr, ref _target);
-		//		RaisePropertyChanged_UI(nameof(PersistentData.Target));
-		//	}
-		//}
-		//public void SetTargetToGeopoint(BasicGeoposition gp)
-		//{
-		//    Target = new PointRecord()
-		//    {
-		//        Latitude = gp.Latitude,
-		//        Longitude = gp.Longitude,
-		//        Altitude = gp.Altitude,
-		//    };
-		//	RaisePropertyChanged_UI(nameof(PersistentData.Target));
-		//}
 		public void CycleMapStyle()
 		{
 			switch (MapStyle)
