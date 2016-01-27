@@ -25,13 +25,14 @@ namespace LolloGPS.Data
 		private static readonly string DummyTileSourceProviderUriString = string.Empty;
 		private static readonly string SampleUriString = "http://tileserver.something/" + ZoomLevelPlaceholder + "/" + XPlaceholder + "/" + YPlaceholder + ".png";
 
-		private const int DefaultTileSourceMinZoom = 0;
+		public const int MinMinZoom = 0;
 		private const int DummyTileSourceMinZoom = 0;
 
-		private const int DefaultTileSourceMaxZoom = 20;
+		public const int MaxMaxZoom = 20;
 		private const int DummyTileSourceMaxZoom = 0;
+		private const int SampleMaxZoom = 16;
 
-		private const int DefaultTileSourceTilePixelSize = 256;
+		private const int DefaultTilePixelSize = 256;
 		private const int DummyTileSourceTilePixelSize = 0;
 
 		public const string ZoomLevelPlaceholder = "{zoomlevel}";
@@ -41,11 +42,8 @@ namespace LolloGPS.Data
 		public const string XPlaceholder_Internal = "{1}";
 		public const string YPlaceholder_Internal = "{2}";
 
-		public const int DefaultMinZoom = 0;
-		public const int DefaultMaxZoom = 16;
-		public const int DefaultTilePixelSize = 256;
-		public const int DefaultMinTilePixelSize = 64;
-		public const int DefaultMaxTilePixelSize = 1024;
+		public const int MinTilePixelSize = 64;
+		public const int MaxTilePixelSize = 1024;
 		public const int MaxTechNameLength = 25;
 
 		private string _techName = DefaultTileSourceTechName;
@@ -64,11 +62,11 @@ namespace LolloGPS.Data
 		[DataMember]
 		public string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged(); } }
 
-		private int _minZoom = DefaultMinZoom;
+		private int _minZoom = MinMinZoom;
 		[DataMember]
 		public int MinZoom { get { return _minZoom; } set { _minZoom = value; RaisePropertyChanged(); } }
 
-		private int _maxZoom = DefaultMaxZoom;
+		private int _maxZoom = MaxMaxZoom;
 		[DataMember]
 		public int MaxZoom { get { return _maxZoom; } set { _maxZoom = value; RaisePropertyChanged(); } }
 
@@ -205,17 +203,17 @@ namespace LolloGPS.Data
 		}
 		public static string CheckMinMaxZoom(int minZoom, int maxZoom)
 		{
-			if (minZoom < DefaultTileSourceMinZoom) return string.Format("Min zoom must be at least {0}", DefaultTileSourceMinZoom);
-			if (minZoom > DefaultTileSourceMaxZoom) return string.Format("Min zoom must not exceed {0}", DefaultTileSourceMaxZoom);
-			if (maxZoom < DefaultTileSourceMinZoom) return string.Format("Max zoom must be at least {0}", DefaultTileSourceMinZoom);
-			if (maxZoom > DefaultTileSourceMaxZoom) return string.Format("Max zoom must not exceed {0}", DefaultTileSourceMaxZoom);
+			if (minZoom < MinMinZoom) return string.Format("Min zoom must be at least {0}", MinMinZoom);
+			if (minZoom > MaxMaxZoom) return string.Format("Min zoom must not exceed {0}", MaxMaxZoom);
+			if (maxZoom < MinMinZoom) return string.Format("Max zoom must be at least {0}", MinMinZoom);
+			if (maxZoom > MaxMaxZoom) return string.Format("Max zoom must not exceed {0}", MaxMaxZoom);
 			if (minZoom > maxZoom) return "Min zoom must not exceed max zoom";
 			return string.Empty;
 		}
 		private static string CheckTilePixelSize(int tilePixelSize)
 		{
-			if (tilePixelSize < DefaultMinTilePixelSize) return string.Format("Tile size must be at least {0}", DefaultMinTilePixelSize);
-			if (tilePixelSize > DefaultMaxTilePixelSize) return string.Format("Tile size must not exceed {0}", DefaultMaxTilePixelSize);
+			if (tilePixelSize < MinTilePixelSize) return string.Format("Tile size must be at least {0}", MinTilePixelSize);
+			if (tilePixelSize > MaxTilePixelSize) return string.Format("Tile size must not exceed {0}", MaxTilePixelSize);
 			return string.Empty;
 		}
 		public static void Clone(TileSourceRecord source, ref TileSourceRecord target)
@@ -253,7 +251,7 @@ namespace LolloGPS.Data
 		public static List<TileSourceRecord> GetDefaultTileSources()
 		{
 			List<TileSourceRecord> output = new List<TileSourceRecord>();
-			output.Add(new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString, DefaultTileSourceProviderUriString, DefaultTileSourceMinZoom, DefaultTileSourceMaxZoom, DefaultTileSourceTilePixelSize, false));
+			output.Add(new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString, DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false));
 
 			output.Add(new TileSourceRecord("ForUMaps", "4UMaps", "http://4umaps.eu/{zoomlevel}/{x}/{y}.png", "http://www.4umaps.eu/", 2, 15, 256, false));
 
@@ -288,7 +286,7 @@ namespace LolloGPS.Data
 		}
 		public static TileSourceRecord GetDefaultTileSource()
 		{
-			return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString, DefaultTileSourceProviderUriString, DefaultTileSourceMinZoom, DefaultTileSourceMaxZoom, DefaultTileSourceTilePixelSize, false); //, false, true);
+			return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString, DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false); //, false, true);
 		}
 		public static TileSourceRecord GetAllTileSource()
 		{
@@ -300,7 +298,7 @@ namespace LolloGPS.Data
 		}
 		public static TileSourceRecord GetSampleTileSource()
 		{
-			return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, SampleUriString, DefaultTileSourceProviderUriString, DefaultMinZoom, DefaultMaxZoom, DefaultTilePixelSize, false); //true, false, false);
+			return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, SampleUriString, DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false); //true, false, false);
 		}
 
 	}

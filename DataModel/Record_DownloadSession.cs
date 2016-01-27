@@ -72,9 +72,21 @@ namespace LolloGPS.Data.Leeching
             SECorner = gbb.SoutheastCorner;
             TileSourceTechName = tileSourceTechName;
 
-            AdjustZooms();
-        }
-        public static void Clone(DownloadSession source, ref DownloadSession target)
+			if (MinZoom > MaxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
+
+			PersistentData persistentData = PersistentData.GetInstance();
+			TileSourceRecord tsr = persistentData.TileSourcez.FirstOrDefault(a => a.TechName == TileSourceTechName);
+			if (tsr != null)
+			{
+				TileCache.TileCache tileCache = new TileCache.TileCache(tsr, persistentData.IsMapCached);
+				MinZoom = Math.Max(MinZoom, tileCache.GetMinZoom());
+				MaxZoom = Math.Min(MaxZoom, tileCache.GetMaxZoom());
+			}
+
+			if (MinZoom > MaxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman
+		}
+
+		public static void Clone(DownloadSession source, ref DownloadSession target)
         {
             if (source != null)
             {
@@ -86,22 +98,6 @@ namespace LolloGPS.Data.Leeching
                 target.MaxZoom = source.MaxZoom;
                 target.TileSourceTechName = source.TileSourceTechName;
             }
-        }
-
-        private void AdjustZooms()
-        {
-            if (MinZoom > MaxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
-
-            PersistentData persistentData = PersistentData.GetInstance();
-            TileSourceRecord tsr = persistentData.TileSourcez.FirstOrDefault(a => a.TechName == TileSourceTechName);
-            if (tsr != null)
-            {
-                TileCache.TileCache tileCache = new TileCache.TileCache(tsr, persistentData.IsMapCached);
-                MinZoom = Math.Max(MinZoom, tileCache.GetMinZoom());
-                MaxZoom = Math.Min(MaxZoom, tileCache.GetMaxZoom());
-            }
-
-            if (MinZoom > MaxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman
         }
     }
 }
