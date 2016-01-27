@@ -526,6 +526,8 @@ namespace LolloGPS.Data.TileCache
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 			}
+			// LOLLO TODO maybe this should wait until the queue is empty and then delete it.
+			// Or at least return success / failure information.
 			internal static async Task<int> ClearCacheIfQueueEmptyAsync(TileSourceRecord tileSource)
 			{
 				int output = -5; // if it does not go through the following, report a negative value, meaning "cache busy"
