@@ -227,21 +227,22 @@ namespace LolloGPS.Data.TileCache
 			}
 			return folderNamesToBeDeleted;
 		}
+
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
 		{
 			// out of range? get out, no more thoughts
-			if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
+			if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null; // LOLLO TODO maybe return a tile with the message "wrong zoom"
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
 			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
 			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null;
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
-			Uri output = null;
-			int where = 0;
+			Uri result = null;
+
 			string sWebUri = GetWebUri(x, y, z, zoom);
-			// check if I have this tile in the cache already
-			string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+			// try to get this tile from the cache
+			var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 			//Debug.WriteLine("GetTileUri() calculated" + Environment.NewLine
 			//    + "_imageFolder = " + (_imageFolder == null ? "null" : _imageFolder.Path) + Environment.NewLine
 			//    + "fileName = " + fileName + Environment.NewLine
@@ -250,117 +251,128 @@ namespace LolloGPS.Data.TileCache
 
 			try
 			{
-				// tile is not in cache: 
-				// if caching is active, download it, save it and return an uri pointing at it; 
-				// otherwise return its web uri                
-				if (string.IsNullOrWhiteSpace(fileNameFromDb))
+				// tile is not in cache
+				if (tileCacheRecordFromDb == null)
 				{
-					where = 1;
-					bool isConnectionAvailable = RuntimeData.GetInstance().IsConnectionAvailable;
-					// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
-					if (IsCaching && isConnectionAvailable)
+					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
-						request.AllowReadStreamBuffering = true;
-						request.ContinueTimeout = WebRequestTimeoutMsec;
-
-						where = 2;
-						using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
+						if (IsCaching)
 						{
-							if (IsWebResponseHeaderOk(response))
-							{
-								where = 3;
-								using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
-								{
-									where = 4;
-									// read response stream into a new record. 
-									// This extra step is the price to pay if we want to check the stream content
-									TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-									await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
-
-									// check readStream: at least one byte must not be empty
-									if (IsWebResponseContentOk(newRecord))
-									{
-										StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-										using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
-										{
-											//Debug.WriteLine("GetTileUri() found: " + Environment.NewLine
-											//    + "writeStream.Length = " + writeStream.Length + Environment.NewLine
-											//    + "response.ContentLength = " + response.ContentLength + Environment.NewLine
-											//    + "Uri4File will be = " + GetUriForFile(fileName) + Environment.NewLine);
-											if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen 
-																		// LOLLO TODO check this: it may be wiser to overwrite the file. Just replace the collision option.
-											{
-												where = 99;
-												output = GetUriForFile(fileName);
-												Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + output.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-											}
-											else
-											{
-												where = 7;
-												await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
-												where = 8;
-												writeStream.Flush();
-												// check file vs stream
-												var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-												var fileSize = fileProps.Size;
-												where = 9;
-												if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
-												{
-													where = 10;
-													bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
-													output = GetUriForFile(fileName);
-													if (isInserted) where = 11;
-													// Debug.WriteLine("GetTileUri() saved a file with name = " + fileName + " and returned its uri = " + output.ToString());
-												}
-											}
-										}
-									}
-								}
-							}
+							if (await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false)) result = GetUriForFile(fileName);
 						}
-					}
-					// tile not in cache and cache off: return the web uri of the tile
-					else
-					{
-						if (isConnectionAvailable) output = new Uri(sWebUri);
-						//Debug.WriteLine("GetTileUri() found no files in cache and cache is off, so it only returned web uri = " + output.ToString());
+						// tile not in cache and cache off: return the web uri of the tile
+						else
+						{
+							result = new Uri(sWebUri);
+						}
 					}
 				}
 				// tile is in cache: return an uri pointing at it (ie at its file)
 				else
 				{
-					output = GetUriForFile(fileName);
-					// Debug.WriteLine("GetTileUri() found a file with name = " + fileName + " and returned its uri = " + output.ToString());
-					if (fileName != fileNameFromDb)
+					result = GetUriForFile(fileName);
+					if (fileName != tileCacheRecordFromDb.FileName)
 					{
-						Task update = UpdateFileNameAsync(fileNameFromDb, fileName, _tileSource.TechName, x, y, z, zoom);
+						await UpdateFileNameAsync(tileCacheRecordFromDb, fileName, _tileSource.TechName, x, y, z, zoom).ConfigureAwait(false);
 					}
 				}
 			}
-			catch (Exception exc0)
+			catch (Exception ex)
 			{
-				Debug.WriteLine("ERROR in GetTileUri(): " + exc0.Message + " ; I made it to where = " + where + exc0.StackTrace);
+				Debug.WriteLine("ERROR in GetTileUri(): " + ex.Message + ex.StackTrace);
 			}
-			// Debug.WriteLine("GetTileUri() ended with where = " + where);
+
 			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
-			return output;
+			return result;
 		}
-		private async Task<bool> UpdateFileNameAsync(string oldFileName, string newFileName, string techName, int x, int y, int z, int zoom)
+
+		private async Task<bool> TrySaveTileAsync(string sWebUri, int x, int y, int z, int zoom, string fileName)
 		{
-			Debug.WriteLine("ERROR in GetTileStreamRef() or GetTileUri(): file name in db is " + oldFileName + " but the calculated file name is " + newFileName);
+			bool result = false;
+			int where = 0;
+
+			var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
+			request.AllowReadStreamBuffering = true;
+			request.ContinueTimeout = WebRequestTimeoutMsec;
+
+			where = 2;
+			using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+			{
+				if (IsWebResponseHeaderOk(response))
+				{
+					where = 3;
+					using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
+					{
+						where = 4;
+						// read response stream into a new record. 
+						// This extra step is the price to pay if we want to check the stream content
+						TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
+						await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
+
+						// check readStream: at least one byte must not be empty
+						if (IsWebResponseContentOk(newRecord))
+						{
+							StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+							using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
+							{
+								//Debug.WriteLine("GetTileUri() found: " + Environment.NewLine
+								//    + "writeStream.Length = " + writeStream.Length + Environment.NewLine
+								//    + "response.ContentLength = " + response.ContentLength + Environment.NewLine
+								//    + "Uri4File will be = " + GetUriForFile(fileName) + Environment.NewLine);
+								if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen 
+															// LOLLO TODO check this: it may be wiser to overwrite the file. Just replace the collision option.
+								{
+									where = 99;
+									// output = GetUriForFile(fileName);
+									result = true;
+									Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + GetUriForFile(fileName), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+								}
+								else
+								{
+									where = 7;
+									await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
+									where = 8;
+									writeStream.Flush();
+									// check file vs stream
+									var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+									var fileSize = fileProps.Size;
+									where = 9;
+									if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
+									{
+										where = 10;
+										bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
+										// output = GetUriForFile(fileName);
+										result = true;
+										if (isInserted) where = 11;
+										// Debug.WriteLine("GetTileUri() saved a file with name = " + fileName + " and returned its uri = " + output.ToString());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if (!result) Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
+			return result;
+		}
+
+		private async Task<bool> UpdateFileNameAsync(TileCacheRecord oldTileCacheRecord, string newFileName, string techName, int x, int y, int z, int zoom)
+		{
+			Debug.WriteLine("ERROR in GetTileStreamRef() or GetTileUri(): file name in db is " + oldTileCacheRecord + " but the calculated file name is " + newFileName);
 			bool output = false;
-			if (oldFileName != newFileName && _imageFolder != null)
+			if (oldTileCacheRecord == null) return false;
+			if (oldTileCacheRecord.FileName != newFileName && _imageFolder != null)
 			{
 				try
 				{
-					StorageFile file = await _imageFolder.GetFileAsync(oldFileName).AsTask().ConfigureAwait(false);
+					StorageFile file = await _imageFolder.GetFileAsync(oldTileCacheRecord.FileName).AsTask().ConfigureAwait(false);
 					if (file != null)
 					{
 						// like when you clear: update the file first, then the db, it the file update went well.
 						await file.RenameAsync(newFileName).AsTask().ConfigureAwait(false);
-						TileCacheRecord tcr = new TileCacheRecord(techName, x, y, z, zoom) { FileName = newFileName };
-						output = await DBManager.UpdateTileCacheRecordAsync(tcr);
+						oldTileCacheRecord.FileName = newFileName;
+						output = await DBManager.UpdateTileCacheRecordAsync(oldTileCacheRecord); // LOLLO TODO make sure this update updates: check the primary key
 					}
 				}
 				catch (Exception ex)
@@ -372,6 +384,7 @@ namespace LolloGPS.Data.TileCache
 			else Debug.WriteLine("The error was not fixed");
 			return output;
 		}
+
 		public async Task<bool> SaveTileAsync(int x, int y, int z, int zoom) //int x, int y, int z, int zoom)
 		{
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
@@ -381,91 +394,37 @@ namespace LolloGPS.Data.TileCache
 			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			bool output = false;
-			int where = 0;
+
 			string sWebUri = GetWebUri(x, y, z, zoom);
-			// check if I have this tile in the cache already
-			string fileNameFromDb = await TileCacheRecord.GetFilenameFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+			// try to get this tile from the cache
+			var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 			try
 			{
-				// tile is not in cache: 
-				// if caching is active, download it, save it and return an uri pointing at it; 
-				// otherwise return its web uri                
-				if (string.IsNullOrWhiteSpace(fileNameFromDb))
+				// tile is not in cache
+				if (tileCacheRecordFromDb == null)
 				{
-					where = 1;
-					// tile is not in cache and caching is on: download the tile, save it and return an uri pointing at it (ie at its file)
+					// tile is not in cache: download it and save it
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
-						request.AllowReadStreamBuffering = true;
-						request.ContinueTimeout = WebRequestTimeoutMsec;
-												
-						where = 2;
-						using (var response = await request.GetResponseAsync().ConfigureAwait(false))
-						{
-							if (IsWebResponseHeaderOk(response))
-							{
-								where = 3;
-								using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
-								{
-									where = 4;
-									// read response stream into a new record. 
-									// This extra step is the price to pay if we want to check the stream content
-									TileCacheRecord newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-									await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
-
-									// check readStream: at least one byte must not be empty
-									if (IsWebResponseContentOk(newRecord))
-									{
-										StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-										using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
-										{
-											if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen
-											{
-												where = 99;
-												output = true;
-												Debug.WriteLine("SaveTileAsync() avoided overwriting a file with name = " + fileName);
-											}
-											else
-											{
-												where = 7;
-												await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
-												where = 8;
-												writeStream.Flush();
-												// check file vs stream
-												var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-												var fileSize = fileProps.Size;
-												where = 9;
-												if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
-												{
-													where = 10;
-													bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
-													output = true;
-													Debug.WriteLine("SaveTileAsync() saved a file");
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+						output = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
 					}
 				}
-				// tile is in cache: return an uri pointing at it (ie at its file)
+				// tile is in cache: return ok
 				else
 				{
 					output = true;
-					// Debug.WriteLine("SaveTileAsync() found a file with name = " + fileName + " and returned its uri = " + output.ToString());
-					if (fileName != fileNameFromDb) Debug.WriteLine("ERROR in SaveTileAsync(): file name in db is " + fileNameFromDb + " but the calculated file name is " + fileName);
+					if (fileName != tileCacheRecordFromDb.FileName)
+					{
+						await UpdateFileNameAsync(tileCacheRecordFromDb, fileName, _tileSource.TechName, x, y, z, zoom).ConfigureAwait(false);
+					}
 				}
 			}
-			catch (Exception exc0)
+			catch (Exception ex)
 			{
-				Debug.WriteLine("ERROR in SaveTileAsync(): " + exc0.Message + " ; I made it to where = " + where + exc0.StackTrace);
+				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
 			}
-			// Debug.WriteLine("SaveTileAsync() ended with where = " + where);
-			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 
+			await ProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 			return output;
 		}
 
@@ -583,7 +542,7 @@ namespace LolloGPS.Data.TileCache
 						catch (Exception ex)
 						{
 							Logger.Add_TPL("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Error, false);
-						}						
+						}
 					}
 				}
 				catch (Exception) { } // semaphore disposed
@@ -628,12 +587,24 @@ namespace LolloGPS.Data.TileCache
 			_zoom = zoom;
 		}
 
-		internal async static Task<string> GetFilenameFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
+		//internal async static Task<string> GetFilenameFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
+		//{
+		//	try
+		//	{
+		//		TileCacheRecord record = await DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom).ConfigureAwait(false);
+		//		if (record != null) return record.FileName;
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//	return null;
+		//}
+		internal static Task<TileCacheRecord> GetTileCacheRecordFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
 		{
 			try
 			{
-				TileCacheRecord record = await DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom).ConfigureAwait(false);
-				if (record != null) return record.FileName;
+				return DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom);
 			}
 			catch (Exception ex)
 			{

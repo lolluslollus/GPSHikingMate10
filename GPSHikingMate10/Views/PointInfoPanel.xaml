@@ -162,12 +162,12 @@
 					<Run Text="{Binding Selected.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
-					Visibility="{Binding Selected.Accuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
+					Visibility="{Binding Selected.Accuracy, Converter={StaticResource FloatNotNullToVisibleConverter}}">
 					<Run Text="Accuracy: "/>
 					<Run Text="{Binding Selected.Accuracy, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
-					Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource NumberNotNullToVisibilityConverter}}">
+					Visibility="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatNotNullToVisibleConverter}}">
 					<Run Text="Altitude accuracy: "/>
 					<Run Text="{Binding Selected.AltitudeAccuracy, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter=M}"/>
 				</TextBlock>
@@ -223,25 +223,6 @@
 						IsCompact="True"
 						Style="{StaticResource AppBarButtonRecoloured}"/>
 				</utilz:UniversalWrapPanel>
-				
-				<!--<utilz:UniversalWrapPanel Orientation="Horizontal"
-					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
-					<TextBlock HorizontalAlignment="Left"
-						TextWrapping="Wrap"
-						Style="{StaticResource BaseMessageStyle}"
-						Text="Link to media: "/>
-					<HyperlinkButton HorizontalAlignment="Left"
-						NavigateUri="{Binding Selected.HyperLink}" Padding="0">
-						<HyperlinkButton.Content>
-							<TextBlock TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}">
-                                <Underline>
-                                    <Run Text="{Binding Selected.HyperLinkText, Converter={StaticResource HyperLinkLabelConverter}}"/>
-                                </Underline>
-							</TextBlock>
-						</HyperlinkButton.Content>
-					</HyperlinkButton>
-				</utilz:UniversalWrapPanel>-->
 
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Speed: "/>
@@ -253,34 +234,6 @@
 					<Run Text="{Binding ElementName=me, Path=DistanceMFromPrevious, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM}"/>
 				</TextBlock>
 
-				<!-- point n of m --><!--
-				<TextBlock TextWrapping="Wrap" 
-					Style="{StaticResource BaseMessageStyle}" 
-					HorizontalAlignment="Left"  
-                    Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}">
-					<Run Text="Record "/>
-					<Run Text="{Binding SelectedIndex_Base1}"/>
-					<Run Text=" of "/>
-					<Run Text="{Binding History.Count}"/>
-				</TextBlock>
-				<TextBlock TextWrapping="Wrap" 
-					Style="{StaticResource BaseMessageStyle}" 
-					HorizontalAlignment="Left"  
-                    Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}">
-					<Run Text="Record "/>
-					<Run Text="{Binding SelectedIndex_Base1}"/>
-					<Run Text=" of "/>
-					<Run Text="{Binding Route0.Count}"/>
-				</TextBlock>
-				<TextBlock TextWrapping="Wrap" 
-					Style="{StaticResource BaseMessageStyle}" 
-					HorizontalAlignment="Left"  
-                    Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}">
-					<Run Text="Record "/>
-					<Run Text="{Binding SelectedIndex_Base1}"/>
-					<Run Text=" of "/>
-					<Run Text="{Binding Landmarks.Count}"/>
-				</TextBlock>-->
 			</StackPanel>
 		</ScrollViewer>
 	</Grid>

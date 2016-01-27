@@ -39,7 +39,7 @@ namespace LolloGPS.Core
 		public event EventHandler<double> SaveProgressChanged;
 		private void RaiseSaveProgressChanged(double progress)
 		{
-			Data.Runtime.RuntimeData.SetDownloadProgressValue_UI(progress);
+			RuntimeData.SetDownloadProgressValue_UI(progress);
 			var listener = SaveProgressChanged;
 			if (listener != null)
 			{
@@ -72,8 +72,8 @@ namespace LolloGPS.Core
 		}
 		public async Task<Tuple<int, int>> StartOrResumeDownloadTilesAsync()
 		{
-			var output = Tuple.Create<int, int>(0, 0);
-			PersistentData persistentData = PersistentData.GetInstance();
+			var output = Tuple.Create(0, 0);
+			var persistentData = PersistentData.GetInstance();
 			var currentTileSource_mt = persistentData.CurrentTileSource; // read the value as soon as the present method is called
 			var maxDesiredZoomForDownloadingTiles_mt = persistentData.MaxDesiredZoomForDownloadingTiles; // read the value as soon as the present method is called
 																										 //var isMapCached_mt = persistentData.IsMapCached; // useless here
@@ -95,26 +95,28 @@ namespace LolloGPS.Core
 					{
 						tileCache = new TileCache(currentTileSource_mt, false);
 
-						DownloadSession newSession = new DownloadSession(
+						var newDownloadSession = new DownloadSession(
 							tileCache.GetMinZoom(),
 							Math.Min(tileCache.GetMaxZoom(), maxDesiredZoomForDownloadingTiles_mt),
 							gbb,
 							tileCache.TileSource.TechName);
 						// never write an invalid DownloadSession into the persistent data
-						if (newSession.IsValid) persistentData.LastDownloadSession = lastDownloadSession_mt = newSession;
+						if (newDownloadSession.IsValid) persistentData.LastDownloadSession = lastDownloadSession_mt = newDownloadSession;
+						else CloseDownload(persistentData, false); // LOLLO TODO check this, it's new
 					}
 				}
 				// last download did not complete: start a new one with the old tile source
 				else
 				{
-					TileSourceRecord prevSessionTileSource = tileSourcez_mt.FirstOrDefault(a => a.TechName == lastDownloadSession_mt.TileSourceTechName);
+					var prevSessionTileSource = tileSourcez_mt.FirstOrDefault(a => a.TechName == lastDownloadSession_mt.TileSourceTechName);
 					if (prevSessionTileSource != null) tileCache = new TileCache(prevSessionTileSource, false);
 					// of course, we don't touch the unfinished download session
 				}
 
-				if (tileCache != null && lastDownloadSession_mt != null && lastDownloadSession_mt.IsValid)
+				if (tileCache != null && lastDownloadSession_mt != null)
 				{
-					output = DownloadTiles_RespondingToCancel(tileCache, lastDownloadSession_mt);
+					if (lastDownloadSession_mt.IsValid) output = DownloadTiles_RespondingToCancel(tileCache, lastDownloadSession_mt);
+					else CloseDownload(persistentData, false); // LOLLO TODO check this, it's new
 				}
 			}
 			catch (Exception ex)
@@ -230,7 +232,7 @@ namespace LolloGPS.Core
 				}
 			}
 			RaiseSaveProgressChanged(1.0);
-			return Tuple.Create<int, int>(currentOkCnt, totalCnt);
+			return Tuple.Create(currentOkCnt, totalCnt);
 		}
 		#endregion save services
 
@@ -242,7 +244,7 @@ namespace LolloGPS.Core
 			//var isMapCached_mt = persistentData.IsMapCached;
 
 			IsCancelledByUser = false;
-			List<Tuple<int, int>> output = new List<Tuple<int, int>>();
+			var output = new List<Tuple<int, int>>();
 
 			try
 			{
@@ -281,7 +283,7 @@ namespace LolloGPS.Core
 
 		protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
 		{
-			List<TileCacheRecord> output = new List<TileCacheRecord>();
+			var output = new List<TileCacheRecord>();
 
 			if (!IsCancelled)
 			{

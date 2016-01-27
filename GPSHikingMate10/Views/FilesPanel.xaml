@@ -68,13 +68,13 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="The tracking history is empty, get a fix or start tracking to populate it."
-			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="You can export your tracks and import them again later as a route."
-			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{Binding MyPersistentData.History.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		
 		<!--Route0-->
 		<Border Grid.Row="3" Grid.Column="0" Grid.RowSpan="3"
@@ -123,7 +123,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="No route. You can import one from a route GPX file."
-			Visibility="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{Binding MyPersistentData.Route0.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 
 		<!-- Landmarks -->
 		<Border Grid.Row="6" Grid.Column="0" Grid.RowSpan="3"
@@ -172,12 +172,12 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="No landmarks. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
-			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesIsEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="Add or update landmarks in the 'Points' panel. You can export them and import them again later."
-			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesIsEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 	</Grid>
 </ctl:ObservableControl>

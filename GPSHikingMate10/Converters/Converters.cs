@@ -135,7 +135,7 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class SeriesIsEmptyToVisibleConverter : IValueConverter
+	public class IntIsNullToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -151,7 +151,23 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class SeriesIsEmptyToCollapsedConverter : IValueConverter
+	public class IntIsNullToFalseConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is Int32)) return false;
+			int val = (int)value;
+			if (val > 0) return true;
+			else return false;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+
+	public class IntIsNullToCollapsedConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -228,7 +244,7 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class CurrentToBooleanConverter : IValueConverter
+	public class PointRecordEmptyToFalseConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -244,7 +260,7 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class CurrentToVisibilityConverter : IValueConverter
+	public class PointRecordEmptyToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -252,6 +268,22 @@ namespace LolloGPS.Converters
 			PointRecord val = (PointRecord)value;
 			if (!val.IsEmpty()) return Visibility.Collapsed;
 			else return Visibility.Visible;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way bonding, it should never come here");
+		}
+	}
+
+	public class PointRecordEmptyToCollapsedConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is PointRecord)) return Visibility.Collapsed;
+			PointRecord val = (PointRecord)value;
+			if (!val.IsEmpty()) return Visibility.Visible;
+			else return Visibility.Collapsed;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -310,7 +342,7 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class NumberNotNullToVisibilityConverter : IValueConverter
+	public class FloatNotNullToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
@@ -340,19 +372,6 @@ namespace LolloGPS.Converters
 			// if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(DateTime).ToString())) return Visibility.Collapsed;
 			else return Visibility.Visible;
 
-		}
-		public object ConvertBack(object value, Type targetType, object parameter, string language)
-		{
-			throw new Exception("this is a one-way bonding, it should never come here");
-		}
-	}
-
-	public class HyperLinkLabelConverter : IValueConverter
-	{
-		public object Convert(object value, Type targetType, object parameter, string language)
-		{
-			if (value != null && !string.IsNullOrWhiteSpace(value.ToString())) return value.ToString();
-			else return "Hyperlink";
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
