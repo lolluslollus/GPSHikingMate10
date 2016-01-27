@@ -15,11 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.Phone.UI.Input;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
@@ -229,16 +226,19 @@ namespace LolloGPS.Core
 				_isDataChangedHandlerActive = true;
 				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				MyRuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
-				TileCache.ProcessingQueue.PropertyChanged += OnProcessingQueue_PropertyChanged;
+				TileCache.IsFreeChanged += OnTileCache_IsFreeChanged;
+				TileCache.CacheCleared += OnTileCache_CacheCleared;
 			}
 		}
+
 		private void RemoveHandlers_DataChanged()
 		{
 			if (MyPersistentData != null)
 			{
 				MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 				MyRuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
-				TileCache.ProcessingQueue.PropertyChanged -= OnProcessingQueue_PropertyChanged;
+				TileCache.IsFreeChanged -= OnTileCache_IsFreeChanged;
+				TileCache.CacheCleared -= OnTileCache_CacheCleared;
 				_isDataChangedHandlerActive = false;
 			}
 		}
@@ -300,17 +300,54 @@ namespace LolloGPS.Core
 				});
 			}
 		}
-		private void OnProcessingQueue_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void OnTileCache_IsFreeChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == nameof(TileCache.ProcessingQueue.IsFree))
+			UpdateClearCacheButtonIsEnabled();
+			UpdateClearCustomCacheButtonIsEnabled();
+			UpdateCacheButtonIsEnabled();
+			UpdateDownloadButtonIsEnabled();
+		}
+		private async void OnTileCache_CacheCleared(object sender, TileCache.CacheClearedEventArgs args)
+		{
+			// LOLLO TODO check this method
+			if (args.IsAlsoRemoveSources && args.IsCacheCleared)
 			{
-				UpdateClearCacheButtonIsEnabled();
-				UpdateClearCustomCacheButtonIsEnabled();
-				UpdateCacheButtonIsEnabled();
-				UpdateDownloadButtonIsEnabled();
+				await MyPersistentData.RemoveTileSourcesAsync(args.TileSource);
+			}
+
+			// output messages
+			if (!args.TileSource.IsAll)
+			{
+				if (args.HowManyRecordsDeleted > 0)
+				{
+					MyPersistentData.LastMessage = (args.HowManyRecordsDeleted + " " + args.TileSource.DisplayName + " records deleted");
+				}
+				else if (args.IsCacheCleared)
+				{
+					MyPersistentData.LastMessage = (args.TileSource.DisplayName + " cache is empty");
+				}
+				else
+				{
+					MyPersistentData.LastMessage = (args.TileSource.DisplayName + " cache is busy");
+				}
+			}
+			else if (args.TileSource.IsAll)
+			{
+				if (args.HowManyRecordsDeleted > 0)
+				{
+					MyPersistentData.LastMessage = (args.HowManyRecordsDeleted + " records deleted");
+				}
+				else if (args.IsCacheCleared)
+				{
+					MyPersistentData.LastMessage = ("Cache empty");
+				}
+				else
+				{
+					MyPersistentData.LastMessage = ("Cache busy");
+				}
 			}
 		}
-
+		//return howManyRecordsDeleted;	
 		#endregion event handlers
 
 		#region services
@@ -342,58 +379,63 @@ namespace LolloGPS.Core
 		{
 			Task getLoc = _myGPSInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
-		public async Task<int> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		public void ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
-			int howManyRecordsDeleted = 0;
 			if (!tileSource.IsNone && !tileSource.IsDefault)
 			{
+				MyPersistentData.LastMessage = "clearing the cache...";
+				TileCache.ScheduleClear(tileSource, isAlsoRemoveSources);
 				//MyPersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
-
-				howManyRecordsDeleted = await Task.Run(delegate
-				{
-					return TileCache.TryClearAsync(tileSource);
-				}).ConfigureAwait(false);
-
-				if (isAlsoRemoveSources && howManyRecordsDeleted >= 0)
-				{
-					await MyPersistentData.RemoveTileSourcesAsync(tileSource);
-				}
-
-				// output messages
-				if (!tileSource.IsAll)
-				{
-					if (howManyRecordsDeleted > 0)
-					{
-						SetLastMessage_UI(howManyRecordsDeleted + " " + tileSource.DisplayName + " records deleted");
-					}
-					else if (howManyRecordsDeleted == 0)
-					{
-						if (isAlsoRemoveSources) SetLastMessage_UI(tileSource.DisplayName + " is gone");
-						else SetLastMessage_UI(tileSource.DisplayName + " cache is empty");
-					}
-					else
-					{
-						SetLastMessage_UI(tileSource.DisplayName + " cache is busy");
-					}
-				}
-				else if (tileSource.IsAll)
-				{
-					if (howManyRecordsDeleted > 0)
-					{
-						SetLastMessage_UI(howManyRecordsDeleted + " records deleted");
-					}
-					else if (howManyRecordsDeleted == 0)
-					{
-						SetLastMessage_UI("Cache empty");
-					}
-					else
-					{
-						SetLastMessage_UI("Cache busy");
-					}
-				}
 			}
-			return howManyRecordsDeleted;
+			// LOLLO TODO see what happens now: is the event handler in MainVM enough?
+
+			//	/*howManyRecordsDeleted = */
+			//	await Task.Run(delegate
+			//	{
+			//		TileCache.ScheduleClear(tileSource);
+			//	}).ConfigureAwait(false);
+
+			//	if (isAlsoRemoveSources && howManyRecordsDeleted >= 0)
+			//	{
+			//		await MyPersistentData.RemoveTileSourcesAsync(tileSource);
+			//	}
+
+			//	// output messages
+			//	if (!tileSource.IsAll)
+			//	{
+			//		if (howManyRecordsDeleted > 0)
+			//		{
+			//			SetLastMessage_UI(howManyRecordsDeleted + " " + tileSource.DisplayName + " records deleted");
+			//		}
+			//		else if (howManyRecordsDeleted == 0)
+			//		{
+			//			if (isAlsoRemoveSources) SetLastMessage_UI(tileSource.DisplayName + " is gone");
+			//			else SetLastMessage_UI(tileSource.DisplayName + " cache is empty");
+			//		}
+			//		else
+			//		{
+			//			SetLastMessage_UI(tileSource.DisplayName + " cache is busy");
+			//		}
+			//	}
+			//	else if (tileSource.IsAll)
+			//	{
+			//		if (howManyRecordsDeleted > 0)
+			//		{
+			//			SetLastMessage_UI(howManyRecordsDeleted + " records deleted");
+			//		}
+			//		else if (howManyRecordsDeleted == 0)
+			//		{
+			//			SetLastMessage_UI("Cache empty");
+			//		}
+			//		else
+			//		{
+			//			SetLastMessage_UI("Cache busy");
+			//		}
+			//	}
+			//}
+			//return howManyRecordsDeleted;
 		}
+
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
 			if (_myLolloMap_VM != null)

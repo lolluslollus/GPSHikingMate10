@@ -32,10 +32,6 @@ namespace LolloGPS.Data.TileCache
 		public TileSourceRecord TileSource { get { return _tileSource; } }
 
 		private StorageFolder _imageFolder = null;
-		/// <summary>
-		/// The image folder has exactly the same name as the tile source
-		/// </summary>
-		public StorageFolder ImageFolder { get { return _imageFolder; } }
 
 		private volatile bool _isCaching = false;
 		/// <summary>
@@ -83,7 +79,7 @@ namespace LolloGPS.Data.TileCache
 		#endregion construct and dispose
 
 		#region getters
-		public Uri GetUriForFile(string fileName)
+		private Uri GetUriForFile(string fileName)
 		{
 			return new UriBuilder(Path.Combine(_imageFolder.Path, fileName)).Uri;
 		}
@@ -94,7 +90,7 @@ namespace LolloGPS.Data.TileCache
 		/// <param name="y"></param>
 		/// <param name="zoom"></param>
 		/// <returns></returns>
-		public string GetWebUri(int x, int y, int z, int zoom)
+		private string GetWebUri(int x, int y, int z, int zoom)
 		{
 			try
 			{
@@ -116,7 +112,7 @@ namespace LolloGPS.Data.TileCache
 		/// <param name="y"></param>
 		/// <param name="zoom"></param>
 		/// <returns></returns>
-		public string GetFileNameFromKey(int x, int y, int z, int zoom)
+		private string GetFileNameFromKey(int x, int y, int z, int zoom)
 		{
 			return string.Format(_tileFileFormat, zoom, x, y, _tileSource.TechName);
 		}
@@ -135,122 +131,63 @@ namespace LolloGPS.Data.TileCache
 		}
 		#endregion getters
 
-		public static async Task<int> TryClearAsync(TileSourceRecord tileSource)
+		#region events
+		public static event PropertyChangedEventHandler IsFreeChanged;
+		public static event EventHandler<CacheClearedEventArgs> CacheCleared;
+
+		public class CacheClearedEventArgs : EventArgs
+		{
+			private TileSourceRecord _tileSource = null;
+			public TileSourceRecord TileSource { get { return _tileSource; } }
+			private bool _isAlsoRemoveSources = false;
+			public bool IsAlsoRemoveSources { get { return _isAlsoRemoveSources; } }
+			private bool _isCacheCleared = false;
+			public bool IsCacheCleared { get { return _isCacheCleared; } }
+			private int _howManyRecordsDeleted = 0;
+			public int HowManyRecordsDeleted { get { return _howManyRecordsDeleted; } }
+
+			public CacheClearedEventArgs(TileSourceRecord tileSource, bool isAlsoRemoveSources, bool isCacheCleared, int howManyRecordsDeleted)
+			{
+				_tileSource = tileSource;
+				_isAlsoRemoveSources = isAlsoRemoveSources;
+				_isCacheCleared = isCacheCleared;
+				_howManyRecordsDeleted = howManyRecordsDeleted;
+
+			}
+		}
+		#endregion events
+
+		#region services
+		public static void ScheduleClear(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			Debug.WriteLine("About to call ProcessingQueue.ClearCacheIfQueueEmptyAsync");
-			int howManyRecordsDeleted = await ProcessingQueue.ClearCacheIfQueueEmptyAsync(tileSource).ConfigureAwait(false);
+			Task.Run(delegate { Task sch = ProcessingQueue.ScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); });
 			Debug.WriteLine("returned from ProcessingQueue.ClearCacheIfQueueEmptyAsync");
-			return howManyRecordsDeleted;
-		}
-
-		private static async Task<int> ClearAsync(TileSourceRecord tileSource)
-		{
-			Debug.WriteLine("ClearAsync() started");
-			int howManyRecordsDeletedTotal = -5;
-
-			//// test begin
-			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
-			//// test end
-
-			string[] folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
-			if (folderNamesToBeDeleted != null && folderNamesToBeDeleted.Length > 0)
-			{
-				StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-
-				foreach (var folderName in folderNamesToBeDeleted)
-				{
-					if (!string.IsNullOrWhiteSpace(folderName))
-					{
-						try
-						{
-							// delete db entries first.
-							/*
-							 *  It's not terrible if some files are not deleted and the db thinks they are:
-								they will be downloaded again, and not resaved (with the current logic).
-							 *  It's terrible if files are deleted and the db thinks they are still there,
-								because they will never be downloaded again, and the tiles will be forever empty.
-							 */
-							int howManyRecordsDeletedNow = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false); // important when suspending!
-							if (howManyRecordsDeletedNow > 0)
-							{
-								if (howManyRecordsDeletedTotal < 0) howManyRecordsDeletedTotal = 0;
-								howManyRecordsDeletedTotal += howManyRecordsDeletedNow;
-								// delete the files next.
-								StorageFolder imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
-								await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-							}
-							else if (howManyRecordsDeletedNow == 0)
-							{
-								if (howManyRecordsDeletedTotal < 0) howManyRecordsDeletedTotal = 0;
-							}
-							else if (howManyRecordsDeletedNow < 0) // db closed or error in db
-							{
-								howManyRecordsDeletedTotal = howManyRecordsDeletedNow;
-								break;
-							}
-						}
-						catch (FileNotFoundException)
-						{
-							Debug.WriteLine("FileNotFound in TryClearAsync()");
-						}
-						catch (Exception ex)
-						{
-							Logger.Add_TPL("ERROR in TryClearAsync: " + ex.Message + ex.StackTrace, Logger.ForegroundLogFilename);
-						}
-					}
-				}
-			}
-			Debug.WriteLine("ClearAsync() ended");
-			return howManyRecordsDeletedTotal;
-		}
-
-		private static string[] GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
-		{
-			string[] folderNamesToBeDeleted = null;
-			PersistentData _persistentData = PersistentData.GetInstance();
-			if (!tileSource.IsAll && !tileSource.IsNone)
-			{
-				folderNamesToBeDeleted = new string[1] { tileSource.TechName };
-			}
-			else if (tileSource.IsAll)
-			{
-				folderNamesToBeDeleted = new string[_persistentData.TileSourcez.Count - 1];
-				int cnt = 0;
-				foreach (var item in _persistentData.TileSourcez)
-				{
-					if (!item.IsDefault)
-					{
-						folderNamesToBeDeleted[cnt] = item.TechName;
-						cnt++;
-					}
-				}
-			}
-			return folderNamesToBeDeleted;
 		}
 
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
 		{
 			// out of range? get out, no more thoughts
 			if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null; // LOLLO TODO maybe return a tile with the message "wrong zoom"
-			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
+																		 // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
 			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
-			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return GetUriForFile(fileName); // was null; // LOLLO TODO check this, it's new
-			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
+			if (!await ProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return GetUriForFile(fileName); // was return null; // LOLLO TODO check this, it's new
+																														   // from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			Uri result = null;
-
-			string sWebUri = GetWebUri(x, y, z, zoom);
-			// try to get this tile from the cache
-			var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-			//Debug.WriteLine("GetTileUri() calculated" + Environment.NewLine
-			//    + "_imageFolder = " + (_imageFolder == null ? "null" : _imageFolder.Path) + Environment.NewLine
-			//    + "fileName = " + fileName + Environment.NewLine
-			//    + "fileNameFromDb = " + fileNameFromDb + Environment.NewLine
-			//    + "sWebUri = " + sWebUri + Environment.NewLine);
 
 			try
 			{
+				string sWebUri = GetWebUri(x, y, z, zoom);
+				// try to get this tile from the cache
+				var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+				//Debug.WriteLine("GetTileUri() calculated" + Environment.NewLine
+				//    + "_imageFolder = " + (_imageFolder == null ? "null" : _imageFolder.Path) + Environment.NewLine
+				//    + "fileName = " + fileName + Environment.NewLine
+				//    + "fileNameFromDb = " + fileNameFromDb + Environment.NewLine
+				//    + "sWebUri = " + sWebUri + Environment.NewLine);
+
 				// tile is not in cache
 				if (tileCacheRecordFromDb == null)
 				{
@@ -310,7 +247,6 @@ namespace LolloGPS.Data.TileCache
 						var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 						await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
-						// check readStream: at least one byte must not be empty
 						if (IsWebResponseContentOk(newRecord))
 						{
 							StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
@@ -345,7 +281,6 @@ namespace LolloGPS.Data.TileCache
 										// output = GetUriForFile(fileName);
 										result = true;
 										if (isInserted) where = 11;
-										// Debug.WriteLine("GetTileUri() saved a file with name = " + fileName + " and returned its uri = " + output.ToString());
 									}
 								}
 							}
@@ -395,11 +330,12 @@ namespace LolloGPS.Data.TileCache
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			bool result = false;
 
-			string sWebUri = GetWebUri(x, y, z, zoom);
-			// try to get this tile from the cache
-			var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
 			try
 			{
+				string sWebUri = GetWebUri(x, y, z, zoom);
+				// try to get this tile from the cache
+				var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+
 				// tile is not in cache
 				if (tileCacheRecordFromDb == null)
 				{
@@ -458,19 +394,98 @@ namespace LolloGPS.Data.TileCache
 											   // swisstopo answers with a binary/octet-stream
 		}
 
+		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			Debug.WriteLine("ClearCacheAsync() started");
+
+			if (tileSource == null)
+			{
+				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, 0));
+				return;
+			}
+
+			int howManyRecordsDeletedTotal = 0;
+
+			//// test begin
+			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
+			//// test end
+
+			string[] folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
+			if (folderNamesToBeDeleted != null && folderNamesToBeDeleted.Length > 0)
+			{
+				StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+
+				foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
+				{
+					try
+					{
+						/*	Delete db entries first.
+						 *  It's not terrible if some files are not deleted and the db thinks they are:
+							they will be downloaded again, and not resaved (with the current logic).
+						 *  It's terrible if files are deleted and the db thinks they are still there,
+							because they will never be downloaded again, and the tiles will be forever empty.
+						 */
+						var dbResult = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
+						if (dbResult.Item1)
+						{
+							// delete the files next.
+							var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
+							await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+							howManyRecordsDeletedTotal += dbResult.Item2;
+						}
+						else
+						{
+							CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
+							return;
+						}
+					}
+					catch (FileNotFoundException)
+					{
+						Debug.WriteLine("FileNotFound in ClearCacheAsync()");
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
+					}
+				}
+			}
+			CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, howManyRecordsDeletedTotal));
+			Debug.WriteLine("ClearCacheAsync() ended");
+		}
+
+		private static string[] GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		{
+			string[] folderNamesToBeDeleted = null;
+			PersistentData _persistentData = PersistentData.GetInstance();
+			if (!tileSource.IsAll && !tileSource.IsNone)
+			{
+				folderNamesToBeDeleted = new string[1] { tileSource.TechName };
+			}
+			else if (tileSource.IsAll)
+			{
+				folderNamesToBeDeleted = new string[_persistentData.TileSourcez.Count - 1];
+				int cnt = 0;
+				foreach (var item in _persistentData.TileSourcez)
+				{
+					if (!item.IsDefault)
+					{
+						folderNamesToBeDeleted[cnt] = item.TechName;
+						cnt++;
+					}
+				}
+			}
+			return folderNamesToBeDeleted;
+		}
+		#endregion  services
+
 		/// <summary>
 		/// As soon as a file (ie a unique combination of TileSource, X, Y, Z and Zoom) is in process, this class stores it.
 		/// </summary>
-		public sealed class ProcessingQueue
+		public static class ProcessingQueue
 		{
-			public static event PropertyChangedEventHandler PropertyChanged;
-
 			private static SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 			private static volatile bool _isFree = true;
-			/// <summary>
-			/// Tells if the processing queue is free or busy at the moment.
-			/// </summary>
 			public static bool IsFree
 			{
 				get { return _isFree; }
@@ -479,7 +494,7 @@ namespace LolloGPS.Data.TileCache
 					if (_isFree != value)
 					{
 						_isFree = value;
-						PropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFree)));
+						IsFreeChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFree)));
 					}
 				}
 			}
@@ -502,12 +517,12 @@ namespace LolloGPS.Data.TileCache
 						_fileNames_InProcess.Add(fileName);
 						return true;
 					}
-					return false;
 				}
 				catch (Exception) { } // semaphore disposed
 				finally
 				{
 					IsFree = (_fileNames_InProcess.Count == 0);
+					await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 				return false;
@@ -523,37 +538,48 @@ namespace LolloGPS.Data.TileCache
 				finally
 				{
 					IsFree = (_fileNames_InProcess.Count == 0);
+					await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
 			}
-			// LOLLO TODO maybe this should wait until the queue is empty and then delete it.
-			// Or at least return success / failure information.
-			internal static async Task<int> ClearCacheIfQueueEmptyAsync(TileSourceRecord tileSource)
+
+			internal static async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 			{
-				int output = -5; // if it does not go through the following, report a negative value, meaning "cache busy"
 				try
 				{
 					await _semaphore.WaitAsync().ConfigureAwait(false);
+					_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
 					if (IsFree)
 					{
-						IsFree = false;
-						try
-						{
-							output = await ClearAsync(tileSource).ConfigureAwait(false);
-						}
-						catch (Exception ex)
-						{
-							Logger.Add_TPL("ERROR in ClearCacheIfQueueEmptyAsync(); " + ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Error, false);
-						}
+						await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
 					}
 				}
 				catch (Exception) { } // semaphore disposed
 				finally
 				{
-					IsFree = true;
 					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 				}
-				return output;
+			}
+
+			private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
+			/// <summary>
+			/// This method must be run inside the semaphore
+			/// </summary>
+			/// <returns></returns>
+			private static async Task<bool> TryRunFuncsAsSoonAsFree()
+			{
+				if (IsFree && _funcsAsSoonAsFree.Count > 0)
+				{
+					IsFree = false;
+					foreach (var func in _funcsAsSoonAsFree)
+					{
+						await func().ConfigureAwait(false);
+					}
+					_funcsAsSoonAsFree.Clear();
+					IsFree = true;
+					return true;
+				}
+				return false;
 			}
 		}
 	}

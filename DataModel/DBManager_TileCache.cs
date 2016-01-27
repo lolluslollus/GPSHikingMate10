@@ -56,19 +56,17 @@ namespace LolloGPS.Data.TileCache
 			}
 			return false;
 		}
-		internal static async Task<int> DeleteTileCacheAsync(string folderNameToBeDeleted)
+		internal static async Task<Tuple<bool, int>> DeleteTileCacheAsync(string folderNameToBeDeleted)
 		{
-			int howManyRecordsDeleted = -3;
 			try
 			{
-				string[] folderNamesToBeDeleted = new string[1] { folderNameToBeDeleted };
-				howManyRecordsDeleted = await DeleteAsync(_openFlags, folderNamesToBeDeleted).ConfigureAwait(false);
+				return await DeleteAsync(_openFlags, folderNameToBeDeleted).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
-			return howManyRecordsDeleted;
+			return Tuple.Create(false, 0);
 		}
 		private static int GetHowManyEntriesMax()
 		{
@@ -110,39 +108,42 @@ namespace LolloGPS.Data.TileCache
 			}
 			return result;
 		}
-		private static Task<int> DeleteAsync(SQLiteOpenFlags openFlags, string[] folderNamesToBeDeleted)
+		private static Task<Tuple<bool, int>> DeleteAsync(SQLiteOpenFlags openFlags, string folderNameToBeDeleted)
 		{
 			return Task.Run(delegate
 			{
-				if (!LolloSQLiteConnectionPoolMT.IsOpen) return -2;
 				int howManyRecordsProcessed = -1;
-
-				try
+				var howManyRecordsLeft = 1;
+				if (LolloSQLiteConnectionPoolMT.IsOpen)
 				{
-					_writingSemaphore.Wait();
-					if (LolloSQLiteConnectionPoolMT.IsOpen)
+					try
 					{
-						var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
-						var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
-						foreach (var item in folderNamesToBeDeleted)
+						_writingSemaphore.Wait();
+						if (LolloSQLiteConnectionPoolMT.IsOpen)
 						{
-							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + item + "\"");
+							var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
+							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
+
+							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + folderNameToBeDeleted + "\"");
 							howManyRecordsProcessed = deleteAllCommand.ExecuteNonQuery();
+
+							howManyRecordsLeft = conn.Table<TileCacheRecord>().Count();
+
 							if (conn.Trace) Debug.WriteLine(howManyRecordsProcessed + " records were deleted");
 						}
 					}
+					catch (Exception ex)
+					{
+						// Ignore semaphore disposed or semaphore null exceptions
+						if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
+							Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+					}
+					finally
+					{
+						SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
+					}
 				}
-				catch (Exception ex)
-				{
-					// Ignore semaphore disposed or semaphore null exceptions
-					if (SemaphoreSlimSafeRelease.IsAlive(_writingSemaphore))
-						Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_writingSemaphore);
-				}
-				return howManyRecordsProcessed;
+				return Tuple.Create(howManyRecordsLeft < 1, howManyRecordsProcessed);
 			});
 		}
 		private static Task<bool> InsertRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item, bool checkMaxEntries)

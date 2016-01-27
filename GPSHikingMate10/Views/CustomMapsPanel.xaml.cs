@@ -40,7 +40,7 @@ namespace LolloGPS.Core
             TileSourceRecord tag = (e.Tag as TileSourceRecord);
             if (!tag.IsNone && !tag.IsDefault)
             {
-                Task delete = _myVM.TryClearCacheAsync(tag, true);
+                _myVM?.ScheduleClearCacheAsync(tag, true);
             }
         }
 
