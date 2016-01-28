@@ -19,13 +19,13 @@ namespace LolloGPS.Core
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		public Main_VM MyVM
+		public MainVM MyVM
 		{
-			get { return (Main_VM)GetValue(MyVMProperty); }
+			get { return (MainVM)GetValue(MyVMProperty); }
 			set { SetValue(MyVMProperty, value); }
 		}
 		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(HelpPanel), new PropertyMetadata(null));
+			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(HelpPanel), new PropertyMetadata(null));
 
 		public HelpPanel()
         {

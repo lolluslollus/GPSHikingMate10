@@ -19,10 +19,11 @@ using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
+using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed class Main_VM : OpenableObservableData, IBackPressedRaiser, IMapApController, IFileActivatable
+	public sealed class MainVM : OpenableObservableData, IBackPressedRaiser, IMapApController //, IFileActivatable
 	{
 		#region IBackPressedRaiser
 		public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
@@ -83,7 +84,7 @@ namespace LolloGPS.Core
 		#endregion properties
 
 		#region construct and dispose
-		public Main_VM(bool readDataFromDb, bool readSettingsFromDb)
+		public MainVM(bool readDataFromDb, bool readSettingsFromDb)
 		{
 			_readDataFromDb = readDataFromDb;
 			_readSettingsFromDb = readSettingsFromDb;
@@ -107,6 +108,8 @@ namespace LolloGPS.Core
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 
 				AddHandlers_DataChanged();
+
+				Logger.Add_TPL("MainVM.OpenMayOverrideAsync() ran OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
 			{
@@ -541,9 +544,9 @@ namespace LolloGPS.Core
 				if (file != null)
 				{
 					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
-					// await ((App)Application.Current).RunAfterResumingAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
-					// LOLLO TODO check this on phone
-					await SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
+					await ((App)Application.Current).RunAfterResumingAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
+					// LOLLO TODO check this on phone, it does not work anymore
+					//await RunFunctionIfOpenAsyncT(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
 				}
 				else
 				{
@@ -555,29 +558,35 @@ namespace LolloGPS.Core
 				IsSaving = false;
 			}
 		}
-		private Task SaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
+		private async Task SaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
 		{
-			return RunFunctionIfOpenAsyncT(async delegate
+			Logger.Add_TPL("SaveSeriesToFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+			Tuple<bool, string> result = Tuple.Create(false, "");
+			try
 			{
-				Tuple<bool, string> result = Tuple.Create(false, "");
-				try
+				if (file != null && whichSeries != PersistentData.Tables.nil)
 				{
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("saving GPX file...");
-						if (_token.IsCancellationRequested) return;
-						// save file
-						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, _token).ConfigureAwait(false);
+						if (CancToken.IsCancellationRequested)
+						{
+							Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+							return;
+						}
+						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancToken).ConfigureAwait(false);
 					}).ConfigureAwait(false);
 				}
-				catch (Exception) { }
-				finally
-				{
-					// inform the user about the result
-					if (result != null && result.Item1) SetLastMessage_UI(result.Item2);
-					else SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
-				}
-			});
+			}
+			catch (Exception) { }
+			finally
+			{
+				// inform the user about the result
+				if (result != null && result.Item1) SetLastMessage_UI(result.Item2);
+				else if (whichSeries != PersistentData.Tables.nil) SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
+				else SetLastMessage_UI(string.Format("could not save file"));
+			}
 		}
 
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
@@ -593,9 +602,9 @@ namespace LolloGPS.Core
 				if (file != null)
 				{
 					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
-					// await ((App)Application.Current).RunAfterResumingAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
-					// LOLLO TODO heck this on phone
-					await LoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
+					await ((App)Application.Current).RunAfterResumingAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
+					// LOLLO TODO check this on phone, it does not work anymore
+					//await RunFunctionIfOpenAsyncT(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
 				}
 				else
 				{
@@ -612,23 +621,27 @@ namespace LolloGPS.Core
 		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 
-		private Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
+		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
 		{
-			return RunFunctionIfOpenAsyncT(async delegate
-			{
-				if (file == null || whichSeries == PersistentData.Tables.nil) return;
+			Logger.Add_TPL("LoadSeriesFromFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				Tuple<bool, string> result = Tuple.Create(false, "");
-				try
+			Tuple<bool, string> result = Tuple.Create(false, "");
+			try
+			{
+				if (file != null && whichSeries != PersistentData.Tables.nil)
 				{
 					await Task.Run(async delegate
 					{
 						Logger.Add_TPL("LoadSeriesFromFileAsync() started a worker thread", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						SetLastMessage_UI("reading GPX file...");
 
-						if (_token.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested)
+						{
+							Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+							return;
+						}
 						// load the file
-						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, _token).ConfigureAwait(false);
+						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
 						Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						// update the UI with the file data
@@ -656,19 +669,20 @@ namespace LolloGPS.Core
 						}
 					}).ConfigureAwait(false);
 				}
-				catch (Exception) { }
-				finally
+			}
+			catch (Exception) { }
+			finally
+			{
+				// inform the user about the outcome
+				if (result?.Item1 == true)
 				{
-					// inform the user about the outcome
-					if (result?.Item1 == true)
-					{
-						SetLastMessage_UI(result.Item2);
-						MyPersistentData.IsShowingPivot = false;
-					}
-					else SetLastMessage_UI("could not read file");
+					SetLastMessage_UI(result.Item2);
+					MyPersistentData.IsShowingPivot = false;
 				}
-				Logger.Add_TPL("LoadSeriesFromFileAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			});
+				else if (whichSeries != PersistentData.Tables.nil) SetLastMessage_UI(string.Format("could not load {0}", PersistentData.GetTextForSeries(whichSeries)));
+				else SetLastMessage_UI("could not load file");
+			}
+			Logger.Add_TPL("LoadSeriesFromFileAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		#endregion save and load with picker
 
@@ -676,48 +690,57 @@ namespace LolloGPS.Core
 		#region continuations
 		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
 		{
-			List<PersistentData.Tables> output = new List<PersistentData.Tables>();
-			await RunFunctionIfOpenAsyncT(async delegate
+			// LOLLO TODO check this on phone, it does not work anymore
+			List<PersistentData.Tables> result = new List<PersistentData.Tables>();
+			//await RunFunctionIfOpenAsyncT(async delegate
+			//{
+			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile)
 			{
-				if (args?.Files?.Count > 0 && args.Files[0] is StorageFile)
-				{
-					Tuple<bool, string> landmarksResult = Tuple.Create(false, "");
-					Tuple<bool, string> route0Result = Tuple.Create(false, "");
+				Tuple<bool, string> landmarksResult = Tuple.Create(false, "");
+				Tuple<bool, string> route0Result = Tuple.Create(false, "");
 
-					try
+				try
+				{
+					SetLastMessage_UI("reading GPX file...");
+					// load the file, attempting to read landmarks and route. GPX files can contain both.
+					StorageFile file_mt = args.Files[0] as StorageFile;
+					if (CancToken.IsCancellationRequested)
 					{
-						SetLastMessage_UI("reading GPX file...");
-						// load the file, attempting to read landmarks and route. GPX files can contain both.
-						StorageFile file_mt = args.Files[0] as StorageFile;
-						if (_token.IsCancellationRequested) return;
-						landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, _token).ConfigureAwait(false);
-						if (_token.IsCancellationRequested) return;
-						route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, _token).ConfigureAwait(false);
+						Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+						return result;
 					}
-					catch (Exception) { }
-					finally
+					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, CancToken).ConfigureAwait(false);
+					if (CancToken.IsCancellationRequested)
 					{
-						// inform the user about the result
-						if ((landmarksResult == null || !landmarksResult.Item1) && (route0Result == null || !route0Result.Item1)) SetLastMessage_UI("could not read file");
-						else if (landmarksResult?.Item1 == true && route0Result?.Item1 == true)
-						{
-							SetLastMessage_UI(route0Result.Item2 + " and " + landmarksResult.Item2);
-						}
-						else if (route0Result?.Item1 == true)
-						{
-							SetLastMessage_UI(route0Result.Item2);
-						}
-						else if (landmarksResult?.Item1 == true)
-						{
-							SetLastMessage_UI(landmarksResult.Item2);
-						}
-						// fill output
-						if (landmarksResult?.Item1 == true) output.Add(PersistentData.Tables.Landmarks);
-						if (route0Result?.Item1 == true) output.Add(PersistentData.Tables.Route0);
+						Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+						return result;
 					}
+					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
 				}
-			}).ConfigureAwait(false);
-			return output;
+				catch (Exception) { }
+				finally
+				{
+					// inform the user about the result
+					if ((landmarksResult == null || !landmarksResult.Item1) && (route0Result == null || !route0Result.Item1)) SetLastMessage_UI("could not read file");
+					else if (landmarksResult?.Item1 == true && route0Result?.Item1 == true)
+					{
+						SetLastMessage_UI(route0Result.Item2 + " and " + landmarksResult.Item2);
+					}
+					else if (route0Result?.Item1 == true)
+					{
+						SetLastMessage_UI(route0Result.Item2);
+					}
+					else if (landmarksResult?.Item1 == true)
+					{
+						SetLastMessage_UI(landmarksResult.Item2);
+					}
+					// fill output
+					if (landmarksResult?.Item1 == true) result.Add(PersistentData.Tables.Landmarks);
+					if (route0Result?.Item1 == true) result.Add(PersistentData.Tables.Route0);
+				}
+			}
+			//}).ConfigureAwait(false);
+			return result;
 		}
 		#endregion continuations
 	}

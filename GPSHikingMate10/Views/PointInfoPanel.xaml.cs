@@ -19,13 +19,13 @@ namespace LolloGPS.Core
 	{
 		public event EventHandler PointChanged;
 
-		public Main_VM MyVM
+		public MainVM MyVM
 		{
-			get { return (Main_VM)GetValue(MyVMProperty); }
+			get { return (MainVM)GetValue(MyVMProperty); }
 			set { SetValue(MyVMProperty, value); }
 		}
 		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(PointInfoPanel), new PropertyMetadata(null));
+			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null));
 
 		private bool _isGotoPreviousEnabled = false;
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }

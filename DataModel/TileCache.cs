@@ -396,7 +396,7 @@ namespace LolloGPS.Data.TileCache
 		private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
 		private static volatile bool _isOpen = false;
 		private static CancellationTokenSource _cts = null;
-		private static CancellationToken _token;
+		private static CancellationToken _cancToken;
 		#endregion properties
 
 
@@ -438,8 +438,8 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						if (_cts == null) _cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
-						_token = _cts.Token;
+						_cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
+						_cancToken = _cts.Token;
 
 						_isOpen = true;
 					}
@@ -557,7 +557,7 @@ namespace LolloGPS.Data.TileCache
 					{
 						if (tileSource != null)
 						{
-							_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources, _token); });
+							_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources, _cancToken); });
 							if (IsFree)
 							{
 								await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);

@@ -19,8 +19,8 @@ namespace LolloGPS.Core
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		private Main_VM _myVM = null;
-		public Main_VM MyVM { get { return _myVM; } }
+		private MainVM _myVM = null;
+		public MainVM MyVM { get { return _myVM; } }
 
 		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
@@ -45,8 +45,9 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_myVM = new Main_VM(readDataFromDb, readSettingsFromDb);
+				_myVM = new MainVM(readDataFromDb, readSettingsFromDb);
 				await _myVM.OpenAsync();
+				Logger.Add_TPL("Main has opened its main vm", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				RaisePropertyChanged_UI(nameof(MyVM));
 
 				await MyLolloMap.OpenAsync();

@@ -191,14 +191,14 @@ namespace LolloGPS.Core
 #endif
 					try
 					{
-						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = _token }, (tile) =>
+						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = CancToken }, (tile) =>
 						{
 							bool isOk = tileCache.SaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom).Result;
 							if (isOk) currentOkCnt++;
 
 							currentCnt++;
 							if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
-							if (IsCancelled) _cts.Cancel(true);
+							if (IsCancelled) Cts.Cancel(true);
 						});
 					}
 					catch (OperationCanceledException) { }

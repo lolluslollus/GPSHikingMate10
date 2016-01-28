@@ -416,9 +416,9 @@ namespace LolloGPS.GPSInteraction
 				{
 					if (_geolocator != null)
 					{
-						var pos = await _geolocator.GetGeopositionAsync().AsTask(_token).ConfigureAwait(false);
+						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						if (_token.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested) return;
 						if (await _myPersistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;

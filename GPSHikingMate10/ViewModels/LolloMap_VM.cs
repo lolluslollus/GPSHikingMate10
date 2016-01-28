@@ -14,8 +14,8 @@ namespace LolloGPS.Core
     {
 		// http://josm.openstreetmap.de/wiki/Maps
 
-		private Main_VM _myMainVM = null;
-        public Main_VM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
+		private MainVM _myMainVM = null;
+        public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
@@ -29,7 +29,7 @@ namespace LolloGPS.Core
         private IList<MapTileSource> _mapTileSources = null;
 
         #region construct and dispose
-        public LolloMap_VM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, Main_VM mainVM)
+        public LolloMap_VM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, MainVM mainVM)
         {
 			MyMainVM = mainVM;
             MyMainVM.MyLolloMap_VM = this;
@@ -229,7 +229,7 @@ namespace LolloGPS.Core
             {
                 var centre = await _gbbProvider.GetCentreAsync();
 				// this stupid control does not know the altitude, it gives crazy high numbers
-				centre.Altitude = Main_VM.RoundAndRangeAltitude(centre.Altitude, false);
+				centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
                 return await MyPersistentData.TryAddPointToLandmarksAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
             }
             return false;

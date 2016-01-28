@@ -14,7 +14,7 @@ namespace Utilz
         {
             try
             {
-                if (isMustKeepAlive) SetTrue();
+                if (isMustKeepAlive) SetTrue(); // LOLLO TODO this fails with a funny exception, check the logs
                 else SetFalse();
             }
             catch (Exception ex)

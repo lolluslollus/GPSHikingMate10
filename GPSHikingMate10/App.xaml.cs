@@ -268,7 +268,7 @@ namespace LolloGPS.Core
 					var fileOpener = main.MyVM;
 					if (fileOpener != null && main != null)
 					{
-						await fileOpener.OpenAsync();
+						//await fileOpener.OpenAsync();
 
 						var whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
 						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -412,13 +412,13 @@ namespace LolloGPS.Core
 		#endregion services
 	}
 
-	interface IFileActivatable
-	{
-		/// <summary>
-		/// This method is invoked when the app is opened via a file association
-		/// files
-		/// </summary>
-		/// <param name="args">Activated event args object that contains returned files from file open </param>
-		Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args);
-	}
+	//interface IFileActivatable
+	//{
+	//	/// <summary>
+	//	/// This method is invoked when the app is opened via a file association
+	//	/// files
+	//	/// </summary>
+	//	/// <param name="args">Activated event args object that contains returned files from file open </param>
+	//	Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args);
+	//}
 }

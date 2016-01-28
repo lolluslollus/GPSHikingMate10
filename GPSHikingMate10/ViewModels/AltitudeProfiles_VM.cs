@@ -14,14 +14,14 @@ namespace LolloGPS.Core
 {
     public sealed class AltitudeProfiles_VM : ObservableData, IMapApController
     {
-		private Main_VM _myMainVM = null;
-		public Main_VM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
+		private MainVM _myMainVM = null;
+		public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
 
 		private IMapApController _altitudeProfilesController = null;
 
         private const double ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL = 50.0;
 
-        internal AltitudeProfiles_VM(IMapApController altitudeProfilesController, Main_VM mainVM)
+        internal AltitudeProfiles_VM(IMapApController altitudeProfilesController, MainVM mainVM)
         {
 			MyMainVM = mainVM;
             _altitudeProfilesController = altitudeProfilesController;
@@ -42,7 +42,7 @@ namespace LolloGPS.Core
             // set first point, maxes and mins
             if (isDateTimeAlwaysPresent) points[0, 0] = coll[0].TimePoint.ToBinary();
             else points[0, 0] = 0.0;
-            points[0, 1] = Main_VM.RoundAndRangeAltitude(coll[0].Altitude, isImperialUnits);
+            points[0, 1] = MainVM.RoundAndRangeAltitude(coll[0].Altitude, isImperialUnits);
 
             minTime = maxTime = points[0, 0];
             minAltitude = maxAltitude = points[0, 1];
@@ -51,7 +51,7 @@ namespace LolloGPS.Core
             {
                 if (isDateTimeAlwaysPresent) points[i, 0] = coll[i].TimePoint.ToBinary();
                 else points[i, 0] = i;
-                points[i, 1] = Main_VM.RoundAndRangeAltitude(coll[i].Altitude, isImperialUnits);
+                points[i, 1] = MainVM.RoundAndRangeAltitude(coll[i].Altitude, isImperialUnits);
 
                 if (points[i, 0] > maxTime) maxTime = points[i, 0];
                 if (points[i, 0] < minTime) minTime = points[i, 0];

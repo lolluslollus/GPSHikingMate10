@@ -16,8 +16,17 @@ namespace LolloGPS.Data
 		protected volatile bool _isOpen = false;
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
-		protected CancellationTokenSource _cts = null;
-		protected CancellationToken _token;
+		private volatile CancellationTokenSource _cts = null;
+		protected CancellationTokenSource Cts { get { return _cts; } }
+		protected CancellationToken CancToken
+		{
+			get
+			{
+				var cts = _cts;
+				if (cts != null) return cts.Token;
+				else return CancellationToken.None;
+			}
+		}
 		#endregion properties
 
 
@@ -32,8 +41,7 @@ namespace LolloGPS.Data
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						if (_cts == null) _cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
-						_token = _cts.Token;
+						_cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
 
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 
@@ -96,6 +104,7 @@ namespace LolloGPS.Data
 			return Task.CompletedTask; // avoid warning
 		}
 		#endregion open close
+
 
 		#region while open
 		protected async Task<bool> RunFunctionIfOpenAsyncA(Action func)

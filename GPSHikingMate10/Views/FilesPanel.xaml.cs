@@ -12,13 +12,13 @@ namespace LolloGPS.Core
 {
 	public sealed partial class FilesPanel : ObservableControl
 	{
-		public Main_VM VM
+		public MainVM VM
 		{
-			get { return (Main_VM)GetValue(VMProperty); }
+			get { return (MainVM)GetValue(VMProperty); }
 			set { SetValue(VMProperty, value); }
 		}
 		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(Main_VM), typeof(FilesPanel), new PropertyMetadata(null, OnVMChanged));
+			DependencyProperty.Register("VM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null, OnVMChanged));
 		private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			if (args.NewValue != args.OldValue) (obj as FilesPanel).UpdateDataContext();

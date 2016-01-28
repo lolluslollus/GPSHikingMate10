@@ -23,13 +23,13 @@ namespace LolloGPS.Core
 	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
-		public Main_VM MainVM
+		public MainVM MainVM
 		{
-			get { return (Main_VM)GetValue(MainVMProperty); }
+			get { return (MainVM)GetValue(MainVMProperty); }
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(Main_VM), typeof(AltitudeProfiles), new PropertyMetadata(null));
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(AltitudeProfiles), new PropertyMetadata(null));
 
 		private AltitudeProfiles_VM _myVM = null;
 		public AltitudeProfiles_VM MyVM { get { return _myVM; } }
@@ -332,7 +332,7 @@ namespace LolloGPS.Core
 
 				await RunInUiThreadAsync(delegate
 				{
-					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, _token);
+					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, CancToken);
 				}).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) { } // fires when cts is cancelled
