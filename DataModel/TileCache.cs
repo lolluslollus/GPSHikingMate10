@@ -250,7 +250,7 @@ namespace LolloGPS.Data.TileCache
 									if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
 									{
 										where = 10;
-										bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord, false).ConfigureAwait(false);
+										bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord).ConfigureAwait(false);
 										// output = GetUriForFile(fileName);
 										result = true;
 										if (isInserted) where = 11;

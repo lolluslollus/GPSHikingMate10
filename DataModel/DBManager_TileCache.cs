@@ -32,11 +32,11 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
-		internal static async Task<bool> TryInsertIntoTileCacheAsync(TileCacheRecord record, bool checkMaxEntries)
+		internal static async Task<bool> TryInsertIntoTileCacheAsync(TileCacheRecord record)
 		{
 			try
 			{
-				return await InsertRecordAsync(_openFlags, record, checkMaxEntries).ConfigureAwait(false);
+				return await InsertRecordAsync(_openFlags, record).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -146,14 +146,14 @@ namespace LolloGPS.Data.TileCache
 				return Tuple.Create(howManyRecordsLeft < 1, howManyRecordsProcessed);
 			});
 		}
-		private static Task<bool> InsertRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item, bool checkMaxEntries)
+		private static Task<bool> InsertRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
 			return Task.Run(delegate
 			{
-				return InsertRecord(openFlags, item, checkMaxEntries);
+				return InsertRecord(openFlags, item);
 			});
 		}
-		private static bool InsertRecord(SQLiteOpenFlags openFlags, TileCacheRecord item, bool checkMaxEntries)
+		private static bool InsertRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
 			if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
 			bool result = false;
@@ -174,26 +174,12 @@ namespace LolloGPS.Data.TileCache
 					sCommandInsert += item.Zoom + ", ";
 					sCommandInsert += ("\"" + item.FileName + "\")");
 
-					//if (checkMaxEntries) // LOLLO TODO do it or get rid of it
-					//{
-					//    var count = conn.Table<TileCacheRecord>().Count();// LOLLO NOTE If you want to use this, 
-					// make a specialised count command like CreateGetOneRecordCommand()
-					//    if (count < GetHowManyEntriesMax())
-					//    {
-					//        var commandInsert = conn.CreateCommand(sCommandInsert);
-					//        int res = commandInsert.ExecuteNonQuery();
-					//        result = (res > 0);
-					//    }
-					//}
-					//else
-					//{
 					var commandInsert = conn.CreateCommand(sCommandInsert);
 					int res = commandInsert.ExecuteNonQuery();
 
 					Debug.WriteLine("InsertRecord() has run the command " + sCommandInsert);
 					result = (res > 0);
 					if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
-					//}
 				}
 			}
 			catch (Exception ex)
