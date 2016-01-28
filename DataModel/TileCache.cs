@@ -374,7 +374,7 @@ namespace LolloGPS.Data.TileCache
 		private static List<string> _fileNames_InProcess = new List<string>();
 		private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
 		private static volatile bool _isOpen = false;
-		private static CancellationTokenSource _cts = null;
+		private static SmartCancellationTokenSource _cts = null;
 		private static CancellationToken _cancToken;
 		#endregion properties
 
@@ -417,7 +417,8 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						_cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
+						_cts = new SmartCancellationTokenSource(); // LOLLO TODO test this new cts and token handling. 
+						// This one in particular will make trouble on a phone with low memory when the user opens a file picker.
 						_cancToken = _cts.Token;
 
 						_isOpen = true;
@@ -438,13 +439,14 @@ namespace LolloGPS.Data.TileCache
 		{
 			if (_isOpen)
 			{
-				_cts?.Cancel(true);
-				_cts?.Dispose();
-				_cts = null;
+				_cts?.CancelSafe(true);
 
 				try
 				{
 					await _semaphore.WaitAsync().ConfigureAwait(false);
+					_cts?.Dispose();
+					_cts = null;
+
 					if (_isOpen)
 					{
 						_funcsAsSoonAsFree.Clear();
@@ -579,6 +581,8 @@ namespace LolloGPS.Data.TileCache
 		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken token)
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
+
+			if (token == null || token.IsCancellationRequested) return;
 
 			if (tileSource == null)
 			{

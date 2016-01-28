@@ -8,7 +8,7 @@ using Utilz.Data;
 
 namespace UnitTestProject1
 {
-	public class LongRunner1 : OpenableObservableData
+	public class LongRunnerNoSemaphore : OpenableObservableData
 	{
 		private int _howManyDelays = -1;
 		public int HowManyDelays { get { return _howManyDelays; } }
@@ -37,10 +37,10 @@ namespace UnitTestProject1
 
 		public void Cancel()
 		{
-			Cts.Cancel();
+			Cts.CancelSafe();
 		}
 	}
-	public class LongRunner2 : OpenableObservableData
+	public class LongRunnerUnderSemaphore : OpenableObservableData
 	{
 		private int _howManyDelays = -1;
 		public int HowManyDelays { get { return _howManyDelays; } }
@@ -71,7 +71,7 @@ namespace UnitTestProject1
 		}
 		public void Cancel()
 		{
-			Cts.Cancel();
+			Cts.CancelSafe();
 		}
 	}
 }

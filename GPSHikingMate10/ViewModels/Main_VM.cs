@@ -124,22 +124,12 @@ namespace LolloGPS.Core
 				RemoveHandlers_DataChanged();
 				KeepAlive.StopKeepAlive();
 				await _gpsInteractor.CloseAsync().ConfigureAwait(false);
-
-				//CancelPendingTasks(); // after removing the handlers
 			}
 			catch (Exception ex)
 			{
 				await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
-		//private void CancelPendingTasks()
-		//{
-		//	// Do not dispose the cts's here. Dispose is done in the exception handler that catches the OperationCanceled exception. 
-		//	// If you do it here, the exception handler will throw an ObjectDisposed exception
-		//	_fileOpenContinuationCts?.Cancel(true);
-		//	_fileOpenPickerCts?.Cancel(true);
-		//	_fileSavePickerCts?.Cancel(true);
-		//}
 		#endregion construct and dispose
 
 		#region updaters

@@ -138,6 +138,7 @@
     <Compile Include="RegistryAccess.cs" />
     <Compile Include="ProportionsTrigger.cs" />
     <Compile Include="SemaphoreSlimSafeRelease.cs" />
+    <Compile Include="SmartCancellationTokenSource.cs" />
     <Compile Include="SwitchableObservableCollection.cs" />
     <Content Include="Properties\Utilz.rd.xml" />
   </ItemGroup>

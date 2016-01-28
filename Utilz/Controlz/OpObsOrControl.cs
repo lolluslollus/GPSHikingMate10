@@ -52,14 +52,15 @@ namespace LolloBaseUserControls
 			});
 		}
 
-		private volatile CancellationTokenSource _cts = null;
-		protected CancellationTokenSource Cts { get { return _cts; } }
+		private volatile SmartCancellationTokenSource _cts = null;
+		protected SmartCancellationTokenSource Cts { get { return _cts; } }
 		protected CancellationToken CancToken
 		{
 			get
 			{
 				var cts = _cts;
-				if (cts != null) return cts.Token;
+				if (cts.IsAlive()) return cts.Token;
+				else if (cts.IsDisposed) return new CancellationToken(true);
 				else return new CancellationToken(false); // we must be optimistic, or the methods running in separate tasks will always crap out
 			}
 		}
@@ -85,7 +86,8 @@ namespace LolloBaseUserControls
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						_cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
+						var cts = _cts;  if (cts != null) cts.Dispose();// LOLLO TODO TEST THIS
+						_cts = new SmartCancellationTokenSource();
 
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 
@@ -117,13 +119,14 @@ namespace LolloBaseUserControls
 		{
 			if (_isOpen)
 			{
-				_cts?.Cancel(true);
-				_cts?.Dispose();
-				_cts = null;
+				_cts?.CancelSafe(true);
 
 				try
 				{
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
+					_cts?.Dispose();
+					_cts = null;
+
 					if (_isOpen)
 					{
 						IsEnabledAllowed = false;

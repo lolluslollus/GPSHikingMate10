@@ -199,7 +199,7 @@ namespace LolloGPS.Core
 
 							currentCnt++;
 							if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
-							if (IsCancelled) Cts.Cancel(true);
+							if (IsCancelled) Cts.CancelSafe(true);
 						});
 					}
 					catch (OperationCanceledException) { }

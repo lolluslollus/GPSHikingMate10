@@ -20,7 +20,7 @@ namespace BackgroundTasks
 	// Debugging may be easier on x86.
 	public sealed class GetLocationBackgroundTask : IBackgroundTask
 	{
-		private volatile CancellationTokenSource _cts = null;
+		private volatile SmartCancellationTokenSource _cts = null;
 		private BackgroundTaskDeferral _deferral = null;
 		private IBackgroundTaskInstance _taskInstance = null;
 
@@ -45,7 +45,7 @@ namespace BackgroundTasks
 				_taskInstance = taskInstance;
 				_taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
 
-				_cts = new CancellationTokenSource();
+				_cts = new SmartCancellationTokenSource();
 				CancellationToken cancToken = _cts.Token;
 
 				// LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
@@ -122,7 +122,7 @@ namespace BackgroundTasks
 
 		private async void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
 		{
-			_cts?.Cancel();
+			_cts?.CancelSafe();
 			await Logger.AddAsync("Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = " + reason /*+ "; _isCancellationAllowedNow = " + _isCancellationAllowedNow*/, Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
 		}
 
@@ -148,7 +148,7 @@ namespace BackgroundTasks
 		//    }
 		//    else
 		//    {
-		//        _periodicTimer?.Cancel();
+		//        _periodicTimer?.CancelSafe();
 
 		//        var settings = ApplicationData.Current.LocalSettings;
 		//        var key = _taskInstance.Task.Name;
