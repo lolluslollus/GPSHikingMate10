@@ -242,9 +242,9 @@ namespace LolloGPS.Data
 			_landmarks = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInLandmarks);
 		}
 
-		public static void OpenTileCacheDb()
+		public static Task OpenTileCacheDbAsync()
 		{
-			TileCache.LolloSQLiteConnectionPoolMT.Open();
+			return TileCache.LolloSQLiteConnectionPoolMT.OpenAsync();
 		}
 
 		public static void OpenMainDb()

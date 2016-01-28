@@ -8,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
@@ -108,15 +107,20 @@ namespace LolloGPS.Core
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 		private LolloMap_VM _myVM = null;
 		public LolloMap_VM MyVM { get { return _myVM; } }
-		public Main_VM MyMainVM { get { return Main_VM.GetInstance(); } }
+
+		public Main_VM MainVM
+		{
+			get { return (Main_VM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
+		}
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(Main_VM), typeof(LolloMap), new PropertyMetadata(null));
 
 		private static WeakReference _myMapInstance = null;
 		internal static MapControl GetMapControlInstance() // for the converters
 		{
 			return _myMapInstance?.Target as MapControl;
 		}
-
-		private CancellationTokenSource _cts = null;
 		#endregion properties
 
 
@@ -124,7 +128,7 @@ namespace LolloGPS.Core
 		public LolloMap()
 		{
 			InitializeComponent();
-			_myVM = new LolloMap_VM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController);
+			//_myVM = new LolloMap_VM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
 
 			_myMapInstance = new WeakReference(MyMap);
 
@@ -141,10 +145,11 @@ namespace LolloGPS.Core
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			_myVM = new LolloMap_VM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
 			MyMap.Style = MyPersistentData.MapStyle; // maniman
 			_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
 			await RestoreViewAsync();
-			_myVM.Open();
+			await _myVM.OpenAsync();
 
 			InitMapElements();
 
@@ -159,7 +164,7 @@ namespace LolloGPS.Core
 			}
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync()
 		{
 			RemoveHandlers();
 			// save last map settings
@@ -176,18 +181,8 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 
-			CancelPendingTasks(); // after removing the handlers
-
-			_myVM?.Close();
+			await _myVM.CloseAsync().ConfigureAwait(false);
 			//MyPointInfoPanel?.Close();
-
-			return Task.CompletedTask;
-		}
-		private void CancelPendingTasks()
-		{
-			_cts?.Cancel();
-			//_cts.Dispose(); This is done in the exception handler that catches the OperationCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
-			//_cts = null;
 		}
 
 		///// <summary>
@@ -430,9 +425,6 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (_cts == null) _cts = new CancellationTokenSource();
-				CancellationToken token = _cts.Token;
-
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -446,7 +438,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
 				}
 
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -469,7 +461,7 @@ namespace LolloGPS.Core
 					_iconEndHistory.Location = new Geopoint(lastGeoposition);
 				}
 
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 				if (!_isHistoryInMap)
 				{
@@ -487,20 +479,12 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			finally
-			{
-				_cts?.Dispose();
-				_cts = null;
-			}
 		}
 
 		private void DrawRoute0()
 		{
 			try
 			{
-				if (_cts == null) _cts = new CancellationTokenSource();
-				CancellationToken token = _cts.Token;
-
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -514,7 +498,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
 				}
 
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -528,7 +512,7 @@ namespace LolloGPS.Core
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 				}
 
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 				if (!_isRoute0InMap)
 				{
@@ -543,11 +527,6 @@ namespace LolloGPS.Core
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			finally
-			{
-				_cts?.Dispose();
-				_cts = null;
 			}
 		}
 
@@ -584,9 +563,6 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (_cts == null) _cts = new CancellationTokenSource();
-				CancellationToken token = _cts.Token;
-
 				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 				if (!InitLandmarks())
 				{
@@ -594,7 +570,7 @@ namespace LolloGPS.Core
 					return;
 				}
 
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 #if DEBUG
 				Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -616,7 +592,7 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
-				token.ThrowIfCancellationRequested();
+				if (_token.IsCancellationRequested) return;
 
 				try
 				{
@@ -634,7 +610,7 @@ namespace LolloGPS.Core
 						j++;
 					}
 
-					token.ThrowIfCancellationRequested();
+					if (_token.IsCancellationRequested) return;
 
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
@@ -659,11 +635,6 @@ namespace LolloGPS.Core
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			finally
-			{
-				_cts?.Dispose();
-				_cts = null;
 			}
 		}
 

@@ -19,7 +19,7 @@ namespace LolloGPS.Core
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		private Main_VM _myVM = Main_VM.GetInstance();
+		private Main_VM _myVM = null;
 		public Main_VM MyVM { get { return _myVM; } }
 
 		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
@@ -45,8 +45,9 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_myVM = Main_VM.GetInstance();
-				await _myVM.OpenAsync(readDataFromDb, readSettingsFromDb);
+				_myVM = new Main_VM(readDataFromDb, readSettingsFromDb);
+				await _myVM.OpenAsync();
+				RaisePropertyChanged_UI(nameof(MyVM));
 
 				await MyLolloMap.OpenAsync();
 				UpdateAltitudeColumnMaxWidth();

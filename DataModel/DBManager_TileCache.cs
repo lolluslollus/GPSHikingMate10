@@ -127,7 +127,7 @@ namespace LolloGPS.Data.TileCache
 							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + folderNameToBeDeleted + "\"");
 							howManyRecordsProcessed = deleteAllCommand.ExecuteNonQuery();
 
-							howManyRecordsLeft = conn.Table<TileCacheRecord>().Count();
+							howManyRecordsLeft = conn.Table<TileCacheRecord>().Count(); // LOLLO TODO check this
 
 							if (conn.Trace) Debug.WriteLine(howManyRecordsProcessed + " records were deleted");
 						}
@@ -290,7 +290,7 @@ namespace LolloGPS.Data.TileCache
 		static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
 		private static SemaphoreSlimSafeRelease _entriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static volatile bool _isOpen = true;
+		private static volatile bool _isOpen = false;
 		/// <summary>
 		/// Gets a value telling if the DB is suspended.
 		/// </summary>
@@ -385,6 +385,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				// block any new db operations
 				_isOpen = false;
+				await TileCacheProcessingQueue.CloseAsync().ConfigureAwait(false);
 				// wait until there is a free slot between operations taking place
 				// and break off all queued operations
 				await Task.Run(() => ResetAllConnections()).ConfigureAwait(false);
@@ -394,7 +395,7 @@ namespace LolloGPS.Data.TileCache
 				SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
 			}
 		}
-		public static void Open()
+		public static async Task OpenAsync()
 		{
 			if (_isOpen) return;
 			try
@@ -402,6 +403,7 @@ namespace LolloGPS.Data.TileCache
 				_isOpenSemaphore.Wait();
 				if (!_isOpen)
 				{
+					await TileCacheProcessingQueue.OpenAsync().ConfigureAwait(false);
 					_isOpen = true;
 				}
 			}

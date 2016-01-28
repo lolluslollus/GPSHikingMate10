@@ -18,7 +18,6 @@ namespace LolloGPS.GPSInteraction
 		#region properties
 		private IGPSDataModel _myPersistentData = null;
 		private Geolocator _geolocator = null;
-		private CancellationTokenSource _getLocationCts = null;
 
 		private bool _isGpsWorking = false;
 		public bool IsGPSWorking { get { return _isGpsWorking; } private set { _isGpsWorking = value; RaisePropertyChanged_UI(); } }
@@ -62,15 +61,7 @@ namespace LolloGPS.GPSInteraction
 			RemoveHandlers_GeoLocator();
 			RemoveHandlers_GetLocBackgroundTask();
 
-			CancelPendingTasks(); // after removing the handlers
 			return Task.CompletedTask;
-		}
-
-		private void CancelPendingTasks()
-		{
-			_getLocationCts?.Cancel();
-			//_getLocationCts.Dispose(); This is done in the exception handler that catches the IsCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
-			//_getLocationCts = null;
 		}
 		#endregion lifecycle
 
@@ -421,16 +412,17 @@ namespace LolloGPS.GPSInteraction
 				IsGPSWorking = true;
 				SetLastMessage_UI("getting current location...");
 
-				_getLocationCts = new CancellationTokenSource();
-				CancellationToken token = _getLocationCts.Token;
 				try
 				{
 					if (_geolocator != null)
 					{
-						var pos = await _geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
+						var pos = await _geolocator.GetGeopositionAsync().AsTask(_token).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						token.ThrowIfCancellationRequested();
-						if (await _myPersistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false)) result = newDataRecord;
+						if (_token.IsCancellationRequested) return;
+						if (await _myPersistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
+						{
+							result = newDataRecord;
+						}
 					}
 				}
 				catch (UnauthorizedAccessException)
@@ -451,72 +443,11 @@ namespace LolloGPS.GPSInteraction
 				}
 				finally
 				{
-					_getLocationCts?.Dispose();
-					_getLocationCts = null;
-					//if (result != null)
-					//{
-					//	await RunInUiThreadAsync(delegate
-					//	{
-					//		_myPersistentData?.SelectCurrentHistoryRecord(); // LOLLO TODO why?
-					//	}).ConfigureAwait(false);
-					//}
 					IsGPSWorking = false;
 				}
 			}).ConfigureAwait(false);
 			return result;
 		}
-
-		/// <summary>
-		/// Only call this from a task, which is not the main one (eg call it from the background task).
-		/// Otherwise, you may screw things up.
-		/// </summary>
-		/// <param name="token"></param>
-		/// <returns></returns>
-		//public static async Task<bool> GetGeoLocationAppendingHistoryStaticAsync(CancellationToken token)
-		//{
-		//	bool isSaved = false;
-		//	// note that PersistentData.GetInstance() is always an empty instance, because i am in a separate process
-		//	// and I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
-		//	// SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
-
-		//	//this takes time
-		//	try
-		//	{
-		//		Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
-
-		//		token.ThrowIfCancellationRequested();
-
-		//		if (geolocator != null)
-		//		{
-		//			var pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
-
-		//			token.ThrowIfCancellationRequested();
-
-		//			// save to the db, synchronously, otherwise the background task may be cancelled before the db is updated.
-		//			// this would fail to save the new value and leave around named semaphores, which block everything else.
-		//			if (pos != null)
-		//			{
-		//				isSaved = PersistentData.RunDbOpInOtherTask(delegate
-		//				{
-		//					var newDataRecord = GetNewHistoryRecord(pos);
-		//					return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
-		//				});
-		//			}
-		//		}
-		//	}
-		//	catch(Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.BackgroundLogFilename);
-		//	}
-		//	return isSaved;
-		//}
-		//public static bool AppendGeoPositionOnlyDb(PersistentData persistentData, Geoposition pos, bool checkMaxEntries)
-		//{
-		//	PointRecord newDataRecord = new PointRecord();
-		//	InitNewHistoryRecord(pos, newDataRecord);
-		//	bool isOk = persistentData.AddHistoryRecordOnlyDb(newDataRecord, checkMaxEntries);
-		//	return isOk;
-		//}
 
 		public static PointRecord GetNewHistoryRecord(Geoposition pos)
 		{

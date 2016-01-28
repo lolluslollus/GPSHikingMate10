@@ -62,12 +62,12 @@ namespace LolloGPS.Core
 			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 
-		private void OpenData()
+		private async Task OpenDataAsync()
 		{
 			_persistentData = PersistentData.GetInstance();
 			_myRuntimeData = RuntimeData.GetInstance();
 
-			PersistentData.OpenTileCacheDb();
+			await PersistentData.OpenTileCacheDbAsync().ConfigureAwait(false);
 			PersistentData.OpenMainDb();
 		}
 
@@ -111,7 +111,7 @@ namespace LolloGPS.Core
 				Logger.Severity.Info,
 				false);
 
-			OpenData();
+			await OpenDataAsync();
 			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
 
 			try
@@ -187,7 +187,7 @@ namespace LolloGPS.Core
 				IsResuming = true;
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				OpenData();
+				await OpenDataAsync();
 				if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
 
 				if (IsRootFrameMain)
@@ -244,7 +244,7 @@ namespace LolloGPS.Core
 				await _resumingActivatingSemaphore.WaitAsync();
 				Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				OpenData();
+				await OpenDataAsync();
 
 				bool isAppAlreadyRunning = IsRootFrameMain;
 				if (!isAppAlreadyRunning)
@@ -264,10 +264,12 @@ namespace LolloGPS.Core
 					// disable UI commands
 					RuntimeData.SetIsDBDataRead_UI(false);
 
-					var fileOpener = Main_VM.GetInstance() as IFileActivatable;
 					var main = rootFrame.Content as Main;
+					var fileOpener = main.MyVM;
 					if (fileOpener != null && main != null)
 					{
+						await fileOpener.OpenAsync();
+
 						var whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
 						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						if (isAppAlreadyRunning)

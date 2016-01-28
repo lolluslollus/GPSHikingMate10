@@ -83,6 +83,7 @@ namespace BackgroundTasks
 					// memory saving process
 					var pos = await GetGeopositionAsync(token).ConfigureAwait(false);
 					var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
+					token.ThrowIfCancellationRequested();
 					bool isSaved = PersistentData.RunDbOpInOtherTask(delegate
 					{
 						return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
@@ -100,6 +101,10 @@ namespace BackgroundTasks
 					}
 #endif
 				}
+			}
+			catch(OperationCanceledException)
+			{
+				Logger.Add_TPL("OperationCanceledException", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
 			{

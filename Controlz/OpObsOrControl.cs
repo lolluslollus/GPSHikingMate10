@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.UI.Xaml;
@@ -50,6 +51,9 @@ namespace LolloBaseUserControls
 				IsEnabled = IsEnabledAllowed && IsEnabledOverride;
 			});
 		}
+
+		protected CancellationTokenSource _cts = null;
+		protected CancellationToken _token;
 		#endregion properties
 
 
@@ -72,7 +76,11 @@ namespace LolloBaseUserControls
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
+						if (_cts == null) _cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
+						_token = _cts.Token;
+
 						await OpenMayOverrideAsync().ConfigureAwait(false);
+
 						IsOpen = true;
 						IsEnabledAllowed = true;
 						return true;
@@ -101,6 +109,10 @@ namespace LolloBaseUserControls
 		{
 			if (_isOpen)
 			{
+				_cts?.Cancel(true);
+				_cts?.Dispose();
+				_cts = null;
+
 				try
 				{
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);

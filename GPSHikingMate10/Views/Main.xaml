@@ -46,7 +46,7 @@
 				</VisualState>
 			</VisualStateGroup>
 		</VisualStateManager.VisualStateGroups>
-		
+
 		<!-- loading overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
@@ -62,7 +62,7 @@
 				Style="{StaticResource HugeTextStyle}">
 			</TextBlock>
 		</Grid>
-		
+
 		<!-- Map, altitude and their overlays -->
 		<Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
@@ -126,11 +126,6 @@
 				</Grid>
 				<!-- icons for battery consuming functions -->
 				<StackPanel Margin="0" Padding="0" Orientation="Horizontal">
-					<!--<Grid.ColumnDefinitions>
-						<ColumnDefinition />
-						<ColumnDefinition />
-						<ColumnDefinition />
-					</Grid.ColumnDefinitions>-->
 					<AppBarButton Grid.Column="0"
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
@@ -171,6 +166,7 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
+						MyVM="{Binding ElementName=me, Path=MyVM}"
 						DataContext="{Binding}"
 						PointChanged="OnInfoPanelPointChanged"/>
 				</Popup>
@@ -179,15 +175,17 @@
 				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
 				<local:LolloMap Canvas.ZIndex="0"
 					x:Name="MyLolloMap"
+					MainVM="{Binding ElementName=me, Path=MyVM}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
 				<!-- Altitude profiles -->
 				<local:AltitudeProfiles Canvas.ZIndex="200"
 					Grid.Column="0"
 					x:Name="MyAltitudeProfiles"
+					MainVM="{Binding ElementName=me, Path=MyVM}"
 					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
 			</Grid>
-			
+
 			<!-- Menu pivot -->
 			<Pivot Grid.Row="0" Canvas.ZIndex="600"
 				   x:Name="MyPivot"
@@ -200,7 +198,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested"/>
+						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MyVM="{Binding ElementName=me, Path=MyVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
@@ -216,7 +214,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested"/>
+						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested" MyVM="{Binding ElementName=me, Path=MyVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
@@ -224,7 +222,7 @@
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:CustomMapsPanel/>
+						<local:CustomMapsPanel MyVM="{Binding ElementName=me, Path=MyVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -240,7 +238,7 @@
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:HelpPanel/>
+						<local:HelpPanel MyVM="{Binding ElementName=me, Path=MyVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">

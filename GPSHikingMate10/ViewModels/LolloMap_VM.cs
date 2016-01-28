@@ -12,9 +12,10 @@ namespace LolloGPS.Core
 {
     public sealed class LolloMap_VM : ObservableData, IMapApController
     {
-        // http://josm.openstreetmap.de/wiki/Maps
+		// http://josm.openstreetmap.de/wiki/Maps
 
-        public Main_VM MyMainVM { get { return Main_VM.GetInstance(); } }
+		private Main_VM _myMainVM = null;
+        public Main_VM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
@@ -28,17 +29,18 @@ namespace LolloGPS.Core
         private IList<MapTileSource> _mapTileSources = null;
 
         #region construct and dispose
-        public LolloMap_VM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController)
+        public LolloMap_VM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, Main_VM mainVM)
         {
+			MyMainVM = mainVM;
             MyMainVM.MyLolloMap_VM = this;
             _gbbProvider = gbbProvider;
             _mapController = mapController;
             _mapTileSources = mapTileSources;
             _tileDownloader = new TileDownloader(gbbProvider);
         }
-        internal void Open()
+        internal async Task OpenAsync()
         {
-            _tileDownloader.Open();
+            await _tileDownloader.OpenAsync();
             Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
             if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
             AddHandler_DataChanged();
@@ -102,10 +104,10 @@ namespace LolloGPS.Core
         //    //_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
         //    //_myMap.Style = MapStyle.None; //so our map will cover the original completely
         //}
-        internal void Close()
+        internal async Task CloseAsync()
         {
             RemoveHandler_DataChanged();
-            _tileDownloader.Close();
+            await _tileDownloader.CloseAsync();
             CloseAlternativeMap_Http();
         }
 

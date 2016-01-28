@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 
@@ -14,6 +15,9 @@ namespace LolloGPS.Data
 
 		protected volatile bool _isOpen = false;
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
+
+		protected CancellationTokenSource _cts = null;
+		protected CancellationToken _token;
 		#endregion properties
 
 
@@ -28,7 +32,11 @@ namespace LolloGPS.Data
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
+						if (_cts == null) _cts = new CancellationTokenSource(); // LOLLO TODO test this new cts and token handling
+						_token = _cts.Token;
+
 						await OpenMayOverrideAsync().ConfigureAwait(false);
+
 						IsOpen = true;
 						return true;
 					}
@@ -55,6 +63,10 @@ namespace LolloGPS.Data
 		{
 			if (_isOpen)
 			{
+				_cts?.Cancel(true);
+				_cts?.Dispose();
+				_cts = null;
+
 				try
 				{
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);

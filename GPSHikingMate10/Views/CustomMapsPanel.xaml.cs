@@ -15,8 +15,13 @@ namespace LolloGPS.Core
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-        private Main_VM _myVM = Main_VM.GetInstance();
-        public Main_VM MyVM { get { return _myVM; } }
+		public Main_VM MyVM
+		{
+			get { return (Main_VM)GetValue(MyVMProperty); }
+			set { SetValue(MyVMProperty, value); }
+		}
+		public static readonly DependencyProperty MyVMProperty =
+			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
         public CustomMapsPanel()
         {
@@ -26,7 +31,7 @@ namespace LolloGPS.Core
 
         private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
         {
-            if (_myVM.IsClearCustomCacheEnabled) // this is redundant safety
+            if (MyVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
             {
                 ClearCustomCacheChooser.IsPopupOpen = true;
             }
@@ -40,7 +45,7 @@ namespace LolloGPS.Core
             TileSourceRecord tag = (e.Tag as TileSourceRecord);
             if (!tag.IsNone && !tag.IsDefault)
             {
-                _myVM?.ScheduleClearCacheAsync(tag, true);
+                MyVM?.ScheduleClearCacheAsync(tag, true);
             }
         }
 

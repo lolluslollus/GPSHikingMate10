@@ -18,10 +18,15 @@ namespace LolloGPS.Core
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-        private Main_VM _myVM = Main_VM.GetInstance();
-        public Main_VM MyVM { get { return _myVM; } }
+		public Main_VM MyVM
+		{
+			get { return (Main_VM)GetValue(MyVMProperty); }
+			set { SetValue(MyVMProperty, value); }
+		}
+		public static readonly DependencyProperty MyVMProperty =
+			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(MapsPanel), new PropertyMetadata(null));
 
-        public MapsPanel()
+		public MapsPanel()
         {
             InitializeComponent();
             BackPressedRaiser = MyVM;
@@ -38,7 +43,7 @@ namespace LolloGPS.Core
 
         private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
         {
-            if (_myVM.IsClearCacheEnabled) // this is redundant safety
+            if (MyVM.IsClearCacheEnabled) // this is redundant safety
             {
                 ClearCacheChooser.IsPopupOpen = true;
             }
@@ -51,13 +56,13 @@ namespace LolloGPS.Core
             TileSourceRecord tag = (e.Tag as TileSourceRecord);
             if (!tag.IsNone && !tag.IsDefault)
             {
-                _myVM?.ScheduleClearCacheAsync(tag, false);
+                MyVM?.ScheduleClearCacheAsync(tag, false);
             }
         }
 
         private async void OnDownloadMap_Click(object sender, RoutedEventArgs e)
         {
-            if (_myVM.IsLeechingEnabled) // this is redundant safety
+            if (MyVM.IsLeechingEnabled) // this is redundant safety
             {
                 // present a choice of zoom levels
                 List<Tuple<int, int>> howManyTiles4DifferentZooms = await MyVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
@@ -79,7 +84,7 @@ namespace LolloGPS.Core
                 }
                 else
                 {
-                    _myVM.SetLastMessage_UI("No downloads possible for this area");
+                    MyVM.SetLastMessage_UI("No downloads possible for this area");
                 }
             }
             else MyPersistentData.LastMessage = "Download busy";

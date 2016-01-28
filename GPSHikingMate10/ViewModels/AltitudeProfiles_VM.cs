@@ -12,17 +12,18 @@ using Utilz;
 
 namespace LolloGPS.Core
 {
-    public sealed class AltitudeProfiles_VM : IMapApController
+    public sealed class AltitudeProfiles_VM : ObservableData, IMapApController
     {
-        //public PersistentData MyPersistentData { get { return App.PersistentData; } }
-        //public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
-        public Main_VM MyMainVM { get { return Main_VM.GetInstance(); } }
-        private IMapApController _altitudeProfilesController = null;
+		private Main_VM _myMainVM = null;
+		public Main_VM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
+
+		private IMapApController _altitudeProfilesController = null;
 
         private const double ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL = 50.0;
 
-        internal AltitudeProfiles_VM(IMapApController altitudeProfilesController)
+        internal AltitudeProfiles_VM(IMapApController altitudeProfilesController, Main_VM mainVM)
         {
+			MyMainVM = mainVM;
             _altitudeProfilesController = altitudeProfilesController;
             MyMainVM.MyAltitudeProfiles_VM = this;
         }

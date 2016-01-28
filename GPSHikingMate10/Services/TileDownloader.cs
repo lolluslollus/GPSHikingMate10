@@ -19,7 +19,7 @@ namespace LolloGPS.Core
 		Task<GeoboundingBox> GetMinMaxLatLonAsync();
 		Task<BasicGeoposition> GetCentreAsync();
 	}
-	public class TileDownloader
+	public class TileDownloader : OpenableObservableData
 	{
 		#region properties
 		public const int MaxProgressStepsToReport = 25;
@@ -53,14 +53,16 @@ namespace LolloGPS.Core
 		{
 			_gbbProvider = gbbProvider;
 		}
-		internal void Open()
+		protected override Task OpenMayOverrideAsync()
 		{
 			IsCancelledBySuspend = false;
 			IsCancelledByUser = false;
+			return Task.CompletedTask;
 		}
-		internal void Close()
+		protected override Task CloseMayOverrideAsync()
 		{
 			IsCancelledBySuspend = true;
+			return Task.CompletedTask;
 		}
 		#endregion lifecycle
 
@@ -187,31 +189,21 @@ namespace LolloGPS.Core
 					Stopwatch sw0 = new Stopwatch();
 					sw0.Start();
 #endif
-					CancellationTokenSource cts = new CancellationTokenSource();
-					var token = cts.Token;
 					try
 					{
-						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = token }, (tile) =>
+						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = _token }, (tile) =>
 						{
 							bool isOk = tileCache.SaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom).Result;
 							if (isOk) currentOkCnt++;
 
 							currentCnt++;
 							if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
-							if (IsCancelled) cts.Cancel(true);
+							if (IsCancelled) _cts.Cancel(true);
 						});
 					}
 					catch (OperationCanceledException) { }
 					catch (ObjectDisposedException) { }
 					catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename); }
-					finally
-					{
-						if (cts != null)
-						{
-							cts.Dispose();
-							cts = null;
-						}
-					}
 
 					//foreach (var tile in requiredTilesOrderedByZoom)
 					//{

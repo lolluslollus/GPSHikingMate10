@@ -23,13 +23,19 @@ namespace LolloGPS.Core
 	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
+		public Main_VM MainVM
+		{
+			get { return (Main_VM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
+		}
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(Main_VM), typeof(AltitudeProfiles), new PropertyMetadata(null));
+
 		private AltitudeProfiles_VM _myVM = null;
 		public AltitudeProfiles_VM MyVM { get { return _myVM; } }
 
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
-
-		private CancellationTokenSource _cts = null;
 		#endregion properties
 
 
@@ -37,11 +43,12 @@ namespace LolloGPS.Core
 		public AltitudeProfiles()
 		{
 			InitializeComponent();
-			_myVM = new AltitudeProfiles_VM(this as IMapApController);
 			DataContext = MyPersistentData;
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
+			_myVM = new AltitudeProfiles_VM(this as IMapApController, MainVM);
+
 			HistoryChart.Open();
 			Route0Chart.Open();
 			LandmarksChart.Open();
@@ -73,16 +80,7 @@ namespace LolloGPS.Core
 			Route0Chart.Close();
 			LandmarksChart.Close();
 
-			CancelPendingTasks(); // after removing the handlers
-
 			return Task.CompletedTask;
-		}
-
-		private void CancelPendingTasks()
-		{
-			_cts?.Cancel();
-			//_cts.Dispose(); This is done in the exception handler that catches the OperationCanceled exception. If you do it here, the exception handler will throw an ObjectDisposed exception
-			//_cts = null;
 		}
 		#endregion lifecycle
 
@@ -319,7 +317,7 @@ namespace LolloGPS.Core
 
 		private async Task DrawOneSeriesAsync(Collection<PointRecord> coll, LolloChart chart, bool isHistogram, bool respectDatesAndTimes)
 		{
-			// this method can run on any thread
+			// this method always runs under _isOpenSemaphore
 			try
 			{
 				bool sortIfRespectingDatesAndTimes = true;
@@ -332,32 +330,15 @@ namespace LolloGPS.Core
 				_myVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
 					ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
 
-				//// if another thread is working in this method already, wait.
-				//// Otherwise, it might dispose _cts when I still need it, unduly causing an ObjectDisposedException.
-				//// Essentially, this semaphore protects the cancellation token.
-				// However, by now, I always run this under _isOpenSemaphore, so I don't need this other semaphore anymore
-				//await _semaphore.WaitAsync().ConfigureAwait(false);
-
-				if (_cts == null) _cts = new CancellationTokenSource();
-				CancellationToken token = _cts.Token;
-
 				await RunInUiThreadAsync(delegate
 				{
-					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, token);
+					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, _token);
 				}).ConfigureAwait(false);
 			}
-			//catch (ObjectDisposedException) { } // fires when I dispose sema and have not rector'd it while the current thread is inside it (unlikely)
-			//catch (SemaphoreFullException) { } // fires when I dispose sema and rector it while the current thread is inside it
 			catch (OperationCanceledException) { } // fires when cts is cancelled
-												   //catch (Exception ex)
-												   //{
-												   //	if (SemaphoreSlimSafeRelease.IsAlive(_semaphore))
-												   //		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-												   //}
-			finally
+			catch (Exception ex)
 			{
-				_cts?.Dispose();
-				_cts = null;
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
 
@@ -390,7 +371,8 @@ namespace LolloGPS.Core
 					if (MyPersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					token.ThrowIfCancellationRequested();
+					if (token.IsCancellationRequested) return;
+
 					chart.Draw();
 
 					chart.Visibility = Visibility.Visible;

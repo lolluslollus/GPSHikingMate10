@@ -17,8 +17,13 @@ namespace LolloGPS.Core
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		private Main_VM _myVM = Main_VM.GetInstance();
-		public Main_VM MyVM { get { return _myVM; } }
+		public Main_VM MyVM
+		{
+			get { return (Main_VM)GetValue(MyVMProperty); }
+			set { SetValue(MyVMProperty, value); }
+		}
+		public static readonly DependencyProperty MyVMProperty =
+			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(PointsPanel), new PropertyMetadata(null));
 		#endregion properties
 
 		#region events       
@@ -155,7 +160,7 @@ namespace LolloGPS.Core
 
 		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
 		{
-			_myVM?.NavigateToUri(PersistentData?.Target?.HyperLink);
+			MyVM?.NavigateToUri(PersistentData?.Target?.HyperLink);
 		}
 
 		private void OnGotoTarget_Click(object sender, RoutedEventArgs e)
@@ -165,7 +170,7 @@ namespace LolloGPS.Core
 
 		private void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)
 		{
-			Task set = _myVM?.SetTargetToCurrentAsync();
+			Task set = MyVM?.SetTargetToCurrentAsync();
 		}
 
 		private void OnAddTargetToLandmarks_Click(object sender, RoutedEventArgs e)

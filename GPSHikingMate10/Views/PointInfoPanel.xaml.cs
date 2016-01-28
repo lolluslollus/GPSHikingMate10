@@ -19,15 +19,13 @@ namespace LolloGPS.Core
 	{
 		public event EventHandler PointChanged;
 
-		//public FrameworkElement PopupContainer
-		//{
-		//    get { return (FrameworkElement)GetValue(PopupContainerProperty); }
-		//    set { SetValue(PopupContainerProperty, value); }
-		//}
-		//public static readonly DependencyProperty PopupContainerProperty =
-		//    DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(PointInfoPanel), new PropertyMetadata(Window.Current.Content));
-
-		private Main_VM _myVM = Main_VM.GetInstance();
+		public Main_VM MyVM
+		{
+			get { return (Main_VM)GetValue(MyVMProperty); }
+			set { SetValue(MyVMProperty, value); }
+		}
+		public static readonly DependencyProperty MyVMProperty =
+			DependencyProperty.Register("MyVM", typeof(Main_VM), typeof(PointInfoPanel), new PropertyMetadata(null));
 
 		private bool _isGotoPreviousEnabled = false;
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
@@ -43,7 +41,7 @@ namespace LolloGPS.Core
 		public PointInfoPanel()
 		{
 			InitializeComponent();
-			BackPressedRaiser = _myVM;
+			BackPressedRaiser = MyVM;
 		}
 		public void Close()
 		{
@@ -99,7 +97,7 @@ namespace LolloGPS.Core
 
 		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
 		{
-			_myVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
+			MyVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
 		}
 
 		private void OnGotoPrevious_Click(object sender, RoutedEventArgs e)
