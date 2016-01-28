@@ -60,7 +60,7 @@ namespace LolloBaseUserControls
 			{
 				var cts = _cts;
 				if (cts != null) return cts.Token;
-				else return new CancellationToken(true); // throw new OperationCanceledException();
+				else return new CancellationToken(false); // we must be optimistic, or the methods running in separate tasks will always crap out
 			}
 		}
 		#endregion properties

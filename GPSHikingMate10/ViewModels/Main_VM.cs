@@ -1,7 +1,7 @@
 ﻿using GPX;
 using LolloBaseUserControls;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using LolloGPS.GPSInteraction;
@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Activation;
 using Windows.Phone.UI.Input;
 using Windows.Storage;
@@ -37,17 +38,17 @@ namespace LolloGPS.Core
 		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
 
-		private LolloMapVM _myLolloMap_VM = null;
-		public LolloMapVM MyLolloMap_VM { get { return _myLolloMap_VM; } set { _myLolloMap_VM = value; RaisePropertyChanged_UI(); } }
+		private LolloMapVM _lolloMapVM = null;
+		public LolloMapVM LolloMapVM { get { return _lolloMapVM; } set { _lolloMapVM = value; RaisePropertyChanged_UI(); } }
 
-		private AltitudeProfilesVM _myAltitudeProfiles_VM = null;
-		public AltitudeProfilesVM MyAltitudeProfiles_VM { get { return _myAltitudeProfiles_VM; } set { _myAltitudeProfiles_VM = value; RaisePropertyChanged_UI(); } }
+		private AltitudeProfilesVM _altitudeProfilesVM = null;
+		public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } set { _altitudeProfilesVM = value; RaisePropertyChanged_UI(); } }
 
-		public PersistentData MyPersistentData { get { return App.PersistentData; } }
-		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
-		private GPSInteractor _myGPSInteractor = null;
-		public GPSInteractor MyGPSInteractor { get { return _myGPSInteractor; } }
+		private GPSInteractor _gpsInteractor = null;
+		public GPSInteractor GPSInteractor { get { return _gpsInteractor; } }
 
 		private bool _isClearCustomCacheEnabled = false;
 		public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged_UI(); } } }
@@ -88,7 +89,7 @@ namespace LolloGPS.Core
 		{
 			_readDataFromDb = readDataFromDb;
 			_readSettingsFromDb = readSettingsFromDb;
-			_myGPSInteractor = GPSInteractor.GetInstance(MyPersistentData);
+			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 		}
 
 		protected override async Task OpenMayOverrideAsync()
@@ -97,13 +98,13 @@ namespace LolloGPS.Core
 			{
 				if (_readSettingsFromDb) await SuspensionManager.LoadSettingsAndDbDataAsync(_readDataFromDb, _readSettingsFromDb).ConfigureAwait(false);
 
-				await _myGPSInteractor.OpenAsync();
+				await _gpsInteractor.OpenAsync();
 				UpdateClearCacheButtonIsEnabled();
 				UpdateClearCustomCacheButtonIsEnabled();
 				UpdateCacheButtonIsEnabled();
 				UpdateDownloadButtonIsEnabled();
 
-				KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+				KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
 
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 
@@ -122,7 +123,7 @@ namespace LolloGPS.Core
 			{
 				RemoveHandlers_DataChanged();
 				KeepAlive.StopKeepAlive();
-				await _myGPSInteractor.CloseAsync().ConfigureAwait(false);
+				await _gpsInteractor.CloseAsync().ConfigureAwait(false);
 
 				//CancelPendingTasks(); // after removing the handlers
 			}
@@ -144,26 +145,26 @@ namespace LolloGPS.Core
 		#region updaters
 		internal void UpdateClearCustomCacheButtonIsEnabled()
 		{
-			IsClearCustomCacheEnabled = // !(MyPersistentData.IsTilesDownloadDesired && MyRuntimeData.IsConnectionAvailable) &&
-				MyPersistentData.TileSourcez.FirstOrDefault(a => a.IsDeletable) != null &&
+			IsClearCustomCacheEnabled = // !(PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable) &&
+				PersistentData.TileSourcez.FirstOrDefault(a => a.IsDeletable) != null &&
 				TileCacheProcessingQueue.IsFree;
 		}
 		internal void UpdateClearCacheButtonIsEnabled()
 		{
-			IsClearCacheEnabled = // !(MyPersistentData.IsTilesDownloadDesired && MyRuntimeData.IsConnectionAvailable) &&
+			IsClearCacheEnabled = // !(PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable) &&
 				TileCacheProcessingQueue.IsFree;
 		}
 		internal void UpdateCacheButtonIsEnabled()
 		{
-			IsCacheBtnEnabled = // !MyPersistentData.CurrentTileSource.IsTesting && 
-				!MyPersistentData.CurrentTileSource.IsDefault
+			IsCacheBtnEnabled = // !PersistentData.CurrentTileSource.IsTesting && 
+				!PersistentData.CurrentTileSource.IsDefault
 				&& TileCacheProcessingQueue.IsFree;
 		}
 		internal void UpdateDownloadButtonIsEnabled()
 		{
-			IsLeechingEnabled = !MyPersistentData.IsTilesDownloadDesired
-				&& !MyPersistentData.CurrentTileSource.IsDefault
-				&& MyRuntimeData.IsConnectionAvailable
+			IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
+				&& !PersistentData.CurrentTileSource.IsDefault
+				&& RuntimeData.IsConnectionAvailable
 				&& TileCacheProcessingQueue.IsFree;
 		}
 		#endregion updaters
@@ -175,8 +176,8 @@ namespace LolloGPS.Core
 			if (!_isDataChangedHandlerActive)
 			{
 				_isDataChangedHandlerActive = true;
-				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				MyRuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
+				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				RuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 				TileCacheProcessingQueue.IsFreeChanged += OnTileCache_IsFreeChanged;
 				TileCacheProcessingQueue.CacheCleared += OnTileCache_CacheCleared;
 			}
@@ -184,10 +185,10 @@ namespace LolloGPS.Core
 
 		private void RemoveHandlers_DataChanged()
 		{
-			if (MyPersistentData != null)
+			if (PersistentData != null)
 			{
-				MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-				MyRuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
+				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				RuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
 				TileCacheProcessingQueue.IsFreeChanged -= OnTileCache_IsFreeChanged;
 				TileCacheProcessingQueue.CacheCleared -= OnTileCache_CacheCleared;
 				_isDataChangedHandlerActive = false;
@@ -199,22 +200,22 @@ namespace LolloGPS.Core
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					MyPersistentData.Current.Latitude = MyPersistentData.Current.Latitude; // trigger PropertyChanged to make it reraw the fields bound to it
-					MyPersistentData.Current.Longitude = MyPersistentData.Current.Longitude; // trigger PropertyChanged to make it reraw the fields bound to it
+					PersistentData.Current.Latitude = PersistentData.Current.Latitude; // trigger PropertyChanged to make it reraw the fields bound to it
+					PersistentData.Current.Longitude = PersistentData.Current.Longitude; // trigger PropertyChanged to make it reraw the fields bound to it
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					if (MyPersistentData?.Current != null) MyPersistentData.Current.Altitude = MyPersistentData.Current.Altitude;
+					if (PersistentData?.Current != null) PersistentData.Current.Altitude = PersistentData.Current.Altitude;
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsKeepAlive))
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					KeepAlive.UpdateKeepAlive(MyPersistentData.IsKeepAlive);
+					KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
@@ -263,7 +264,7 @@ namespace LolloGPS.Core
 			// LOLLO TODO check this method
 			if (args.IsAlsoRemoveSources && args.IsCacheCleared)
 			{
-				await MyPersistentData.RemoveTileSourcesAsync(args.TileSource);
+				await PersistentData.RemoveTileSourcesAsync(args.TileSource);
 			}
 
 			// output messages
@@ -271,30 +272,30 @@ namespace LolloGPS.Core
 			{
 				if (args.HowManyRecordsDeleted > 0)
 				{
-					MyPersistentData.LastMessage = (args.HowManyRecordsDeleted + " " + args.TileSource.DisplayName + " records deleted");
+					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " " + args.TileSource.DisplayName + " records deleted");
 				}
 				else if (args.IsCacheCleared)
 				{
-					MyPersistentData.LastMessage = (args.TileSource.DisplayName + " cache is empty");
+					PersistentData.LastMessage = (args.TileSource.DisplayName + " cache is empty");
 				}
 				else
 				{
-					MyPersistentData.LastMessage = (args.TileSource.DisplayName + " cache is busy");
+					PersistentData.LastMessage = (args.TileSource.DisplayName + " cache is busy");
 				}
 			}
 			else if (args.TileSource.IsAll)
 			{
 				if (args.HowManyRecordsDeleted > 0)
 				{
-					MyPersistentData.LastMessage = (args.HowManyRecordsDeleted + " records deleted");
+					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " records deleted");
 				}
 				else if (args.IsCacheCleared)
 				{
-					MyPersistentData.LastMessage = ("Cache empty");
+					PersistentData.LastMessage = ("Cache empty");
 				}
 				else
 				{
-					MyPersistentData.LastMessage = ("Cache busy");
+					PersistentData.LastMessage = ("Cache busy");
 				}
 			}
 		}
@@ -306,37 +307,37 @@ namespace LolloGPS.Core
 		{
 			var args = new BackOrHardSoftKeyPressedEventArgs();
 			BackOrHardSoftKeyPressed?.Invoke(this, args);
-			if (!args.Handled) MyPersistentData.IsShowingPivot = false;
+			if (!args.Handled) PersistentData.IsShowingPivot = false;
 		}
 		public void GoBackTabletSoft(object sender, BackRequestedEventArgs e)
 		{
-			if (MyPersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
+			if (PersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
 			var args = new BackOrHardSoftKeyPressedEventArgs();
 			BackOrHardSoftKeyPressed?.Invoke(sender, args);
-			if (!args.Handled) MyPersistentData.IsShowingPivot = false;
+			if (!args.Handled) PersistentData.IsShowingPivot = false;
 		}
 		public void GoBackHard(object sender, BackPressedEventArgs e)
 		{
-			if (MyPersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
+			if (PersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
 			var args = new BackOrHardSoftKeyPressedEventArgs();
 			BackOrHardSoftKeyPressed?.Invoke(sender, args);
-			if (!args.Handled) MyPersistentData.IsShowingPivot = false;
+			if (!args.Handled) PersistentData.IsShowingPivot = false;
 		}
 		public void SetLastMessage_UI(string message)
 		{
-			PersistentData.GetInstance().LastMessage = message;
+			App.PersistentData.LastMessage = message;
 		}
 		public void GetAFix()
 		{
-			Task getLoc = _myGPSInteractor.GetGeoLocationAppendingHistoryAsync();
+			Task getLoc = _gpsInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
 		public void ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			if (!tileSource.IsNone && !tileSource.IsDefault)
 			{
-				MyPersistentData.LastMessage = "clearing the cache...";
+				PersistentData.LastMessage = "clearing the cache...";
 				TileCache.ScheduleClear(tileSource, isAlsoRemoveSources);
-				//MyPersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
+				//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
 			}
 			// LOLLO TODO see what happens now: is the event handler in MainVM enough?
 
@@ -348,7 +349,7 @@ namespace LolloGPS.Core
 
 			//	if (isAlsoRemoveSources && howManyRecordsDeleted >= 0)
 			//	{
-			//		await MyPersistentData.RemoveTileSourcesAsync(tileSource);
+			//		await PersistentData.RemoveTileSourcesAsync(tileSource);
 			//	}
 
 			//	// output messages
@@ -389,26 +390,26 @@ namespace LolloGPS.Core
 
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
-			if (_myLolloMap_VM != null)
+			if (_lolloMapVM != null)
 			{
-				var output = await _myLolloMap_VM.GetHowManyTiles4DifferentZoomsAsync();
+				var output = await _lolloMapVM.GetHowManyTiles4DifferentZoomsAsync();
 				return output;
 			}
 			else return new List<Tuple<int, int>>();
 		}
 		public void CancelDownloadByUser()
 		{
-			if (_myLolloMap_VM != null) _myLolloMap_VM.CancelDownloadByUser();
+			if (_lolloMapVM != null) _lolloMapVM.CancelDownloadByUser();
 		}
 
 		public async Task StartUserTestingTileSourceAsync() // when i click "test"
 		{
-			Tuple<bool, string> result = await MyPersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
+			Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
 
 			if (result?.Item1 == true)
 			{
 				TestTileSourceErrorMsg = string.Empty; // ok
-				MyPersistentData.IsShowingPivot = false;
+				PersistentData.IsShowingPivot = false;
 			}
 			else TestTileSourceErrorMsg = result.Item2;         // error
 
@@ -456,16 +457,16 @@ namespace LolloGPS.Core
 		}
 		public async Task SetTargetToCurrentAsync()
 		{
-			GPSInteractor gpsInteractor = GPSInteractor.GetInstance(MyPersistentData);
+			GPSInteractor gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 			if (gpsInteractor == null) return;
 
 			Task vibrate = Task.Run(() => App.ShortVibration());
 			var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
-			Task upd = currrent?.UpdateUIEditablePropertiesAsync(MyPersistentData?.Target, PersistentData.Tables.History).ContinueWith(delegate
+			Task upd = currrent?.UpdateUIEditablePropertiesAsync(PersistentData?.Target, PersistentData.Tables.History).ContinueWith(delegate
 			{
 				PointRecord currentClone = null;
 				PointRecord.Clone(currrent, ref currentClone);
-				Task add = MyPersistentData?.TryAddPointToLandmarksAsync(currentClone);
+				Task add = PersistentData?.TryAddPointToLandmarksAsync(currentClone);
 			});
 		}
 		#endregion services
@@ -474,21 +475,21 @@ namespace LolloGPS.Core
 		#region IMapApController
 		public async Task CentreOnRoute0Async()
 		{
-			MyPersistentData.IsShowingPivot = false;
-			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnRoute0Async();
-			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnRoute0Async().ConfigureAwait(false);
+			PersistentData.IsShowingPivot = false;
+			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnRoute0Async();
+			if (_lolloMapVM != null) await _lolloMapVM.CentreOnRoute0Async().ConfigureAwait(false);
 		}
 		public async Task CentreOnHistoryAsync()
 		{
-			MyPersistentData.IsShowingPivot = false;
-			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnHistoryAsync();
-			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnHistoryAsync().ConfigureAwait(false);
+			PersistentData.IsShowingPivot = false;
+			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnHistoryAsync();
+			if (_lolloMapVM != null) await _lolloMapVM.CentreOnHistoryAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnLandmarksAsync()
 		{
-			MyPersistentData.IsShowingPivot = false;
-			if (_myAltitudeProfiles_VM != null) await _myAltitudeProfiles_VM.CentreOnLandmarksAsync();
-			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnLandmarksAsync().ConfigureAwait(false);
+			PersistentData.IsShowingPivot = false;
+			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnLandmarksAsync();
+			if (_lolloMapVM != null) await _lolloMapVM.CentreOnLandmarksAsync().ConfigureAwait(false);
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
@@ -499,30 +500,26 @@ namespace LolloGPS.Core
 		}
 		public async Task CentreOnTargetAsync()
 		{
-			MyPersistentData.IsShowingPivot = false;
+			PersistentData.IsShowingPivot = false;
 			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless
-			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnTargetAsync().ConfigureAwait(false);
+			if (_lolloMapVM != null) await _lolloMapVM.CentreOnTargetAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnCurrentAsync()
 		{
-			MyPersistentData.IsShowingPivot = false;
+			PersistentData.IsShowingPivot = false;
 			// await _myAltitudeProfiles_VM?.CentreOnCurrentAsync(); // useless
-			if (_myLolloMap_VM != null) await _myLolloMap_VM.CentreOnCurrentAsync().ConfigureAwait(false);
+			if (_lolloMapVM != null) await _lolloMapVM.CentreOnCurrentAsync().ConfigureAwait(false);
 		}
 		public Task Goto2DAsync()
 		{
-			MyPersistentData.IsShowingPivot = false;
-			Task alt = _myAltitudeProfiles_VM?.Goto2DAsync();
-			return _myLolloMap_VM?.Goto2DAsync();
+			PersistentData.IsShowingPivot = false;
+			Task alt = _altitudeProfilesVM?.Goto2DAsync();
+			return _lolloMapVM?.Goto2DAsync();
 		}
 		#endregion IMapApController
 
 
 		#region save and load with picker
-		private SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		//internal CancellationTokenSource _fileSavePickerCts = null;
-		//internal CancellationTokenSource _fileOpenPickerCts = null;
-
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
 			if (IsSaving) return;
@@ -531,9 +528,9 @@ namespace LolloGPS.Core
 				IsSaving = true;
 
 				SwitchableObservableCollection<PointRecord> series = null;
-				if (whichSeries == PersistentData.Tables.History) series = MyPersistentData.History;
-				else if (whichSeries == PersistentData.Tables.Route0) series = MyPersistentData.Route0;
-				else if (whichSeries == PersistentData.Tables.Landmarks) series = MyPersistentData.Landmarks;
+				if (whichSeries == PersistentData.Tables.History) series = PersistentData.History;
+				else if (whichSeries == PersistentData.Tables.Route0) series = PersistentData.Route0;
+				else if (whichSeries == PersistentData.Tables.Landmarks) series = PersistentData.Landmarks;
 				else return;
 
 				SetLastMessage_UI("saving GPX file...");
@@ -556,6 +553,15 @@ namespace LolloGPS.Core
 				IsSaving = false;
 			}
 		}
+
+		/// <summary>
+		/// This method is called in a separate task on low-memory phones
+		/// </summary>
+		/// <param name="series"></param>
+		/// <param name="whichSeries"></param>
+		/// <param name="fileCreationDateTime"></param>
+		/// <param name="file"></param>
+		/// <returns></returns>
 		private async Task SaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
 		{
 			Logger.Add_TPL("SaveSeriesToFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -563,16 +569,12 @@ namespace LolloGPS.Core
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil)
+				if (file != null && whichSeries != PersistentData.Tables.nil && !CancToken.IsCancellationRequested)
 				{
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("saving GPX file...");
-						if (CancToken.IsCancellationRequested)
-						{
-							Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-							return;
-						}
+						if (CancToken.IsCancellationRequested) return;
 						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancToken).ConfigureAwait(false);
 					}).ConfigureAwait(false);
 				}
@@ -593,7 +595,6 @@ namespace LolloGPS.Core
 			try
 			{
 				IsLoading = true;
-
 				SetLastMessage_UI("reading GPX file...");
 
 				var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
@@ -617,27 +618,29 @@ namespace LolloGPS.Core
 		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 
+		/// <summary>
+		/// This method is called in a separate task on low-memory phones
+		/// </summary>
+		/// <param name="file"></param>
+		/// <param name="whichSeries"></param>
+		/// <returns></returns>
 		private async Task LoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
 		{
-			Logger.Add_TPL("LoadSeriesFromFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			// Logger.Add_TPL("LoadSeriesFromFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil)
+				if (file != null && whichSeries != PersistentData.Tables.nil && !CancToken.IsCancellationRequested)
 				{
 					await Task.Run(async delegate
 					{
-						Logger.Add_TPL("LoadSeriesFromFileAsync() started a worker thread", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						SetLastMessage_UI("reading GPX file...");
 
-						if (CancToken.IsCancellationRequested)
-						{
-							Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-							return;
-						}
+						if (CancToken.IsCancellationRequested) return;
 						// load the file
 						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
+						if (CancToken.IsCancellationRequested) return;
 						Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						// update the UI with the file data
@@ -648,12 +651,12 @@ namespace LolloGPS.Core
 								case PersistentData.Tables.History:
 									break;
 								case PersistentData.Tables.Route0:
-									await MyPersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
+									await PersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("LoadSeriesFromFileAsync() loaded route0 into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									await CentreOnRoute0Async().ConfigureAwait(false);
 									break;
 								case PersistentData.Tables.Landmarks:
-									await MyPersistentData.LoadLandmarksFromDbAsync(false).ConfigureAwait(false);
+									await PersistentData.LoadLandmarksFromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("LoadSeriesFromFileAsync() loaded landmarks into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									await CentreOnLandmarksAsync().ConfigureAwait(false);
 									break;
@@ -673,7 +676,7 @@ namespace LolloGPS.Core
 				if (result?.Item1 == true)
 				{
 					SetLastMessage_UI(result.Item2);
-					MyPersistentData.IsShowingPivot = false;
+					PersistentData.IsShowingPivot = false;
 				}
 				else if (whichSeries != PersistentData.Tables.nil) SetLastMessage_UI(string.Format("could not load {0}", PersistentData.GetTextForSeries(whichSeries)));
 				else SetLastMessage_UI("could not load file");
@@ -683,11 +686,16 @@ namespace LolloGPS.Core
 		#endregion save and load with picker
 
 
-		#region continuations
+		#region open app through file
+		/// <summary>
+		/// This method is called in a separate task on low-memory phones
+		/// </summary>
+		/// <param name="args"></param>
+		/// <returns></returns>
 		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
 		{
 			List<PersistentData.Tables> result = new List<PersistentData.Tables>();
-			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile)
+			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile && !CancToken.IsCancellationRequested)
 			{
 				Tuple<bool, string> landmarksResult = Tuple.Create(false, "");
 				Tuple<bool, string> route0Result = Tuple.Create(false, "");
@@ -697,17 +705,9 @@ namespace LolloGPS.Core
 					SetLastMessage_UI("reading GPX file...");
 					// load the file, attempting to read landmarks and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
-					if (CancToken.IsCancellationRequested)
-					{
-						Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-						return result;
-					}
+					if (CancToken.IsCancellationRequested) return result;
 					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, CancToken).ConfigureAwait(false);
-					if (CancToken.IsCancellationRequested)
-					{
-						Logger.Add_TPL("Canc requested", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-						return result;
-					}
+					if (CancToken.IsCancellationRequested) return result;
 					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
 				}
 				catch (Exception) { }
@@ -734,7 +734,7 @@ namespace LolloGPS.Core
 			}
 			return result;
 		}
-		#endregion continuations
+		#endregion open app through file
 	}
 
 	public interface IMapApController

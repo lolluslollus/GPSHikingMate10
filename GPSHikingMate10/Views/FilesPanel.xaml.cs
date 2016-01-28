@@ -1,6 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using System;
 using System.Threading.Tasks;
 using Windows.UI.Popups;
@@ -55,7 +55,7 @@ namespace LolloGPS.Core
 			dialog.DefaultCommandIndex = 1;
 			// Show the message dialog
 			IUICommand reply = await dialog.ShowAsync().AsTask();
-			if (reply == yesCommand) { Task res = MainVM?.MyPersistentData?.ResetHistoryAsync(); }
+			if (reply == yesCommand) { Task res = MainVM?.PersistentData?.ResetHistoryAsync(); }
 		}
 
 		private void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
@@ -70,7 +70,7 @@ namespace LolloGPS.Core
 
 		private void OnClearRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			Task rr = MainVM?.MyPersistentData?.ResetRoute0Async();
+			Task rr = MainVM?.PersistentData?.ResetRoute0Async();
 		}
 
 		private void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
@@ -90,7 +90,7 @@ namespace LolloGPS.Core
 
 		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task cll = MainVM?.MyPersistentData?.ResetLandmarksAsync();
+			Task cll = MainVM?.PersistentData?.ResetLandmarksAsync();
 		}
 
 		private void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)

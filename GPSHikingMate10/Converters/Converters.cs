@@ -8,7 +8,7 @@ using Windows.Devices.Geolocation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 
 namespace LolloGPS.Converters
 {

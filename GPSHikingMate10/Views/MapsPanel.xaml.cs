@@ -1,6 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloListChooser;
 using System;
@@ -14,8 +14,8 @@ namespace LolloGPS.Core
 {
     public sealed partial class MapsPanel : OrientationResponsiveUserControl
     {
-        public PersistentData MyPersistentData { get { return App.PersistentData; } }
-        public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+        public PersistentData PersistentData { get { return App.PersistentData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		public MainVM MainVM
 		{
@@ -37,7 +37,7 @@ namespace LolloGPS.Core
         }
         private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
         {
-            MyPersistentData.CycleMapStyle();
+            PersistentData.CycleMapStyle();
         }
 
         private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
@@ -46,7 +46,7 @@ namespace LolloGPS.Core
             {
                 ClearCacheChooser.IsPopupOpen = true;
             }
-            else MyPersistentData.LastMessage = "Cache busy";
+            else PersistentData.LastMessage = "Cache busy";
         }
         private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
@@ -86,14 +86,14 @@ namespace LolloGPS.Core
                     MainVM.SetLastMessage_UI("No downloads possible for this area");
                 }
             }
-            else MyPersistentData.LastMessage = "Download busy";
+            else PersistentData.LastMessage = "Download busy";
         }
         private void OnZoomLevelChooser_ItemSelected(object sender, TextAndTag e)
         {
             if (e == null || e.Tag == null || !(e.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
-            MyPersistentData.SetIsTilesDownloadDesired(true, maxZoom);
-            MyPersistentData.IsShowingPivot = false;
+            PersistentData.SetIsTilesDownloadDesired(true, maxZoom);
+            PersistentData.IsShowingPivot = false;
         }
         //protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackSoftKeyPressedEventArgs e)
         //{

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
@@ -16,8 +17,8 @@ namespace LolloGPS.Core
 
 		private MainVM _myMainVM = null;
         public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
-        public PersistentData MyPersistentData { get { return App.PersistentData; } }
-        public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+        public PersistentData PersistentData { get { return App.PersistentData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
         private TileDownloader _tileDownloader = null;
         private TileCache _tileCache = null;
@@ -32,7 +33,7 @@ namespace LolloGPS.Core
         public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, MainVM mainVM)
         {
 			MyMainVM = mainVM;
-            MyMainVM.MyLolloMap_VM = this;
+            MyMainVM.LolloMapVM = this;
             _gbbProvider = gbbProvider;
             _mapController = mapController;
             _mapTileSources = mapTileSources;
@@ -42,7 +43,7 @@ namespace LolloGPS.Core
         {
             await _tileDownloader.OpenAsync();
             Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-            if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
+            if (!PersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(PersistentData.CurrentTileSource, PersistentData.IsMapCached);
             AddHandler_DataChanged();
         }
         private void OpenAlternativeMap_Http(TileSourceRecord tileSource, bool isCaching)
@@ -126,7 +127,7 @@ namespace LolloGPS.Core
         /// <returns></returns>
         private async Task UpdateDownloadTilesAfterConditionsChangedAsync()
         {
-            if (MyPersistentData.IsTilesDownloadDesired && MyRuntimeData.IsConnectionAvailable)
+            if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
             {
                 Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
                 MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
@@ -137,19 +138,19 @@ namespace LolloGPS.Core
         private bool _isDataChangedHandlerActive = false;
         private void AddHandler_DataChanged()
         {
-            if (!_isDataChangedHandlerActive && MyPersistentData != null && MyRuntimeData != null)
+            if (!_isDataChangedHandlerActive && PersistentData != null && RuntimeData != null)
             {
-                MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-                MyRuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
+                PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+                RuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
                 _isDataChangedHandlerActive = true;
             }
         }
         private void RemoveHandler_DataChanged()
         {
-            if (MyPersistentData != null && MyRuntimeData != null)
+            if (PersistentData != null && RuntimeData != null)
             {
-                MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-                MyRuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
+                PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+                RuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
                 _isDataChangedHandlerActive = false;
             }
         }
@@ -166,20 +167,20 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					CloseAlternativeMap_Http();
-					if (!MyPersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(MyPersistentData.CurrentTileSource, MyPersistentData.IsMapCached);
+					if (!PersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(PersistentData.CurrentTileSource, PersistentData.IsMapCached);
 				});
             }
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
 			{
 				var tileCache = _tileCache;
-				if (tileCache != null) tileCache.IsCaching = MyPersistentData.IsMapCached;
+				if (tileCache != null) tileCache.IsCaching = PersistentData.IsMapCached;
 			}
 		}
 		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
             {
-                if (MyRuntimeData.IsConnectionAvailable)
+                if (RuntimeData.IsConnectionAvailable)
                 {
                     Task resume = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
                 }
@@ -225,12 +226,12 @@ namespace LolloGPS.Core
         }
         public async Task<bool> AddMapCentreToLandmarks()
         {
-            if (_gbbProvider != null && MyPersistentData != null)
+            if (_gbbProvider != null && PersistentData != null)
             {
                 var centre = await _gbbProvider.GetCentreAsync();
 				// this stupid control does not know the altitude, it gives crazy high numbers
 				centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
-                return await MyPersistentData.TryAddPointToLandmarksAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
+                return await PersistentData.TryAddPointToLandmarksAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
             }
             return false;
         }

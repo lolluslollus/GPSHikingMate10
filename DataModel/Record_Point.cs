@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Utilz.Data;
 
 namespace LolloGPS.Data
 {

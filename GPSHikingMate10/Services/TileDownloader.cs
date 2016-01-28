@@ -1,5 +1,6 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Leeching;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;

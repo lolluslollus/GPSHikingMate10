@@ -32,8 +32,8 @@ namespace LolloGPS.Core
 		private AltitudeProfilesVM _altitudeProfilesVM = null;
 		public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } }
 
-		public PersistentData MyPersistentData { get { return App.PersistentData; } }
-		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 		#endregion properties
 
 
@@ -41,7 +41,7 @@ namespace LolloGPS.Core
 		public AltitudeProfiles()
 		{
 			InitializeComponent();
-			DataContext = MyPersistentData;
+			DataContext = PersistentData;
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
@@ -60,7 +60,7 @@ namespace LolloGPS.Core
 				{
 					try
 					{
-						MyScrollViewer.ChangeView(0.0, MyPersistentData.AltLastVScroll, 1, true);
+						MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true);
 					}
 					catch { }
 				});
@@ -72,7 +72,7 @@ namespace LolloGPS.Core
 		{
 			RemoveHandlers();
 
-			MyPersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
+			PersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
 
 			HistoryChart.Close();
 			Route0Chart.Close();
@@ -87,63 +87,63 @@ namespace LolloGPS.Core
 		private bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
-			if (!_isHandlersActive && MyPersistentData != null)
+			if (!_isHandlersActive && PersistentData != null)
 			{
 				_isHandlersActive = true;
-				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				MyPersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
-				MyPersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
-				MyPersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
-				MyPersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
+				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
+				PersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
 			}
 		}
 
 		private void RemoveHandlers()
 		{
-			if (MyPersistentData != null)
+			if (PersistentData != null)
 			{
-				MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-				MyPersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
-				MyPersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
-				MyPersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
-				MyPersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
+				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
+				PersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
 				_isHandlersActive = false;
 			}
 		}
 
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.History?.Count == 0)
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
 				&& Visibility == Visibility.Visible
-				&& MyPersistentData?.History != null)
+				&& PersistentData?.History != null)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true);
+					return DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true);
 				});
 			}
 		}
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Route0?.Count == 0)
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
 				&& Visibility == Visibility.Visible
-				&& MyPersistentData?.Route0 != null)
+				&& PersistentData?.Route0 != null)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true);
+					return DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true);
 				});
 			}
 		}
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Landmarks?.Count == 0)
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Landmarks?.Count == 0)
 				&& Visibility == Visibility.Visible
-				&& MyPersistentData?.Landmarks != null)
+				&& PersistentData?.Landmarks != null)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false);
+					return DrawOneSeriesAsync(PersistentData.Landmarks, LandmarksChart, true, false);
 				});
 			}
 		}
@@ -173,7 +173,7 @@ namespace LolloGPS.Core
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
 			// Unless the tracking is on and the autocentre too.
-			if (MyPersistentData?.IsCentreOnCurrent == true && MyRuntimeData.IsAllowCentreOnCurrent)
+			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
 			{
 				Task cen = CentreOnHistoryAsync();
 			}
@@ -186,19 +186,19 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+				if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 				{
-					Task centre = CentreOnSeriesAsync(MyPersistentData.SelectedSeries);
-					switch (MyPersistentData.SelectedSeries)
+					Task centre = CentreOnSeriesAsync(PersistentData.SelectedSeries);
+					switch (PersistentData.SelectedSeries)
 					{
 						case PersistentData.Tables.History:
-							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, MyPersistentData.SelectedIndex_Base1 - 1, MyPersistentData.Selected.Altitude);
+							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.Route0:
-							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, MyPersistentData.SelectedIndex_Base1 - 1, MyPersistentData.Selected.Altitude);
+							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.Landmarks:
-							LandmarksChart.CrossPoint(LandmarksChart.XY1DataSeries, MyPersistentData.SelectedIndex_Base1 - 1, MyPersistentData.Selected.Altitude);
+							LandmarksChart.CrossPoint(LandmarksChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.nil:
 							break;
@@ -217,7 +217,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				switch (MyPersistentData.SelectedSeries)
+				switch (PersistentData.SelectedSeries)
 				{
 					case PersistentData.Tables.History:
 						HistoryChart.UncrossPoint(HistoryChart.XY1DataSeries);
@@ -258,9 +258,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.XMax * MyPersistentData.History.Count > 0)
+				if (e.XMax * PersistentData.History.Count > 0)
 				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.History.Count))], PersistentData.Tables.History));
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.History.Count))], PersistentData.Tables.History));
 				}
 			}
 			catch (Exception ex)
@@ -272,9 +272,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.X / e.XMax * MyPersistentData.Route0.Count > 0)
+				if (e.X / e.XMax * PersistentData.Route0.Count > 0)
 				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Route0.Count))], PersistentData.Tables.Route0));
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Route0.Count))], PersistentData.Tables.Route0));
 				}
 			}
 			catch (Exception ex)
@@ -286,9 +286,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.X / e.XMax * MyPersistentData.Landmarks.Count > 0)
+				if (e.X / e.XMax * PersistentData.Landmarks.Count > 0)
 				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(MyPersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * MyPersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks));
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks));
 				}
 			}
 			catch (Exception ex)
@@ -302,13 +302,13 @@ namespace LolloGPS.Core
 		#region services
 		private void UpdateCharts()
 		{
-			if (MyPersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
+			if (PersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
 			{
-				Task drawH = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.History, HistoryChart, false, true));
+				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
 				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
 				{
-					Task drawR = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Route0, Route0Chart, false, true));
-					Task drawL = Task.Run(() => DrawOneSeriesAsync(MyPersistentData.Landmarks, LandmarksChart, true, false));
+					Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
+					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Landmarks, LandmarksChart, true, false));
 				}
 			}
 		}
@@ -345,7 +345,7 @@ namespace LolloGPS.Core
 		{
 			// this method must run in the UI thread
 			chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
-			if (MyPersistentData != null && points != null && points.GetUpperBound(0) >= 0)
+			if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
 			{
 				try
 				{
@@ -366,7 +366,7 @@ namespace LolloGPS.Core
 						minAltitude + (maxAltitude - minAltitude) * .25,
 						minAltitude };
 					chart.YPrimaryGridLines = new GridLines(yLabels);
-					if (MyPersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
+					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
 					if (token.IsCancellationRequested) return;
@@ -415,7 +415,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && HistoryChart.Visibility == Visibility.Visible)
+					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && HistoryChart.Visibility == Visibility.Visible)
 					{
 						MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
 					}
@@ -434,7 +434,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && Route0Chart.Visibility == Visibility.Visible)
+					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && Route0Chart.Visibility == Visibility.Visible)
 					{
 						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
 						MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
@@ -454,7 +454,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (MyPersistentData != null && MyPersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
+					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
 					{
 						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
 						if (Route0Chart.Visibility == Visibility.Visible) vOffset += Route0Chart.ActualHeight;

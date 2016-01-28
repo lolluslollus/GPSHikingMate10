@@ -16,8 +16,8 @@ namespace LolloGPS.Core
 {
 	public sealed partial class Main : ObservablePage, IInfoPanelEventReceiver
 	{
-		public PersistentData MyPersistentData { get { return App.PersistentData; } }
-		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		private MainVM _mainVM = null;
 		public MainVM MainVM { get { return _mainVM; } }
@@ -116,16 +116,16 @@ namespace LolloGPS.Core
 			if (!_isDataChangedHandlerActive)
 			{
 				_isDataChangedHandlerActive = true;
-				if (MyPersistentData != null) MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				if (MyRuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+				if (PersistentData != null) PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
 				Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
 			}
 		}
 
 		private void RemoveHandlers()
 		{
-			if (MyPersistentData != null) MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-			if (MyRuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
+			if (PersistentData != null) PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+			if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
 			Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
 			_isDataChangedHandlerActive = false;
 		}
@@ -151,7 +151,7 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.LastMessage))
 			{
-				if (!string.IsNullOrWhiteSpace(MyPersistentData.LastMessage))
+				if (!string.IsNullOrWhiteSpace(PersistentData.LastMessage))
 				{
 					Task gt = RunInUiThreadAsync(delegate
 					{
@@ -184,7 +184,7 @@ namespace LolloGPS.Core
 		}
 		private void UpdateAltitudeColumnMaxWidth()
 		{
-			if (!MyPersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
+			if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
 			else AltitudeColumn.MaxWidth = double.PositiveInfinity;
 		}
 		private void SetShowForAWhileOnly()
@@ -197,7 +197,7 @@ namespace LolloGPS.Core
 		}
 		private void OnLastMessage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
-			if (!_mainVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.MyPersistentData.LastMessage))
+			if (!_mainVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.PersistentData.LastMessage))
 			{
 				_mainVM.IsLastMessageVisible = true;
 			}
@@ -250,7 +250,7 @@ namespace LolloGPS.Core
 			{
 				_mainVM.LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);
 			}
-			else if (cnt == "MyPersistentData")
+			else if (cnt == "PersistentData")
 			{
 				_mainVM.LogText = await Logger.ReadAsync(Logger.PersistentDataLogFilename);
 			}
@@ -286,17 +286,17 @@ namespace LolloGPS.Core
 
 		private void OnOpenPivot_Click(object sender, RoutedEventArgs e)
 		{
-			MyPersistentData.IsShowingPivot = !MyPersistentData.IsShowingPivot;
+			PersistentData.IsShowingPivot = !PersistentData.IsShowingPivot;
 		}
 
 		private void OnAltitude_Click(object sender, RoutedEventArgs e)
 		{
-			MyPersistentData.IsShowingPivot = false;
+			PersistentData.IsShowingPivot = false;
 		}
 
 		private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
 		{
-			MyPersistentData.CycleMapStyle();
+			PersistentData.CycleMapStyle();
 		}
 		#endregion event handling
 
@@ -304,12 +304,12 @@ namespace LolloGPS.Core
 		#region point info panel
 		public void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
-			if (MyPersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelPointChanged(sender, e);
+			if (PersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelPointChanged(sender, e);
 			MyLolloMap.OnInfoPanelPointChanged(sender, e);
 
 			try
 			{
-				if (!MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+				if (!PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 				{
 					SelectedPointPopup.IsOpen = false;
 				}
@@ -322,7 +322,7 @@ namespace LolloGPS.Core
 
 		public void OnInfoPanelClosed(object sender, object e)
 		{
-			if (MyPersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelClosed(sender, e);
+			if (PersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelClosed(sender, e);
 			MyLolloMap.OnInfoPanelClosed(sender, e);
 		}
 

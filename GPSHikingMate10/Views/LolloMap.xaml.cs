@@ -1,6 +1,6 @@
 ﻿using LolloBaseUserControls;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -103,8 +103,8 @@ namespace LolloGPS.Core
 
 		private readonly Point LANDMARKS_ANCHOR_POINT = new Point(0.5, 0.5);
 
-		public PersistentData MyPersistentData { get { return App.PersistentData; } }
-		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 		private LolloMapVM _lolloMapVM = null;
 		public LolloMapVM LolloMapVM { get { return _lolloMapVM; } }
 
@@ -131,7 +131,7 @@ namespace LolloGPS.Core
 
 			_myMapInstance = new WeakReference(MyMap);
 
-			MyMap.Style = MyPersistentData.MapStyle;
+			MyMap.Style = PersistentData.MapStyle;
 			MyMap.DesiredPitch = 0.0;
 			MyMap.Heading = 0;
 			MyMap.TrafficFlowVisible = false;
@@ -145,7 +145,7 @@ namespace LolloGPS.Core
 		protected override async Task OpenMayOverrideAsync()
 		{
 			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
-			MyMap.Style = MyPersistentData.MapStyle; // maniman
+			MyMap.Style = PersistentData.MapStyle; // maniman
 			_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
 			await RestoreViewAsync();
 			await _lolloMapVM.OpenAsync();
@@ -169,11 +169,11 @@ namespace LolloGPS.Core
 			// save last map settings
 			try
 			{
-				MyPersistentData.MapLastLat = MyMap.Center.Position.Latitude;
-				MyPersistentData.MapLastLon = MyMap.Center.Position.Longitude;
-				MyPersistentData.MapLastHeading = MyMap.Heading;
-				MyPersistentData.MapLastPitch = MyMap.Pitch;
-				MyPersistentData.MapLastZoom = MyMap.ZoomLevel;
+				PersistentData.MapLastLat = MyMap.Center.Position.Latitude;
+				PersistentData.MapLastLon = MyMap.Center.Position.Longitude;
+				PersistentData.MapLastHeading = MyMap.Heading;
+				PersistentData.MapLastPitch = MyMap.Pitch;
+				PersistentData.MapLastZoom = MyMap.ZoomLevel;
 			}
 			catch (Exception ex)
 			{
@@ -191,10 +191,10 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = MyPersistentData.MapLastLat, Longitude = MyPersistentData.MapLastLon });
+				Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
 				return RunInUiThreadAsync(delegate
 				{
-					Task set = MyMap.TrySetViewAsync(gp, MyPersistentData.MapLastZoom, MyPersistentData.MapLastHeading, MyPersistentData.MapLastPitch, MapAnimationKind.None).AsTask();
+					Task set = MyMap.TrySetViewAsync(gp, PersistentData.MapLastZoom, PersistentData.MapLastHeading, PersistentData.MapLastPitch, MapAnimationKind.None).AsTask();
 				});
 			}
 			catch (Exception ex)
@@ -209,9 +209,9 @@ namespace LolloGPS.Core
 			try
 			{
 				Geopoint newCentre = null;
-				if (MyPersistentData.Current != null && !MyPersistentData.Current.IsEmpty())
+				if (PersistentData.Current != null && !PersistentData.Current.IsEmpty())
 				{
-					newCentre = new Geopoint(new BasicGeoposition() { Latitude = MyPersistentData.Current.Latitude, Longitude = MyPersistentData.Current.Longitude });
+					newCentre = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude });
 				}
 				else
 				{
@@ -272,15 +272,15 @@ namespace LolloGPS.Core
 		}
 		public Task CentreOnLandmarksAsync()
 		{
-			return CentreAsync(MyPersistentData.Landmarks);
+			return CentreAsync(PersistentData.Landmarks);
 		}
 		public Task CentreOnRoute0Async()
 		{
-			return CentreAsync(MyPersistentData.Route0);
+			return CentreAsync(PersistentData.Route0);
 		}
 		public Task CentreOnHistoryAsync()
 		{
-			return CentreAsync(MyPersistentData.History);
+			return CentreAsync(PersistentData.History);
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
@@ -293,13 +293,13 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (MyPersistentData != null && MyPersistentData.Target != null)
+				if (PersistentData != null && PersistentData.Target != null)
 				{
 					Geopoint location = new Geopoint(new BasicGeoposition()
 					{
-						Altitude = MyPersistentData.Target.Altitude,
-						Latitude = MyPersistentData.Target.Latitude,
-						Longitude = MyPersistentData.Target.Longitude
+						Altitude = PersistentData.Target.Altitude,
+						Latitude = PersistentData.Target.Latitude,
+						Longitude = PersistentData.Target.Longitude
 					});
 					return RunInUiThreadAsync(delegate
 					{
@@ -317,9 +317,9 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (MyPersistentData != null && MyPersistentData.Selected != null)
+				if (PersistentData != null && PersistentData.Selected != null)
 				{
-					Geopoint location = new Geopoint(new BasicGeoposition() { Latitude = MyPersistentData.Selected.Latitude, Longitude = MyPersistentData.Selected.Longitude });
+					Geopoint location = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
 					return RunInUiThreadAsync(delegate
 					{
 						Task set = MyMap.TrySetViewAsync(location).AsTask(); //, CentreZoomLevel);
@@ -360,14 +360,14 @@ namespace LolloGPS.Core
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
-					foreach (var item in MyPersistentData.History)
+					foreach (var item in PersistentData.History)
 					{
 						basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
 					}
 				}
 				catch (OutOfMemoryException)
 				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
 				if (CancToken.IsCancellationRequested) return;
@@ -384,7 +384,7 @@ namespace LolloGPS.Core
 				//Better even: use binding; sadly, it is broken for the moment
 				else
 				{
-					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = MyPersistentData.Current.Altitude, Latitude = MyPersistentData.Current.Latitude, Longitude = MyPersistentData.Current.Longitude };
+					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
 					basicGeoPositions.Add(lastGeoposition);
 					_mapPolylineHistory.Path = new Geopath(basicGeoPositions);
 					//MapControl.SetLocation(_imageStartHistory, new Geopoint(lastGeoposition));
@@ -420,14 +420,14 @@ namespace LolloGPS.Core
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
-					foreach (var item in MyPersistentData.Route0)
+					foreach (var item in PersistentData.Route0)
 					{
 						basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
 					}
 				}
 				catch (OutOfMemoryException)
 				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
 				if (CancToken.IsCancellationRequested) return;
@@ -439,7 +439,7 @@ namespace LolloGPS.Core
 																			  //Better even: use binding; sadly, it is broken for the moment
 				else
 				{
-					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = MyPersistentData.Current.Altitude, Latitude = MyPersistentData.Current.Latitude, Longitude = MyPersistentData.Current.Longitude };
+					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
 					basicGeoPositions.Add(lastGeoposition);
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 				}
@@ -473,14 +473,14 @@ namespace LolloGPS.Core
 		//	List<Geopoint> geoPoints = new List<Geopoint>();
 		//	try
 		//	{
-		//		foreach (var item in MyPersistentData.Landmarks)
+		//		foreach (var item in PersistentData.Landmarks)
 		//		{
 		//			geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
 		//		}
 		//	}
 		//	catch (OutOfMemoryException)
 		//	{
-		//		var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+		//		var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 		//	}
 		//	finally
 		//	{
@@ -511,14 +511,14 @@ namespace LolloGPS.Core
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
-					foreach (var item in MyPersistentData.Landmarks)
+					foreach (var item in PersistentData.Landmarks)
 					{
 						geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
 					}
 				}
 				catch (OutOfMemoryException)
 				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 #if DEBUG
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
@@ -557,7 +557,7 @@ namespace LolloGPS.Core
 				}
 				catch (OutOfMemoryException)
 				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since MyPersistentData puts a limit on the points.
+					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 #if DEBUG
 				sw0.Stop(); Debug.WriteLine("attaching icons to map took " + sw0.ElapsedMilliseconds + " msec");
@@ -614,8 +614,8 @@ namespace LolloGPS.Core
 			//_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Visible;
 			_iconFlyoutPoint.Visible = true;
 
-			//MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = MyPersistentData.Selected.Latitude, Longitude = MyPersistentData.Selected.Longitude }));
-			_iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = MyPersistentData.Selected.Latitude, Longitude = MyPersistentData.Selected.Longitude });
+			//MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
+			_iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
 
 			if (!_isFlyoutPointInMap)
 			{
@@ -755,10 +755,10 @@ namespace LolloGPS.Core
 					double tappedScreenPointY = args.Position.Y;
 
 					// pick up the four points delimiting a square centered on the display point that was tapped. Cull the square so it fits into the displayed area.
-					Point topLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
-					Point topRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Max(tappedScreenPointY - MyPersistentData.TapTolerance, 0));
-					Point bottomLeftPoint = new Point(Math.Max(tappedScreenPointX - MyPersistentData.TapTolerance, 0), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
-					Point bottomRightPoint = new Point(Math.Min(tappedScreenPointX + MyPersistentData.TapTolerance, MyMap.ActualWidth), Math.Min(tappedScreenPointY + MyPersistentData.TapTolerance, MyMap.ActualHeight));
+					Point topLeftPoint = new Point(Math.Max(tappedScreenPointX - PersistentData.TapTolerance, 0), Math.Max(tappedScreenPointY - PersistentData.TapTolerance, 0));
+					Point topRightPoint = new Point(Math.Min(tappedScreenPointX + PersistentData.TapTolerance, MyMap.ActualWidth), Math.Max(tappedScreenPointY - PersistentData.TapTolerance, 0));
+					Point bottomLeftPoint = new Point(Math.Max(tappedScreenPointX - PersistentData.TapTolerance, 0), Math.Min(tappedScreenPointY + PersistentData.TapTolerance, MyMap.ActualHeight));
+					Point bottomRightPoint = new Point(Math.Min(tappedScreenPointX + PersistentData.TapTolerance, MyMap.ActualWidth), Math.Min(tappedScreenPointY + PersistentData.TapTolerance, MyMap.ActualHeight));
 
 					Geopoint topLeftGeoPoint = null;
 					Geopoint topRightGeoPoint = null;
@@ -780,7 +780,7 @@ namespace LolloGPS.Core
 					//if a point falls within the square, show its details
 					List<PointRecord> selectedRecords = new List<PointRecord>();
 					List<PersistentData.Tables> selectedSeriess = new List<PersistentData.Tables>();
-					foreach (var item in MyPersistentData.History)
+					foreach (var item in PersistentData.History)
 					{
 						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
 						{
@@ -789,7 +789,7 @@ namespace LolloGPS.Core
 							break; // max 1 record each series
 						}
 					}
-					foreach (var item in MyPersistentData.Route0)
+					foreach (var item in PersistentData.Route0)
 					{
 						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
 						{
@@ -798,7 +798,7 @@ namespace LolloGPS.Core
 							break; // max 1 record each series
 						}
 					}
-					foreach (var item in MyPersistentData.Landmarks)
+					foreach (var item in PersistentData.Landmarks)
 					{
 						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
 						{
@@ -825,7 +825,7 @@ namespace LolloGPS.Core
 
 		public async void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
-			if (MyPersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+			if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 			{
 				DrawFlyoutPoint();
 				await CentreOnSelectedPointAsync();
@@ -855,15 +855,15 @@ namespace LolloGPS.Core
 			Task vibrate = Task.Run(() => App.ShortVibration());
 
 			await _lolloMapVM.AddMapCentreToLandmarks();
-			if (MyPersistentData.IsShowAimOnce)
+			if (PersistentData.IsShowAimOnce)
 			{
-				MyPersistentData.IsShowAim = false;
+				PersistentData.IsShowAim = false;
 			}
 		}
 
 		private void OnAim_Holding(object sender, Windows.UI.Xaml.Input.HoldingRoutedEventArgs e)
 		{
-			MyPersistentData.IsShowAim = false;
+			PersistentData.IsShowAim = false;
 		}
 
 		private void OnProvider_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -872,9 +872,9 @@ namespace LolloGPS.Core
 			{
 				try
 				{
-					if (!string.IsNullOrWhiteSpace(MyPersistentData.CurrentTileSource.ProviderUriString) && MyRuntimeData.IsConnectionAvailable)
+					if (!string.IsNullOrWhiteSpace(PersistentData.CurrentTileSource.ProviderUriString) && RuntimeData.IsConnectionAvailable)
 					{
-						await Launcher.LaunchUriAsync(new Uri(MyPersistentData.CurrentTileSource.ProviderUriString, UriKind.Absolute));
+						await Launcher.LaunchUriAsync(new Uri(PersistentData.CurrentTileSource.ProviderUriString, UriKind.Absolute));
 					}
 				}
 				catch (Exception) { }
@@ -890,14 +890,14 @@ namespace LolloGPS.Core
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					MyMap.Style = MyPersistentData.MapStyle;
+					MyMap.Style = PersistentData.MapStyle;
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					if (MyPersistentData?.Current != null) MyPersistentData.Current.SpeedInMetreSec = MyPersistentData.Current.SpeedInMetreSec;
+					if (PersistentData?.Current != null) PersistentData.Current.SpeedInMetreSec = PersistentData.Current.SpeedInMetreSec;
 
 					double oldZoom = MyMap.ZoomLevel;
 					double newZoom = oldZoom > MyMap.MinZoomLevel ? Math.Max(MyMap.MinZoomLevel, oldZoom * .99) : MyMap.MinZoomLevel * 1.01;
@@ -910,7 +910,7 @@ namespace LolloGPS.Core
 			}
 			//else if (e.PropertyName == "IsCentreOnCurrent")
 			//{
-			//    if (MyPersistentData != null && MyPersistentData.IsCentreOnCurrent)
+			//    if (PersistentData != null && PersistentData.IsCentreOnCurrent)
 			//    {
 			//        CentreOnCurrent();
 			//    }
@@ -921,7 +921,7 @@ namespace LolloGPS.Core
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
 			// Unless the tracking is on and the autocentre too.
-			if (MyPersistentData?.IsCentreOnCurrent == true && MyRuntimeData.IsAllowCentreOnCurrent)
+			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
 			{
 				Task cen = CentreOnCurrentAsync();
 			}
@@ -929,7 +929,7 @@ namespace LolloGPS.Core
 
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.History?.Count == 0)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -943,7 +943,7 @@ namespace LolloGPS.Core
 
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Route0?.Count == 0)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -957,7 +957,7 @@ namespace LolloGPS.Core
 
 		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || MyPersistentData.Landmarks?.Count == 0)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Landmarks?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
@@ -972,26 +972,26 @@ namespace LolloGPS.Core
 		private bool _isHandlerActive = false;
 		private void AddHandlers()
 		{
-			if (MyPersistentData != null && !_isHandlerActive)
+			if (PersistentData != null && !_isHandlerActive)
 			{
 				_isHandlerActive = true;
-				MyPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				MyPersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
-				MyPersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
-				MyPersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
-				MyPersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
+				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
+				PersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
 			}
 		}
 
 		private void RemoveHandlers()
 		{
-			if (MyPersistentData != null)
+			if (PersistentData != null)
 			{
-				MyPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-				MyPersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
-				MyPersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
-				MyPersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
-				MyPersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
+				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
+				PersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
 				_isHandlerActive = false;
 			}
 		}

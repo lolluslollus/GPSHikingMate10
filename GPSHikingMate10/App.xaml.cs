@@ -1,5 +1,5 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Suspension;
 using System;
@@ -31,8 +31,8 @@ namespace LolloGPS.Core
 		#region properties
 		private static PersistentData _persistentData = null; // PersistentData.GetInstance();
 		public static PersistentData PersistentData { get { return _persistentData; } }
-		private static Data.Runtime.RuntimeData _myRuntimeData = null; // RuntimeData.GetInstance();
-		public static Data.Runtime.RuntimeData MyRuntimeData { get { return _myRuntimeData; } }
+		private static RuntimeData _runtimeData = null; // RuntimeData.GetInstance();
+		public static RuntimeData RuntimeData { get { return _runtimeData; } }
 
 		private volatile bool _isResuming = false;
 		public bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
@@ -65,7 +65,7 @@ namespace LolloGPS.Core
 		private async Task OpenDataAsync()
 		{
 			_persistentData = PersistentData.GetInstance();
-			_myRuntimeData = RuntimeData.GetInstance();
+			_runtimeData = RuntimeData.GetInstance();
 
 			await PersistentData.OpenTileCacheDbAsync().ConfigureAwait(false);
 			PersistentData.OpenMainDb();
@@ -85,7 +85,7 @@ namespace LolloGPS.Core
 			PersistentData.CloseMainDb();
 			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
 
-			MyRuntimeData?.Close();
+			RuntimeData?.Close();
 		}
 		#endregion lifecycle
 
@@ -112,7 +112,7 @@ namespace LolloGPS.Core
 				false);
 
 			await OpenDataAsync();
-			if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+			if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 
 			try
 			{
@@ -188,7 +188,7 @@ namespace LolloGPS.Core
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenDataAsync();
-				if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+				if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 
 				if (IsRootFrameMain)
 				{
@@ -249,7 +249,7 @@ namespace LolloGPS.Core
 				bool isAppAlreadyRunning = IsRootFrameMain;
 				if (!isAppAlreadyRunning)
 				{
-					if (!await Licenser.CheckLicensedAsync() /*|| _myRuntimeData.IsBuying*/) return;
+					if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 					Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 

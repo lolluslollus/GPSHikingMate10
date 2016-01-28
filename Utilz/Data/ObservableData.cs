@@ -4,11 +4,10 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using Utilz;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 
-namespace LolloGPS.Data
+namespace Utilz.Data
 {
 	[DataContract]
 	public abstract class ObservableData : INotifyPropertyChanged

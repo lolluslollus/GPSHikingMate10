@@ -8,7 +8,7 @@
     xmlns:listChooser="using:LolloListChooser"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
+    DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="600"
@@ -128,7 +128,7 @@
                 Style="{StaticResource BaseMessageStyle}"
                 TextWrapping="WrapWholeWords"
                 Foreground="{StaticResource FlashyForeground}"
-                Visibility="{Binding ElementName=me, Path=MyRuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
+                Visibility="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
                 Text="No connection"/>
 
         <listChooser:LolloListChooser Grid.Row="6" Grid.Column="0"

@@ -12,7 +12,7 @@
 	UseLayoutRounding="True"
 	d:DesignHeight="400"
 	d:DesignWidth="500"
-	DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}">
+	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}">
 	<UserControl.Resources>
 		<local:HeadingConverter x:Key="HeadingConverter"/>
 		<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>

@@ -15,7 +15,7 @@ namespace LolloGPS.Core
 	{
 		#region properties
 		public PersistentData PersistentData { get { return App.PersistentData; } }
-		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		public MainVM MainVM
 		{
@@ -187,10 +187,10 @@ namespace LolloGPS.Core
 		/// <param name="e"></param>
 		private void OnAim_Click(object sender, RoutedEventArgs e)
 		{
-			if (MainVM.MyPersistentData.IsShowAim)
+			if (MainVM.PersistentData.IsShowAim)
 			{
-				MainVM.MyPersistentData.IsShowAimOnce = false;
-				MainVM.MyPersistentData.IsShowingPivot = false;
+				MainVM.PersistentData.IsShowAimOnce = false;
+				MainVM.PersistentData.IsShowingPivot = false;
 			}
 		}
 		/// <summary>
@@ -200,16 +200,16 @@ namespace LolloGPS.Core
 		/// <param name="e"></param>
 		private void OnAimOnce_Click(object sender, RoutedEventArgs e)
 		{
-			if (MainVM.MyPersistentData.IsShowAim)
+			if (MainVM.PersistentData.IsShowAim)
 			{
-				MainVM.MyPersistentData.IsShowAimOnce = true;
-				MainVM.MyPersistentData.IsShowingPivot = false;
+				MainVM.PersistentData.IsShowAimOnce = true;
+				MainVM.PersistentData.IsShowingPivot = false;
 			}
 		}
 
 		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task clear = MainVM.MyPersistentData.ResetLandmarksAsync();
+			Task clear = MainVM.PersistentData.ResetLandmarksAsync();
 		}
 		#endregion event handlers
 	}

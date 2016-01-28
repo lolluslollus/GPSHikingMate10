@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 
-namespace LolloGPS.Data.Constants
+namespace Utilz.Data.Constants
 {
     public static class ConstantData
     {

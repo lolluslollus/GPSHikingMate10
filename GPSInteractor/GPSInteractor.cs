@@ -1,5 +1,6 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data;
+using Utilz.Data.Constants;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace LolloGPS.GPSInteraction
 	public sealed class GPSInteractor : OpenableObservableData
 	{
 		#region properties
-		private IGPSDataModel _myPersistentData = null;
+		private IGPSDataModel _persistentData = null;
 		private Geolocator _geolocator = null;
 
 		private bool _isGpsWorking = false;
@@ -42,7 +43,7 @@ namespace LolloGPS.GPSInteraction
 		}
 		private GPSInteractor(IGPSDataModel persistentData)
 		{
-			_myPersistentData = persistentData;
+			_persistentData = persistentData;
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
@@ -95,7 +96,7 @@ namespace LolloGPS.GPSInteraction
 				}
 				else if (e.PropertyName == nameof(PersistentData.BackgroundUpdatePeriodInMinutes))
 				{
-					if (_myPersistentData.IsBackgroundEnabled)
+					if (_persistentData.IsBackgroundEnabled)
 					{
 						CloseGetLocBackgroundTask_All(); // must reinit whenever I change these props
 						await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false); // and reregister with the new value (if registration is possible at this time)
@@ -105,7 +106,7 @@ namespace LolloGPS.GPSInteraction
 				{
 					bool isOk = await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false);
 					// if just switched on and ok, get a location now. The foreground tracking does it, so we do it here as well
-					if (isOk && _myPersistentData.IsBackgroundEnabled)
+					if (isOk && _persistentData.IsBackgroundEnabled)
 					{
 						var loc = await GetGeoLocationAppendingHistoryAsync().ConfigureAwait(false);
 					}
@@ -117,18 +118,18 @@ namespace LolloGPS.GPSInteraction
 		{
 			if (!_isDataModelHandlersActive)
 			{
-				if (_myPersistentData != null)
+				if (_persistentData != null)
 				{
-					_myPersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+					_persistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 					_isDataModelHandlersActive = true;
 				}
 			}
 		}
 		private void RemoveHandlers_DataModelPropertyChanged()
 		{
-			if (_myPersistentData != null)
+			if (_persistentData != null)
 			{
-				_myPersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				_persistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 				_isDataModelHandlersActive = false;
 			}
 		}
@@ -189,7 +190,7 @@ namespace LolloGPS.GPSInteraction
 					if (e != null)
 					{
 						var newDataRecord = GetNewHistoryRecord(e.Position);
-						await _myPersistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false);
+						await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false);
 					}
 				}
 				catch (Exception exc)
@@ -210,17 +211,17 @@ namespace LolloGPS.GPSInteraction
 			{
 				_geolocator = new Geolocator()
 				{
-					DesiredAccuracyInMeters = _myPersistentData.DesiredAccuracyInMeters,
-					ReportInterval = _myPersistentData.ReportIntervalInMilliSec,
-					//MovementThreshold = _myPersistentData.MovementThresholdInMetres, // no! either these props or the ones I use, they are conflicting sets
-					//DesiredAccuracy = _myPersistentData.PositAccuracy, // no! either these props or the ones I use, they are conflicting sets
+					DesiredAccuracyInMeters = _persistentData.DesiredAccuracyInMeters,
+					ReportInterval = _persistentData.ReportIntervalInMilliSec,
+					//MovementThreshold = _persistentData.MovementThresholdInMetres, // no! either these props or the ones I use, they are conflicting sets
+					//DesiredAccuracy = _persistentData.PositAccuracy, // no! either these props or the ones I use, they are conflicting sets
 				};
 				// Only with windows phone: You must set the MovementThreshold for 
 				// distance-based tracking or ReportInterval for
 				// periodic-based tracking before adding event handlers.
 			}
 
-			if (_myPersistentData.IsTracking)
+			if (_persistentData.IsTracking)
 			{
 				AddHandlers_GeoLocator();
 				if (setUserMessage) SetLastMessage_UI("Tracking on, waiting for update...");
@@ -280,7 +281,7 @@ namespace LolloGPS.GPSInteraction
 					// Create a new timer triggering at a 15 minute interval 
 					// and associate it with the background task builder
 					// Less than 15 will throw an exception, this is how this class works
-					geolocTaskBuilder.SetTrigger(new TimeTrigger(_myPersistentData.BackgroundUpdatePeriodInMinutes, false));
+					geolocTaskBuilder.SetTrigger(new TimeTrigger(_persistentData.BackgroundUpdatePeriodInMinutes, false));
 
 					// Register the background task
 					_getlocBkgTask = geolocTaskBuilder.Register();
@@ -373,7 +374,7 @@ namespace LolloGPS.GPSInteraction
 
 		private async Task<bool> TryUpdateBackgroundPropsAfterPropsChanged()
 		{
-			if (_myPersistentData.IsBackgroundEnabled)
+			if (_persistentData.IsBackgroundEnabled)
 			{
 				Tuple<bool, string> result = await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 				// in case of failure (eg the user revoked background permissions when the app was suspended or off), reset the variables
@@ -386,7 +387,7 @@ namespace LolloGPS.GPSInteraction
 					// the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
 					// it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
 					// In any case, this change must take place on the UI thread, so no issue really.
-					IAsyncAction qqq = CoreApplication.MainView.CoreWindow.Dispatcher.RunIdleAsync((a) => _myPersistentData.IsBackgroundEnabled = false);
+					IAsyncAction qqq = CoreApplication.MainView.CoreWindow.Dispatcher.RunIdleAsync((a) => _persistentData.IsBackgroundEnabled = false);
 				}
 				return result.Item1;
 			}
@@ -419,7 +420,7 @@ namespace LolloGPS.GPSInteraction
 						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
 						if (CancToken.IsCancellationRequested) return;
-						if (await _myPersistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
+						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;
 						}
@@ -469,7 +470,7 @@ namespace LolloGPS.GPSInteraction
 
 		private void SetLastMessage_UI(string message)
 		{
-			if (_myPersistentData != null) _myPersistentData.LastMessage = message;
+			if (_persistentData != null) _persistentData.LastMessage = message;
 		}
 		#endregion services
 	}

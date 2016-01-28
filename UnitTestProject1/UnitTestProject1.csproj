@@ -119,10 +119,6 @@
     <Content Include="Properties\UnitTestApp.rd.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Controlz\Controlz.csproj">
-      <Project>{941e81bf-e57c-49f3-96d7-522f1c045f11}</Project>
-      <Name>Controlz</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DataModel\DataModel.csproj">
       <Project>{116cb644-bdca-462f-81a2-8aaeb46ede92}</Project>
       <Name>DataModel</Name>

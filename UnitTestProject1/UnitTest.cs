@@ -6,6 +6,7 @@ using Windows.Devices.Geolocation;
 using System.Collections.Generic;
 using LolloGPS.Data.TileCache;
 using LolloGPS.Data.Leeching;
+using Utilz.Data;
 
 namespace UnitTestProject1
 {
@@ -128,7 +129,7 @@ namespace UnitTestProject1
         }
 
         public class TileDownloaderMock : TileDownloader
-        {
+		{
             int MinZoom;
             int MaxZoom;
             public TileDownloaderMock(double nwAlt, double nwLat, double nwLon, double seAlt, double seLat, double seLon, int minZoom, int maxZoom) : base(new GbbProvider(nwAlt, nwLat, nwLon, seAlt, seLat, seLon))

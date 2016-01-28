@@ -16,7 +16,7 @@ namespace LolloGPS.Data.TileCache
 {
 	// public enum TileSources { Nokia, OpenStreetMap, Swisstopo, Wanderreitkarte, OrdnanceSurvey, ForUMaps, OpenSeaMap, UTTopoLight, ArcGIS }
 
-	public sealed class TileCache // : IDisposable
+	public sealed class TileCache
 	{
 		public const string MimeTypeImageAny = "image/*"; // "image/png"
 														  //public const string ImageToCheck = "image";
@@ -59,21 +59,8 @@ namespace LolloGPS.Data.TileCache
 			}
 
 			_isCaching = isCaching;
-
-			//if (_tileSource.IsTesting)
-			//{
-			//    _imageFolder = null;
-			//}
-			//else if (_imageFolder == null)
-			//{
 			_imageFolder = ApplicationData.Current.LocalFolder.CreateFolderAsync(_tileSource.TechName, CreationCollisionOption.OpenIfExists).AsTask().Result;
-			//}
 		}
-		//public void Dispose()
-		//{
-		//    ProcessingQueue.Dispose();
-		//}
-		// activate and deactivate are taken care of in PersistentData
 		#endregion construct and dispose
 
 		#region getters
@@ -84,10 +71,6 @@ namespace LolloGPS.Data.TileCache
 		/// <summary>
 		/// gets the web uri of the tile (TileSource, X, Y, Z and Zoom)
 		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <param name="zoom"></param>
-		/// <returns></returns>
 		private string GetWebUri(int x, int y, int z, int zoom)
 		{
 			try
@@ -106,10 +89,6 @@ namespace LolloGPS.Data.TileCache
 		/// so every different tile source must produce a different file name, 
 		/// even if X, Y, Z and Zoom are equal.
 		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <param name="zoom"></param>
-		/// <returns></returns>
 		private string GetFileNameFromKey(int x, int y, int z, int zoom)
 		{
 			return string.Format(_tileFileFormat, zoom, x, y, _tileSource.TechName);
@@ -191,6 +170,50 @@ namespace LolloGPS.Data.TileCache
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in GetTileUri(): " + ex.Message + ex.StackTrace);
+			}
+
+			await TileCacheProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			return result;
+		}
+
+		public async Task<bool> SaveTileAsync(int x, int y, int z, int zoom) //int x, int y, int z, int zoom)
+		{
+			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
+			string fileName = GetFileNameFromKey(x, y, z, zoom);
+			// not working on this set of data? Mark it as busy, closing the gate for other threads
+			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
+			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
+			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
+			bool result = false;
+
+			try
+			{
+				string sWebUri = GetWebUri(x, y, z, zoom);
+				// try to get this tile from the cache
+				var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
+
+				// tile is not in cache
+				if (tileCacheRecordFromDb == null)
+				{
+					// tile is not in cache: download it and save it
+					if (RuntimeData.GetInstance().IsConnectionAvailable)
+					{
+						result = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
+					}
+				}
+				// tile is in cache: return ok
+				else
+				{
+					result = true;
+					if (fileName != tileCacheRecordFromDb.FileName)
+					{
+						await UpdateFileNameAsync(tileCacheRecordFromDb, fileName, _tileSource.TechName, x, y, z, zoom).ConfigureAwait(false);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
 			}
 
 			await TileCacheProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
@@ -291,50 +314,6 @@ namespace LolloGPS.Data.TileCache
 			if (output) Debug.WriteLine("The error was fixed");
 			else Debug.WriteLine("The error was not fixed");
 			return output;
-		}
-
-		public async Task<bool> SaveTileAsync(int x, int y, int z, int zoom) //int x, int y, int z, int zoom)
-		{
-			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
-			string fileName = GetFileNameFromKey(x, y, z, zoom);
-			// not working on this set of data? Mark it as busy, closing the gate for other threads
-			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
-			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
-			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
-			bool result = false;
-
-			try
-			{
-				string sWebUri = GetWebUri(x, y, z, zoom);
-				// try to get this tile from the cache
-				var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-
-				// tile is not in cache
-				if (tileCacheRecordFromDb == null)
-				{
-					// tile is not in cache: download it and save it
-					if (RuntimeData.GetInstance().IsConnectionAvailable)
-					{
-						result = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
-					}
-				}
-				// tile is in cache: return ok
-				else
-				{
-					result = true;
-					if (fileName != tileCacheRecordFromDb.FileName)
-					{
-						await UpdateFileNameAsync(tileCacheRecordFromDb, fileName, _tileSource.TechName, x, y, z, zoom).ConfigureAwait(false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
-			}
-
-			await TileCacheProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
-			return result;
 		}
 
 		private static bool IsWebResponseContentOk(TileCacheRecord newRecord)
@@ -454,6 +433,7 @@ namespace LolloGPS.Data.TileCache
 				}
 			}
 		}
+
 		public static async Task CloseAsync()
 		{
 			if (_isOpen)

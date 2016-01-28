@@ -16,8 +16,8 @@ namespace LolloGPS.Core
 {
     public sealed partial class HelpPanel : OrientationResponsiveUserControl
     {
-        public PersistentData MyPersistentData { get { return App.PersistentData; } }
-        public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+        public PersistentData PersistentData { get { return App.PersistentData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		public MainVM MainVM
 		{

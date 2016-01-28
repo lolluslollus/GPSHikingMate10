@@ -1,6 +1,6 @@
 ﻿using LolloGPS.Core;
-using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Diagnostics;

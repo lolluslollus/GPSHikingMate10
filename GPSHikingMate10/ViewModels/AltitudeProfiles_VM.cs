@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 
 namespace LolloGPS.Core
 {
@@ -21,7 +22,7 @@ namespace LolloGPS.Core
         {
 			MyMainVM = mainVM;
             _altitudeProfilesController = altitudeProfilesController;
-            MyMainVM.MyAltitudeProfiles_VM = this;
+            MyMainVM.AltitudeProfilesVM = this;
         }
 
         internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes,

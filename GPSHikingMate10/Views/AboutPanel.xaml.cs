@@ -1,5 +1,5 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Constants;
+using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Diagnostics;
@@ -16,13 +16,13 @@ namespace LolloGPS.Core
     {
         public string AppName { get { return ConstantData.AppName; } }
         public string AppVersion { get { return ConstantData.Version; } }
-        public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 
         public AboutPanel()
         {
             InitializeComponent();
-            DataContext = MyRuntimeData;
+            DataContext = RuntimeData;
         }
         private async void OnBuy_Click(object sender, RoutedEventArgs e)
         {

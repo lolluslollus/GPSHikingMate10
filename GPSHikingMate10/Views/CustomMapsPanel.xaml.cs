@@ -12,8 +12,8 @@ namespace LolloGPS.Core
 {
     public sealed partial class CustomMapsPanel : OrientationResponsiveUserControl
     {
-        public PersistentData MyPersistentData { get { return App.PersistentData; } }
-        public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
+        public PersistentData PersistentData { get { return App.PersistentData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		public MainVM MainVM
 		{
@@ -35,7 +35,7 @@ namespace LolloGPS.Core
             {
                 ClearCustomCacheChooser.IsPopupOpen = true;
             }
-            else MyPersistentData.LastMessage = "Cache busy";
+            else PersistentData.LastMessage = "Cache busy";
         }
 
         private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)

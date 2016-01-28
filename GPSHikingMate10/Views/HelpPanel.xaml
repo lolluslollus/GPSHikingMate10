@@ -7,7 +7,7 @@
     xmlns:local="using:LolloGPS.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    DataContext="{Binding MyPersistentData, RelativeSource={RelativeSource Self}}"
+    DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="300"
