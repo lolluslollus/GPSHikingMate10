@@ -1,10 +1,8 @@
 ﻿using LolloBaseUserControls;
 using LolloChartMobile;
 using LolloGPS.Data;
-using LolloGPS.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;

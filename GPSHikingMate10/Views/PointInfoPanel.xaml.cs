@@ -5,7 +5,6 @@ using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Windows.System;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
