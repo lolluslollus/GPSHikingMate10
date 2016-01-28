@@ -27,8 +27,21 @@ namespace Utilz
 				// LOLLO TODO check this
 			}
 		}
+		public bool IsCancellationRequestedSafe
+		{
+			get
+			{
+				try
+				{
+					return IsCancellationRequestedSafe;
+				}
+				catch (Exception)
+				{
+					return true;
+				}
+			}
+		}
 	}
-
 	public static class SmartCancellationTokenSourceExtensions
 	{
 		public static bool IsAlive(this SmartCancellationTokenSource cts)

@@ -330,7 +330,7 @@ namespace LolloGPS.Core
 
 				await RunInUiThreadAsync(delegate
 				{
-					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram, CancToken);
+					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram);
 				}).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) { } // fires when cts is cancelled
@@ -341,7 +341,7 @@ namespace LolloGPS.Core
 		}
 
 		private void DrawOneSeries(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
-			LolloChart chart, bool isHistogram, CancellationToken token)
+			LolloChart chart, bool isHistogram)
 		{
 			// this method must run in the UI thread
 			chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
@@ -369,7 +369,7 @@ namespace LolloGPS.Core
 					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					if (token.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested == true) return;
 
 					chart.Draw();
 

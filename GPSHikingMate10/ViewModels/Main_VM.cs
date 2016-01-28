@@ -559,12 +559,12 @@ namespace LolloGPS.Core
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil && !CancToken.IsCancellationRequested)
+				if (file != null && whichSeries != PersistentData.Tables.nil && !Cts.IsCancellationRequestedSafe)
 				{
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("saving GPX file...");
-						if (CancToken.IsCancellationRequested) return;
+						if (Cts.IsCancellationRequestedSafe) return;
 						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancToken).ConfigureAwait(false);
 					}).ConfigureAwait(false);
 				}
@@ -621,16 +621,16 @@ namespace LolloGPS.Core
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil && !CancToken.IsCancellationRequested)
+				if (file != null && whichSeries != PersistentData.Tables.nil && !Cts.IsCancellationRequestedSafe)
 				{
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("reading GPX file...");
 
-						if (CancToken.IsCancellationRequested) return;
+						if (Cts.IsCancellationRequestedSafe) return;
 						// load the file
 						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
-						if (CancToken.IsCancellationRequested) return;
+						if (Cts.IsCancellationRequestedSafe) return;
 						Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						// update the UI with the file data
@@ -685,7 +685,7 @@ namespace LolloGPS.Core
 		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
 		{
 			List<PersistentData.Tables> result = new List<PersistentData.Tables>();
-			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile && !CancToken.IsCancellationRequested)
+			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile && !Cts.IsCancellationRequestedSafe)
 			{
 				Tuple<bool, string> landmarksResult = Tuple.Create(false, "");
 				Tuple<bool, string> route0Result = Tuple.Create(false, "");
@@ -695,9 +695,9 @@ namespace LolloGPS.Core
 					SetLastMessage_UI("reading GPX file...");
 					// load the file, attempting to read landmarks and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
-					if (CancToken.IsCancellationRequested) return result;
+					if (Cts.IsCancellationRequestedSafe) return result;
 					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, CancToken).ConfigureAwait(false);
-					if (CancToken.IsCancellationRequested) return result;
+					if (Cts.IsCancellationRequestedSafe) return result;
 					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
 				}
 				catch (Exception) { }

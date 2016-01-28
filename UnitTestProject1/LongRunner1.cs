@@ -15,23 +15,23 @@ namespace UnitTestProject1
 		public async Task ManySeconds()
 		{
 			_howManyDelays = 0;
-			if (CancToken.IsCancellationRequested) return;
+			if (Cts.IsCancellationRequestedSafe) return;
 			await Task.Delay(2000);
 
 			_howManyDelays ++;
-			if (CancToken.IsCancellationRequested) return;
+			if (Cts.IsCancellationRequestedSafe) return;
 			await Task.Delay(2000);
 
 			_howManyDelays ++;
-			if (CancToken.IsCancellationRequested) return;
+			if (Cts.IsCancellationRequestedSafe) return;
 			await Task.Delay(2000);
 
 			_howManyDelays++;
-			if (CancToken.IsCancellationRequested) return;
+			if (Cts.IsCancellationRequestedSafe) return;
 			await Task.Delay(2000);
 
 			_howManyDelays++;
-			if (CancToken.IsCancellationRequested) return;
+			if (Cts.IsCancellationRequestedSafe) return;
 			await Task.Delay(2000);
 		}
 
@@ -49,23 +49,23 @@ namespace UnitTestProject1
 			return RunFunctionIfOpenAsyncT(async delegate
 			{
 				_howManyDelays = 0;
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts.IsCancellationRequestedSafe) return;
 				await Task.Delay(2000);
 
 				_howManyDelays++;
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts.IsCancellationRequestedSafe) return;
 				await Task.Delay(2000);
 
 				_howManyDelays++;
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts.IsCancellationRequestedSafe) return;
 				await Task.Delay(2000);
 
 				_howManyDelays++;
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts.IsCancellationRequestedSafe) return;
 				await Task.Delay(2000);
 
 				_howManyDelays++;
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts.IsCancellationRequestedSafe) return;
 				await Task.Delay(2000);
 			});
 		}
