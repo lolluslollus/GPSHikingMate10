@@ -81,13 +81,13 @@
                     Text="   "
                     Style="{StaticResource BaseMessageStyle}"
                     VerticalAlignment="Center"/>
-            <!--IsEnabled="{Binding ElementName=me, Path=MyVM.IsChangeMapSourceEnabled}"-->
+            <!--IsEnabled="{Binding ElementName=me, Path=MainVM.IsChangeMapSourceEnabled}"-->
             <listChooser:LolloListChooser
                     x:Name="MapSourceChooser"                    
                     PlaceholderText="Select a source for map tiles"
                     ListHeaderText="Select a source for map tiles"
                     PopupContainer="{Binding ElementName=me}"
-                    BackPressedRaiser="{x:Bind Path=MyVM, Mode=OneWay}"
+                    BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
                     VerticalAlignment="Center"
                     Margin="{StaticResource Thickness2}"
                     TextBlockStyle="{StaticResource BaseMessageStyle}"
@@ -105,7 +105,7 @@
         <AppBarToggleButton Grid.Row="4" Grid.Column="1" 
                 HorizontalAlignment="Left"
                 IsChecked="{Binding IsMapCached, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                IsEnabled="{Binding ElementName=me, Path=MyVM.IsCacheBtnEnabled}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsCacheBtnEnabled}"
                 Style="{StaticResource AppBarToggleButtonRecoloured}"
                 IsCompact="True"
                 Icon="Camera"/>
@@ -117,7 +117,7 @@
                 VerticalAlignment="Center"/>
         <AppBarButton Grid.Row="5" Grid.Column="1" 
                 HorizontalAlignment="Left"
-                IsEnabled="{Binding ElementName=me, Path=MyVM.IsLeechingEnabled}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsLeechingEnabled}"
                 Style="{StaticResource AppBarButtonRecoloured}"
                 IsCompact="True"
                 Click="OnDownloadMap_Click"
@@ -137,7 +137,7 @@
                 PlaceholderText="Select max zoom level to download"
                 ListHeaderText="Select max zoom level to download"
                 PopupContainer="{Binding ElementName=me}"
-                BackPressedRaiser="{x:Bind Path=MyVM, Mode=OneWay}"
+                BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
                 VerticalAlignment="Center"
                 TextBlockStyle="{StaticResource BaseMessageStyle}"
                 AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
@@ -151,7 +151,7 @@
                 VerticalAlignment="Center"/>
         <AppBarButton Grid.Row="7" Grid.Column="1"
                 HorizontalAlignment="Left"
-                IsEnabled="{Binding ElementName=me, Path=MyVM.IsClearCacheEnabled}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsClearCacheEnabled}"
                 Click="OnClearMapCache_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
                 IsCompact="True"
@@ -162,7 +162,7 @@
                 PlaceholderText="Which cache do you want to clear?"
                 ListHeaderText="Which cache do you want to clear?"
                 PopupContainer="{Binding ElementName=me}"
-                BackPressedRaiser="{x:Bind Path=MyVM, Mode=OneWay}"
+                BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
                 VerticalAlignment="Center"
                 TextBlockStyle="{StaticResource BaseMessageStyle}"
                 AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"

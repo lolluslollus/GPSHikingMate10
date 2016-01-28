@@ -166,7 +166,7 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
-						MyVM="{Binding ElementName=me, Path=MyVM}"
+						MainVM="{Binding ElementName=me, Path=MainVM}"
 						DataContext="{Binding}"
 						PointChanged="OnInfoPanelPointChanged"/>
 				</Popup>
@@ -175,13 +175,13 @@
 				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
 				<local:LolloMap Canvas.ZIndex="0"
 					x:Name="MyLolloMap"
-					MainVM="{Binding ElementName=me, Path=MyVM}"
+					MainVM="{Binding ElementName=me, Path=MainVM}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
 				<!-- Altitude profiles -->
 				<local:AltitudeProfiles Canvas.ZIndex="200"
 					Grid.Column="0"
 					x:Name="MyAltitudeProfiles"
-					MainVM="{Binding ElementName=me, Path=MyVM}"
+					MainVM="{Binding ElementName=me, Path=MainVM}"
 					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
 			</Grid>
@@ -198,7 +198,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MyVM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
@@ -206,7 +206,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:FilesPanel VM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:FilesPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
@@ -214,7 +214,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested" MyVM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested" MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
@@ -222,7 +222,7 @@
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:CustomMapsPanel MyVM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:CustomMapsPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -230,7 +230,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:SettingsPanel VM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:SettingsPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
@@ -238,7 +238,7 @@
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:HelpPanel MyVM="{Binding ElementName=me, Path=MyVM}"/>
+						<local:HelpPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">
@@ -285,7 +285,7 @@
 							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 							Margin="{StaticResource Thickness0}">
 							<TextBlock TextWrapping="Wrap"
-								Text="{Binding ElementName=me, Path=MyVM.LogText}"
+								Text="{Binding ElementName=me, Path=MainVM.LogText}"
 								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
 						</ScrollViewer>
 					</Grid>
@@ -326,7 +326,7 @@
 				VerticalAlignment="Bottom"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding ElementName=me, Path=MyVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}"
+				Visibility="{Binding ElementName=me, Path=MainVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}"
 				Tapped="OnLastMessage_Tapped">
 				<TextBlock
 				   TextWrapping="Wrap"
@@ -364,7 +364,7 @@
 			<AppBarButton Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{Binding ElementName=me, Path=MainVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -374,7 +374,7 @@
 				<AppBarButton Grid.Column="2"
 						  VerticalAlignment="Center"
 						  Label="Go to last" Icon="Target"
-						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{Binding ElementName=me, Path=MainVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
 						  Click="OnGotoLast_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -398,7 +398,7 @@
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
-				IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
+				IsEnabled="{Binding ElementName=me, Path=MainVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
@@ -432,7 +432,7 @@
 			<AppBarButton Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{Binding ElementName=me, Path=MainVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -442,7 +442,7 @@
 				<AppBarButton Grid.Row="2"
 						  VerticalAlignment="Center"
 						  Label="Go to last" Icon="Target"
-						  IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{Binding ElementName=me, Path=MainVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
 						  Click="OnGotoLast_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -466,7 +466,7 @@
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
                 Style="{StaticResource AppBarButtonRecoloured}"
-				IsEnabled="{Binding ElementName=me, Path=MyVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
+				IsEnabled="{Binding ElementName=me, Path=MainVM.MyPersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>

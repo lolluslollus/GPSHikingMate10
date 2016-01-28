@@ -12,13 +12,13 @@ namespace LolloGPS.Core
 {
 	public sealed partial class FilesPanel : ObservableControl
 	{
-		public MainVM VM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(VMProperty); }
-			set { SetValue(VMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null, OnVMChanged));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null, OnVMChanged));
 		private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			if (args.NewValue != args.OldValue) (obj as FilesPanel).UpdateDataContext();
@@ -34,13 +34,13 @@ namespace LolloGPS.Core
 		{
 			Task upd = RunInUiThreadAsync(delegate
 			{
-				LayoutRoot.DataContext = VM; // LOLLO NOTE never set DataContent on self in a UserControl
+				LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
 			});
 		}
 
 		private void OnCenterHistory_Click(object sender, RoutedEventArgs e)
 		{
-			Task ch = VM?.CentreOnHistoryAsync();
+			Task ch = MainVM?.CentreOnHistoryAsync();
 		}
 
 		private async void OnClearHistory_Click(object sender, RoutedEventArgs e)
@@ -55,52 +55,52 @@ namespace LolloGPS.Core
 			dialog.DefaultCommandIndex = 1;
 			// Show the message dialog
 			IUICommand reply = await dialog.ShowAsync().AsTask();
-			if (reply == yesCommand) { Task res = VM?.MyPersistentData?.ResetHistoryAsync(); }
+			if (reply == yesCommand) { Task res = MainVM?.MyPersistentData?.ResetHistoryAsync(); }
 		}
 
 		private void OnSaveTrackingHistory_Click(object sender, RoutedEventArgs e)
 		{
-			Task sth = VM?.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
+			Task sth = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.History, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
 		}
 
 		private void OnCenterRoute_Click(object sender, RoutedEventArgs e)
 		{
-			Task cr = VM?.CentreOnRoute0Async();
+			Task cr = MainVM?.CentreOnRoute0Async();
 		}
 
 		private void OnClearRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			Task rr = VM?.MyPersistentData?.ResetRoute0Async();
+			Task rr = MainVM?.MyPersistentData?.ResetRoute0Async();
 		}
 
 		private void OnLoadRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			Task lr = VM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0);
+			Task lr = MainVM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Route0);
 		}
 
 		private void OnSaveRoute0_Click(object sender, RoutedEventArgs e)
 		{
-			Task sr = VM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
+			Task sr = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
 		}
 
 		private void OnCenterLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task cl = VM?.CentreOnLandmarksAsync();
+			Task cl = MainVM?.CentreOnLandmarksAsync();
 		}
 
 		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task cll = VM?.MyPersistentData?.ResetLandmarksAsync();
+			Task cll = MainVM?.MyPersistentData?.ResetLandmarksAsync();
 		}
 
 		private void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task ll = VM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks);
+			Task ll = MainVM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks);
 		}
 
 		private void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task sl = VM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks");
+			Task sl = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks");
 		}
 	}
 }

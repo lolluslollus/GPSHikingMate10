@@ -19,8 +19,8 @@ namespace LolloGPS.Core
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		private MainVM _myVM = null;
-		public MainVM MyVM { get { return _myVM; } }
+		private MainVM _mainVM = null;
+		public MainVM MainVM { get { return _mainVM; } }
 
 		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
@@ -45,10 +45,10 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_myVM = new MainVM(readDataFromDb, readSettingsFromDb);
-				await _myVM.OpenAsync();
+				_mainVM = new MainVM(readDataFromDb, readSettingsFromDb);
+				await _mainVM.OpenAsync();
 				Logger.Add_TPL("Main has opened its main vm", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				RaisePropertyChanged_UI(nameof(MyVM));
+				RaisePropertyChanged_UI(nameof(MainVM));
 
 				await MyLolloMap.OpenAsync();
 				UpdateAltitudeColumnMaxWidth();
@@ -83,10 +83,10 @@ namespace LolloGPS.Core
 				_animationTimer?.Dispose();
 				_animationTimer = null;
 
-				var vm = _myVM;
-				if (vm != null)
+				var mainVM = _mainVM;
+				if (mainVM != null)
 				{
-					await vm.CloseAsync();
+					await mainVM.CloseAsync();
 				}
 
 				MyPointInfoPanel.Close();
@@ -132,17 +132,17 @@ namespace LolloGPS.Core
 
 		private void OnBack_Click(object sender, RoutedEventArgs e)
 		{
-			_myVM?.GoBackMyButtonSoft();
+			_mainVM?.GoBackMyButtonSoft();
 		}
 
 		private void OnHardwareButtons_BackPressed(object sender, BackPressedEventArgs e)
 		{
-			_myVM?.GoBackHard(sender, e);
+			_mainVM?.GoBackHard(sender, e);
 		}
 
 		private void OnTabletSoftwareButton_BackPressed(object sender, Windows.UI.Core.BackRequestedEventArgs e)
 		{
-			_myVM?.GoBackTabletSoft(sender, e);
+			_mainVM?.GoBackTabletSoft(sender, e);
 		}
 
 		private DispatcherTimerPlus _animationTimer = null;
@@ -189,48 +189,48 @@ namespace LolloGPS.Core
 		}
 		private void SetShowForAWhileOnly()
 		{
-			_myVM.IsLastMessageVisible = true;
+			_mainVM.IsLastMessageVisible = true;
 		}
 		private void StopShowingNotice()
 		{
-			_myVM.IsLastMessageVisible = false;
+			_mainVM.IsLastMessageVisible = false;
 		}
 		private void OnLastMessage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
-			if (!_myVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_myVM.MyPersistentData.LastMessage))
+			if (!_mainVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.MyPersistentData.LastMessage))
 			{
-				_myVM.IsLastMessageVisible = true;
+				_mainVM.IsLastMessageVisible = true;
 			}
 			else
 			{
-				_myVM.IsLastMessageVisible = false;
+				_mainVM.IsLastMessageVisible = false;
 			}
 		}
 		private void OnGetAFixNow_Click(object sender, RoutedEventArgs e)
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
-			_myVM.GetAFix();
+			_mainVM.GetAFix();
 		}
 
 		private void OnGotoLast_Click(object sender, RoutedEventArgs e)
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
-			Task go = _myVM.CentreOnCurrentAsync();
+			Task go = _mainVM.CentreOnCurrentAsync();
 		}
 
 		private void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
 		{
-			Task ct = _myVM.CentreOnTargetAsync();
+			Task ct = _mainVM.CentreOnTargetAsync();
 		}
 		private void OnMapsGoto2DRequested(object sender, EventArgs e)
 		{
-			Task gt = _myVM.Goto2DAsync();
+			Task gt = _mainVM.Goto2DAsync();
 		}
 
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
 		{
-			_myVM.SetLastMessage_UI("Cancelling download");
-			_myVM.CancelDownloadByUser();
+			_mainVM.SetLastMessage_UI("Cancelling download");
+			_mainVM.CancelDownloadByUser();
 		}
 
 		private async void OnTestFiles_Click(object sender, RoutedEventArgs e)
@@ -239,7 +239,7 @@ namespace LolloGPS.Core
 
 			await RunInUiThreadAsync(delegate
 			{
-				_myVM.LogText = txt;
+				_mainVM.LogText = txt;
 			}).ConfigureAwait(false);
 		}
 
@@ -248,31 +248,31 @@ namespace LolloGPS.Core
 			string cnt = (sender as Button).Content.ToString();
 			if (cnt == "FileError")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);
 			}
 			else if (cnt == "MyPersistentData")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.PersistentDataLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.PersistentDataLogFilename);
 			}
 			else if (cnt == "Fgr")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.ForegroundLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.ForegroundLogFilename);
 			}
 			else if (cnt == "Bgr")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.BackgroundLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.BackgroundLogFilename);
 			}
 			else if (cnt == "BgrCanc")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.BackgroundCancelledLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.BackgroundCancelledLogFilename);
 			}
 			else if (cnt == "AppExc")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.AppExceptionLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.AppExceptionLogFilename);
 			}
 			else if (cnt == "AppEvents")
 			{
-				_myVM.LogText = await Logger.ReadAsync(Logger.AppEventsLogFilename);
+				_mainVM.LogText = await Logger.ReadAsync(Logger.AppEventsLogFilename);
 			}
 			else if (cnt == "Clear")
 			{
@@ -281,7 +281,7 @@ namespace LolloGPS.Core
 		}
 		private void OnLogText_Unloaded(object sender, RoutedEventArgs e)
 		{
-			_myVM.LogText = string.Empty;
+			_mainVM.LogText = string.Empty;
 		}
 
 		private void OnOpenPivot_Click(object sender, RoutedEventArgs e)

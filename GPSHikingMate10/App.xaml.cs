@@ -265,11 +265,9 @@ namespace LolloGPS.Core
 					RuntimeData.SetIsDBDataRead_UI(false);
 
 					var main = rootFrame.Content as Main;
-					var fileOpener = main.MyVM;
+					var fileOpener = main.MainVM;
 					if (fileOpener != null && main != null)
 					{
-						//await fileOpener.OpenAsync();
-
 						var whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
 						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						if (isAppAlreadyRunning)
@@ -296,11 +294,11 @@ namespace LolloGPS.Core
 						{
 							if (whichTables[0] == PersistentData.Tables.Landmarks)
 							{
-								Task centreView = main?.MyVM?.CentreOnLandmarksAsync();
+								Task centreView = main?.MainVM?.CentreOnLandmarksAsync();
 							}
 							else if (whichTables[0] == PersistentData.Tables.Route0)
 							{
-								Task centreView = main?.MyVM?.CentreOnRoute0Async();
+								Task centreView = main?.MainVM?.CentreOnRoute0Async();
 							}
 						}
 

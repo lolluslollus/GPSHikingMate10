@@ -100,7 +100,7 @@
 			Icon="Delete"
 			IsEnabled="{Binding MyPersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<ContentControl Grid.Row="4" Grid.Column="3"
-			IsEnabled="{Binding ElementName=me, Path=VM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{Binding ElementName=me, Path=MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
 			<AppBarButton Grid.Row="4" Grid.Column="3"
 				HorizontalAlignment="Center"
 				IsCompact="True"
@@ -109,7 +109,7 @@
 				Icon="OpenFile"/>
 		</ContentControl>
 		<ContentControl Grid.Row="4" Grid.Column="4"
-			IsEnabled="{Binding ElementName=me, Path=VM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{Binding ElementName=me, Path=MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
 			<AppBarButton Grid.Row="4" Grid.Column="4"
 				HorizontalAlignment="Center"
 				IsCompact="True"
@@ -149,7 +149,7 @@
 			Icon="Delete"
 			IsEnabled="{Binding MyPersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<ContentControl Grid.Row="7" Grid.Column="3"
-			IsEnabled="{Binding ElementName=me, Path=VM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{Binding ElementName=me, Path=MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
 			<AppBarButton Grid.Row="7" Grid.Column="3"
 				HorizontalAlignment="Center"
 				IsCompact="True"
@@ -158,7 +158,7 @@
 				Icon="OpenFile" />
 		</ContentControl>
 		<ContentControl Grid.Row="7" Grid.Column="4"
-			IsEnabled="{Binding ElementName=me, Path=VM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{Binding ElementName=me, Path=MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
 			<AppBarButton Grid.Row="7" Grid.Column="4"
 				HorizontalAlignment="Center"
 				IsCompact="True"

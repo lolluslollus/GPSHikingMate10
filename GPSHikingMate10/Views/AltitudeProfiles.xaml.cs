@@ -31,8 +31,8 @@ namespace LolloGPS.Core
 		public static readonly DependencyProperty MainVMProperty =
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(AltitudeProfiles), new PropertyMetadata(null));
 
-		private AltitudeProfiles_VM _myVM = null;
-		public AltitudeProfiles_VM MyVM { get { return _myVM; } }
+		private AltitudeProfilesVM _altitudeProfilesVM = null;
+		public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } }
 
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -47,7 +47,7 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
-			_myVM = new AltitudeProfiles_VM(this as IMapApController, MainVM);
+			_altitudeProfilesVM = new AltitudeProfilesVM(this as IMapApController, MainVM);
 
 			HistoryChart.Open();
 			Route0Chart.Open();
@@ -327,7 +327,7 @@ namespace LolloGPS.Core
 				double minTime = default(double);
 				double[,] points = null;
 
-				_myVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
+				_altitudeProfilesVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
 					ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
 
 				await RunInUiThreadAsync(delegate

@@ -18,18 +18,18 @@ namespace LolloGPS.Core
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		public MainVM MyVM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(MyVMProperty); }
-			set { SetValue(MyVMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null));
 
 		public MapsPanel()
         {
             InitializeComponent();
-            BackPressedRaiser = MyVM;
+            BackPressedRaiser = MainVM;
         }
 
         private void OnGoto2D_Click(object sender, RoutedEventArgs e)
@@ -43,7 +43,7 @@ namespace LolloGPS.Core
 
         private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
         {
-            if (MyVM.IsClearCacheEnabled) // this is redundant safety
+            if (MainVM.IsClearCacheEnabled) // this is redundant safety
             {
                 ClearCacheChooser.IsPopupOpen = true;
             }
@@ -56,16 +56,16 @@ namespace LolloGPS.Core
             TileSourceRecord tag = (e.Tag as TileSourceRecord);
             if (!tag.IsNone && !tag.IsDefault)
             {
-                MyVM?.ScheduleClearCacheAsync(tag, false);
+                MainVM?.ScheduleClearCacheAsync(tag, false);
             }
         }
 
         private async void OnDownloadMap_Click(object sender, RoutedEventArgs e)
         {
-            if (MyVM.IsLeechingEnabled) // this is redundant safety
+            if (MainVM.IsLeechingEnabled) // this is redundant safety
             {
                 // present a choice of zoom levels
-                List<Tuple<int, int>> howManyTiles4DifferentZooms = await MyVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
+                List<Tuple<int, int>> howManyTiles4DifferentZooms = await MainVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
 
                 Collection<TextAndTag> tts = new Collection<TextAndTag>();
                 foreach (var item in howManyTiles4DifferentZooms)
@@ -84,7 +84,7 @@ namespace LolloGPS.Core
                 }
                 else
                 {
-                    MyVM.SetLastMessage_UI("No downloads possible for this area");
+                    MainVM.SetLastMessage_UI("No downloads possible for this area");
                 }
             }
             else MyPersistentData.LastMessage = "Download busy";

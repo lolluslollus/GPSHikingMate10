@@ -10,7 +10,7 @@ using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
 {
-    public sealed class LolloMap_VM : ObservableData, IMapApController
+    public sealed class LolloMapVM : ObservableData, IMapApController
     {
 		// http://josm.openstreetmap.de/wiki/Maps
 
@@ -29,7 +29,7 @@ namespace LolloGPS.Core
         private IList<MapTileSource> _mapTileSources = null;
 
         #region construct and dispose
-        public LolloMap_VM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, MainVM mainVM)
+        public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, MainVM mainVM)
         {
 			MyMainVM = mainVM;
             MyMainVM.MyLolloMap_VM = this;

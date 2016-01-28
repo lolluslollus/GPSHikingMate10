@@ -105,8 +105,8 @@ namespace LolloGPS.Core
 
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
-		private LolloMap_VM _myVM = null;
-		public LolloMap_VM MyVM { get { return _myVM; } }
+		private LolloMapVM _lolloMapVM = null;
+		public LolloMapVM LolloMapVM { get { return _lolloMapVM; } }
 
 		public MainVM MainVM
 		{
@@ -128,7 +128,6 @@ namespace LolloGPS.Core
 		public LolloMap()
 		{
 			InitializeComponent();
-			//_myVM = new LolloMap_VM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
 
 			_myMapInstance = new WeakReference(MyMap);
 
@@ -145,11 +144,11 @@ namespace LolloGPS.Core
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
-			_myVM = new LolloMap_VM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
+			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
 			MyMap.Style = MyPersistentData.MapStyle; // maniman
 			_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
 			await RestoreViewAsync();
-			await _myVM.OpenAsync();
+			await _lolloMapVM.OpenAsync();
 
 			InitMapElements();
 
@@ -181,76 +180,9 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 
-			await _myVM.CloseAsync().ConfigureAwait(false);
+			await _lolloMapVM.CloseAsync().ConfigureAwait(false);
 			//MyPointInfoPanel?.Close();
 		}
-
-		///// <summary>
-		///// This is the only Activate that is async. It cannot take too long, it merely centers and zooms the map.
-		///// Otherwise, we don't want to hog the UI thread with our Activate() !!
-		///// </summary>
-		///// <returns></returns>
-		//public async Task OpenAsync()
-		//{
-		//	if (_isClosing) return;
-		//	try
-		//	{
-		//		MyMap.Style = MyPersistentData.MapStyle; // maniman
-		//		_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
-		//		await RestoreViewAsync();
-		//		_myVM.Open();
-
-		//		InitMapElements();
-
-		//		if (_isClosing) return;
-		//		DrawHistory();
-		//		DrawRoute0();
-
-		//		if (_isClosing) return;
-		//		await DrawLandmarksAsync();
-		//		if (_isClosing) return;
-		//		AddHandlerThisEvents();
-
-		//		Logger.Add_TPL("LolloMap opened", Logger.AppEventsLogFilename, Logger.Severity.Info);
-
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-		//	}
-		//}
-		//public void Close()
-		//{
-		//	try
-		//	{
-		//		_isClosing = true;
-
-		//		RemoveHandlerThisEvents();
-		//		// save last map settings
-		//		try
-		//		{
-		//			MyPersistentData.MapLastLat = MyMap.Center.Position.Latitude;
-		//			MyPersistentData.MapLastLon = MyMap.Center.Position.Longitude;
-		//			MyPersistentData.MapLastHeading = MyMap.Heading;
-		//			MyPersistentData.MapLastPitch = MyMap.Pitch;
-		//			MyPersistentData.MapLastZoom = MyMap.ZoomLevel;
-		//		}
-		//		catch (Exception ex)
-		//		{
-		//			Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//		}
-		//		_myVM?.Close();
-		//		MyPointInfoPanel?.Close();
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//	finally
-		//	{
-		//		_isClosing = false;
-		//	}
-		//}
 		#endregion lifecycle
 
 
@@ -922,7 +854,7 @@ namespace LolloGPS.Core
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
 
-			await MyVM.AddMapCentreToLandmarks();
+			await _lolloMapVM.AddMapCentreToLandmarks();
 			if (MyPersistentData.IsShowAimOnce)
 			{
 				MyPersistentData.IsShowAim = false;

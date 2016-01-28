@@ -17,14 +17,15 @@ namespace LolloGPS.Core
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		public MainVM MyVM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(MyVMProperty); }
-			set { SetValue(MyVMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(PointsPanel), new PropertyMetadata(null));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointsPanel), new PropertyMetadata(null));
 		#endregion properties
+
 
 		#region events       
 		public event EventHandler CentreOnTargetRequested;
@@ -39,10 +40,12 @@ namespace LolloGPS.Core
 		}
 		#endregion events
 
+
 		public PointsPanel()
 		{
 			InitializeComponent();
 		}
+
 
 		#region event handlers
 		private void OnLatLon_GotFocus(object sender, RoutedEventArgs e)
@@ -160,7 +163,7 @@ namespace LolloGPS.Core
 
 		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
 		{
-			MyVM?.NavigateToUri(PersistentData?.Target?.HyperLink);
+			MainVM?.NavigateToUri(PersistentData?.Target?.HyperLink);
 		}
 
 		private void OnGotoTarget_Click(object sender, RoutedEventArgs e)
@@ -170,7 +173,7 @@ namespace LolloGPS.Core
 
 		private void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)
 		{
-			Task set = MyVM?.SetTargetToCurrentAsync();
+			Task set = MainVM?.SetTargetToCurrentAsync();
 		}
 
 		private void OnAddTargetToLandmarks_Click(object sender, RoutedEventArgs e)
@@ -184,10 +187,10 @@ namespace LolloGPS.Core
 		/// <param name="e"></param>
 		private void OnAim_Click(object sender, RoutedEventArgs e)
 		{
-			if (MyVM.MyPersistentData.IsShowAim)
+			if (MainVM.MyPersistentData.IsShowAim)
 			{
-				MyVM.MyPersistentData.IsShowAimOnce = false;
-				MyVM.MyPersistentData.IsShowingPivot = false;
+				MainVM.MyPersistentData.IsShowAimOnce = false;
+				MainVM.MyPersistentData.IsShowingPivot = false;
 			}
 		}
 		/// <summary>
@@ -197,16 +200,16 @@ namespace LolloGPS.Core
 		/// <param name="e"></param>
 		private void OnAimOnce_Click(object sender, RoutedEventArgs e)
 		{
-			if (MyVM.MyPersistentData.IsShowAim)
+			if (MainVM.MyPersistentData.IsShowAim)
 			{
-				MyVM.MyPersistentData.IsShowAimOnce = true;
-				MyVM.MyPersistentData.IsShowingPivot = false;
+				MainVM.MyPersistentData.IsShowAimOnce = true;
+				MainVM.MyPersistentData.IsShowingPivot = false;
 			}
 		}
 
 		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
 		{
-			Task clear = MyVM.MyPersistentData.ResetLandmarksAsync();
+			Task clear = MainVM.MyPersistentData.ResetLandmarksAsync();
 		}
 		#endregion event handlers
 	}

@@ -15,7 +15,6 @@
     d:DesignWidth="400">
 
 	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="MainGrid">
-		<!--<Grid Grid.Row="1" Visibility="{Binding ElementName=me, Path=MyVM.IsCustomTileSourceOpen, Converter={StaticResource BooleanToVisibleConverter}}">-->
 		<Grid.RowDefinitions>
 			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 			<RowDefinition Height="Auto"/>
@@ -83,7 +82,7 @@
             VerticalAlignment="Center"/>
 		<!-- error message after clicking test -->
 		<TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
-            Text="{Binding ElementName=me, Path=MyVM.TestTileSourceErrorMsg}"                    
+            Text="{Binding ElementName=me, Path=MainVM.TestTileSourceErrorMsg}"                    
             TextWrapping="Wrap"
             Foreground="{StaticResource FlashyForeground}"
             Style="{StaticResource BaseMessageStyle}"
@@ -133,7 +132,7 @@
 			<!--IsEnabled="{Binding TileSourcez.Count, Converter={StaticResource CustomTileSourcezToEnabledConverter}}"-->
 			<AppBarButton Grid.Row="3" Grid.Column="2"
                 VerticalAlignment="Center"
-                IsEnabled="{Binding ElementName=me, Path=MyVM.IsClearCustomCacheEnabled}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsClearCustomCacheEnabled}"
                 Click="OnClearCustomTileSource_Click"
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
@@ -150,7 +149,7 @@
                 TextItemStyle="{StaticResource ListItemTextStyle}"
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache}"
                 ItemSelected="OnClearCustomCacheChooser_ItemSelected"
-                BackPressedRaiser="{x:Bind Path=MyVM, Mode=OneWay}"/>
+                BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"/>
 
 			<!--<AppBarButton Grid.Row="3" Grid.Column="0"
                     VerticalAlignment="Center"                    

@@ -15,23 +15,23 @@ namespace LolloGPS.Core
         public PersistentData MyPersistentData { get { return App.PersistentData; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-		public MainVM MyVM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(MyVMProperty); }
-			set { SetValue(MyVMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
         public CustomMapsPanel()
         {
             InitializeComponent();
-            BackPressedRaiser = MyVM;
+            BackPressedRaiser = MainVM;
         }
 
         private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
         {
-            if (MyVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
+            if (MainVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
             {
                 ClearCustomCacheChooser.IsPopupOpen = true;
             }
@@ -45,13 +45,13 @@ namespace LolloGPS.Core
             TileSourceRecord tag = (e.Tag as TileSourceRecord);
             if (!tag.IsNone && !tag.IsDefault)
             {
-                MyVM?.ScheduleClearCacheAsync(tag, true);
+                MainVM?.ScheduleClearCacheAsync(tag, true);
             }
         }
 
         private void OnTestClicked(object sender, RoutedEventArgs e)
         {
-            Task uuu = MyVM.StartUserTestingTileSourceAsync();
+            Task uuu = MainVM.StartUserTestingTileSourceAsync();
         }
 
         //#region events

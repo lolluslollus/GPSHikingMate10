@@ -37,11 +37,11 @@ namespace LolloGPS.Core
 		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
 
-		private LolloMap_VM _myLolloMap_VM = null;
-		public LolloMap_VM MyLolloMap_VM { get { return _myLolloMap_VM; } set { _myLolloMap_VM = value; RaisePropertyChanged_UI(); } }
+		private LolloMapVM _myLolloMap_VM = null;
+		public LolloMapVM MyLolloMap_VM { get { return _myLolloMap_VM; } set { _myLolloMap_VM = value; RaisePropertyChanged_UI(); } }
 
-		private AltitudeProfiles_VM _myAltitudeProfiles_VM = null;
-		public AltitudeProfiles_VM MyAltitudeProfiles_VM { get { return _myAltitudeProfiles_VM; } set { _myAltitudeProfiles_VM = value; RaisePropertyChanged_UI(); } }
+		private AltitudeProfilesVM _myAltitudeProfiles_VM = null;
+		public AltitudeProfilesVM MyAltitudeProfiles_VM { get { return _myAltitudeProfiles_VM; } set { _myAltitudeProfiles_VM = value; RaisePropertyChanged_UI(); } }
 
 		public PersistentData MyPersistentData { get { return App.PersistentData; } }
 		public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
@@ -545,8 +545,6 @@ namespace LolloGPS.Core
 				{
 					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
 					await ((App)Application.Current).RunAfterResumingAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
-					// LOLLO TODO check this on phone, it does not work anymore
-					//await RunFunctionIfOpenAsyncT(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
 				}
 				else
 				{
@@ -603,8 +601,6 @@ namespace LolloGPS.Core
 				{
 					// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. To avoid surprises, we enqueue the following under the semaphore.
 					await ((App)Application.Current).RunAfterResumingAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
-					// LOLLO TODO check this on phone, it does not work anymore
-					//await RunFunctionIfOpenAsyncT(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
 				}
 				else
 				{
@@ -690,10 +686,7 @@ namespace LolloGPS.Core
 		#region continuations
 		public async Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
 		{
-			// LOLLO TODO check this on phone, it does not work anymore
 			List<PersistentData.Tables> result = new List<PersistentData.Tables>();
-			//await RunFunctionIfOpenAsyncT(async delegate
-			//{
 			if (args?.Files?.Count > 0 && args.Files[0] is StorageFile)
 			{
 				Tuple<bool, string> landmarksResult = Tuple.Create(false, "");
@@ -720,7 +713,7 @@ namespace LolloGPS.Core
 				catch (Exception) { }
 				finally
 				{
-					// inform the user about the result
+					// inform the user about the result LOLLO TODO check when loading a file with both route and landmarks, eg coasttocoast
 					if ((landmarksResult == null || !landmarksResult.Item1) && (route0Result == null || !route0Result.Item1)) SetLastMessage_UI("could not read file");
 					else if (landmarksResult?.Item1 == true && route0Result?.Item1 == true)
 					{
@@ -739,7 +732,6 @@ namespace LolloGPS.Core
 					if (route0Result?.Item1 == true) result.Add(PersistentData.Tables.Route0);
 				}
 			}
-			//}).ConfigureAwait(false);
 			return result;
 		}
 		#endregion continuations

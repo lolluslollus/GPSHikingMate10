@@ -1,18 +1,14 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Runtime;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Utilz;
 
 namespace LolloGPS.Core
 {
-    public sealed class AltitudeProfiles_VM : ObservableData, IMapApController
+    public sealed class AltitudeProfilesVM : ObservableData, IMapApController
     {
 		private MainVM _myMainVM = null;
 		public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
@@ -21,7 +17,7 @@ namespace LolloGPS.Core
 
         private const double ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL = 50.0;
 
-        internal AltitudeProfiles_VM(IMapApController altitudeProfilesController, MainVM mainVM)
+        internal AltitudeProfilesVM(IMapApController altitudeProfilesController, MainVM mainVM)
         {
 			MyMainVM = mainVM;
             _altitudeProfilesController = altitudeProfilesController;

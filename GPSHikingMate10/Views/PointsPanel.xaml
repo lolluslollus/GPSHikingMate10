@@ -296,7 +296,7 @@
 			IsEnabled="{Binding Landmarks.Count, Converter={StaticResource LandmarksCountLowerThanMaxToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}">
 			<AppBarButton Grid.Row="11" Grid.Column="1"
 				VerticalAlignment="Center"
-				IsEnabled="{Binding ElementName=me, Path=MyVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+				IsEnabled="{Binding ElementName=me, Path=MainVM.MyGPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
 				Click="OnSetTargetToCurrentPoint_Click" 
 				IsCompact="True"
 				Foreground="{StaticResource LandmarksBrushOpaque}"

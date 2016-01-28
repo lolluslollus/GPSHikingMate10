@@ -21,13 +21,13 @@ namespace LolloGPS.Core
 {
 	public sealed partial class SettingsPanel : ObservableControl
 	{
-		public MainVM VM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(VMProperty); }
-			set { SetValue(VMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty VMProperty =
-			DependencyProperty.Register("VM", typeof(MainVM), typeof(SettingsPanel), new PropertyMetadata(null, OnVMChanged));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(SettingsPanel), new PropertyMetadata(null, OnVMChanged));
 		private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
 			if (args.NewValue != args.OldValue) (obj as SettingsPanel).UpdateDataContext();
@@ -43,7 +43,7 @@ namespace LolloGPS.Core
 		{
 			Task upd = RunInUiThreadAsync(delegate
 			{
-				LayoutRoot.DataContext = VM; // LOLLO NOTE never set DataContent on self in a UserControl
+				LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
 			});
 		}
 	}

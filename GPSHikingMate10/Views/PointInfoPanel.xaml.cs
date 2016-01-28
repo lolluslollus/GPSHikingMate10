@@ -19,13 +19,13 @@ namespace LolloGPS.Core
 	{
 		public event EventHandler PointChanged;
 
-		public MainVM MyVM
+		public MainVM MainVM
 		{
-			get { return (MainVM)GetValue(MyVMProperty); }
-			set { SetValue(MyVMProperty, value); }
+			get { return (MainVM)GetValue(MainVMProperty); }
+			set { SetValue(MainVMProperty, value); }
 		}
-		public static readonly DependencyProperty MyVMProperty =
-			DependencyProperty.Register("MyVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null));
+		public static readonly DependencyProperty MainVMProperty =
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null));
 
 		private bool _isGotoPreviousEnabled = false;
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
@@ -41,7 +41,7 @@ namespace LolloGPS.Core
 		public PointInfoPanel()
 		{
 			InitializeComponent();
-			BackPressedRaiser = MyVM;
+			BackPressedRaiser = MainVM;
 		}
 		public void Close()
 		{
@@ -97,7 +97,7 @@ namespace LolloGPS.Core
 
 		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
 		{
-			MyVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
+			MainVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
 		}
 
 		private void OnGotoPrevious_Click(object sender, RoutedEventArgs e)

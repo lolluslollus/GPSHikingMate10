@@ -18,8 +18,6 @@ namespace LolloGPS.Core
         public string AppVersion { get { return ConstantData.Version; } }
         public RuntimeData MyRuntimeData { get { return App.MyRuntimeData; } }
 
-        //private Main_VM _myVM = Main_VM.GetInstance();
-        //public Main_VM MyVM { get { return _myVM; } }
 
         public AboutPanel()
         {
