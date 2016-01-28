@@ -430,7 +430,7 @@ namespace LolloGPS.GPSInteraction
 					result = null;
 					SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
 				}
-				catch (TaskCanceledException) // inherits from OperationCanceled
+				catch (OperationCanceledException)
 				{
 					result = null;
 					SetLastMessage_UI("location acquisition cancelled");

@@ -24,7 +24,7 @@ namespace LolloGPS.Data
 			{
 				var cts = _cts;
 				if (cts != null) return cts.Token;
-				else return CancellationToken.None;
+				else throw new OperationCanceledException();
 			}
 		}
 		#endregion properties
