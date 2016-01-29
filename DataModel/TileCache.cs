@@ -374,8 +374,8 @@ namespace LolloGPS.Data.TileCache
 		private static List<string> _fileNames_InProcess = new List<string>();
 		private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
 		private static volatile bool _isOpen = false;
-		private static SmartCancellationTokenSource _cts = null;
-		private static CancellationToken _cancToken;
+		private static SafeCancellationTokenSource _cts = null;
+		//private static CancellationToken _cancToken;
 		#endregion properties
 
 
@@ -417,9 +417,9 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						_cts = new SmartCancellationTokenSource(); // LOLLO TODO test this new cts and token handling. 
+						_cts = new SafeCancellationTokenSource(); // LOLLO TODO test this new cts and token handling. 
 						// This one in particular will make trouble on a phone with low memory when the user opens a file picker.
-						_cancToken = _cts.Token;
+						//_cancToken = _cts.Token;
 
 						_isOpen = true;
 					}
@@ -539,7 +539,7 @@ namespace LolloGPS.Data.TileCache
 					{
 						if (tileSource != null)
 						{
-							_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources, _cancToken); });
+							_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
 							if (IsFree)
 							{
 								await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
@@ -578,11 +578,11 @@ namespace LolloGPS.Data.TileCache
 			return false;
 		}
 
-		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken token)
+		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
 
-			if (token == null || token.IsCancellationRequested) return;
+			if (_cts == null || _cts.IsCancellationRequestedSafe) return;
 
 			if (tileSource == null)
 			{
@@ -605,7 +605,7 @@ namespace LolloGPS.Data.TileCache
 				{
 					try
 					{
-						if (token == null || token.IsCancellationRequested) return;
+						if (_cts == null || _cts.IsCancellationRequestedSafe) return;
 
 						/*	Delete db entries first.
 						 *  It's not terrible if some files are not deleted and the db thinks they are:
@@ -615,7 +615,7 @@ namespace LolloGPS.Data.TileCache
 						 */
 						var dbResult = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-						if (token == null || token.IsCancellationRequested) return; // LOLLO TODO test this cts and what exceptions it may raise
+						if (_cts == null || _cts.IsCancellationRequestedSafe) return; // LOLLO TODO test this cts and what exceptions it may raise
 
 						if (dbResult.Item1)
 						{

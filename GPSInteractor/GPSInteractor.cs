@@ -417,9 +417,9 @@ namespace LolloGPS.GPSInteraction
 				{
 					if (_geolocator != null)
 					{
-						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
+						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancTokenSafe).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						if (CancToken.IsCancellationRequested) return;
+						if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;
@@ -430,6 +430,11 @@ namespace LolloGPS.GPSInteraction
 				{
 					result = null;
 					SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
+				}
+				catch (ObjectDisposedException)
+				{
+					result = null;
+					SetLastMessage_UI("location acquisition cancelled");
 				}
 				catch (OperationCanceledException)
 				{

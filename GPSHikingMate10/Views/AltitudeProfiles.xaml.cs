@@ -369,7 +369,7 @@ namespace LolloGPS.Core
 					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					if (CancToken.IsCancellationRequested == true) return;
+					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 					chart.Draw();
 

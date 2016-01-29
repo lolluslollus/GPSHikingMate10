@@ -370,7 +370,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -393,7 +393,7 @@ namespace LolloGPS.Core
 					_iconEndHistory.Location = new Geopoint(lastGeoposition);
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				if (!_isHistoryInMap)
 				{
@@ -406,7 +406,6 @@ namespace LolloGPS.Core
 				}
 
 			}
-			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -430,7 +429,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -444,7 +443,7 @@ namespace LolloGPS.Core
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				if (!_isRoute0InMap)
 				{
@@ -455,7 +454,6 @@ namespace LolloGPS.Core
 					_isRoute0InMap = true;
 				}
 			}
-			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -502,7 +500,7 @@ namespace LolloGPS.Core
 					return;
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 #if DEBUG
 				Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -524,7 +522,7 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
-				if (CancToken.IsCancellationRequested) return;
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				try
 				{
@@ -542,7 +540,7 @@ namespace LolloGPS.Core
 						j++;
 					}
 
-					if (CancToken.IsCancellationRequested) return;
+					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
 					{
@@ -563,7 +561,6 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("attaching icons to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif
 			}
-			catch (OperationCanceledException) { } // fires when cts is cancelled
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);

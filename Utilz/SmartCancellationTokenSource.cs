@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Utilz
 {
-	public class SmartCancellationTokenSource : CancellationTokenSource
+	public class SafeCancellationTokenSource : CancellationTokenSource
 	{
 		private volatile bool _isDisposed = false;
 		public bool IsDisposed { get { return _isDisposed; } }
@@ -20,11 +20,13 @@ namespace Utilz
 		{
 			try
 			{
-				Cancel(throwOnFirstException);
+				if (!_isDisposed) Cancel(throwOnFirstException);
 			}
+			catch (OperationCanceledException) { } // maniman
+			catch (ObjectDisposedException) { }
 			catch (Exception ex)
 			{
-				// LOLLO TODO check this
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
 		public bool IsCancellationRequestedSafe
@@ -33,10 +35,20 @@ namespace Utilz
 			{
 				try
 				{
-					return IsCancellationRequestedSafe;
+					if (!_isDisposed) return Token.IsCancellationRequested;
+					else return true;
 				}
-				catch (Exception)
+				catch (OperationCanceledException) // maniman
 				{
+					return true;
+				}
+				catch (ObjectDisposedException)
+				{
+					return true;
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 					return true;
 				}
 			}
@@ -44,7 +56,7 @@ namespace Utilz
 	}
 	public static class SmartCancellationTokenSourceExtensions
 	{
-		public static bool IsAlive(this SmartCancellationTokenSource cts)
+		public static bool IsAlive(this SafeCancellationTokenSource cts)
 		{
 			var lcts = cts;
 			return (lcts != null && !lcts.IsDisposed);

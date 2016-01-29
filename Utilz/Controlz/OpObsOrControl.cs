@@ -52,16 +52,24 @@ namespace LolloBaseUserControls
 			});
 		}
 
-		private volatile SmartCancellationTokenSource _cts = null;
-		protected SmartCancellationTokenSource Cts { get { return _cts; } }
-		protected CancellationToken CancToken
+		private volatile SafeCancellationTokenSource _cts = null;
+		protected SafeCancellationTokenSource Cts { get { return _cts; } }
+		protected CancellationToken CancTokenSafe
 		{
 			get
 			{
-				var cts = _cts;
-				if (cts.IsAlive()) return cts.Token;
-				else if (cts.IsDisposed) return new CancellationToken(true);
-				else return new CancellationToken(false); // we must be optimistic, or the methods running in separate tasks will always crap out
+				try
+				{
+					var cts = _cts;
+					if (cts.IsAlive()) return cts.Token;
+					else if (cts.IsDisposed) return new CancellationToken(true);
+					else return new CancellationToken(false); // we must be optimistic, or the methods running in separate tasks will always crap out
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					return new CancellationToken(true);
+				}
 			}
 		}
 		#endregion properties
@@ -87,7 +95,7 @@ namespace LolloBaseUserControls
 					if (!_isOpen)
 					{
 						var cts = _cts;  if (cts != null) cts.Dispose();// LOLLO TODO TEST THIS
-						_cts = new SmartCancellationTokenSource();
+						_cts = new SafeCancellationTokenSource();
 
 						await OpenMayOverrideAsync().ConfigureAwait(false);
 
