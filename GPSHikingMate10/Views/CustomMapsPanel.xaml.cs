@@ -21,12 +21,18 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null, OnMainVM_Changed));
+		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as OrientationResponsiveUserControl;
+			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+		}
 
-        public CustomMapsPanel()
+
+		public CustomMapsPanel()
         {
             InitializeComponent();
-            BackPressedRaiser = MainVM;
+            // BackPressedRaiser = MainVM;
         }
 
         private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)

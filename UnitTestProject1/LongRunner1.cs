@@ -37,7 +37,7 @@ namespace UnitTestProject1
 
 		public void Cancel()
 		{
-			Cts.CancelSafe();
+			Cts?.CancelSafe(true);
 		}
 	}
 	public class LongRunnerUnderSemaphore : OpenableObservableData
@@ -71,7 +71,7 @@ namespace UnitTestProject1
 		}
 		public void Cancel()
 		{
-			Cts.CancelSafe();
+			Cts?.CancelSafe(true);
 		}
 	}
 }

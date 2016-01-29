@@ -25,12 +25,17 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(HelpPanel), new PropertyMetadata(null));
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(HelpPanel), new PropertyMetadata(null, OnMainVM_Changed));
+		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as OrientationResponsiveUserControl;
+			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+		}
 
 		public HelpPanel()
         {
             InitializeComponent();
-            BackPressedRaiser = MainVM;
+            // BackPressedRaiser = MainVM;
         }
 
         public string LandmarksText { get { return string.Format("Landmarks are marked this way. Landmarks are like routes, except the points are not arranged in a sequence, and you can save {0} of them at most.", PersistentData.MaxRecordsInLandmarks); } }

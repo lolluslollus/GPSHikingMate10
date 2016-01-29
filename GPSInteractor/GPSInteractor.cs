@@ -415,6 +415,7 @@ namespace LolloGPS.GPSInteraction
 
 				try
 				{
+					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 					if (_geolocator != null)
 					{
 						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancellationTokenSafe).ConfigureAwait(false);
@@ -431,12 +432,12 @@ namespace LolloGPS.GPSInteraction
 					result = null;
 					SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
 				}
-				catch (ObjectDisposedException)
+				catch (ObjectDisposedException) // comes from the canc token
 				{
 					result = null;
 					SetLastMessage_UI("location acquisition cancelled");
 				}
-				catch (OperationCanceledException)
+				catch (OperationCanceledException) // comes from the canc token
 				{
 					result = null;
 					SetLastMessage_UI("location acquisition cancelled");

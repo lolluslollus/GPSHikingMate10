@@ -58,8 +58,11 @@ namespace LolloGPS.Core
 
             _mapTileSource = new MapTileSource(
                 _tileDataSource_http,
-                new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() })
-            {
+				// new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() })
+				// The MapControl won't request the uri if the zoom is outside its bounds.
+				// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
+				new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+			{
                 // Layer = MapTileLayer.BackgroundReplacement,
                 Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
                                                         // Layer = (MapTileLayer.BackgroundOverlay | MapTileLayer.RoadOverlay), // still does not hide the roads
@@ -70,13 +73,14 @@ namespace LolloGPS.Core
                 IsFadingEnabled = false, //true,
                 ZIndex = 999,
             };
-            if (!_mapTileSources.Contains(_mapTileSource))
+
+			if (!_mapTileSources.Contains(_mapTileSource))
             {
                 _mapTileSources.Add(_mapTileSource);
                 _tileDataSource_http.UriRequested += OnDataSource_UriRequested;
             }
 
-            Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+            Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             //_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
             //_myMap.Style = MapStyle.None; //so our map will cover the original completely
         }
@@ -117,7 +121,7 @@ namespace LolloGPS.Core
             if (_tileDataSource_http != null) _tileDataSource_http.UriRequested -= OnDataSource_UriRequested;
             //if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
             if (_mapTileSources != null && _mapTileSource != null) _mapTileSources.Remove(_mapTileSource);
-            Logger.Add_TPL("CloseAlternativeMap_Http ended", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+            Logger.Add_TPL("CloseAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
         }
         #endregion construct and dispose
         /// <summary>
@@ -194,9 +198,9 @@ namespace LolloGPS.Core
                 var newUri = await _tileCache.GetTileUri(args.X, args.Y, 0, args.ZoomLevel).ConfigureAwait(false);
                 if (newUri != null) args.Request.Uri = newUri;
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+                // Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
             }
             deferral.Complete();
         }

@@ -357,6 +357,8 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -416,6 +418,8 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
 				{
@@ -460,39 +464,12 @@ namespace LolloGPS.Core
 			}
 		}
 
-		//private SwitchableObservableCollection<Geopoint> _landmarkLocations = new SwitchableObservableCollection<Geopoint>();
-		//public SwitchableObservableCollection<Geopoint> LandmarkLocations { get { return _landmarkLocations; } }
-
-		//public async Task DrawLandmarksAsync()
-		//{
-		//	if (_isClosing) return;
-		//	Logger.Add_TPL("about to draw landmarks", Logger.AppEventsLogFilename, Logger.Severity.Info);
-
-		//	List<Geopoint> geoPoints = new List<Geopoint>();
-		//	try
-		//	{
-		//		foreach (var item in PersistentData.Landmarks)
-		//		{
-		//			geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
-		//		}
-		//	}
-		//	catch (OutOfMemoryException)
-		//	{
-		//		var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
-		//	}
-		//	finally
-		//	{
-		//		if (!_isClosing)
-		//		{
-		//			_landmarkLocations.ReplaceRange(geoPoints);
-		//			Logger.Add_TPL("landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info);
-		//		}
-		//	}
-		//}
 		private void DrawLandmarks()
 		{
 			try
 			{
+				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+
 				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 				if (!InitLandmarks())
 				{
@@ -649,9 +626,8 @@ namespace LolloGPS.Core
 				Geopoint bottomRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 });
 				try
 				{
-					// LOLLO when you zoom out and then in with the north pole
-					// in the middle of the map, then start downloading tiles, the following may fail, so we have fallbacks.
-					// LOLLO TODO double check it
+					// when you zoom out and then in with the north pole in the middle of the map, 
+					// then start downloading tiles, MyMap.GetLocationFromOffset() may throw, so we have some extra complexity.
 					double minLon = ABSURD_LON;
 					double maxLon = ABSURD_LON;
 					try

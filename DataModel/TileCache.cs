@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data.Constants;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -117,16 +117,24 @@ namespace LolloGPS.Data.TileCache
 			Debug.WriteLine("returned from ProcessingQueue.ClearCacheIfQueueEmptyAsync");
 		}
 
+		private static readonly Uri _mustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
+		private static readonly Uri _mustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
+
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
 		{
-			// out of range? get out, no more thoughts
-			if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null; // LOLLO TODO maybe return a tile with the message "wrong zoom"
-																		 // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
+			// out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
+			// To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
+			//if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
+			if (zoom < GetMinZoom()) return _mustZoomInUri;
+			else if (zoom > GetMaxZoom()) return _mustZoomOutUri;
+
+			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
-			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
+			// already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
 			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return GetUriForFile(fileName); // was return null; // LOLLO TODO check this, it's new
-																																	// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
+
+			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			Uri result = null;
 
 			try
@@ -148,7 +156,7 @@ namespace LolloGPS.Data.TileCache
 						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
 						if (IsCaching)
 						{
-							if (await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false)) result = GetUriForFile(fileName);
+							if (await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false)) result = GetUriForFile(fileName);
 						}
 						// tile not in cache and cache off: return the web uri of the tile
 						else
@@ -176,7 +184,7 @@ namespace LolloGPS.Data.TileCache
 			return result;
 		}
 
-		public async Task<bool> SaveTileAsync(int x, int y, int z, int zoom) //int x, int y, int z, int zoom)
+		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom)
 		{
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
@@ -198,7 +206,7 @@ namespace LolloGPS.Data.TileCache
 					// tile is not in cache: download it and save it
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						result = await (TrySaveTileAsync(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
+						result = await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
 					}
 				}
 				// tile is in cache: return ok
@@ -220,49 +228,53 @@ namespace LolloGPS.Data.TileCache
 			return result;
 		}
 
-		private async Task<bool> TrySaveTileAsync(string sWebUri, int x, int y, int z, int zoom, string fileName)
+		private async Task<bool> TrySaveTile2Async(string sWebUri, int x, int y, int z, int zoom, string fileName)
 		{
 			bool result = false;
 			int where = 0;
 
-			var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
-			request.AllowReadStreamBuffering = true;
-			request.ContinueTimeout = WebRequestTimeoutMsec;
-
-			where = 2;
-			using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+			try
 			{
-				if (IsWebResponseHeaderOk(response))
-				{
-					where = 3;
-					using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
-					{
-						where = 4;
-						// read response stream into a new record. 
-						// This extra step is the price to pay if we want to check the stream content
-						var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-						await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
+				var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
+				request.AllowReadStreamBuffering = true;
+				request.ContinueTimeout = WebRequestTimeoutMsec;
 
-						if (IsWebResponseContentOk(newRecord))
+				where = 2;
+				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+				{
+					if (IsWebResponseHeaderOk(response))
+					{
+						where = 3;
+						using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
 						{
-							StorageFile newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
-							using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
+							where = 4;
+							// read response stream into a new record. 
+							// This extra step is the price to pay if we want to check the stream content
+							var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
+							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
+
+							if (IsWebResponseContentOk(newRecord))
 							{
-								//Debug.WriteLine("GetTileUri() found: " + Environment.NewLine
-								//    + "writeStream.Length = " + writeStream.Length + Environment.NewLine
-								//    + "response.ContentLength = " + response.ContentLength + Environment.NewLine
-								//    + "Uri4File will be = " + GetUriForFile(fileName) + Environment.NewLine);
-								if (writeStream.Length > 0) // file already exists, do not overwrite it - extra caution, it should never happen 
-															// LOLLO TODO check this: it may be wiser to overwrite the file. Just replace the collision option.
+								// If I am here, the file does not exist. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
+								var newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+								using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
 								{
-									where = 99;
-									// output = GetUriForFile(fileName);
-									result = true;
-									Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + GetUriForFile(fileName), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-								}
-								else
-								{
+									//Debug.WriteLine("GetTileUri() found: " + Environment.NewLine
+									//    + "writeStream.Length = " + writeStream.Length + Environment.NewLine
+									//    + "response.ContentLength = " + response.ContentLength + Environment.NewLine
+									//    + "Uri4File will be = " + GetUriForFile(fileName) + Environment.NewLine);
+
+									//if (writeStream.Length > 0) // file already exists, it should never happen. 
+									// This only makes sense with CreationCollisionOption.OpenIfExists in the CreateFileAsync() above.
+									//{
+									//	result = true;
+									//	where = 99;
+									//	Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + GetUriForFile(fileName), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+									//}
+									//else
+									//{
 									where = 7;
+									writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
 									await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
 									where = 8;
 									writeStream.Flush();
@@ -273,18 +285,25 @@ namespace LolloGPS.Data.TileCache
 									if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
 									{
 										where = 10;
-										bool isInserted = await DBManager.TryInsertIntoTileCacheAsync(newRecord).ConfigureAwait(false);
-										// output = GetUriForFile(fileName);
-										result = true;
-										if (isInserted) where = 11;
+										bool isInserted = await DBManager.TryInsertOrIgnoreIntoTileCacheAsync(newRecord).ConfigureAwait(false);
+										if (isInserted)
+										{
+											result = true;
+											where = 11;
+										}
 									}
+									//}
 								}
 							}
 						}
 					}
 				}
+				if (!result) Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
 			}
-			if (!result) Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
+			catch (Exception ex)
+			{
+				Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
+			}
 			return result;
 		}
 
@@ -300,10 +319,10 @@ namespace LolloGPS.Data.TileCache
 					var file = await _imageFolder.GetFileAsync(oldTileCacheRecord.FileName).AsTask().ConfigureAwait(false);
 					if (file != null)
 					{
-						// like when you clear: update the file first, then the db, it the file update went well.
+						// same as when you clear: update the file first, then the db, it the file update went well.
 						await file.RenameAsync(newFileName).AsTask().ConfigureAwait(false);
 						oldTileCacheRecord.FileName = newFileName;
-						output = await DBManager.UpdateTileCacheRecordAsync(oldTileCacheRecord); // LOLLO TODO make sure this update updates: check the primary key
+						output = await DBManager.UpdateTileCacheRecordAsync(oldTileCacheRecord);
 					}
 				}
 				catch (Exception ex)
@@ -333,7 +352,8 @@ namespace LolloGPS.Data.TileCache
 				}
 				catch (Exception ex)
 				{
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					// Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					Debug.WriteLine(ex.ToString());
 					return false;
 				}
 			}
@@ -372,10 +392,10 @@ namespace LolloGPS.Data.TileCache
 		}
 
 		private static List<string> _fileNames_InProcess = new List<string>();
-		private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
+		// private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
+		private static Func<Task> _funcAsSoonAsFree = null;
 		private static volatile bool _isOpen = false;
 		private static SafeCancellationTokenSource _cts = null;
-		//private static CancellationToken _cancToken;
 		#endregion properties
 
 
@@ -417,9 +437,15 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						_cts = new SafeCancellationTokenSource(); // LOLLO TODO test this new cts and token handling. 
-						// This one in particular will make trouble on a phone with low memory when the user opens a file picker.
-						//_cancToken = _cts.Token;
+						_cts?.Dispose();
+						_cts = new SafeCancellationTokenSource();
+
+						// resume clearing cache if it was interrupted
+						var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
+						if (cacheClearingProps != null)
+						{
+							await ScheduleClearCache2Async(cacheClearingProps.TileSource, cacheClearingProps.IsAlsoRemoveSources).ConfigureAwait(false);
+						}
 
 						_isOpen = true;
 					}
@@ -444,12 +470,13 @@ namespace LolloGPS.Data.TileCache
 				try
 				{
 					await _semaphore.WaitAsync().ConfigureAwait(false);
-					_cts?.Dispose();
-					_cts = null;
-
 					if (_isOpen)
 					{
-						_funcsAsSoonAsFree.Clear();
+						_cts?.Dispose();
+						_cts = null;
+
+						// _funcsAsSoonAsFree.Clear();
+						_funcAsSoonAsFree = null;
 						_fileNames_InProcess.Clear();
 						_isOpen = false;
 					}
@@ -489,7 +516,7 @@ namespace LolloGPS.Data.TileCache
 						{
 							_fileNames_InProcess.Add(fileName);
 							IsFree = (_fileNames_InProcess.Count == 0);
-							await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
+							await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 
 							return true;
 						}
@@ -516,7 +543,7 @@ namespace LolloGPS.Data.TileCache
 						{
 							_fileNames_InProcess.Remove(fileName);
 							IsFree = (_fileNames_InProcess.Count == 0);
-							await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
+							await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 						}
 					}
 				}
@@ -537,14 +564,8 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
-						if (tileSource != null)
-						{
-							_funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
-							if (IsFree)
-							{
-								await TryRunFuncsAsSoonAsFree().ConfigureAwait(false);
-							}
-						}
+						await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+						await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
 					}
 				}
 				catch (Exception) { } // semaphore disposed
@@ -555,21 +576,34 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
+		private static async Task ScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			if (tileSource != null && _funcAsSoonAsFree == null)
+			{
+				_funcAsSoonAsFree = delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); };
+				// _funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
+				await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
+			}
+		}
+
 		/// <summary>
 		/// This method must be run inside the semaphore
 		/// </summary>
 		/// <returns></returns>
-		private static async Task<bool> TryRunFuncsAsSoonAsFree()
+		private static async Task<bool> TryRunFuncAsSoonAsFree()
 		{
-			if (IsFree && _funcsAsSoonAsFree.Count > 0)
+			//if (IsFree && _funcsAsSoonAsFree.Count > 0)
+			if (IsFree && _funcAsSoonAsFree != null)
 			{
 				IsFree = false;
 
-				foreach (var func in _funcsAsSoonAsFree)
-				{
-					await func().ConfigureAwait(false);
-				}
-				_funcsAsSoonAsFree.Clear();
+				//foreach (var func in _funcsAsSoonAsFree)
+				//{
+				//	await func().ConfigureAwait(false);
+				//}
+				await _funcAsSoonAsFree().ConfigureAwait(false);
+				// _funcsAsSoonAsFree.Clear();
+				_funcAsSoonAsFree = null;
 
 				IsFree = true;
 
@@ -586,6 +620,7 @@ namespace LolloGPS.Data.TileCache
 
 			if (tileSource == null)
 			{
+				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
 				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, 0));
 				return;
 			}
@@ -615,7 +650,7 @@ namespace LolloGPS.Data.TileCache
 						 */
 						var dbResult = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-						if (_cts == null || _cts.IsCancellationRequestedSafe) return; // LOLLO TODO test this cts and what exceptions it may raise
+						if (_cts == null || _cts.IsCancellationRequestedSafe) return;
 
 						if (dbResult.Item1)
 						{
@@ -626,6 +661,8 @@ namespace LolloGPS.Data.TileCache
 						}
 						else
 						{
+							// there was some trouble with the DB: cancel processing and get out
+							await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
 							CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
 							return;
 						}
@@ -634,20 +671,14 @@ namespace LolloGPS.Data.TileCache
 					{
 						Debug.WriteLine("FileNotFound in ClearCacheAsync()");
 					}
-					catch (OperationCanceledException)
-					{
-						Debug.WriteLine("OperationCanceledException in ClearCacheAsync()");
-					}
-					catch (ObjectDisposedException)
-					{
-						Debug.WriteLine("ObjectDisposedException in ClearCacheAsync()");
-					}
 					catch (Exception ex)
 					{
 						Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
 					}
 				}
 			}
+
+			await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
 			CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, howManyRecordsDeletedTotal));
 			Debug.WriteLine("ClearCacheAsync() ended");
 		}
@@ -676,6 +707,34 @@ namespace LolloGPS.Data.TileCache
 			return folderNamesToBeDeleted;
 		}
 		#endregion services
+
+
+		#region utils		
+		private static async Task SetIsClearingCacheProps(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			if (tileSource == null)
+			{
+				RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, false.ToString());
+				RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, string.Empty);
+			}
+			else
+			{
+				if (await RegistryAccess.TrySetObject(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, tileSource).ConfigureAwait(false))
+				{
+					RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, isAlsoRemoveSources.ToString());
+				}
+			}
+		}
+		private static async Task<CacheClearedEventArgs> GetIsClearingCacheProps()
+		{
+			string isAlsoRemoveSourcesString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES);
+			string tileSourceString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE);
+			if (string.IsNullOrWhiteSpace(tileSourceString)) return null;
+
+			var tileSource = await RegistryAccess.GetObject<TileSourceRecord>(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE).ConfigureAwait(false);
+			return new CacheClearedEventArgs(tileSource, isAlsoRemoveSourcesString.Equals(true.ToString()), false, 0);
+		}
+		#endregion utils
 	}
 
 	/// <summary>
@@ -709,19 +768,6 @@ namespace LolloGPS.Data.TileCache
 			_zoom = zoom;
 		}
 
-		//internal async static Task<string> GetFilenameFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
-		//{
-		//	try
-		//	{
-		//		TileCacheRecord record = await DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom).ConfigureAwait(false);
-		//		if (record != null) return record.FileName;
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-		//	}
-		//	return null;
-		//}
 		internal static Task<TileCacheRecord> GetTileCacheRecordFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
 		{
 			try

@@ -231,12 +231,11 @@ namespace LolloGPS.Data
 		static PersistentData()
 		{
 			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC
-			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.ForegroundLogFilename, Logger.Severity.Info);
+			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.AppEventsLogFilename, Logger.Severity.Info);
 			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = MaxLandmarks1;
 			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = MaxLandmarks2;
 			else if (memUsageLimit < 4e+9) MaxRecordsInLandmarks = MaxLandmarks3;
 			else MaxRecordsInLandmarks = MaxLandmarks4;
-			//Logger.Add_TPL("MaxRecordsInLandmarks = " + MaxRecordsInLandmarks, Logger.ForegroundLogFilename, Logger.Severity.Info);
 		}
 		private PersistentData()
 		{
@@ -552,7 +551,7 @@ namespace LolloGPS.Data
 		#endregion properties
 
 		#region all series methods
-		public Task LoadSeriesFromDbAsync(Tables whichTable, bool isShowMessageEvenIfSuccess = true)
+		public Task LoadSeriesFromDbAsync(Tables whichTable, bool isShowMessageEvenIfSuccess)
 		{
 			switch (whichTable)
 			{
@@ -688,7 +687,7 @@ namespace LolloGPS.Data
 		#endregion all series methods
 
 		#region historyMethods
-		public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess = true)
+		public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
 
@@ -739,6 +738,7 @@ namespace LolloGPS.Data
 					_history.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromHistoryAsync().ConfigureAwait(false);
+				LastMessage = "trk history cleared";
 			}
 			finally
 			{
@@ -836,7 +836,7 @@ namespace LolloGPS.Data
 		#endregion historyMethods
 
 		#region route0Methods
-		public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess = true)
+		public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
 
@@ -890,6 +890,7 @@ namespace LolloGPS.Data
 					_route0.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromRoute0Async().ConfigureAwait(false);
+				LastMessage = "route cleared";
 			}
 			finally
 			{
@@ -899,7 +900,7 @@ namespace LolloGPS.Data
 		#endregion route0Methods
 
 		#region landmarksMethods
-		public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess = true)
+		public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
 			List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync().ConfigureAwait(false);
 
@@ -940,7 +941,7 @@ namespace LolloGPS.Data
 			return DBManager.ReplaceLandmarksAsync(dataRecords, true);
 		}
 		public async Task ResetLandmarksAsync()
-		{// LOLLO TODO this is broken, but only sometimes...
+		{
 			try
 			{
 				await _landmarksSemaphore.WaitAsync();
@@ -949,6 +950,7 @@ namespace LolloGPS.Data
 					_landmarks.Clear();
 				}).ConfigureAwait(false);
 				await DBManager.DeleteAllFromLandmarksAsync().ConfigureAwait(false);
+				LastMessage = "landmarks cleared";
 			}
 			finally
 			{

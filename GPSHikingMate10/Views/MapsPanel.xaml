@@ -41,7 +41,7 @@
                 IsChecked="{Binding IsAllowMeteredConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Style="{StaticResource AppBarToggleButtonRecoloured}"
                 IsCompact="True"
-                Icon="Permissions"/>
+                Icon="Permissions" TabIndex="1"/>
 
         <TextBlock Grid.Row="1" Grid.Column="0" 
                 Text="Restore 2D view and point north"

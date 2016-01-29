@@ -48,7 +48,7 @@ namespace Utilz.Data
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						var cts = _cts; if (cts != null) cts.Dispose();// LOLLO TODO TEST THIS
+						_cts?.Dispose();
 						_cts = new SafeCancellationTokenSource();
 
 						await OpenMayOverrideAsync().ConfigureAwait(false);
@@ -84,11 +84,11 @@ namespace Utilz.Data
 				try
 				{
 					await _isOpenSemaphore.WaitAsync().ConfigureAwait(false);
-					_cts?.Dispose();
-					_cts = null;
-
 					if (_isOpen)
 					{
+						_cts?.Dispose();
+						_cts = null;
+
 						IsOpen = false;
 						await CloseMayOverrideAsync().ConfigureAwait(false);
 						return true;

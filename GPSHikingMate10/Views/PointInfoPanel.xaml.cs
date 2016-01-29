@@ -24,7 +24,13 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null));
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null, OnMainVM_Changed));
+		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as OrientationResponsiveUserControl;
+			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+		}
+
 
 		private bool _isGotoPreviousEnabled = false;
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
@@ -40,7 +46,7 @@ namespace LolloGPS.Core
 		public PointInfoPanel()
 		{
 			InitializeComponent();
-			BackPressedRaiser = MainVM;
+			// BackPressedRaiser = MainVM;
 		}
 		public void Close()
 		{

@@ -47,7 +47,6 @@ namespace LolloGPS.Core
 
 				_mainVM = new MainVM(readDataFromDb, readSettingsFromDb);
 				await _mainVM.OpenAsync();
-				Logger.Add_TPL("Main has opened its main vm", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				RaisePropertyChanged_UI(nameof(MainVM));
 
 				await MyLolloMap.OpenAsync();

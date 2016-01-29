@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Storage;
@@ -16,7 +15,7 @@ namespace LolloGPS.Data.TileCache
 	{
 		internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
 		internal static readonly bool _isStoreDateTimeAsTicks = true;
-		internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone; //.FullMutex; // LOLLO TODO try no mutex
+		internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
 		internal static SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		internal static async Task<TileCacheRecord> GetTileRecordAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
@@ -32,11 +31,11 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
-		internal static async Task<bool> TryInsertIntoTileCacheAsync(TileCacheRecord record)
+		internal static async Task<bool> TryInsertOrIgnoreIntoTileCacheAsync(TileCacheRecord record)
 		{
 			try
 			{
-				return await InsertRecordAsync(_openFlags, record).ConfigureAwait(false);
+				return await InsertOrIgnoreRecordAsync(_openFlags, record).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -108,7 +107,7 @@ namespace LolloGPS.Data.TileCache
 			}
 			return result;
 		}
-		private static Task<Tuple<bool, int>> DeleteAsync(SQLiteOpenFlags openFlags, string folderNameToBeDeleted)
+		private static Task<Tuple<bool, int>> DeleteAsync(SQLiteOpenFlags openFlags, string tileSourceTechName)
 		{
 			return Task.Run(delegate
 			{
@@ -124,10 +123,11 @@ namespace LolloGPS.Data.TileCache
 							var connectionString = new SQLiteConnectionString(_tileCacheDbPath, _isStoreDateTimeAsTicks);
 							var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 
-							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + folderNameToBeDeleted + "\"");
+							var deleteAllCommand = conn.CreateCommand("delete from \"TileCache\" where TileSource = \"" + tileSourceTechName + "\"");
 							howManyRecordsProcessed = deleteAllCommand.ExecuteNonQuery();
 
-							howManyRecordsLeft = conn.Table<TileCacheRecord>().Count(); // LOLLO TODO check this
+							var countCommand = conn.CreateCountRecordsCommand(tileSourceTechName) as TileCacheCommand;
+							howManyRecordsLeft = countCommand.CountRecords();
 
 							if (conn.Trace) Debug.WriteLine(howManyRecordsProcessed + " records were deleted");
 						}
@@ -146,14 +146,14 @@ namespace LolloGPS.Data.TileCache
 				return Tuple.Create(howManyRecordsLeft < 1, howManyRecordsProcessed);
 			});
 		}
-		private static Task<bool> InsertRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
+		private static Task<bool> InsertOrIgnoreRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
 			return Task.Run(delegate
 			{
-				return InsertRecord(openFlags, item);
+				return InsertOrIgnoreRecord(openFlags, item);
 			});
 		}
-		private static bool InsertRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
+		private static bool InsertOrIgnoreRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
 			if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
 			bool result = false;
@@ -177,9 +177,8 @@ namespace LolloGPS.Data.TileCache
 					var commandInsert = conn.CreateCommand(sCommandInsert);
 					int res = commandInsert.ExecuteNonQuery();
 
-					Debug.WriteLine("InsertRecord() has run the command " + sCommandInsert);
-					result = (res > 0);
-					if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
+					Debug.WriteLine("InsertRecord() has successfully run the command " + sCommandInsert +  " with res = " + res);
+					result = true;  //(res > 0);
 				}
 			}
 			catch (Exception ex)
@@ -227,13 +226,11 @@ namespace LolloGPS.Data.TileCache
 					sCommandUpdate += ("\"Y\" = \"" + item.Y + "\" and ");
 					sCommandUpdate += ("\"Z\" = \"" + item.Z + "\" and ");
 					sCommandUpdate += ("\"Zoom\" = \"" + item.Zoom + "\"");
-					//sCommandUpdate += ")";
 
 					var commandUpdate = conn.CreateCommand(sCommandUpdate);
 					int res = commandUpdate.ExecuteNonQuery();
 					result = (res > 0);
 					if (res <= 0 && conn.Trace) Debug.WriteLine("res = " + res);
-					//}
 				}
 			}
 			catch (Exception ex)
@@ -389,8 +386,8 @@ namespace LolloGPS.Data.TileCache
 				_isOpenSemaphore.Wait();
 				if (!_isOpen)
 				{
+					_isOpen = true; // must come before the following
 					await TileCacheProcessingQueue.OpenAsync().ConfigureAwait(false);
-					_isOpen = true;
 				}
 			}
 			catch (Exception ex)
@@ -430,11 +427,16 @@ namespace LolloGPS.Data.TileCache
 			string sCommand = "select * from \"TileCache\" where TileSource = \"" + pk.TileSourceTechName + "\" and X = \"" + pk.X + "\" and Y = \"" + pk.Y + "\" and Z = \"" + pk.Z + "\" and Zoom = \"" + pk.Zoom + "\"";
 			return CreateCommand(sCommand);
 		}
+		public SQLiteCommand CreateCountRecordsCommand(string tileSourceTechName)
+		{
+			string sCommand = "select count(*) from \"TileCache\" where TileSource = \"" + tileSourceTechName + "\"";
+			return CreateCommand(sCommand);
+		}
 	}
 	internal sealed class TileCacheCommand : SQLiteCommand
 	{
 		public TileCacheCommand(SQLiteConnection conn) : base(conn) { }
-		public LolloGPS.Data.TileCache.TileCacheRecord GetOneRecord()
+		public TileCacheRecord GetOneRecord()
 		{
 			if (_conn.Trace)
 			{
@@ -482,6 +484,39 @@ namespace LolloGPS.Data.TileCache
 				SQLite3.Finalize(stmt);
 			}
 			return null;
+		}
+
+		public int CountRecords()
+		{
+			if (_conn.Trace)
+			{
+				Debug.WriteLine("Executing Query: " + this);
+			}
+
+			var stmt = Prepare();
+			try
+			{
+				int howManyCols = SQLite3.ColumnCount(stmt);
+				if (_conn.Trace)
+				{
+					Debug.WriteLine("SQLite says that the table has " + howManyCols + " columns");
+				}
+
+				var stepResult = SQLite3.Step(stmt);
+				if (_conn.Trace)
+				{
+					Debug.WriteLine("SQLite step returned " + stepResult);
+				}
+				if (stepResult == SQLite3.Result.Row)
+				{
+					return SQLite3.ColumnInt(stmt, 0);
+				}
+			}
+			finally
+			{
+				SQLite3.Finalize(stmt);
+			}
+			return -1;
 		}
 	}
 }

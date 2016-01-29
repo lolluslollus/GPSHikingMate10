@@ -352,6 +352,8 @@ namespace LolloGPS.Core
 #if DEBUG
 					Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
+					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+
 					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
 					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
 					double[] xLabels = { maxTime, minTime };

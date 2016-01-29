@@ -18,6 +18,8 @@ namespace Utilz.Data.Constants
         public const string GPX_EXTENSION = ".gpx";
         public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
+		public const string REG_CLEARING_CACHE_TILE_SOURCE = "IsClearingCache_TileSource";
+		public const string REG_CLEARING_CACHE_IS_REMOVE_SOURCES = "IsClearingCache_IsAlsoRemoveSources";
 		//public const double MILE_TO_KM = 1.609344;
 		public const double MILE_TO_M = 1609.344;
 		public const double KM_TO_MILE = 0.621371192237;

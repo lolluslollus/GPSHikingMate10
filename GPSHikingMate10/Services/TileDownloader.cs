@@ -105,7 +105,7 @@ namespace LolloGPS.Core
 							tileCache.TileSource.TechName);
 						// never write an invalid DownloadSession into the persistent data
 						if (newDownloadSession.IsValid) persistentData.LastDownloadSession = lastDownloadSession_mt = newDownloadSession;
-						else CloseDownload(persistentData, false); // LOLLO TODO check this, it's new
+						//else CloseDownload(persistentData, false);
 					}
 				}
 				// last download did not complete: start a new one with the old tile source
@@ -119,12 +119,12 @@ namespace LolloGPS.Core
 				if (tileCache != null && lastDownloadSession_mt != null)
 				{
 					if (lastDownloadSession_mt.IsValid) output = DownloadTiles_RespondingToCancel(tileCache, lastDownloadSession_mt);
-					else CloseDownload(persistentData, false); // LOLLO TODO check this, it's new
+					//else CloseDownload(persistentData, false);
 				}
 			}
 			catch (Exception ex)
 			{
-				CloseDownload(persistentData, false);
+				//CloseDownload(persistentData, false);
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 			finally
@@ -194,16 +194,16 @@ namespace LolloGPS.Core
 					{
 						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = CancellationTokenSafe }, (tile) =>
 						{
-							bool isOk = tileCache.SaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom).Result;
+							bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom).Result;
 							if (isOk) currentOkCnt++;
 
 							currentCnt++;
 							if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
-							if (IsCancelled) Cts.CancelSafe(true);
+							if (IsCancelled) Cts?.CancelSafe(true);
 						});
 					}
-					catch (OperationCanceledException) { }
-					catch (ObjectDisposedException) { }
+					catch (OperationCanceledException) { } // comes from the canc token
+					catch (ObjectDisposedException) { } // comes from the canc token
 					catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename); }
 
 					//foreach (var tile in requiredTilesOrderedByZoom)

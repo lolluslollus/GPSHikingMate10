@@ -20,7 +20,7 @@ namespace LolloGPS.Data
 		private static readonly string _route0DbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Route0.db");
 		private static readonly string _landmarksDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Landmarks.db");
 		private static readonly bool _isStoreDateTimeAsTicks = true;
-		private static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone; //.FullMutex; // LOLLO TODO try NoMutex
+		private static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
 		internal static Semaphore _HistorySemaphore = new Semaphore(1, 1, "GPSHikingMate10_HistorySemaphore");
 		internal static Semaphore _Route0Semaphore = new Semaphore(1, 1, "GPSHikingMate10_Route0Semaphore");
 		internal static Semaphore _LandmarksSemaphore = new Semaphore(1, 1, "GPSHikingMate10_LandmarksSemaphore");

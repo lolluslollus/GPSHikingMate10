@@ -6,7 +6,7 @@ using Windows.Devices.Geolocation;
 using System.Collections.Generic;
 using LolloGPS.Data.TileCache;
 using LolloGPS.Data.Leeching;
-using Utilz.Data;
+
 
 namespace UnitTestProject1
 {
@@ -129,7 +129,12 @@ namespace UnitTestProject1
         }
 
 		[TestMethod]
-		public async void LongRunner1()
+		public void LongRunner1()
+		{
+			LongRunner1_();
+		}
+
+		private async void LongRunner1_()
 		{
 			var aaa = new LongRunnerNoSemaphore();
 
@@ -143,7 +148,12 @@ namespace UnitTestProject1
 		}
 
 		[TestMethod]
-		public async void LongRunner2()
+		public void LongRunner2()
+		{
+			LongRunner2_();
+		}
+
+		private async void LongRunner2_()
 		{
 			var aaa = new LongRunnerUnderSemaphore();
 
@@ -155,6 +165,7 @@ namespace UnitTestProject1
 
 			Assert.AreEqual(aaa.HowManyDelays, 2);
 		}
+
 
 		public class TileDownloaderMock : TileDownloader
 		{

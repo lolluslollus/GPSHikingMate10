@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace Utilz
@@ -53,6 +56,65 @@ namespace Utilz
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 			return valueStr;
+		}
+
+		public static async Task<T> GetObject<T>(string regKey)
+		{
+			string serialised = GetValue(regKey);
+			if (string.IsNullOrWhiteSpace(serialised)) return default(T);
+
+			try
+			{
+				using (MemoryStream memoryStream = new MemoryStream())
+				{
+					using (StreamWriter streamWriter = new StreamWriter(memoryStream))
+					{
+						await streamWriter.WriteAsync(serialised).ConfigureAwait(false);
+						await streamWriter.FlushAsync().ConfigureAwait(false);
+						memoryStream.Seek(0, SeekOrigin.Begin);
+						DataContractSerializer serializer = new DataContractSerializer(typeof(T));
+						var tileSource = (T)(serializer.ReadObject(memoryStream));
+						return tileSource;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+				return default(T);
+			}
+		}
+
+		public static async Task<bool> TrySetObject<T>(string regKey, T instance)
+		{
+			try
+			{
+				if (instance == null)
+				{
+					SetValue(regKey, string.Empty);
+				}
+				else
+				{
+					using (MemoryStream memoryStream = new MemoryStream())
+					{
+						DataContractSerializer serializer = new DataContractSerializer(typeof(T));
+						serializer.WriteObject(memoryStream, instance);
+						await memoryStream.FlushAsync().ConfigureAwait(false);
+						memoryStream.Seek(0, SeekOrigin.Begin);
+						using (StreamReader streamReader = new StreamReader(memoryStream))
+						{
+							string serialised = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+							SetValue(regKey, serialised);
+							return true;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+			}
+			return false;
 		}
 	}
 }

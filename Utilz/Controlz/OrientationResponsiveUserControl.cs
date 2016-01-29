@@ -44,7 +44,8 @@ namespace LolloBaseUserControls
 
         private void Open(object sender, RoutedEventArgs e)
         {
-            AddHandlers();
+            AddAppViewHandlers();
+			AddBackHandlers();
             OnVisibleBoundsChanged(_appView, null);
             OnLoaded();
         }
@@ -52,33 +53,53 @@ namespace LolloBaseUserControls
         private void Close(object sender, RoutedEventArgs e)
         {
             OnUnloaded();
-            RemoveHandlers();
+            RemoveAppViewHandlers();
+			RemoveBackHandlers();
         }
         protected virtual void OnLoaded()
         { }
         protected virtual void OnUnloaded()
         { }
-        private bool _isHandlersActive = false;
-        private void AddHandlers()
-        {
-            if (_isHandlersActive == false)
-            {
-				_isHandlersActive = true;
-				if (_appView != null) _appView.VisibleBoundsChanged += OnVisibleBoundsChanged;
-                //if (_orientationSensor != null) _orientationSensor.OrientationChanged += OnSensor_OrientationChanged;
-                //if (_isHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareOrSoftwareButtons_BackPressed;
-                if (BackPressedRaiser != null) BackPressedRaiser.BackOrHardSoftKeyPressed += OnHardwareOrSoftwareButtons_BackPressed;
-            }
-        }
+		private bool _isAppViewHandlersActive = false;
+		private void AddAppViewHandlers()
+		{
+			var av = _appView;
+			if (_isAppViewHandlersActive == false && av != null)
+			{
+				_isAppViewHandlersActive = true;
+				av.VisibleBoundsChanged += OnVisibleBoundsChanged;
+			}
+		}
 
-        private void RemoveHandlers()
-        {
-            if (_appView != null) _appView.VisibleBoundsChanged -= OnVisibleBoundsChanged;
-            //if (_orientationSensor != null) _orientationSensor.OrientationChanged -= OnSensor_OrientationChanged;
-            //if (_isHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareOrSoftwareButtons_BackPressed;
-            if (BackPressedRaiser != null) BackPressedRaiser.BackOrHardSoftKeyPressed -= OnHardwareOrSoftwareButtons_BackPressed;
-            _isHandlersActive = false;
-        }
+		private void RemoveAppViewHandlers()
+		{
+			var av = _appView;
+			if (av != null) av.VisibleBoundsChanged -= OnVisibleBoundsChanged;
+			_isAppViewHandlersActive = false;
+		}
+
+		private bool _isBackHandlersActive = false;
+		private void AddBackHandlers()
+		{
+			var bpr = BackPressedRaiser;
+			if (_isBackHandlersActive == false && bpr != null)
+			{
+				_isBackHandlersActive = true;
+				bpr.BackOrHardSoftKeyPressed += OnHardwareOrSoftwareButtons_BackPressed;
+			}
+		}
+
+		private void RemoveBackHandlers()
+		{
+			var bpr = BackPressedRaiser;
+			RemoveBackHandlers(bpr);
+		}
+
+		private void RemoveBackHandlers(IBackPressedRaiser bpr)
+		{
+			if (bpr != null) bpr.BackOrHardSoftKeyPressed -= OnHardwareOrSoftwareButtons_BackPressed;
+			_isBackHandlersActive = false;
+		}
 		#endregion common
 
 
@@ -91,7 +112,13 @@ namespace LolloBaseUserControls
             set { SetValue(BackPressedRaiserProperty, value); }
         }
         public static readonly DependencyProperty BackPressedRaiserProperty =
-            DependencyProperty.Register("BackPressedRaiser", typeof(IBackPressedRaiser), typeof(OrientationResponsiveUserControl), new PropertyMetadata(null));
+            DependencyProperty.Register("BackPressedRaiser", typeof(IBackPressedRaiser), typeof(OrientationResponsiveUserControl), new PropertyMetadata(null, OnBackPressedRaiserChanged));
+		private static void OnBackPressedRaiserChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			var instance = obj as OrientationResponsiveUserControl;
+			instance.RemoveBackHandlers(args.OldValue as IBackPressedRaiser);
+			instance.AddBackHandlers();
+		}
         #endregion goBack
 
 

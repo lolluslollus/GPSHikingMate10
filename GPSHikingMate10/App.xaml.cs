@@ -79,11 +79,11 @@ namespace LolloGPS.Core
 				Main main = (Window.Current.Content as Frame).Content as Main;
 				await main.CloseAsync().ConfigureAwait(false);
 			}
-			// back up the app settings
-			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
 			// lock the DBs
 			PersistentData.CloseMainDb();
 			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
+			// back up the app settings
+			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
 
 			RuntimeData?.Close();
 		}
@@ -265,6 +265,8 @@ namespace LolloGPS.Core
 					RuntimeData.SetIsDBDataRead_UI(false);
 
 					var main = rootFrame.Content as Main;
+					var yne = await main.OpenAsync(false, !isAppAlreadyRunning);
+					Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					var fileOpener = main.MainVM;
 					if (fileOpener != null && main != null)
 					{
@@ -277,17 +279,14 @@ namespace LolloGPS.Core
 								// get file data from DB into UI
 								foreach (var series in whichTables)
 								{
-									await PersistentData.LoadSeriesFromDbAsync(series);
+									await PersistentData.LoadSeriesFromDbAsync(series, false);
 									Logger.Add_TPL("just got series " + series.ToString() + " into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 								}
 							}
-							var yne = await main.OpenAsync(false, false); // just in case, it will probably return No all the times
-							Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 						}
 						else
 						{
-							var yne = await main.OpenAsync(true, true);
-							Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app just started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+							await SuspensionManager.LoadSettingsAndDbDataAsync(true, false);
 						}
 						// centre view on the file data
 						if (whichTables?.Count > 0)
