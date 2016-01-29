@@ -11,11 +11,20 @@ namespace Utilz
 	{
 		private volatile bool _isDisposed = false;
 		public bool IsDisposed { get { return _isDisposed; } }
+
 		protected override void Dispose(bool disposing)
 		{
 			_isDisposed = true;
-			base.Dispose(disposing);
+			try
+			{
+				base.Dispose(disposing);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
 		}
+
 		public void CancelSafe(bool throwOnFirstException = false)
 		{
 			try
@@ -29,6 +38,7 @@ namespace Utilz
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
+
 		public bool IsCancellationRequestedSafe
 		{
 			get
@@ -53,13 +63,34 @@ namespace Utilz
 				}
 			}
 		}
-	}
-	public static class SmartCancellationTokenSourceExtensions
-	{
-		public static bool IsAlive(this SafeCancellationTokenSource cts)
+		/// <summary>
+		/// Always gets a CancellationToken, even if the object is disposed.
+		/// In this case, the token will say "operation cancelled".
+		/// </summary>
+		public CancellationToken TokenSafe
 		{
-			var lcts = cts;
-			return (lcts != null && !lcts.IsDisposed);
+			get
+			{
+				try
+				{
+					if (!_isDisposed) return Token;
+					else return new CancellationToken(true);
+				}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					return new CancellationToken(true);
+				}
+			}
 		}
 	}
+
+	//public static class SafeCancellationTokenSourceExtensions
+	//{
+	//	public static bool IsAlive(this SafeCancellationTokenSource cts)
+	//	{
+	//		var lcts = cts;
+	//		return (lcts != null && !lcts.IsDisposed);
+	//	}
+	//}
 }

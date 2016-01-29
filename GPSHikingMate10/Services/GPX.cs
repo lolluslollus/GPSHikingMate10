@@ -1,5 +1,4 @@
-﻿using LolloGPS.Core;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using Utilz.Data.Constants;
 using System;
 using System.Collections.Generic;
@@ -14,9 +13,8 @@ using System.Xml.Linq;
 using Utilz;
 using Windows.Data.Xml.Dom;
 using Windows.Storage;
-using Windows.Storage.Provider;
 using Windows.Storage.Streams;
-using Windows.UI.Xaml;
+
 
 namespace GPX
 {
@@ -49,8 +47,8 @@ namespace GPX
 			{
 				try
 				{
+					token.ThrowIfCancellationRequested();
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Route0, token).ConfigureAwait(false);
-
 					token.ThrowIfCancellationRequested();
 					if (newDataRecords == null || newDataRecords.Count < 1)
 					{
@@ -80,7 +78,7 @@ namespace GPX
 				Logger.Add_TPL("GPX file null", Logger.ForegroundLogFilename, Logger.Severity.Info);
 			}
 
-			return Tuple.Create<bool, string>(outIsOk, outMessage);
+			return Tuple.Create(outIsOk, outMessage);
 		}
 		private async static Task<Tuple<bool, string>> LoadLandmarksAsync(StorageFile gpxFile, CancellationToken token)
 		{
@@ -92,8 +90,8 @@ namespace GPX
 			{
 				try
 				{
+					token.ThrowIfCancellationRequested();
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
-
 					token.ThrowIfCancellationRequested();
 					if (newDataRecords == null || newDataRecords.Count < 1)
 					{
@@ -136,6 +134,7 @@ namespace GPX
 			{
 				using (IInputStream inStream2 = await gpxFile.OpenSequentialReadAsync().AsTask<IInputStream>().ConfigureAwait(false)) //OpenReadAsync() also works
 				{
+					token.ThrowIfCancellationRequested();
 					XElement xmlData = XElement.Load(inStream2.AsStreamForRead());
 					token.ThrowIfCancellationRequested();
 
@@ -173,7 +172,7 @@ namespace GPX
 							var time = xe.Descendants(xn + "time").FirstOrDefault(); // Creation/modification timestamp for element. 
 							if (time != null) DateTime.TryParse(time.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timePoint);                     //Fractional seconds are allowed for millisecond timing in tracklogs. 
 
-							UInt32 howManySatellites = default(UInt32);
+							uint howManySatellites = default(UInt32);
 							var sat = xe.Descendants(xn + "sat").FirstOrDefault();
 							if (sat != null) UInt32.TryParse(sat.Value, out howManySatellites);
 
@@ -285,6 +284,7 @@ namespace GPX
 			{
 				try
 				{
+					token.ThrowIfCancellationRequested();
 					XmlDocument gpxDoc = await GetEmptyXml(whichTable).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 					//await PersistentData.GetInstance().RunFunctionUnderSemaphore(
@@ -318,10 +318,10 @@ namespace GPX
 					//int qqq = contentString.Length;
 
 				}
-				catch (Exception exc1)
+				catch (Exception ex)
 				{
-					await Logger.AddAsync("Error writing GPX: " + exc1.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
-					outMessage = "file could not be saved, " + exc1.Message;
+					await Logger.AddAsync("Error writing GPX: " + ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
+					outMessage = "file could not be saved, " + ex.Message;
 				}
 			}
 			else
@@ -330,7 +330,7 @@ namespace GPX
 				outMessage = "file could not be saved";
 			}
 
-			return Tuple.Create<bool, string>(outIsOk, outMessage);
+			return Tuple.Create(outIsOk, outMessage);
 		}
 
 		private static void EditXmlData(Collection<PointRecord> coll, XmlDocument gpxDoc, PersistentData.Tables whichSeries, CancellationToken token)
@@ -470,16 +470,16 @@ namespace GPX
 		private static async Task<XmlDocument> GetEmptyXml(PersistentData.Tables whichSeries)
 		{
 			XmlDocument gpxDoc = null;
-			StorageFolder installLocationFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
-			StorageFolder assetsFolder = await installLocationFolder.GetFolderAsync("Assets").AsTask<StorageFolder>().ConfigureAwait(false);
+			var installLocationFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+			var assetsFolder = await installLocationFolder.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
 			StorageFile emptyGpxFile = null;
 			if (whichSeries == PersistentData.Tables.History || whichSeries == PersistentData.Tables.Route0)
-				emptyGpxFile = await assetsFolder.GetFileAsync("Empty_trk_trkseg_trkpt.gpx").AsTask<StorageFile>().ConfigureAwait(false);
+				emptyGpxFile = await assetsFolder.GetFileAsync("Empty_trk_trkseg_trkpt.gpx").AsTask().ConfigureAwait(false);
 			else
-				emptyGpxFile = await assetsFolder.GetFileAsync("Empty_wpt.gpx").AsTask<StorageFile>().ConfigureAwait(false);
-			using (IInputStream inStream = await emptyGpxFile.OpenSequentialReadAsync().AsTask<IInputStream>().ConfigureAwait(false)) //OpenReadAsync() also works
+				emptyGpxFile = await assetsFolder.GetFileAsync("Empty_wpt.gpx").AsTask().ConfigureAwait(false);
+			using (var inStream = await emptyGpxFile.OpenSequentialReadAsync().AsTask().ConfigureAwait(false)) //OpenReadAsync() also works
 			{
-				using (StreamReader streamReader = new StreamReader(inStream.AsStreamForRead()))
+				using (var streamReader = new StreamReader(inStream.AsStreamForRead()))
 				{
 					string content = streamReader.ReadToEnd();
 					gpxDoc = new XmlDocument();

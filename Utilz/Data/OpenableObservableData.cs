@@ -17,15 +17,14 @@ namespace Utilz.Data
 
 		private volatile SafeCancellationTokenSource _cts = null;
 		protected SafeCancellationTokenSource Cts { get { return _cts; } }
-		protected CancellationToken CancTokenSafe
+		protected CancellationToken CancellationTokenSafe
 		{
 			get
 			{
 				try
 				{
 					var cts = _cts;
-					if (cts.IsAlive()) return cts.Token;
-					else if (cts.IsDisposed) return new CancellationToken(true);
+					if (cts != null) return cts.TokenSafe;
 					else return new CancellationToken(false); // we must be optimistic, or the methods running in separate tasks will always crap out
 				}
 				catch (Exception ex)

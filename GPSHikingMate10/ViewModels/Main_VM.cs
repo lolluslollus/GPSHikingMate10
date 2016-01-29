@@ -565,7 +565,7 @@ namespace LolloGPS.Core
 					{
 						SetLastMessage_UI("saving GPX file...");
 						if (Cts.IsCancellationRequestedSafe) return;
-						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancTokenSafe).ConfigureAwait(false);
+						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancellationTokenSafe).ConfigureAwait(false);
 					}).ConfigureAwait(false);
 				}
 			}
@@ -629,7 +629,7 @@ namespace LolloGPS.Core
 
 						if (Cts.IsCancellationRequestedSafe) return;
 						// load the file
-						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancTokenSafe).ConfigureAwait(false);
+						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancellationTokenSafe).ConfigureAwait(false);
 						if (Cts.IsCancellationRequestedSafe) return;
 						Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
@@ -696,9 +696,9 @@ namespace LolloGPS.Core
 					// load the file, attempting to read landmarks and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
 					if (Cts.IsCancellationRequestedSafe) return result;
-					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, CancTokenSafe).ConfigureAwait(false);
+					landmarksResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Landmarks, CancellationTokenSafe).ConfigureAwait(false);
 					if (Cts.IsCancellationRequestedSafe) return result;
-					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancTokenSafe).ConfigureAwait(false);
+					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancellationTokenSafe).ConfigureAwait(false);
 				}
 				catch (Exception) { }
 				finally
