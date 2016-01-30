@@ -8,15 +8,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Utilz;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
-using Windows.UI.Core;
 using Windows.UI.Xaml.Controls.Maps;
-using System.Globalization;
+
 
 // There is a sqlite walkthrough at:
 // http://social.technet.microsoft.com/wiki/contents/articles/29149.windows-phone-8-1-sqlite-part-one.aspx
@@ -281,7 +277,7 @@ namespace LolloGPS.Data
 		private SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
 		[IgnoreDataMember] // we save the route into the DB 
 		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
-		private SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
+		private SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints); // we init this in the static ctor
 		[IgnoreDataMember] // we save the checkpoints into the DB 
 		public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } private set { _checkpoints = value; RaisePropertyChanged(); } }
 
@@ -417,7 +413,7 @@ namespace LolloGPS.Data
 		[Ignore]
 		public double MaxTapToleranceProp { get { return MaxTapTolerance; } }
 
-		private bool _isShowDegrees = false;
+		private bool _isShowDegrees = true;
 		[DataMember]
 		public bool IsShowDegrees { get { return _isShowDegrees; } set { if (_isShowDegrees != value) { _isShowDegrees = value; RaisePropertyChanged_UI(); RaisePropertyChanged_UI(nameof(Current)); } } }
 		private bool _isKeepAlive = false;

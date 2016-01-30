@@ -190,8 +190,9 @@ namespace LolloGPS.Data.TileCache
 		{
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
-			// not working on this set of data? Mark it as busy, closing the gate for other threads
-			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return null
+			// not working on this set of data? Mark it as busy, closing the gate for other threads.
+			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return false.
+			// if I am not caching and another TileCache is working on the same tile at the same time, tough: this tile won't be downloaded.
 			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			bool result = false;
@@ -689,29 +690,6 @@ namespace LolloGPS.Data.TileCache
 			Debug.WriteLine("ClearCacheAsync() ended");
 		}
 
-		//private static string[] GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
-		//{
-		//	string[] folderNamesToBeDeleted = null;
-		//	PersistentData _persistentData = PersistentData.GetInstance();
-		//	if (!tileSource.IsAll && !tileSource.IsNone)
-		//	{
-		//		folderNamesToBeDeleted = new string[1] { tileSource.TechName };
-		//	}
-		//	else if (tileSource.IsAll)
-		//	{
-		//		folderNamesToBeDeleted = new string[_persistentData.TileSourcez.Count - 1];
-		//		int cnt = 0;
-		//		foreach (var item in _persistentData.TileSourcez)
-		//		{
-		//			if (!item.IsDefault)
-		//			{
-		//				folderNamesToBeDeleted[cnt] = item.TechName;
-		//				cnt++;
-		//			}
-		//		}
-		//	}
-		//	return folderNamesToBeDeleted;
-		//}
 		private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
 		{
 			var folderNamesToBeDeleted = new List<string>();

@@ -328,7 +328,7 @@ namespace LolloGPS.Core
 			if (_lolloMapVM != null) _lolloMapVM.CancelDownloadByUser();
 		}
 
-		public async Task StartUserTestingTileSourceAsync() // when i click "test"
+		public async Task StartUserTestingTileSourceAsync()
 		{
 			Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
 
@@ -337,7 +337,7 @@ namespace LolloGPS.Core
 				TestTileSourceErrorMsg = string.Empty; // ok
 				PersistentData.IsShowingPivot = false;
 			}
-			else TestTileSourceErrorMsg = result.Item2;         // error
+			else TestTileSourceErrorMsg = result.Item2; // error
 
 			SetLastMessage_UI(result.Item2);
 		}
