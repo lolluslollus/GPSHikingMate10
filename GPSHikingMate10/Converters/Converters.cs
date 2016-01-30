@@ -9,6 +9,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Utilz.Data.Constants;
+using System.Diagnostics;
 
 namespace LolloGPS.Converters
 {
@@ -208,33 +209,33 @@ namespace LolloGPS.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
-			throw new Exception("this is a one-way bonding, it should never come here");
+			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
 
-	public class LandmarksCountLowerThanMaxToBooleanConverter : IValueConverter
+	public class CheckpointCountLowerThanMaxToTrueConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null || !(value is int)) return false;
 			int val = (int)value;
-			if (val < PersistentData.MaxRecordsInLandmarks) return true;
+			if (val < PersistentData.MaxRecordsInCheckpoints) return true;
 			else return false;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
-			throw new Exception("this is a one-way bonding, it should never come here");
+			throw new Exception("this is a one-way binding, it should never come here");
 		}
 	}
 
-	public class LandmarksCountEqualMaxToVisibleConverter : IValueConverter
+	public class CheckpointCountEqualMaxToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null || !(value is Int32)) return Visibility.Visible;
 			int val = (int)value;
-			if (val < PersistentData.MaxRecordsInLandmarks) return Visibility.Collapsed;
+			if (val < PersistentData.MaxRecordsInCheckpoints) return Visibility.Collapsed;
 			else return Visibility.Visible;
 		}
 
@@ -379,22 +380,11 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class AngleConverter : IValueConverter
+	public class AngleConverterLat : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			PersistentData myData = PersistentData.GetInstance();
-			if (myData.IsShowDegrees == false)
-			{
-				if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
-				double dbl = default(double);
-				double.TryParse(value.ToString(), out dbl);
-				return dbl.ToString("#0.#", CultureInfo.CurrentUICulture);
-			}
-			else
-			{
-				return AngleConverterHelper.Float_To_DegMinSec_NoDec_String(value, parameter);
-			}
+			return AngleConverterHelper.LatitudeToString(value, parameter);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -403,11 +393,24 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class AngleConverterDeg : IValueConverter
+	public class AngleConverterLon : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter)[0];
+			return AngleConverterHelper.LongitudeToString(value, parameter);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("This is a one-way binding, so I should never get here");
+		}
+	}
+
+	public class AngleConverterDeg_Abs : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter, true)[0];
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -418,7 +421,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter)[1];
+			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter, false)[1];
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -430,7 +433,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter)[2];
+			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter, false)[2];
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -442,7 +445,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter)[3];
+			return AngleConverterHelper.Float_To_DegMinSecDec_Array(value, parameter, false)[3];
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -451,13 +454,13 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class FloatConverter8Decimals : IValueConverter
+	public class FloatConverter8DecimalsAbs : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
 
-			return FloatConverterHelper.Convert(value, parameter, @"#0.########");
+			return FloatConverterHelper.Convert(value, parameter, true, @"#0.########");
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -471,7 +474,7 @@ namespace LolloGPS.Converters
 		{
 			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
 
-			return FloatConverterHelper.Convert(value, parameter, @"#0.#");
+			return FloatConverterHelper.Convert(value, parameter, false, @"#0.#");
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -485,7 +488,7 @@ namespace LolloGPS.Converters
 		{
 			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
 
-			return FloatConverterHelper.Convert(value, parameter, @"#0");
+			return FloatConverterHelper.Convert(value, parameter, false, @"#0");
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
@@ -495,7 +498,7 @@ namespace LolloGPS.Converters
 
 	public class FloatConverterHelper
 	{
-		public static object Convert(object value, object parameter, string format = @"#0.########")
+		public static object Convert(object value, object parameter, bool abs, string format = @"#0.########")
 		{
 			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
 
@@ -563,7 +566,44 @@ namespace LolloGPS.Converters
 				}
 			}
 
-			return dbl.ToString(format, CultureInfo.CurrentUICulture);
+			if (abs) return Math.Abs(dbl).ToString(format, CultureInfo.CurrentUICulture);
+			else return dbl.ToString(format, CultureInfo.CurrentUICulture);
+		}
+	}
+
+	public class FloatToSignConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			return AngleConverterHelper.FloatToSign(value);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
+		}
+	}
+
+	public class FloatLatitudeToNSConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			return AngleConverterHelper.LatitudeToNS(value);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
+		}
+	}
+
+	public class FloatLongitudeToEWConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			return AngleConverterHelper.LongitudeToEW(value);
+		}
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			throw new Exception("this is a one-way binding, it should never get here");
 		}
 	}
 
@@ -815,6 +855,145 @@ namespace LolloGPS.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("this is a one-way binding, it should never come here");
+		}
+	}
+
+	public static class AngleConverterHelper
+	{
+		public const int MaxDecimalPlaces = 3;
+		public const int TenPowerMaxDecimalPlaces = 1000;
+		public const string FLOAT_LAT_LON_FORMAT = "#0.###";
+
+		public static string LatitudeToString(object value, object parameter)
+		{
+			PersistentData myData = PersistentData.GetInstance();
+			if (myData.IsShowDegrees == false)
+			{
+				return FloatToNumberString(value);
+			}
+			else
+			{
+				return FloatToDegMinSecString_NoDec(value, parameter, false);
+			}
+
+		}
+		public static string LongitudeToString(object value, object parameter)
+		{
+			PersistentData myData = PersistentData.GetInstance();
+			if (myData.IsShowDegrees == false)
+			{
+				return FloatToNumberString(value);
+			}
+			else
+			{
+				return FloatToDegMinSecString_NoDec(value, parameter, true);
+			}
+		}
+
+		private static string FloatToNumberString(object value)
+		{
+			if (value == null) return default(double).ToString("#0.#", CultureInfo.CurrentUICulture);
+			double dbl = default(double);
+			double.TryParse(value.ToString(), out dbl);
+			return dbl.ToString(FLOAT_LAT_LON_FORMAT, CultureInfo.CurrentUICulture);
+		}
+
+		private static string FloatToDegMinSecString_NoDec(object value, object parameter, bool longitude)
+		{
+			int deg;
+			int min;
+			int sec;
+			int dec;
+			Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
+			if (longitude) return (Math.Abs(deg) + "°" + min + "'" + sec + "\"" + LongitudeToEW(deg)) as string; //we skip dec
+			else return (Math.Abs(deg) + "°" + min + "'" + sec + "\"" + LatitudeToNS(deg)) as string; //we skip dec
+		}
+
+		public static string[] Float_To_DegMinSecDec_Array(object value, object parameter, bool abs)
+		{
+			int deg;
+			int min;
+			int sec;
+			int dec;
+			Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
+			string[] strArray = new string[4];
+			if (abs) strArray[0] = Math.Abs(deg).ToString(); else strArray[0] = deg.ToString();
+			strArray[1] = min.ToString();
+			strArray[2] = sec.ToString();
+			strArray[3] = dec.ToString();
+			return strArray;
+		}
+
+		private static void Float_To_DegMinSecDec(object value, object parameter, out int deg, out int min, out int sec, out int dec)
+		{
+			double coord = 0.0;
+			if (double.TryParse(value.ToString(), out coord))
+			{
+				deg = (int)Math.Truncate(coord);
+				min = (int)Math.Abs(Math.Truncate((coord - deg) * 60.0));
+				double secDbl = Math.Abs(Math.Abs(coord - deg) * 3600 - min * 60);
+				sec = (int)secDbl;
+				dec = (int)((secDbl - sec) * TenPowerMaxDecimalPlaces);
+
+				Debug.WriteLine(coord);
+				int sign = Math.Sign(deg);
+				if (sign == 0) sign = 1;
+				Debug.WriteLine(sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg); //this is the inverse function, by the way
+			}
+			else
+			{
+				deg = min = sec = dec = 0;
+				Debug.WriteLine("ERROR: double expected");
+			}
+			//if (parameter != null) sec = Math.Round(sec, System.Convert.ToInt32(parameter.ToString())); // in case we need this again in future...
+		}
+
+		public static double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)
+		{
+			int deg = 0;
+			int.TryParse(degStr, out deg);
+			int min = 0;
+			int.TryParse(minStr, out min);
+			int sec = 0;
+			int.TryParse(secStr, out sec);
+			int dec = 0;
+			int.TryParse(decStr, out dec);
+			int sign = Math.Sign(deg);
+			if (sign == 0) sign = 1;
+			return sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg;
+		}
+
+		public static string FloatToSign(object value)
+		{
+			if (value == null) return "?";
+			double dbl = default(double);
+			double.TryParse(value.ToString(), out dbl);
+
+			if (dbl < default(double)) return "-";
+			//else if (dbl == default(double)) return " ";
+			else return "+";
+		}
+
+		public static object LatitudeToNS(object value)
+		{
+			if (value == null) return "?";
+			double dbl = default(double);
+			double.TryParse(value.ToString(), out dbl);
+
+			if (dbl < default(double)) return "S";
+			//else if (dbl == default(double)) return " ";
+			else return "N";
+		}
+
+		public static object LongitudeToEW(object value)
+		{
+			if (value == null) return "?";
+			double dbl = default(double);
+			double.TryParse(value.ToString(), out dbl);
+
+			if (dbl < default(double)) return "W";
+			//else if (dbl == default(double)) return " ";
+			else return "E";
 		}
 	}
 }

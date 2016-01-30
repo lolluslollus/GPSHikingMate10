@@ -300,9 +300,9 @@
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
-					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
 					<Run Text="Lon"/>
-					<Run Text="{Binding Current.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="{Binding Current.Longitude, Converter={StaticResource AngleConverterLon}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
 					<Run Text="Alt"/>
 					<Run Text="{Binding Current.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter='M'}"/>
 					<Run Text="@"/>

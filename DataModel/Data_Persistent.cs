@@ -16,6 +16,7 @@ using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls.Maps;
+using System.Globalization;
 
 // There is a sqlite walkthrough at:
 // http://social.technet.microsoft.com/wiki/contents/articles/29149.windows-phone-8-1-sqlite-part-one.aspx
@@ -25,7 +26,7 @@ namespace LolloGPS.Data
 	[DataContract]
 	public sealed class PersistentData : ObservableData, IGPSDataModel //, INotifyDataErrorInfo //does not work
 	{
-		public enum Tables { History, Route0, Landmarks, nil }
+		public enum Tables { History, Route0, Checkpoints, nil }
 		public static string GetTextForSeries(Tables whichSeries)
 		{
 			switch (whichSeries)
@@ -34,8 +35,8 @@ namespace LolloGPS.Data
 					return "Tracking history";
 				case Tables.Route0:
 					return "Route";
-				case Tables.Landmarks:
-					return "Landmarks";
+				case Tables.Checkpoints:
+					return "Checkpoints";
 				case Tables.nil:
 					return "No series";
 				default:
@@ -44,12 +45,12 @@ namespace LolloGPS.Data
 		}
 		public const int MaxRecordsInRoute = short.MaxValue;
 		public const int MaxRecordsInHistory = short.MaxValue;
-		private const int MaxLandmarks1 = 100;
-		private const int MaxLandmarks2 = 200;
-		private const int MaxLandmarks3 = 500;
-		private const int MaxLandmarks4 = 1000;
+		private const int MaxCheckpoints1 = 100;
+		private const int MaxCheckpoints2 = 200;
+		private const int MaxCheckpoints3 = 500;
+		private const int MaxCheckpoints4 = 1000;
 
-		public static readonly int MaxRecordsInLandmarks = MaxLandmarks4;
+		public static readonly int MaxRecordsInCheckpoints = MaxCheckpoints4;
 
 		public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
 		public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
@@ -70,7 +71,7 @@ namespace LolloGPS.Data
 
 		private static SemaphoreSlimSafeRelease _historySemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static SemaphoreSlimSafeRelease _route0Semaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static SemaphoreSlimSafeRelease _landmarksSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static SemaphoreSlimSafeRelease _checkpointsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static SemaphoreSlimSafeRelease _tileSourcezSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region events
@@ -92,60 +93,6 @@ namespace LolloGPS.Data
 			}
 		}
 
-		//public static async Task SetInstanceAsync(PersistentData newData, List<PointRecord> history, List<PointRecord> route0, List<PointRecord> landmarks)
-		//{
-		//	try
-		//	{
-		//		PersistentData dataToBeChanged = GetInstance();
-		//		//I must clone memberwise, otherwise the current event handlers get lost
-		//		CloneNonDbProperties_internal(newData, ref dataToBeChanged);
-
-		//		if (history != null)
-		//		{
-		//			try
-		//			{
-		//				await _historySemaphore.WaitAsync().ConfigureAwait(false);
-		//				dataToBeChanged.History.Clear();
-		//				dataToBeChanged.History.AddRange(history);
-		//				dataToBeChanged.SetCurrentToLast();
-		//			}
-		//			finally
-		//			{
-		//				SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
-		//			}
-		//		}
-		//		if (route0 != null)
-		//		{
-		//			try
-		//			{
-		//				await _route0Semaphore.WaitAsync().ConfigureAwait(false);
-		//				dataToBeChanged.Route0.Clear();
-		//				dataToBeChanged.Route0.AddRange(route0);
-		//			}
-		//			finally
-		//			{
-		//				SemaphoreSlimSafeRelease.TryRelease(_route0Semaphore);
-		//			}
-		//		}
-		//		if (landmarks != null)
-		//		{
-		//			try
-		//			{
-		//				await _landmarksSemaphore.WaitAsync().ConfigureAwait(false);
-		//				dataToBeChanged.Landmarks.Clear();
-		//				dataToBeChanged.Landmarks.AddRange(landmarks);
-		//			}
-		//			finally
-		//			{
-		//				SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
-		//			}
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
-		//	}
-		//}
 		public static Task SetInstanceNonDbPropertiesAsync(PersistentData from)
 		{
 			try
@@ -217,7 +164,7 @@ namespace LolloGPS.Data
 
 				if (source.TileSourcez != null && source.TileSourcez.Count > 0) // start with the default values
 				{
-					foreach (var srcItem in source.TileSourcez.Where(a => a.IsDeletable)) // add custom map sources
+					foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
 					{
 						target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
 					}
@@ -232,14 +179,14 @@ namespace LolloGPS.Data
 		{
 			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC
 			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.AppEventsLogFilename, Logger.Severity.Info);
-			if (memUsageLimit < 1e+9) MaxRecordsInLandmarks = MaxLandmarks1;
-			else if (memUsageLimit < 2e+9) MaxRecordsInLandmarks = MaxLandmarks2;
-			else if (memUsageLimit < 4e+9) MaxRecordsInLandmarks = MaxLandmarks3;
-			else MaxRecordsInLandmarks = MaxLandmarks4;
+			if (memUsageLimit < 1e+9) MaxRecordsInCheckpoints = MaxCheckpoints1;
+			else if (memUsageLimit < 2e+9) MaxRecordsInCheckpoints = MaxCheckpoints2;
+			else if (memUsageLimit < 4e+9) MaxRecordsInCheckpoints = MaxCheckpoints3;
+			else MaxRecordsInCheckpoints = MaxCheckpoints4;
 		}
 		private PersistentData()
 		{
-			_landmarks = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInLandmarks);
+			_checkpoints = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInCheckpoints);
 		}
 
 		public static Task OpenTileCacheDbAsync()
@@ -309,6 +256,7 @@ namespace LolloGPS.Data
 				else if (_current.Longitude != oldValue.Longitude || _current.Latitude != oldValue.Latitude || _current.TimePoint != oldValue.TimePoint) { RaisePropertyChanged_UI(); }
 			}
 		}
+
 		private bool _isCentreOnCurrent = true;
 		[DataMember]
 		public bool IsCentreOnCurrent { get { return _isCentreOnCurrent; } set { if (_isCentreOnCurrent != value) { _isCentreOnCurrent = value; RaisePropertyChanged_UI(); } } }
@@ -333,9 +281,9 @@ namespace LolloGPS.Data
 		private SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
 		[IgnoreDataMember] // we save the route into the DB 
 		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
-		private SwitchableObservableCollection<PointRecord> _landmarks = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInLandmarks);
-		[IgnoreDataMember] // we save the landmarks into the DB 
-		public SwitchableObservableCollection<PointRecord> Landmarks { get { return _landmarks; } private set { _landmarks = value; RaisePropertyChanged(); } }
+		private SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
+		[IgnoreDataMember] // we save the checkpoints into the DB 
+		public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } private set { _checkpoints = value; RaisePropertyChanged(); } }
 
 		private uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
 		[DataMember]
@@ -435,7 +383,7 @@ namespace LolloGPS.Data
 		public uint MaxDesiredAccuracyInMetresProp { get { return MaxDesiredAccuracyInMetres; } }
 		[IgnoreDataMember]
 		[Ignore]
-		public int MaxRecordsInLandmarksProp { get { return MaxRecordsInLandmarks; } }
+		public int MaxRecordsInCheckpointsProp { get { return MaxRecordsInCheckpoints; } }
 
 		private string _lastMessage = string.Empty;
 		[DataMember]
@@ -471,7 +419,7 @@ namespace LolloGPS.Data
 
 		private bool _isShowDegrees = false;
 		[DataMember]
-		public bool IsShowDegrees { get { return _isShowDegrees; } set { _isShowDegrees = value; RaisePropertyChanged_UI(); } }
+		public bool IsShowDegrees { get { return _isShowDegrees; } set { if (_isShowDegrees != value) { _isShowDegrees = value; RaisePropertyChanged_UI(); RaisePropertyChanged_UI(nameof(Current)); } } }
 		private bool _isKeepAlive = false;
 		[DataMember]
 		public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged_UI(); } }
@@ -528,7 +476,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
-		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times.
+		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times. This is difficult to reproduce.
 		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
@@ -547,7 +495,7 @@ namespace LolloGPS.Data
 
 		private bool _isShowImperialUnits = false;
 		[DataMember]
-		public bool IsShowImperialUnits { get { return _isShowImperialUnits; } set { if (_isShowImperialUnits != value) { _isShowImperialUnits = value; RaisePropertyChanged_UI(); } } }
+		public bool IsShowImperialUnits { get { return _isShowImperialUnits; } set { if (_isShowImperialUnits != value) { _isShowImperialUnits = value; RaisePropertyChanged_UI(); RaisePropertyChanged_UI(nameof(Current)); } } }
 		#endregion properties
 
 		#region all series methods
@@ -559,8 +507,8 @@ namespace LolloGPS.Data
 					return LoadHistoryFromDbAsync(isShowMessageEvenIfSuccess);
 				case Tables.Route0:
 					return LoadRoute0FromDbAsync(isShowMessageEvenIfSuccess);
-				case Tables.Landmarks:
-					return LoadLandmarksFromDbAsync(isShowMessageEvenIfSuccess);
+				case Tables.Checkpoints:
+					return LoadCheckpointsFromDbAsync(isShowMessageEvenIfSuccess);
 				default:
 					return Task.CompletedTask;
 			}
@@ -585,10 +533,10 @@ namespace LolloGPS.Data
 					series = Route0;
 					semaphore = _route0Semaphore;
 				}
-				else if (_selectedSeries == Tables.Landmarks)
+				else if (_selectedSeries == Tables.Checkpoints)
 				{
-					series = Landmarks;
-					semaphore = _landmarksSemaphore;
+					series = Checkpoints;
+					semaphore = _checkpointsSemaphore;
 				}
 			}
 			if (series != null && semaphore != null && Selected != null)
@@ -610,7 +558,7 @@ namespace LolloGPS.Data
 							Task delete = null;
 							if (_selectedSeries == Tables.History) delete = DBManager.DeleteFromHistoryAsync(matchingPointInSeries);
 							else if (_selectedSeries == Tables.Route0) delete = DBManager.DeleteFromRoute0Async(matchingPointInSeries);
-							else if (_selectedSeries == Tables.Landmarks) delete = DBManager.DeleteFromLandmarksAsync(matchingPointInSeries);
+							else if (_selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
 
 							// if I have removed the last record from the series
 							if (series.Count == 0)
@@ -668,8 +616,8 @@ namespace LolloGPS.Data
 				case Tables.Route0:
 					semaphore = _route0Semaphore;
 					break;
-				case Tables.Landmarks:
-					semaphore = _landmarksSemaphore;
+				case Tables.Checkpoints:
+					semaphore = _checkpointsSemaphore;
 					break;
 				default:
 					return;
@@ -899,31 +847,31 @@ namespace LolloGPS.Data
 		}
 		#endregion route0Methods
 
-		#region landmarksMethods
-		public async Task LoadLandmarksFromDbAsync(bool isShowMessageEvenIfSuccess)
+		#region checkpointsMethods
+		public async Task LoadCheckpointsFromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
-			List<PointRecord> dataRecords = await DBManager.GetLandmarksAsync().ConfigureAwait(false);
+			List<PointRecord> dataRecords = await DBManager.GetCheckpointsAsync().ConfigureAwait(false);
 
 			try
 			{
-				await _landmarksSemaphore.WaitAsync().ConfigureAwait(false);
+				await _checkpointsSemaphore.WaitAsync().ConfigureAwait(false);
 
 				await RunInUiThreadAsync(delegate
 				{
 					try
 					{
-						_landmarks.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
-						if (isShowMessageEvenIfSuccess) LastMessage = "Landmarks updated";
+						_checkpoints.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						if (isShowMessageEvenIfSuccess) LastMessage = "Checkpoints updated";
 					}
 					catch (IndexOutOfRangeException)
 					{
-						LastMessage = "Only some landmarks are drawn";
+						LastMessage = "Only some checkpoints are drawn";
 					}
 					catch (OutOfMemoryException)
 					{
 						var howMuchMemoryLeft = GC.GetTotalMemory(true);
-						LastMessage = "Only some landmarks are drawn";
-						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetLandmarks()", Logger.PersistentDataLogFilename);
+						LastMessage = "Only some checkpoints are drawn";
+						Logger.Add_TPL("OutOfMemoryException in PersistentData.SetCheckpoints()", Logger.PersistentDataLogFilename);
 					}
 					catch (Exception ex)
 					{
@@ -933,88 +881,88 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_checkpointsSemaphore);
 			}
 		}
-		public static Task SetLandmarksInDBAsync(IEnumerable<PointRecord> dataRecords)
+		public static Task SetCheckpointsInDBAsync(IEnumerable<PointRecord> dataRecords)
 		{
-			return DBManager.ReplaceLandmarksAsync(dataRecords, true);
+			return DBManager.ReplaceCheckpointsAsync(dataRecords, true);
 		}
-		public async Task ResetLandmarksAsync()
+		public async Task ResetCheckpointsAsync()
 		{
 			try
 			{
-				await _landmarksSemaphore.WaitAsync();
+				await _checkpointsSemaphore.WaitAsync();
 				await RunInUiThreadAsync(delegate
 				{
-					_landmarks.Clear();
+					_checkpoints.Clear();
 				}).ConfigureAwait(false);
-				await DBManager.DeleteAllFromLandmarksAsync().ConfigureAwait(false);
-				LastMessage = "landmarks cleared";
+				await DBManager.DeleteAllFromCheckpointsAsync().ConfigureAwait(false);
+				LastMessage = "checkpoints cleared";
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_checkpointsSemaphore);
 			}
 		}
-		public async Task<bool> TryAddPointToLandmarksAsync(PointRecord newPoint)
+		public async Task<bool> TryAddPointToCheckpointsAsync(PointRecord newPoint)
 		{
 			if (newPoint != null && !newPoint.IsEmpty())
 			{
 				try
 				{
-					await _landmarksSemaphore.WaitAsync();
-					var samePointInLandmarks = _landmarks.FirstOrDefault(oldPoint => oldPoint.Latitude == newPoint.Latitude && oldPoint.Longitude == newPoint.Longitude);
-					if (samePointInLandmarks != null)
+					await _checkpointsSemaphore.WaitAsync();
+					var samePointInCheckpoints = _checkpoints.FirstOrDefault(oldPoint => oldPoint.Latitude == newPoint.Latitude && oldPoint.Longitude == newPoint.Longitude);
+					if (samePointInCheckpoints != null)
 					{
-						int index = _landmarks.IndexOf(samePointInLandmarks);
+						int index = _checkpoints.IndexOf(samePointInCheckpoints);
 						if (index > -1)
 						{
 							await RunInUiThreadAsync(delegate
 							{
-								var id = _landmarks[index].Id;
-								Landmarks[index] = newPoint;
-								Landmarks[index].Id = id; // otherwise I overwrite Id, and db update will not update
+								var id = _checkpoints[index].Id;
+								Checkpoints[index] = newPoint;
+								Checkpoints[index].Id = id; // otherwise I overwrite Id, and db update will not update
 							}).ConfigureAwait(false);
-							await DBManager.UpdateLandmarksAsync(newPoint, false).ConfigureAwait(false);
-							LastMessage = "Data merged into landmarks";
+							await DBManager.UpdateCheckpointsAsync(newPoint, false).ConfigureAwait(false);
+							LastMessage = "Data merged into checkpoints";
 							return true;
 						}
 						else
 						{
-							LastMessage = "Error updating landmarks";
+							LastMessage = "Error updating checkpoints";
 							return false;
 						}
 					}
 					else
 					{
-						if (_landmarks.Count < MaxRecordsInLandmarks)
+						if (_checkpoints.Count < MaxRecordsInCheckpoints)
 						{
 							await RunInUiThreadAsync(delegate
 							{
-								_landmarks.Add(newPoint);
+								_checkpoints.Add(newPoint);
 							}).ConfigureAwait(false);
-							await DBManager.InsertIntoLandmarksAsync(newPoint, false).ConfigureAwait(false);
-							LastMessage = "Data added to landmarks";
+							await DBManager.InsertIntoCheckpointsAsync(newPoint, false).ConfigureAwait(false);
+							LastMessage = "Data added to checkpoints";
 							return true;
 						}
 						else
 						{
-							LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
+							LastMessage = string.Format("Too many checkpoints, max is {0}", MaxRecordsInCheckpoints);
 							return false;
 						}
 					}
 				}
 				catch (IndexOutOfRangeException)
 				{
-					LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
+					LastMessage = string.Format("Too many checkpoints, max is {0}", MaxRecordsInCheckpoints);
 					return false;
 				}
 				catch (OutOfMemoryException)
 				{
 					var howMuchMemoryLeft = GC.GetTotalMemory(true);
-					LastMessage = string.Format("Too many landmarks, max is {0}", MaxRecordsInLandmarks);
-					Logger.Add_TPL("OutOfMemoryException in PersistentData.TryAddTargetToLandmarks()", Logger.PersistentDataLogFilename);
+					LastMessage = string.Format("Too many checkpoints, max is {0}", MaxRecordsInCheckpoints);
+					Logger.Add_TPL("OutOfMemoryException in PersistentData.TryAddTargetToCheckpoints()", Logger.PersistentDataLogFilename);
 					return false;
 				}
 				catch (Exception ex)
@@ -1024,19 +972,19 @@ namespace LolloGPS.Data
 				}
 				finally
 				{
-					SemaphoreSlimSafeRelease.TryRelease(_landmarksSemaphore);
+					SemaphoreSlimSafeRelease.TryRelease(_checkpointsSemaphore);
 				}
 			}
-			LastMessage = "Error updating landmarks";
+			LastMessage = "Error updating checkpoints";
 			return false;
 		}
-		public Task<bool> TryAddTargetCloneToLandmarksAsync()
+		public Task<bool> TryAddTargetCloneToCheckpointsAsync()
 		{
 			PointRecord targetClone = null;
 			PointRecord.Clone(Target, ref targetClone);
-			return TryAddPointToLandmarksAsync(targetClone);
+			return TryAddPointToCheckpointsAsync(targetClone);
 		}
-		#endregion landmarksMethods
+		#endregion checkpointsMethods
 
 		#region selectedRecordMethods
 		public bool IsSelectedRecordFromAnySeriesFirst()
@@ -1044,7 +992,7 @@ namespace LolloGPS.Data
 			if (_selectedSeries == Tables.nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[0].Equals(_selected);
 			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[0].Equals(_selected);
-			else if (_selectedSeries == Tables.Landmarks && _landmarks.Count > 0) return _landmarks[0].Equals(_selected);
+			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[0].Equals(_selected);
 			else return false;
 		}
 		public bool IsSelectedRecordFromAnySeriesLast()
@@ -1052,7 +1000,7 @@ namespace LolloGPS.Data
 			if (_selectedSeries == Tables.nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[_history.Count - 1].Equals(_selected);
 			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[_route0.Count - 1].Equals(_selected);
-			else if (_selectedSeries == Tables.Landmarks && _landmarks.Count > 0) return _landmarks[_landmarks.Count - 1].Equals(_selected);
+			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[_checkpoints.Count - 1].Equals(_selected);
 			else return false;
 		}
 		public bool IsSelectedSeriesNonNullAndNonEmpty()
@@ -1060,7 +1008,7 @@ namespace LolloGPS.Data
 			if (_selectedSeries == Tables.nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History) return _history.Count > 0;
 			else if (_selectedSeries == Tables.Route0) return _route0.Count > 0;
-			else if (_selectedSeries == Tables.Landmarks) return _landmarks.Count > 0;
+			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Count > 0;
 			else return false;
 		}
 		//public void SelectCurrentHistoryRecord()
@@ -1077,7 +1025,7 @@ namespace LolloGPS.Data
 				{
 					if (whichTable == Tables.History) SelectedIndex_Base1 = History.IndexOf(dataRecord) + 1;
 					else if (whichTable == Tables.Route0) SelectedIndex_Base1 = Route0.IndexOf(dataRecord) + 1;
-					else if (whichTable == Tables.Landmarks) SelectedIndex_Base1 = Landmarks.IndexOf(dataRecord) + 1;
+					else if (whichTable == Tables.Checkpoints) SelectedIndex_Base1 = Checkpoints.IndexOf(dataRecord) + 1;
 					else SelectedIndex_Base1 = DefaultSelectedIndex_Base1;
 				}
 				else
@@ -1096,14 +1044,14 @@ namespace LolloGPS.Data
 			if (_selectedSeries == Tables.nil || Selected == null) return;
 			else if (_selectedSeries == Tables.History) SelectNeighbourRecord(_history, Tables.History, step);
 			else if (_selectedSeries == Tables.Route0) SelectNeighbourRecord(_route0, Tables.Route0, step);
-			else if (_selectedSeries == Tables.Landmarks) SelectNeighbourRecord(_landmarks, Tables.Landmarks, step);
+			else if (_selectedSeries == Tables.Checkpoints) SelectNeighbourRecord(_checkpoints, Tables.Checkpoints, step);
 		}
 		public PointRecord GetRecordBeforeSelectedFromAnySeries()
 		{
 			if (_selectedSeries == Tables.nil || Selected == null || SelectedIndex_Base1 - 2 < 0) return null;
 			else if (_selectedSeries == Tables.History) return History[SelectedIndex_Base1 - 2];
 			else if (_selectedSeries == Tables.Route0) return Route0[SelectedIndex_Base1 - 2];
-			else if (_selectedSeries == Tables.Landmarks) return Landmarks[SelectedIndex_Base1 - 2];
+			else if (_selectedSeries == Tables.Checkpoints) return Checkpoints[SelectedIndex_Base1 - 2];
 			return null;
 		}
 		private void SelectNeighbourRecord(Collection<PointRecord> series, Tables whichSeries, int step)
@@ -1172,6 +1120,11 @@ namespace LolloGPS.Data
 					return Tuple.Create(true, successMessage);
 				}
 			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				return Tuple.Create(false, string.Format("Error with tile source {0}", TestTileSource.TechName));
+			}
 			finally
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
@@ -1187,7 +1140,7 @@ namespace LolloGPS.Data
 					if (tileSource.IsAll)
 					{
 						Collection<TileSourceRecord> tsTBDeleted = new Collection<TileSourceRecord>();
-						foreach (var item in TileSourcez.Where(a => a.IsDeletable))
+						foreach (var item in TileSourcez.Where(ts => ts.IsDeletable))
 						{
 							// restore default if removing current tile source
 							if (CurrentTileSource.TechName == item.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
@@ -1207,6 +1160,10 @@ namespace LolloGPS.Data
 					}
 					RaisePropertyChanged(nameof(TileSourcez));
 				}).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 			finally
 			{
@@ -1266,76 +1223,7 @@ namespace LolloGPS.Data
 		#endregion otherMethods
 	}
 
-	#region conversion
-	public static class AngleConverterHelper
-	{
-		public const int MaxDecimalPlaces = 3;
-		public const int TenPowerMaxDecimalPlaces = 1000;
-		public static string Float_To_DegMinSec_NoDec_String(object value, object parameter)
-		{
-			int deg;
-			int min;
-			int sec;
-			int dec;
-			Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
-			return (deg + "°" + min + "'" + sec + "\"") as string; //we skip dec
-		}
 
-		public static string[] Float_To_DegMinSecDec_Array(object value, object parameter)
-		{
-			int deg;
-			int min;
-			int sec;
-			int dec;
-			Float_To_DegMinSecDec(value, parameter, out deg, out min, out sec, out dec);
-			string[] strArray = new string[4];
-			strArray[0] = deg.ToString();
-			strArray[1] = min.ToString();
-			strArray[2] = sec.ToString();
-			strArray[3] = dec.ToString();
-			return strArray;
-		}
-
-		private static void Float_To_DegMinSecDec(object value, object parameter, out int deg, out int min, out int sec, out int dec)
-		{
-			double coord = 0.0;
-			if (double.TryParse(value.ToString(), out coord))
-			{
-				deg = (int)Math.Truncate(coord);
-				min = (int)Math.Abs(Math.Truncate((coord - deg) * 60.0));
-				double secDbl = Math.Abs(Math.Abs(coord - deg) * 3600 - min * 60);
-				sec = (Int32)secDbl;
-				dec = (Int32)((secDbl - sec) * TenPowerMaxDecimalPlaces);
-
-				Debug.WriteLine(coord);
-				Int32 sign = Math.Sign(deg);
-				if (sign == 0) sign = 1;
-				Debug.WriteLine(sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg); //this is the inverse function, by the way
-			}
-			else
-			{
-				deg = min = sec = dec = 0;
-				Debug.WriteLine("ERROR: double expected");
-			}
-			//if (parameter != null) sec = Math.Round(sec, System.Convert.ToInt32(parameter.ToString())); // in case we need this again in future...
-		}
-
-		public static double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)
-		{
-			Int32 deg = 0;
-			Int32.TryParse(degStr, out deg);
-			Int32 min = 0;
-			Int32.TryParse(minStr, out min);
-			Int32 sec = 0;
-			Int32.TryParse(secStr, out sec);
-			Int32 dec = 0;
-			Int32.TryParse(decStr, out dec);
-			Int32 sign = Math.Sign(deg);
-			if (sign == 0) sign = 1;
-			return sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg;
-		}
-	}
-	#endregion conversion
 	public interface IGPSDataModel : INotifyPropertyChanged
 	{
 		uint DesiredAccuracyInMeters { get; }

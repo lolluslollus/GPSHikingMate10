@@ -49,7 +49,7 @@ namespace LolloGPS.Core
 
 			HistoryChart.Open();
 			Route0Chart.Open();
-			LandmarksChart.Open();
+			CheckpointsChart.Open();
 
 			AddHandlers();
 			UpdateCharts();
@@ -76,7 +76,7 @@ namespace LolloGPS.Core
 
 			HistoryChart.Close();
 			Route0Chart.Close();
-			LandmarksChart.Close();
+			CheckpointsChart.Close();
 
 			return Task.CompletedTask;
 		}
@@ -94,7 +94,7 @@ namespace LolloGPS.Core
 				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
-				PersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged += OnCheckpoints_CollectionChanged;
 			}
 		}
 
@@ -106,7 +106,7 @@ namespace LolloGPS.Core
 				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
-				PersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
 				_isHandlersActive = false;
 			}
 		}
@@ -135,15 +135,15 @@ namespace LolloGPS.Core
 				});
 			}
 		}
-		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnCheckpoints_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Landmarks?.Count == 0)
+			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
 				&& Visibility == Visibility.Visible
-				&& PersistentData?.Landmarks != null)
+				&& PersistentData?.Checkpoints != null)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.Landmarks, LandmarksChart, true, false);
+					return DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
 				});
 			}
 		}
@@ -197,8 +197,8 @@ namespace LolloGPS.Core
 						case PersistentData.Tables.Route0:
 							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 							break;
-						case PersistentData.Tables.Landmarks:
-							LandmarksChart.CrossPoint(LandmarksChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+						case PersistentData.Tables.Checkpoints:
+							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.nil:
 							break;
@@ -225,8 +225,8 @@ namespace LolloGPS.Core
 					case PersistentData.Tables.Route0:
 						Route0Chart.UncrossPoint(Route0Chart.XY1DataSeries);
 						break;
-					case PersistentData.Tables.Landmarks:
-						LandmarksChart.UncrossPoint(LandmarksChart.XY1DataSeries);
+					case PersistentData.Tables.Checkpoints:
+						CheckpointsChart.UncrossPoint(CheckpointsChart.XY1DataSeries);
 						break;
 					case PersistentData.Tables.nil:
 						break;
@@ -282,13 +282,13 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
-		private void OnLandmarksChartTapped(object sender, LolloChart.ChartTappedArguments e)
+		private void OnCheckpointsChartTapped(object sender, LolloChart.ChartTappedArguments e)
 		{
 			try
 			{
-				if (e.X / e.XMax * PersistentData.Landmarks.Count > 0)
+				if (e.X / e.XMax * PersistentData.Checkpoints.Count > 0)
 				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Landmarks[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Landmarks.Count))], PersistentData.Tables.Landmarks));
+					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Checkpoints[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Checkpoints.Count))], PersistentData.Tables.Checkpoints));
 				}
 			}
 			catch (Exception ex)
@@ -308,7 +308,7 @@ namespace LolloGPS.Core
 				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
 				{
 					Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
-					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Landmarks, LandmarksChart, true, false));
+					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
 				}
 			}
 		}
@@ -393,7 +393,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (HistoryChart.Visibility == Visibility.Collapsed && Route0Chart.Visibility == Visibility.Collapsed && LandmarksChart.Visibility == Visibility.Collapsed)
+				if (HistoryChart.Visibility == Visibility.Collapsed && Route0Chart.Visibility == Visibility.Collapsed && CheckpointsChart.Visibility == Visibility.Collapsed)
 				{
 					TBNoDataGrid.Visibility = Visibility.Visible;
 				}
@@ -450,13 +450,13 @@ namespace LolloGPS.Core
 			return Task.CompletedTask; // to respect the form of the output
 		}
 
-		public Task CentreOnLandmarksAsync()
+		public Task CentreOnCheckpointsAsync()
 		{
 			try
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && LandmarksChart.Visibility == Visibility.Visible)
+					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && CheckpointsChart.Visibility == Visibility.Visible)
 					{
 						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
 						if (Route0Chart.Visibility == Visibility.Visible) vOffset += Route0Chart.ActualHeight;
@@ -475,7 +475,7 @@ namespace LolloGPS.Core
 		{
 			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
 			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
 			else return Task.CompletedTask;
 		}
 

@@ -95,7 +95,7 @@
 								  IsOn="{Binding PersistentData.IsCentreOnCurrent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 		<TextBlock Grid.Row="8" Grid.ColumnSpan="2"
-								Text="Keep the app alive, never mind the lock screen settings."
+								Text="Keep the app alive, overriding the lock screen settings."
 								TextWrapping="Wrap" 
 								Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"

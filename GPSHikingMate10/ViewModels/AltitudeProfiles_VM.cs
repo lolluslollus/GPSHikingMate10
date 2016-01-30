@@ -96,7 +96,7 @@ namespace LolloGPS.Core
                     }
                 }
             }
-            else // series like landmarks do not get real date and time: even if some may have it, they are really only a sequence.
+            else // series like checkpoints do not get real date and time: even if some may have it, they are really only a sequence.
             {
                 isDateTimeAlwaysPresent = false;
             }
@@ -159,15 +159,15 @@ namespace LolloGPS.Core
         {
             return _altitudeProfilesController?.CentreOnRoute0Async();
         }
-        public Task CentreOnLandmarksAsync()
+        public Task CentreOnCheckpointsAsync()
         {
-            return _altitudeProfilesController?.CentreOnLandmarksAsync();
+            return _altitudeProfilesController?.CentreOnCheckpointsAsync();
         }
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
 			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
 			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
 			else return Task.CompletedTask;
 		}
 

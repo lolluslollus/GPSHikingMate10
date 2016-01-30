@@ -180,8 +180,8 @@ namespace LolloGPS.Data
 				case PersistentData.Tables.Route0:
 					Task updateRoute0 = DBManager.UpdateRoute0Async(this, false);
 					break;
-				case PersistentData.Tables.Landmarks:
-					Task updateLandmarks = DBManager.UpdateLandmarksAsync(this, false);
+				case PersistentData.Tables.Checkpoints:
+					Task updateCheckpoints = DBManager.UpdateCheckpointsAsync(this, false);
 					break;
 				default:
 					break;

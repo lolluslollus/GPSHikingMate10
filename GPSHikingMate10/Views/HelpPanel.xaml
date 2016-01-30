@@ -13,100 +13,100 @@
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <StackPanel
+	<StackPanel
         Background="{ThemeResource FlyoutBackgroundThemeBrush}"
         Orientation="Vertical">
-        <TextBlock Text="This app is an intelligent map. It can give you fun and maybe save your life when you are trekking or biking."
+		<TextBlock Text="This app is an intelligent map. It can give you fun and maybe save your life when you are trekking or biking."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="To enjoy it in full, run it on a device with a GPS sensor."
+		<TextBlock Text="To enjoy it in full, run it on a device with a GPS sensor."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="It can tell where you are, where you have been and where you decided to go, but it won't tell you to turn left or right or find the nearest cheap food joint. There is no turn-by-turn navigation outdoors, finding your way is entirely up to you."
+		<TextBlock Text="It can tell where you are, where you have been and where you decided to go, but it won't tell you to turn left or right or find the nearest cheap food joint. There is no turn-by-turn navigation outdoors, finding your way is entirely up to you."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="You can choose among different maps, set your own and download them for offline use."
+		<TextBlock Text="You can choose among different maps, set your own and download them for offline use."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="This app can remember where you have been, help you share it, download someone else's routes, or plan an itinerary beforehand."
+		<TextBlock Text="This app can remember where you have been, help you share it, download someone else's routes, or plan an itinerary beforehand."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
 
 
-        <TextBlock Text="Basic operation"
+		<TextBlock Text="Basic operation"
             Style="{StaticResource SampleHeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Tap and hold the map to centre it on the last acquired point. Use the settings menu to do so automatically, whenever the app acquires your location."
+		<TextBlock Text="Tap 'go to last' to centre the map on the last acquired point. Use the settings menu to centre the map automatically, whenever the app acquires your location."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Tap the map on an object (ie a bend in the tracking history, a bend in the route, a landmark) to bring up a menu and navigate the data series."
+		<TextBlock Text="Tap the map on an object (ie a bend in the tracking history, a bend in the route, a checkpoint) to bring up a menu and navigate the data series."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Use the 'altitude' button to toggle between map and altitude profiles."
+		<TextBlock Text="Use the 'altitude' button to toggle between map and altitude profiles."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="The app uses colour codes throughout:"
+		<TextBlock Text="The app uses colour codes throughout:"
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Your tracking history is marked this way. You can save it at any time and share it with your own tools."
+		<TextBlock Text="Your tracking history is marked this way. You can save it at any time and share it with your own tools."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"
             Foreground="{StaticResource HistoryBrushOpaque}"/>
-        <TextBlock Text="A route is marked this way. You can download a route from the web or from your own repository of past tracking histories."
+		<TextBlock Text="A route is marked this way. You can download a route from the web or from your own repository of past tracking histories."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"
             Foreground="{StaticResource Route0BrushOpaque}"/>
-        <TextBlock Text="{Binding ElementName=me, Path=LandmarksText}"
+		<TextBlock Text="{Binding ElementName=me, Path=CheckpointsText}"
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"
-            Foreground="{StaticResource LandmarksBrushOpaque}"/>
+            Foreground="{StaticResource CheckpointBrushOpaque}"/>
 
-        <TextBlock Text="Maps"
+		<TextBlock Text="Maps"
             Style="{StaticResource SampleHeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="You can choose your own map tiles. Maps are made of tiles that are essentially 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
+		<TextBlock Text="You can choose your own map tiles. Maps are made of tiles that are essentially 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web, open the custom maps menu and input their web addresses yourself. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            Margin="{StaticResource Thickness0404}"/>
-
-        <TextBlock Text="Tracking"
-            Style="{StaticResource SampleHeaderTextStyle}"
-            Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Wherever you go, you can turn on the foreground tracking if you can afford wasting your battery and want more frequent updates, or the background tracking to get fewer fixes and save the battery. The app remembers the tracking points and the points where you explicitly asked it to get a fix."
+		<TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web, open the custom maps menu and input their web addresses yourself. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
 
-        <TextBlock Text="Points"
+		<TextBlock Text="Tracking"
             Style="{StaticResource SampleHeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Use the points panel to do geocaching or to set an itinerary beforehand. If you want to set several points, the aim tool will save you time. Press and hold it to get rid of it."
+		<TextBlock Text="Wherever you go, you can turn on the foreground tracking if you can afford draining your battery and want more frequent updates, or the background tracking to get fewer fixes and save the battery. The app remembers the tracking points and the points where you explicitly asked it to get a fix."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
 
-        <TextBlock Text="Files"
+		<TextBlock Text="Points"
             Style="{StaticResource SampleHeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
-        <TextBlock Text="Use the files panel to load or save stuff. To do so, the app uses the GPX format in two flavours: one for routes (used for tracking history and routes) and one for unsorted collections of points (used for landmarks). Outside the app, you can go online and share those files, or load someone else's and open them with the app. Note that many web sites do not understand GPX but only its mother format XML, so the app cannot open those files right away. As a solution, save them locally and rename them so they end with '.gpx'."
+		<TextBlock Text="Use the points panel to do geocaching or to set checkpoints before setting off on a trip. If you want to set several points, the aim tool will save you time. Press and hold it to get rid of it."
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
-    </StackPanel>
+
+		<TextBlock Text="Files"
+            Style="{StaticResource SampleHeaderTextStyle}"
+            Margin="{StaticResource Thickness0404}"/>
+		<TextBlock Text="Use the files panel to load or save stuff. To do so, the app uses the GPX format in two flavours: one for routes (used for tracking history and routes) and one for unsorted collections of points (used for checkpoints). Outside the app, you can go online and share those files, or load someone else's and open them with the app. Note that many web sites do not understand GPX but only its mother format XML, so the app cannot open those files right away. As a solution, save them locally and rename them so they end with '.gpx'."
+            TextWrapping="Wrap"
+            Style="{StaticResource BaseMessageStyle}"
+            Margin="{StaticResource Thickness0404}"/>
+	</StackPanel>
 </lollo:OrientationResponsiveUserControl>

@@ -29,17 +29,19 @@ namespace LolloGPS.Core
 	public sealed partial class LolloMap : OpObsOrControl, IGeoBoundingBoxProvider, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
-		// LOLLO TODO landmarks are still expensive to draw, no matter what I tried, so I set their limit to a low number, depending on the available memory. 
-		// It would be nice to have more landmarks though.
+		// LOLLO TODO checkpoints are still expensive to draw, no matter what I tried, 
+		// so I set their limit to a low number, which grows with the available memory.
+		// This is in the static ctor of PersistentData.
+		// It would be nice to have more checkpoints though.
 		// I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
-		// Things look better with win 10 on a pc, so I raised the landmark limit depending on the available memory and used icons, which don't seem slower than images anymore.
+		// Things look better with win 10 on a pc, so I used icons, which don't seem slower than images anymore.
 		// The MapItemsControl throws weird errors and it loads slowly.
 		internal const double SCALE_IMAGE_WIDTH = 300.0;
 
 		internal const int HISTORY_TAB_INDEX = 20;
 		internal const int ROUTE0_TAB_INDEX = 10;
-		internal const int LANDMARK_TAB_INDEX = 30;
-		//internal const string LandmarkTag = "Landmark";
+		internal const int CHECKPOINT_TAB_INDEX = 30;
+		//internal const string CheckpointTag = "Checkpoint";
 		internal const int START_STOP_TAB_INDEX = 40;
 
 		internal const double MIN_LAT = -85.0511;
@@ -49,8 +51,8 @@ namespace LolloGPS.Core
 		internal const double MIN_LON = -180.0;
 		internal const double MAX_LON = 180.0;
 
-		//private Point _landmarksNormalisedIconPoint = new Point(0.5, 0.5);
-		//public Point LandmarksNormalisedIconPoint { get { return _landmarksNormalisedIconPoint; } }
+		//private Point _checkpointsNormalisedIconPoint = new Point(0.5, 0.5);
+		//public Point CheckpointsNormalisedIconPoint { get { return _checkpointsNormalisedIconPoint; } }
 
 		private MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
@@ -92,16 +94,16 @@ namespace LolloGPS.Core
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = false,
 		};
-		private RandomAccessStreamReference _landmarkIconStreamReference;
-		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+		private RandomAccessStreamReference _checkpointIconStreamReference;
+		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		// this uses a new "simple" icon with only 4 bits, so it's much faster to draw
-		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark_simple-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark_simple-16.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint_simple-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint_simple-16.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 
-		//private static Image _landmarkBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_landmark-20.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-		//private static List<Image> _landmarkImages = new List<Image>();
+		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+		//private static List<Image> _checkpointImages = new List<Image>();
 
-		private readonly Point LANDMARKS_ANCHOR_POINT = new Point(0.5, 0.5);
+		private readonly Point CHECKPOINTS_ANCHOR_POINT = new Point(0.5, 0.5);
 
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -146,7 +148,7 @@ namespace LolloGPS.Core
 		{
 			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
 			MyMap.Style = PersistentData.MapStyle; // maniman
-			_landmarkIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute));
+			_checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
 			await RestoreViewAsync();
 			await _lolloMapVM.OpenAsync();
 
@@ -159,7 +161,7 @@ namespace LolloGPS.Core
 			if (!((App)Application.Current).IsResuming)
 			{
 				DrawRoute0();
-				DrawLandmarks();
+				DrawCheckpoints();
 			}
 		}
 
@@ -270,9 +272,9 @@ namespace LolloGPS.Core
 			}
 			return Task.CompletedTask;
 		}
-		public Task CentreOnLandmarksAsync()
+		public Task CentreOnCheckpointsAsync()
 		{
-			return CentreAsync(PersistentData.Landmarks);
+			return CentreAsync(PersistentData.Checkpoints);
 		}
 		public Task CentreOnRoute0Async()
 		{
@@ -286,7 +288,7 @@ namespace LolloGPS.Core
 		{
 			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
 			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
 			else return Task.CompletedTask;
 		}
 		public Task CentreOnTargetAsync()
@@ -345,7 +347,7 @@ namespace LolloGPS.Core
 		private bool _isRoute0InMap = false;
 		private bool _isFlyoutPointInMap = false;
 		/// <summary>
-		/// Initialises all map elements except for landmarks, which have their dedicated method
+		/// Initialises all map elements except for checkpoints, which have their dedicated method
 		/// </summary>
 		private void InitMapElements()
 		{
@@ -464,16 +466,16 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void DrawLandmarks()
+		private void DrawCheckpoints()
 		{
 			try
 			{
 				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
 				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
-				if (!InitLandmarks())
+				if (!InitCheckpoints())
 				{
-					Debug.WriteLine("No landmarks to be drawn, skipping");
+					Debug.WriteLine("No checkpoints to be drawn, skipping");
 					return;
 				}
 
@@ -486,7 +488,7 @@ namespace LolloGPS.Core
 				List<Geopoint> geoPoints = new List<Geopoint>();
 				try
 				{
-					foreach (var item in PersistentData.Landmarks)
+					foreach (var item in PersistentData.Checkpoints)
 					{
 						geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
 					}
@@ -496,7 +498,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 #if DEBUG
-				sw0.Stop(); Debug.WriteLine("Making geopoints for landmarks took " + sw0.ElapsedMilliseconds + " msec");
+				sw0.Stop(); Debug.WriteLine("Making geopoints for checkpoints took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
 				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
@@ -506,9 +508,9 @@ namespace LolloGPS.Core
 					int j = 0;
 					for (int i = 0; i < geoPoints.Count; i++)
 					{
-						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LANDMARK_TAB_INDEX))
+						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
 						{
-							j++; // MapElement is not a landmark: skip to the next element
+							j++; // MapElement is not a checkpoint: skip to the next element
 						}
 
 						(MyMap.MapElements[j] as MapIcon).Location = geoPoints[i];
@@ -519,16 +521,16 @@ namespace LolloGPS.Core
 
 					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
 
-					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInLandmarks; i++)
+					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInCheckpoints; i++)
 					{
-						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != LANDMARK_TAB_INDEX))
+						while (j < MyMap.MapElements.Count && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
 						{
-							j++; // MapElement is not a landmark: skip to the next element
+							j++; // MapElement is not a checkpoint: skip to the next element
 						}
 						MyMap.MapElements[j].Visible = false;
 						j++;
 					}
-					//Logger.Add_TPL(geoPoints.Count.ToString() + " landmarks drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					//Logger.Add_TPL(geoPoints.Count.ToString() + " checkpoints drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 				catch (OutOfMemoryException)
 				{
@@ -544,24 +546,24 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private bool InitLandmarks()
+		private bool InitCheckpoints()
 		{
 #if DEBUG
 			Stopwatch sw0 = new Stopwatch(); sw0.Start();
 #endif
 			bool isInit = false;
-			if (MyMap.MapElements.Count < PersistentData.MaxRecordsInLandmarks) // only init when you really need it
+			if (MyMap.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
 			{
-				Debug.WriteLine("InitLandmarks() is initialising the landmarks, because there really are some");
-				for (int i = 0; i < PersistentData.MaxRecordsInLandmarks; i++)
+				Debug.WriteLine("InitCheckpoints() is initialising the checkpoints, because there really are some");
+				for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
 				{
 					MapIcon newIcon = new MapIcon()
 					{
 						CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-						Image = _landmarkIconStreamReference,
-						// Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_landmark-20.png", UriKind.Absolute)),
-						MapTabIndex = LANDMARK_TAB_INDEX,
-						NormalizedAnchorPoint = LANDMARKS_ANCHOR_POINT, // new Point(0.5, 0.5),
+						Image = _checkpointIconStreamReference,
+						// Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)),
+						MapTabIndex = CHECKPOINT_TAB_INDEX,
+						NormalizedAnchorPoint = CHECKPOINTS_ANCHOR_POINT, // new Point(0.5, 0.5),
 						Visible = false
 					};
 
@@ -574,7 +576,7 @@ namespace LolloGPS.Core
 				isInit = true;
 			}
 #if DEBUG
-			sw0.Stop(); Debug.WriteLine("Initialising landmarks took " + sw0.ElapsedMilliseconds + " msec");
+			sw0.Stop(); Debug.WriteLine("Initialising checkpoints took " + sw0.ElapsedMilliseconds + " msec");
 #endif
 			return isInit;
 		}
@@ -771,12 +773,12 @@ namespace LolloGPS.Core
 							break; // max 1 record each series
 						}
 					}
-					foreach (var item in PersistentData.Landmarks)
+					foreach (var item in PersistentData.Checkpoints)
 					{
 						if (item.Latitude < maxLat && item.Latitude > minLat && item.Longitude > minLon && item.Longitude < maxLon)
 						{
 							selectedRecords.Add(item);
-							selectedSeriess.Add(PersistentData.Tables.Landmarks);
+							selectedSeriess.Add(PersistentData.Tables.Checkpoints);
 							break; // max 1 record each series
 						}
 					}
@@ -827,7 +829,7 @@ namespace LolloGPS.Core
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
 
-			await _lolloMapVM.AddMapCentreToLandmarks();
+			await _lolloMapVM.AddMapCentreToCheckpoints();
 			if (PersistentData.IsShowAimOnce)
 			{
 				PersistentData.IsShowAim = false;
@@ -928,15 +930,15 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void OnLandmarks_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnCheckpoints_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Landmarks?.Count == 0)
+			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
 			{
 				Task draw = RunFunctionIfOpenAsyncT(delegate
 				{
 					return RunInUiThreadAsync(delegate
 					{
-						DrawLandmarks();
+						DrawCheckpoints();
 					});
 				});
 			}
@@ -952,7 +954,7 @@ namespace LolloGPS.Core
 				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
-				PersistentData.Landmarks.CollectionChanged += OnLandmarks_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged += OnCheckpoints_CollectionChanged;
 			}
 		}
 
@@ -964,7 +966,7 @@ namespace LolloGPS.Core
 				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
-				PersistentData.Landmarks.CollectionChanged -= OnLandmarks_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
 				_isHandlerActive = false;
 			}
 		}

@@ -34,7 +34,7 @@ namespace GPX
 		public static async Task<Tuple<bool, string>> LoadSeriesFromFileIntoDbAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
 		{
 			if (whichTable == PersistentData.Tables.Route0) return await LoadRoute0Async(gpxFile, token).ConfigureAwait(false);
-			else if (whichTable == PersistentData.Tables.Landmarks) return await LoadLandmarksAsync(gpxFile, token).ConfigureAwait(false);
+			else if (whichTable == PersistentData.Tables.Checkpoints) return await LoadCheckpointsAsync(gpxFile, token).ConfigureAwait(false);
 			else return null;
 		}
 		private async static Task<Tuple<bool, string>> LoadRoute0Async(StorageFile gpxFile, CancellationToken token)
@@ -80,30 +80,30 @@ namespace GPX
 
 			return Tuple.Create(outIsOk, outMessage);
 		}
-		private async static Task<Tuple<bool, string>> LoadLandmarksAsync(StorageFile gpxFile, CancellationToken token)
+		private async static Task<Tuple<bool, string>> LoadCheckpointsAsync(StorageFile gpxFile, CancellationToken token)
 		{
 			string outMessage = string.Empty;
 			bool outIsOk = false;
 
-			Logger.Add_TPL("Start reading Landmarks", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+			Logger.Add_TPL("Start reading Checkpoints", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			if (gpxFile != null) // I could use class MemoryFailPoint in the following, to catch OutOfMemoryExceptions before they happen but it's old.
 			{
 				try
 				{
 					token.ThrowIfCancellationRequested();
-					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Landmarks, token).ConfigureAwait(false);
+					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Checkpoints, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
 					if (newDataRecords == null || newDataRecords.Count < 1)
 					{
-						outMessage = "invalid landmarks";
-						Logger.Add_TPL("New landmarks are empty, landmarks have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+						outMessage = "invalid checkpoints";
+						Logger.Add_TPL("New checkpoints are empty, checkpoints have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					}
 					else
 					{
-						await PersistentData.SetLandmarksInDBAsync(newDataRecords).ConfigureAwait(false);
-						Logger.Add_TPL("Landmarks have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
+						await PersistentData.SetCheckpointsInDBAsync(newDataRecords).ConfigureAwait(false);
+						Logger.Add_TPL("Checkpoints have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 						outIsOk = true;
-						outMessage = newDataRecords.Count + " landmarks loaded";
+						outMessage = newDataRecords.Count + " checkpoints loaded";
 					}
 				}
 				catch (Exception exc) // OutOfMemoryException
@@ -142,8 +142,8 @@ namespace GPX
 					{
 						XNamespace xn = xmlData.GetDefaultNamespace();
 						List<XElement> mapPoints = null;
-						if (whichTable == PersistentData.Tables.Landmarks)
-							mapPoints = GetWpts_Landmarks(xmlData, xn);
+						if (whichTable == PersistentData.Tables.Checkpoints)
+							mapPoints = GetWpts_Checkpoints(xmlData, xn);
 						else
 							mapPoints = GetWpts_Route0(xmlData, xn);
 						token.ThrowIfCancellationRequested();
@@ -256,9 +256,9 @@ namespace GPX
 			}
 			return mapPoints;
 		}
-		private static List<XElement> GetWpts_Landmarks(XElement xmlData, XNamespace xn)
+		private static List<XElement> GetWpts_Checkpoints(XElement xmlData, XNamespace xn)
 		{
-			return xmlData.Descendants(xn + "wpt").Take(PersistentData.MaxRecordsInLandmarks).ToList();
+			return xmlData.Descendants(xn + "wpt").Take(PersistentData.MaxRecordsInCheckpoints).ToList();
 		}
 		#endregion load route
 

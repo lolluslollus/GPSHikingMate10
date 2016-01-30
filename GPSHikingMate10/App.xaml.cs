@@ -124,7 +124,8 @@ namespace LolloGPS.Core
 				RuntimeData.SetIsDBDataRead_UI(false);
 
 				var main = rootFrame.Content as Main;
-				var yne = await main.OpenAsync(true, true).ConfigureAwait(false);
+				await SuspensionManager.LoadDbDataAndSettingsAsync(true, true);
+				var yne = await main.OpenAsync(/*true, true*/).ConfigureAwait(false);
 				Logger.Add_TPL("OnLaunched opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)
@@ -205,7 +206,7 @@ namespace LolloGPS.Core
 					// This also includes the background task state check.
 					// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
 					// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
-					var yne = await main.OpenAsync(false, false).ConfigureAwait(false);
+					var yne = await main.OpenAsync(/*false, false*/).ConfigureAwait(false);
 					Logger.Add_TPL("OnResuming() has opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
@@ -233,9 +234,9 @@ namespace LolloGPS.Core
 		/// LOLLO NOTE if resuming (ie the app was running), the system starts this method an instant after OnResuming(). 
 		/// The awaits cause both methods to run in parallel, alternating on the UI thread.
 		/// </summary>
-		protected override async void OnFileActivated(FileActivatedEventArgs e)
+		protected override async void OnFileActivated(FileActivatedEventArgs args)
 		{
-			Logger.Add_TPL("OnFileActivated() starting with kind = " + e.Kind.ToString() + " and previous execution state = " + e.PreviousExecutionState.ToString() + " and verb = " + e.Verb,
+			Logger.Add_TPL("OnFileActivated() starting with kind = " + args.Kind.ToString() + " and previous execution state = " + args.PreviousExecutionState.ToString() + " and verb = " + args.Verb,
 				Logger.AppEventsLogFilename,
 				Logger.Severity.Info,
 				false);
@@ -253,9 +254,9 @@ namespace LolloGPS.Core
 					Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 
-				if (e?.Files?[0]?.Path?.Length > 4 && e.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
+				if (args?.Files?[0]?.Path?.Length > 4 && args.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
 				{
-					Frame rootFrame = GetCreateRootFrame(e);
+					Frame rootFrame = GetCreateRootFrame(args);
 					if (!isAppAlreadyRunning)
 					{
 						NavigateToRootFrameContent(rootFrame);
@@ -265,13 +266,15 @@ namespace LolloGPS.Core
 					RuntimeData.SetIsDBDataRead_UI(false);
 
 					var main = rootFrame.Content as Main;
-					var yne = await main.OpenAsync(false, !isAppAlreadyRunning);
-					Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-					var fileOpener = main.MainVM;
-					if (fileOpener != null && main != null)
+					if (main != null)
 					{
-						var whichTables = await fileOpener.LoadFileIntoDbAsync(e as FileActivatedEventArgs);
+						await SuspensionManager.LoadDbDataAndSettingsAsync(false, !isAppAlreadyRunning);
+						var yne = await main.OpenAsync(/*false, !isAppAlreadyRunning*/);
+						Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+						var whichTables = await main.LoadFileIntoDbAsync(args as FileActivatedEventArgs);
 						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
 						if (isAppAlreadyRunning)
 						{
 							if (whichTables != null)
@@ -286,14 +289,16 @@ namespace LolloGPS.Core
 						}
 						else
 						{
-							await SuspensionManager.LoadSettingsAndDbDataAsync(true, false);
+							// get all data from DB into UI
+							await SuspensionManager.LoadDbDataAndSettingsAsync(true, false);
 						}
+
 						// centre view on the file data
 						if (whichTables?.Count > 0)
 						{
-							if (whichTables[0] == PersistentData.Tables.Landmarks)
+							if (whichTables[0] == PersistentData.Tables.Checkpoints)
 							{
-								Task centreView = main?.MainVM?.CentreOnLandmarksAsync();
+								Task centreView = main?.MainVM?.CentreOnCheckpointsAsync();
 							}
 							else if (whichTables[0] == PersistentData.Tables.Route0)
 							{
@@ -317,7 +322,7 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);				
+				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}
 		public async Task RunAfterResumingAsync(Func<Task> funcAsync)

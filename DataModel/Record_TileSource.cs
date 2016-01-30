@@ -80,13 +80,13 @@ namespace LolloGPS.Data
 		public bool IsDeletable { get { return _isDeletable; } set { _isDeletable = value; RaisePropertyChanged(); } }
 
 		[IgnoreDataMember]
-		public bool IsDefault { get { return _techName == TileSourceRecord.DefaultTileSourceTechName; } }
+		public bool IsDefault { get { return _techName == DefaultTileSourceTechName; } }
 		[IgnoreDataMember]
-		public bool IsAll { get { return _techName == TileSourceRecord.AllTileSourceTechName; } }
+		public bool IsAll { get { return _techName == AllTileSourceTechName; } }
 		[IgnoreDataMember]
-		public bool IsNone { get { return _techName == TileSourceRecord.NoTileSourceTechName; } }
+		public bool IsNone { get { return _techName == NoTileSourceTechName; } }
 		[IgnoreDataMember]
-		public bool IsSample { get { return _techName == TileSourceRecord.SampleTileSourceTechName; } }
+		public bool IsSample { get { return _techName == SampleTileSourceTechName; } }
 
 		[IgnoreDataMember]
 		public int MaxTechNameLengthProp { get { return MaxTechNameLength; } }

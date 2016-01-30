@@ -60,11 +60,11 @@
 					TitleStyle="{StaticResource BaseMessageStyle}"
                     Foreground="{StaticResource Route0BrushOpaque}"
 					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
-                <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="LandmarksChart" 
-					Title="Landmarks" 
-					ChartTapped="OnLandmarksChartTapped" 
+                <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="CheckpointsChart" 
+					Title="Checkpoints" 
+					ChartTapped="OnCheckpointsChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
-                    Foreground="{StaticResource LandmarksBrushOpaque}"
+                    Foreground="{StaticResource CheckpointBrushOpaque}"
 					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
             </Grid>
         </ScrollViewer>

@@ -3,9 +3,11 @@ using LolloGPS.Data;
 using LolloGPS.Data.Files;
 using LolloGPS.Data.Runtime;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
+using Windows.ApplicationModel.Activation;
 using Windows.Phone.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -16,6 +18,7 @@ namespace LolloGPS.Core
 {
 	public sealed partial class Main : ObservablePage, IInfoPanelEventReceiver
 	{
+		#region properties
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
@@ -24,6 +27,7 @@ namespace LolloGPS.Core
 
 		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
+		#endregion properties
 
 
 		#region lifecycle
@@ -37,7 +41,7 @@ namespace LolloGPS.Core
 		}
 
 		public enum YesNoError { Yes, No, Error };
-		public async Task<YesNoError> OpenAsync(bool readDataFromDb, bool readSettingsFromDb)
+		public async Task<YesNoError> OpenAsync(/*bool readDataFromDb, bool readSettingsFromDb*/)
 		{
 			if (_isOpen) return YesNoError.No;
 			try
@@ -45,7 +49,7 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_mainVM = new MainVM(readDataFromDb, readSettingsFromDb);
+				_mainVM = new MainVM(/*readDataFromDb, readSettingsFromDb*/);
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
 
@@ -338,5 +342,18 @@ namespace LolloGPS.Core
 			SelectedPointPopup.IsOpen = true;
 		}
 		#endregion point info panel
+
+
+		#region open app through file
+		/// <summary>
+		/// This method is called in a separate task on low-memory phones
+		/// </summary>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
+		{
+			return MainVM?.LoadFileIntoDbAsync(args);
+		}
+		#endregion open app through file
 	}
 }

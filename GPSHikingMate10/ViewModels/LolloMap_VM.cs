@@ -228,14 +228,14 @@ namespace LolloGPS.Core
         {
             _tileDownloader.CancelDownloadByUser();
         }
-        public async Task<bool> AddMapCentreToLandmarks()
+        public async Task<bool> AddMapCentreToCheckpoints()
         {
             if (_gbbProvider != null && PersistentData != null)
             {
                 var centre = await _gbbProvider.GetCentreAsync();
 				// this stupid control does not know the altitude, it gives crazy high numbers
 				centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
-                return await PersistentData.TryAddPointToLandmarksAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
+                return await PersistentData.TryAddPointToCheckpointsAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
             }
             return false;
         }
@@ -244,9 +244,9 @@ namespace LolloGPS.Core
         {
             return _mapController?.CentreOnHistoryAsync();
         }
-        public Task CentreOnLandmarksAsync()
+        public Task CentreOnCheckpointsAsync()
         {
-            return _mapController?.CentreOnLandmarksAsync();
+            return _mapController?.CentreOnCheckpointsAsync();
         }
         public Task CentreOnRoute0Async()
         {
@@ -256,7 +256,7 @@ namespace LolloGPS.Core
 		{
 			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
 			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Landmarks) return CentreOnLandmarksAsync();
+			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
 			else return Task.CompletedTask;
 		}
 		public Task CentreOnTargetAsync()

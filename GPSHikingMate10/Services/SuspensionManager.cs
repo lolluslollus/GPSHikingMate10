@@ -1,7 +1,5 @@
 ﻿using LolloGPS.Data;
-using LolloGPS.Data.Runtime;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
@@ -27,7 +25,7 @@ namespace LolloGPS.Suspension
 		// LOLLO NOTE important! The Mutex can work across AppDomains (ie across main app and background task) but only if you give it a name!
 		// Also, if you declare initially owned true, the second thread trying to cross it will stay locked forever. So, declare it false.
 		// All this is not well documented.
-		public static async Task LoadSettingsAndDbDataAsync(bool readDataFromDb, bool readSettingsFromDb)
+		public static async Task LoadDbDataAndSettingsAsync(bool readDataFromDb, bool readSettingsFromDb)
 		{
 			string errorMessage = string.Empty;
 
@@ -58,24 +56,22 @@ namespace LolloGPS.Suspension
 							await PersistentData.SetInstanceNonDbPropertiesAsync(newPersistentData).ConfigureAwait(false);
 						}
 					}
-					Debug.WriteLine("ended reading non-tabular data");
+					Debug.WriteLine("ended reading settings");
 				}
 			}
 			catch (System.Xml.XmlException ex)
 			{
-				errorMessage = "could not restore the settings, starting afresh";
-				PersistentData.GetInstance().LastMessage = errorMessage;
-				readDataFromDb = true; // try not to lose the series at least
+				errorMessage = "could not restore the settings";
+				// readDataFromDb = true; // try not to lose the series at least
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
-			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
+			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last checkpoints. 
 								 // better quit then. But what if it happens again?
 								 // This happened once, on the phone: a funny error message came up, after I opened a hyperlink contained in a location and went back to the app.
 								 // LOLLO TODO try to reproduce it
 			{
-				errorMessage = "could not restore the settings, starting afresh";
-				PersistentData.GetInstance().LastMessage = errorMessage;
-				readDataFromDb = true; // try not to lose the series at least
+				errorMessage = "could not restore the settings";
+				// readDataFromDb = true; // try not to lose the series at least
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
@@ -85,19 +81,23 @@ namespace LolloGPS.Suspension
 				{
 					Task loadHistory = PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false);
 					Task loadRoute0 = PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false);
-					Task loadLandmarks = PersistentData.GetInstance()?.LoadLandmarksFromDbAsync(false);
+					Task loadCheckpoints = PersistentData.GetInstance()?.LoadCheckpointsFromDbAsync(false);
 
-					await Task.WhenAll(loadHistory, loadRoute0, loadLandmarks).ConfigureAwait(false);
+					await Task.WhenAll(loadHistory, loadRoute0, loadCheckpoints).ConfigureAwait(false);
+					Debug.WriteLine("ended reading data from db");
 				}
 			}
-			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last landmarks. 
+			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last checkpoints. 
 								 // better quit then. But what if it happens again?
 								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
 			{
-				errorMessage = "could not restore the data, starting afresh";
-				PersistentData.GetInstance().LastMessage = errorMessage;
+				if (string.IsNullOrWhiteSpace(errorMessage)) errorMessage = "could not restore the data";
+				else errorMessage += " and could not restore the data";
+
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
+
+			if (!string.IsNullOrWhiteSpace(errorMessage)) PersistentData.GetInstance().LastMessage = errorMessage;
 		}
 
 		public static async Task SaveSettingsAsync(PersistentData allDataOriginal)
@@ -128,7 +128,7 @@ namespace LolloGPS.Suspension
 						await fileStream.FlushAsync().ConfigureAwait(false);
 					}
 				}
-				Debug.WriteLine("ended method SaveDataAsyncNoLocks()");
+				Debug.WriteLine("ended saving settings");
 			}
 			catch (Exception ex)
 			{

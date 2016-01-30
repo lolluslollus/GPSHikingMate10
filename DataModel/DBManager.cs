@@ -18,12 +18,12 @@ namespace LolloGPS.Data
 	{
 		private static readonly string _historyDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "History.db");
 		private static readonly string _route0DbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Route0.db");
-		private static readonly string _landmarksDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Landmarks.db");
+		private static readonly string _checkpointsDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Checkpoints.db");
 		private static readonly bool _isStoreDateTimeAsTicks = true;
 		private static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
 		internal static Semaphore _HistorySemaphore = new Semaphore(1, 1, "GPSHikingMate10_HistorySemaphore");
 		internal static Semaphore _Route0Semaphore = new Semaphore(1, 1, "GPSHikingMate10_Route0Semaphore");
-		internal static Semaphore _LandmarksSemaphore = new Semaphore(1, 1, "GPSHikingMate10_LandmarksSemaphore");
+		internal static Semaphore _CheckpointsSemaphore = new Semaphore(1, 1, "GPSHikingMate10_CheckpointsSemaphore");
 
 		internal static async Task UpdateHistoryAsync(PointRecord record, bool runSync)
 		{
@@ -49,12 +49,12 @@ namespace LolloGPS.Data
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
-		internal static async Task UpdateLandmarksAsync(PointRecord record, bool runSync)
+		internal static async Task UpdateCheckpointsAsync(PointRecord record, bool runSync)
 		{
 			try
 			{
-				if (runSync) Update<PointRecord>(_landmarksDbPath, _openFlags, record, _LandmarksSemaphore);
-				else await UpdateAsync<PointRecord>(_landmarksDbPath, _openFlags, record, _LandmarksSemaphore).ConfigureAwait(false);
+				if (runSync) Update<PointRecord>(_checkpointsDbPath, _openFlags, record, _CheckpointsSemaphore);
+				else await UpdateAsync<PointRecord>(_checkpointsDbPath, _openFlags, record, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -141,39 +141,39 @@ namespace LolloGPS.Data
 			}
 			return route0;
 		}
-		internal async static Task<List<PointRecord>> GetLandmarksAsync()
+		internal async static Task<List<PointRecord>> GetCheckpointsAsync()
 		{
-			List<PointRecord> landmarks = null;
+			List<PointRecord> checkpoints = null;
 			try
 			{
-				landmarks = await ReadTableAsync<PointRecord>(_landmarksDbPath, _openFlags, _LandmarksSemaphore).ConfigureAwait(false);
+				checkpoints = await ReadTableAsync<PointRecord>(_checkpointsDbPath, _openFlags, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 				return null;
 			}
-			return landmarks;
+			return checkpoints;
 		}
-		internal static List<PointRecord> GetLandmarks()
+		internal static List<PointRecord> GetCheckpoints()
 		{
-			List<PointRecord> landmarks = null;
+			List<PointRecord> checkpoints = null;
 			try
 			{
-				landmarks = ReadTable<PointRecord>(_landmarksDbPath, _openFlags, _LandmarksSemaphore);
+				checkpoints = ReadTable<PointRecord>(_checkpointsDbPath, _openFlags, _CheckpointsSemaphore);
 			}
 			catch (Exception exc)
 			{
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 				return null;
 			}
-			return landmarks;
+			return checkpoints;
 		}
-		internal static async Task InsertIntoLandmarksAsync(PointRecord record, bool checkMaxEntries)
+		internal static async Task InsertIntoCheckpointsAsync(PointRecord record, bool checkMaxEntries)
 		{
 			try
 			{
-				await InsertAsync<PointRecord>(_landmarksDbPath, _openFlags, record, checkMaxEntries, _LandmarksSemaphore).ConfigureAwait(false);
+				await InsertAsync<PointRecord>(_checkpointsDbPath, _openFlags, record, checkMaxEntries, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -202,11 +202,11 @@ namespace LolloGPS.Data
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
-		internal static async Task DeleteFromLandmarksAsync(PointRecord record)
+		internal static async Task DeleteFromCheckpointsAsync(PointRecord record)
 		{
 			try
 			{
-				await DeleteAsync<PointRecord>(_landmarksDbPath, _openFlags, record, _LandmarksSemaphore).ConfigureAwait(false);
+				await DeleteAsync<PointRecord>(_checkpointsDbPath, _openFlags, record, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -225,11 +225,11 @@ namespace LolloGPS.Data
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
-		internal static async Task ReplaceLandmarksAsync(IEnumerable<PointRecord> dataRecords, bool checkMaxEntries)
+		internal static async Task ReplaceCheckpointsAsync(IEnumerable<PointRecord> dataRecords, bool checkMaxEntries)
 		{
 			try
 			{
-				await ReplaceAllAsync<PointRecord>(_landmarksDbPath, _openFlags, dataRecords, checkMaxEntries, _LandmarksSemaphore).ConfigureAwait(false);
+				await ReplaceAllAsync<PointRecord>(_checkpointsDbPath, _openFlags, dataRecords, checkMaxEntries, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -258,11 +258,11 @@ namespace LolloGPS.Data
 				Logger.Add_TPL(exc.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
-		internal static async Task DeleteAllFromLandmarksAsync()
+		internal static async Task DeleteAllFromCheckpointsAsync()
 		{
 			try
 			{
-				await DeleteAllAsync<PointRecord>(_landmarksDbPath, _openFlags, _LandmarksSemaphore).ConfigureAwait(false);
+				await DeleteAllAsync<PointRecord>(_checkpointsDbPath, _openFlags, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -273,7 +273,7 @@ namespace LolloGPS.Data
 		{
 			if (dbPath == _historyDbPath) return PersistentData.MaxRecordsInHistory;
 			else if (dbPath == _route0DbPath) return PersistentData.MaxRecordsInRoute;
-			else if (dbPath == _landmarksDbPath) return PersistentData.MaxRecordsInLandmarks;
+			else if (dbPath == _checkpointsDbPath) return PersistentData.MaxRecordsInCheckpoints;
 			return 0;
 		}
 

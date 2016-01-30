@@ -164,11 +164,9 @@
     <Content Include="Assets\pointer_current_old-36.png" />
     <Content Include="Assets\pointer_end-36.png" />
     <Content Include="Assets\pointer_end_old-36.png" />
-    <Content Include="Assets\pointer_landmark_cross-20.png" />
-    <Content Include="Assets\pointer_landmark-20.png" />
-    <Content Include="Assets\pointer_landmark-8.png" />
-    <Content Include="Assets\pointer_landmark_simple-16.png" />
-    <Content Include="Assets\pointer_landmark_simple-8.png" />
+    <Content Include="Assets\pointer_checkpoint_cross-20.png" />
+    <Content Include="Assets\pointer_checkpoint-20.png" />
+    <Content Include="Assets\pointer_checkpoint_simple-16.png" />
     <Content Include="Assets\pointer_start-36.png" />
     <Content Include="Assets\pointer_start_old-36.png" />
     <Content Include="Assets\pointer_target-24.png" />

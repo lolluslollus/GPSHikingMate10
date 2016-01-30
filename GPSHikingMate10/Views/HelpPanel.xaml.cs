@@ -38,6 +38,6 @@ namespace LolloGPS.Core
             // BackPressedRaiser = MainVM;
         }
 
-        public string LandmarksText { get { return string.Format("Landmarks are marked this way. Landmarks are like routes, except the points are not arranged in a sequence, and you can save {0} of them at most.", PersistentData.MaxRecordsInLandmarks); } }
+        public string CheckpointsText { get { return string.Format("Checkpoints are marked this way. Checkpoints are like routes, except the points are not arranged in a sequence, and you can save {0} of them at most.", PersistentData.MaxRecordsInCheckpoints); } }
     }
 }

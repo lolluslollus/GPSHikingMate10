@@ -83,24 +83,24 @@ namespace LolloGPS.Core
 			Task sr = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Route0, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Route");
 		}
 
-		private void OnCenterLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnCenterCheckpoints_Click(object sender, RoutedEventArgs e)
 		{
-			Task cl = MainVM?.CentreOnLandmarksAsync();
+			Task cl = MainVM?.CentreOnCheckpointsAsync();
 		}
 
-		private void OnClearLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnClearCheckpoints_Click(object sender, RoutedEventArgs e)
 		{
-			Task cll = MainVM?.PersistentData?.ResetLandmarksAsync();
+			Task cll = MainVM?.PersistentData?.ResetCheckpointsAsync();
 		}
 
-		private void OnLoadLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnLoadCheckpoints_Click(object sender, RoutedEventArgs e)
 		{
-			Task ll = MainVM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Landmarks);
+			Task ll = MainVM?.PickLoadSeriesFromFileAsync(PersistentData.Tables.Checkpoints);
 		}
 
-		private void OnSaveLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnSaveCheckpoints_Click(object sender, RoutedEventArgs e)
 		{
-			Task sl = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Landmarks, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Landmarks");
+			Task sl = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Checkpoints, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Checkpoints");
 		}
 	}
 }

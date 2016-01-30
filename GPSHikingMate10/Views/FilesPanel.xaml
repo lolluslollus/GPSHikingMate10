@@ -125,36 +125,36 @@
 			Text="No route. You can import one from a route GPX file."
 			Visibility="{Binding PersistentData.Route0.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 
-		<!-- Landmarks -->
+		<!-- Checkpoints -->
 		<Border Grid.Row="6" Grid.Column="0" Grid.RowSpan="3"
-			BorderThickness="0" Background="{StaticResource LandmarksBrushOpaque}"/>
+			BorderThickness="0" Background="{StaticResource CheckpointBrushOpaque}"/>
 		<TextBlock Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
-			Foreground="{StaticResource LandmarksBrushOpaque}"
-			Text="Landmarks"/>
+			Foreground="{StaticResource CheckpointBrushOpaque}"
+			Text="Checkpoints"/>
 		<AppBarButton Grid.Row="7" Grid.Column="1"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
-			Click="OnCenterLandmarks_Click" 
+			Click="OnCenterCheckpoints_Click" 
 			Icon="View"
-			IsEnabled="{Binding PersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<AppBarButton Grid.Row="7" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
-			Click="OnClearLandmarks_Click" 
+			Click="OnClearCheckpoints_Click" 
 			Icon="Delete"
-			IsEnabled="{Binding PersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<ContentControl Grid.Row="7" Grid.Column="3"
 			IsEnabled="{Binding ElementName=me, Path=MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
 			<AppBarButton Grid.Row="7" Grid.Column="3"
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"                                  
-				Click="OnLoadLandmarks_Click" 
+				Click="OnLoadCheckpoints_Click" 
 				Icon="OpenFile" />
 		</ContentControl>
 		<ContentControl Grid.Row="7" Grid.Column="4"
@@ -163,21 +163,21 @@
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"                                  
-				Click="OnSaveLandmarks_Click" 
+				Click="OnSaveCheckpoints_Click" 
 				Icon="Save"
-				IsEnabled="{Binding PersistentData.Landmarks.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+				IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		</ContentControl>
 		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
-			Text="No landmarks. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
-			Visibility="{Binding PersistentData.Landmarks.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Text="No checkpoints. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
+			Visibility="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
-			Text="Add or update landmarks in the 'Points' panel. You can export them and import them again later."
-			Visibility="{Binding PersistentData.Landmarks.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Text="Add or update checkpoints in the 'Points' panel. You can export them and import them again later."
+			Visibility="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
 	</Grid>
 </ctl:ObservableControl>

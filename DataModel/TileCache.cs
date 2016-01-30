@@ -132,7 +132,9 @@ namespace LolloGPS.Data.TileCache
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads
 			// already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
-			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return GetUriForFile(fileName); // was return null; // LOLLO TODO check this, it's new
+
+			// I must return null if I haven't got the tile yet, otherwise the caller will stop searching and present an empty tile forever
+			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null; // return GetUriForFile(fileName); NO!
 
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			Uri result = null;
@@ -375,7 +377,7 @@ namespace LolloGPS.Data.TileCache
 	public static class TileCacheProcessingQueue
 	{
 		#region properties
-		private static SemaphoreSlimSafeRelease _semaphore = null; // new SemaphoreSlimSafeRelease(1, 1);
+		private static volatile SemaphoreSlimSafeRelease _semaphore = null; // new SemaphoreSlimSafeRelease(1, 1);
 
 		private static volatile bool _isFree = true;
 		public static bool IsFree
@@ -391,11 +393,11 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
-		private static List<string> _fileNames_InProcess = new List<string>();
+		private static volatile List<string> _fileNames_InProcess = new List<string>();
 		// private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
-		private static Func<Task> _funcAsSoonAsFree = null;
+		private static volatile Func<Task> _funcAsSoonAsFree = null;
 		private static volatile bool _isOpen = false;
-		private static SafeCancellationTokenSource _cts = null;
+		private static volatile SafeCancellationTokenSource _cts = null;
 		#endregion properties
 
 
@@ -595,18 +597,22 @@ namespace LolloGPS.Data.TileCache
 			//if (IsFree && _funcsAsSoonAsFree.Count > 0)
 			if (IsFree && _funcAsSoonAsFree != null)
 			{
-				IsFree = false;
+				try
+				{
+					IsFree = false;
 
-				//foreach (var func in _funcsAsSoonAsFree)
-				//{
-				//	await func().ConfigureAwait(false);
-				//}
-				await _funcAsSoonAsFree().ConfigureAwait(false);
-				// _funcsAsSoonAsFree.Clear();
-				_funcAsSoonAsFree = null;
-
-				IsFree = true;
-
+					//foreach (var func in _funcsAsSoonAsFree)
+					//{
+					//	await func().ConfigureAwait(false);
+					//}
+					await _funcAsSoonAsFree().ConfigureAwait(false);
+					// _funcsAsSoonAsFree.Clear();
+					_funcAsSoonAsFree = null;
+				}
+				finally
+				{
+					IsFree = true;
+				}
 				return true;
 			}
 			return false;
@@ -631,10 +637,10 @@ namespace LolloGPS.Data.TileCache
 			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
 			//// test end
 
-			string[] folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
-			if (folderNamesToBeDeleted != null && folderNamesToBeDeleted.Length > 0)
+			var folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
+			if (folderNamesToBeDeleted?.Count > 0)
 			{
-				StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+				var localFolder = ApplicationData.Current.LocalFolder;
 
 				foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
 				{
@@ -683,24 +689,47 @@ namespace LolloGPS.Data.TileCache
 			Debug.WriteLine("ClearCacheAsync() ended");
 		}
 
-		private static string[] GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		//private static string[] GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		//{
+		//	string[] folderNamesToBeDeleted = null;
+		//	PersistentData _persistentData = PersistentData.GetInstance();
+		//	if (!tileSource.IsAll && !tileSource.IsNone)
+		//	{
+		//		folderNamesToBeDeleted = new string[1] { tileSource.TechName };
+		//	}
+		//	else if (tileSource.IsAll)
+		//	{
+		//		folderNamesToBeDeleted = new string[_persistentData.TileSourcez.Count - 1];
+		//		int cnt = 0;
+		//		foreach (var item in _persistentData.TileSourcez)
+		//		{
+		//			if (!item.IsDefault)
+		//			{
+		//				folderNamesToBeDeleted[cnt] = item.TechName;
+		//				cnt++;
+		//			}
+		//		}
+		//	}
+		//	return folderNamesToBeDeleted;
+		//}
+		private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
 		{
-			string[] folderNamesToBeDeleted = null;
-			PersistentData _persistentData = PersistentData.GetInstance();
-			if (!tileSource.IsAll && !tileSource.IsNone)
+			var folderNamesToBeDeleted = new List<string>();
+			if (tileSource != null)
 			{
-				folderNamesToBeDeleted = new string[1] { tileSource.TechName };
-			}
-			else if (tileSource.IsAll)
-			{
-				folderNamesToBeDeleted = new string[_persistentData.TileSourcez.Count - 1];
-				int cnt = 0;
-				foreach (var item in _persistentData.TileSourcez)
+				PersistentData persistentData = PersistentData.GetInstance();
+				if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
 				{
-					if (!item.IsDefault)
+					folderNamesToBeDeleted.Add(tileSource.TechName);
+				}
+				else if (tileSource.IsAll)
+				{
+					foreach (var item in persistentData.TileSourcez)
 					{
-						folderNamesToBeDeleted[cnt] = item.TechName;
-						cnt++;
+						if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
+						{
+							folderNamesToBeDeleted.Add(item.TechName);
+						}
 					}
 				}
 			}

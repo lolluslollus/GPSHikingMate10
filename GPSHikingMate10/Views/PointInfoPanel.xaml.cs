@@ -274,7 +274,7 @@ namespace LolloGPS.Core
 				// open popup to choose the series
 				if (selectedSeriess.Contains(PersistentData.Tables.History)) ChooseDisplayHistoryButton.Visibility = Visibility.Visible; else ChooseDisplayHistoryButton.Visibility = Visibility.Collapsed;
 				if (selectedSeriess.Contains(PersistentData.Tables.Route0)) ChooseDisplayRoute0Button.Visibility = Visibility.Visible; else ChooseDisplayRoute0Button.Visibility = Visibility.Collapsed;
-				if (selectedSeriess.Contains(PersistentData.Tables.Landmarks)) ChooseDisplayLandmarksButton.Visibility = Visibility.Visible; else ChooseDisplayLandmarksButton.Visibility = Visibility.Collapsed;
+				if (selectedSeriess.Contains(PersistentData.Tables.Checkpoints)) ChooseDisplayCheckpointsButton.Visibility = Visibility.Visible; else ChooseDisplayCheckpointsButton.Visibility = Visibility.Collapsed;
 
 				IsSeriesChoicePresented = true;
 			}
@@ -301,12 +301,12 @@ namespace LolloGPS.Core
 			catch (Exception) { }
 		}
 
-		private void OnDisplayLandmarks_Click(object sender, RoutedEventArgs e)
+		private void OnDisplayCheckpoints_Click(object sender, RoutedEventArgs e)
 		{
 			IsSeriesChoicePresented = false;
 			try
 			{
-				int index = _mySelectedSeriess.IndexOf(PersistentData.Tables.Landmarks);
+				int index = _mySelectedSeriess.IndexOf(PersistentData.Tables.Checkpoints);
 				SelectPoint(_mySelectedRecords[index], _mySelectedSeriess[index]);
 			}
 			catch (Exception) { }

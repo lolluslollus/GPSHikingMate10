@@ -55,11 +55,11 @@
                           Icon="Directions" Label="Route"
                           Foreground="{StaticResource Route0BrushOpaque}"
                           Style="{StaticResource AppBarButtonRecoloured}"/>
-			<AppBarButton x:Name="ChooseDisplayLandmarksButton" Grid.Column="3" Grid.Row="1"
-                          Click="OnDisplayLandmarks_Click"
+			<AppBarButton x:Name="ChooseDisplayCheckpointsButton" Grid.Column="3" Grid.Row="1"
+                          Click="OnDisplayCheckpoints_Click"
                           VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                          Icon="Target" Label="Landmarks"
-                          Foreground="{StaticResource LandmarksBrushOpaque}"
+                          Icon="Target" Label="Checkpoints"
+                          Foreground="{StaticResource CheckpointBrushOpaque}"
                           Style="{StaticResource AppBarButtonRecoloured}"/>
 		</Grid>
 		<!-- info grid -->
@@ -78,7 +78,7 @@
 						HorizontalAlignment="Left"  
 						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History}">
 						<Run Text=" - "/>
-						<Run Text="Record "/>
+						<Run Text="record "/>
 						<Run Text="{Binding SelectedIndex_Base1}"/>
 						<Run Text=" of "/>
 						<Run Text="{Binding History.Count}"/>
@@ -87,7 +87,8 @@
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"  
 						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0}">
-						<Run Text="Record "/>
+						<Run Text=" - "/>
+						<Run Text="record "/>
 						<Run Text="{Binding SelectedIndex_Base1}"/>
 						<Run Text=" of "/>
 						<Run Text="{Binding Route0.Count}"/>
@@ -95,11 +96,12 @@
 					<TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"  
-						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Landmarks}">
-						<Run Text="Record "/>
+						Visibility="{Binding SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Checkpoints}">
+						<Run Text=" - "/>
+						<Run Text="record "/>
 						<Run Text="{Binding SelectedIndex_Base1}"/>
 						<Run Text=" of "/>
-						<Run Text="{Binding Landmarks.Count}"/>
+						<Run Text="{Binding Checkpoints.Count}"/>
 					</TextBlock>
 				</utilz:UniversalWrapPanel>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
@@ -151,11 +153,11 @@
 				<!-- data -->
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" >
 					<Run Text="Latitude: "/>
-					<Run Text="{Binding Selected.Latitude, Converter={StaticResource AngleConverter}, ConverterParameter=0}"/>
+					<Run Text="{Binding Selected.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Longitude: "/>
-					<Run Text="{Binding Selected.Longitude, Converter={StaticResource AngleConverter}, ConverterParameter=0}"/>
+					<Run Text="{Binding Selected.Longitude, Converter={StaticResource AngleConverterLon}, ConverterParameter=0}"/>
 				</TextBlock>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Altitude: "/>
