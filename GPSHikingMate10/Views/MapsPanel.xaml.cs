@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Windows.UI.Xaml;
+using System.Threading.Tasks;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -32,10 +33,25 @@ namespace LolloGPS.Core
 		public MapsPanel()
         {
             InitializeComponent();
-            // BackPressedRaiser = MainVM;
         }
 
-        private void OnGoto2D_Click(object sender, RoutedEventArgs e)
+		protected override async Task OpenMayOverrideAsync()
+		{
+			await MapSourceChooser.OpenAsync().ConfigureAwait(false);
+			await ZoomLevelChooser.OpenAsync().ConfigureAwait(false);
+			await ClearCacheChooser.OpenAsync().ConfigureAwait(false);
+			await base.OpenMayOverrideAsync().ConfigureAwait(false);
+		}
+
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await MapSourceChooser.CloseAsync().ConfigureAwait(false);
+			await ZoomLevelChooser.CloseAsync().ConfigureAwait(false);
+			await ClearCacheChooser.CloseAsync().ConfigureAwait(false);
+			await base.CloseMayOverrideAsync().ConfigureAwait(false);
+		}
+
+		private void OnGoto2D_Click(object sender, RoutedEventArgs e)
         {
             RaiseGoto2DRequested();
         }
@@ -99,14 +115,6 @@ namespace LolloGPS.Core
             PersistentData.SetIsTilesDownloadDesired(true, maxZoom);
             PersistentData.IsShowingPivot = false;
         }
-        //protected override void OnHardwareOrSoftwareButtons_BackPressed(object sender, BackSoftKeyPressedEventArgs e)
-        //{
-        //    // only go ahead with Back if no popups are open, otherwise they will close and this will remain open
-        //    if (!ClearCacheChooser.IsPopupOpen && !ZoomLevelChooser.IsPopupOpen && !MapSourceChooser.IsPopupOpen && (e == null || !e.Handled))
-        //    {
-        //        base.OnHardwareOrSoftwareButtons_BackPressed(sender, e);
-        //    }
-        //}
 
         #region events
         public event EventHandler Goto2DRequested;

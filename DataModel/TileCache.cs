@@ -281,8 +281,9 @@ namespace LolloGPS.Data.TileCache
 									where = 8;
 									writeStream.Flush();
 									// check file vs stream
-									var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-									var fileSize = fileProps.Size;
+									var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
+									//var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+									//var fileSize = fileProps.Size;
 									where = 9;
 									if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
 									{

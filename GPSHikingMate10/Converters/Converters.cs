@@ -71,25 +71,6 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	//public class BooleanToMapStyleConverter : IValueConverter
-	//{
-	//    public object Convert(object value, Type targetType, object parameter, string language)
-	//    {
-	//        if (value == null || !(value is MapStyle)) return false;
-	//        MapStyle mapStyle = (MapStyle)value;
-	//        if (mapStyle == MapStyle.Terrain) return false;
-	//        else return true;
-	//    }
-
-	//    public object ConvertBack(object value, Type targetType, object parameter, string language)
-	//    {
-	//        if (value == null || !(value is bool)) return MapStyle.Terrain;
-	//        bool isAerial = (bool)value;
-	//        if (isAerial) return MapStyle.Aerial;
-	//        else return MapStyle.Terrain;
-	//    }
-	//}
-
 	public class BooleanToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
@@ -182,19 +163,6 @@ namespace LolloGPS.Converters
 			throw new Exception("this is a one-way bonding, it should never come here");
 		}
 	}
-
-	//public class HistoryIsAnyToVisibleConverter : IValueConverter
-	//{
-	//    public object Convert(object value, Type targetType, object parameter, string language)
-	//    {
-	//        return Visibility.Visible;
-	//    }
-
-	//    public object ConvertBack(object value, Type targetType, object parameter, string language)
-	//    {
-	//        throw new Exception("this is a one-way bonding, it should never come here");
-	//    }
-	//}
 
 	public class SeriesCountGreaterThanZeroToBooleanConverter : IValueConverter
 	{
@@ -369,7 +337,6 @@ namespace LolloGPS.Converters
 			}
 
 			if (dt == default(DateTime)) return Visibility.Collapsed;
-			// if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(DateTime).ToString())) return Visibility.Collapsed;
 			else return Visibility.Visible;
 
 		}
@@ -696,22 +663,6 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	//public class MapCacheToVisibilityConverter : IValueConverter
-	//{
-	//    public object Convert(object value, Type targetType, object parameter, string language)
-	//    {
-	//        if (value == null || !(value is TileSourceRecord)) return Visibility.Collapsed;
-	//        TileSourceRecord tileSource = (TileSourceRecord)value;
-	//        if (tileSource.TechName == TileSourceRecord.DefaultTileSourceTechName) return Visibility.Collapsed;
-	//        return Visibility.Visible;
-	//    }
-
-	//    public object ConvertBack(object value, Type targetType, object parameter, string language)
-	//    {
-	//        throw new Exception("should never get here");
-	//    }
-	//}
-
 	public class TileSourceToVisibleConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
@@ -744,6 +695,7 @@ namespace LolloGPS.Converters
 			return PositionAccuracy.Default;
 		}
 	}
+
 	public class MapStyleToGlyphConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
@@ -859,8 +811,8 @@ namespace LolloGPS.Converters
 
 	public static class AngleConverterHelper
 	{
-		public const int MaxDecimalPlaces = 3;
-		public const int TenPowerMaxDecimalPlaces = 1000;
+		public const int MaxDecimalPlaces = 6;
+		public readonly static int TenPowerMaxDecimalPlaces = (int)Math.Pow(10.0, MaxDecimalPlaces);
 		public const string FLOAT_LAT_LON_FORMAT = "#0.###";
 
 		public static string LatitudeToString(object value, object parameter)
@@ -876,6 +828,7 @@ namespace LolloGPS.Converters
 			}
 
 		}
+
 		public static string LongitudeToString(object value, object parameter)
 		{
 			PersistentData myData = PersistentData.GetInstance();
@@ -934,17 +887,13 @@ namespace LolloGPS.Converters
 				sec = (int)secDbl;
 				dec = (int)((secDbl - sec) * TenPowerMaxDecimalPlaces);
 
-				Debug.WriteLine(coord);
 				int sign = Math.Sign(deg);
 				if (sign == 0) sign = 1;
-				Debug.WriteLine(sign * Math.Abs(dec) / (double)TenPowerMaxDecimalPlaces / 3600.0 + sign * Math.Abs(sec) / 3600.0 + sign * Math.Abs(min) / 60.0 + deg); //this is the inverse function, by the way
 			}
 			else
 			{
 				deg = min = sec = dec = 0;
-				Debug.WriteLine("ERROR: double expected");
 			}
-			//if (parameter != null) sec = Math.Round(sec, System.Convert.ToInt32(parameter.ToString())); // in case we need this again in future...
 		}
 
 		public static double DegMinSecDec_To_Float(string degStr, string minStr, string secStr, string decStr)

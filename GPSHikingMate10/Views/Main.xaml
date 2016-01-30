@@ -213,7 +213,9 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:MapsPanel Goto2DRequested="OnMapsGoto2DRequested" MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:MapsPanel x:Name="MyMapsPanel"
+							Goto2DRequested="OnMapsGoto2DRequested" 
+							MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
@@ -221,7 +223,8 @@
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:CustomMapsPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"
+							MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -237,7 +240,8 @@
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:HelpPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:HelpPanel x:Name="MyHelpPanel"
+							MainVM="{Binding ElementName=me, Path=MainVM}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">

@@ -119,18 +119,17 @@ namespace GPX
 				Logger.Add_TPL("GPX file null", Logger.ForegroundLogFilename, Logger.Severity.Info);
 			}
 
-			return Tuple.Create<bool, string>(outIsOk, outMessage);
+			return Tuple.Create(outIsOk, outMessage);
 		}
 		private static async Task<List<PointRecord>> LoadDataRecordsAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
 		{
 			List<PointRecord> newDataRecords = new List<PointRecord>();
 			if (gpxFile == null) return newDataRecords;
 
-			var fileProperties = await gpxFile.GetBasicPropertiesAsync();
-			if (fileProperties.Size > ConstantData.MaxFileSize) return newDataRecords;
-
 			try
 			{
+				if (await gpxFile.GetFileSizeAsync().ConfigureAwait(false) > ConstantData.MaxFileSize) return newDataRecords;
+
 				using (IInputStream inStream2 = await gpxFile.OpenSequentialReadAsync().AsTask<IInputStream>().ConfigureAwait(false)) //OpenReadAsync() also works
 				{
 					token.ThrowIfCancellationRequested();
@@ -173,7 +172,7 @@ namespace GPX
 
 							uint howManySatellites = default(UInt32);
 							var sat = xe.Descendants(xn + "sat").FirstOrDefault();
-							if (sat != null) UInt32.TryParse(sat.Value, out howManySatellites);
+							if (sat != null) uint.TryParse(sat.Value, out howManySatellites);
 
 							double speedInMetreSec = default(double);
 							var speed = xe.Descendants(xn + "speed").FirstOrDefault();

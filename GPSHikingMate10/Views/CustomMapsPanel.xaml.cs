@@ -3,6 +3,7 @@ using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Input;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -30,10 +31,21 @@ namespace LolloGPS.Core
 		public CustomMapsPanel()
         {
             InitializeComponent();
-            // BackPressedRaiser = MainVM;
         }
 
-        private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
+		protected override async Task OpenMayOverrideAsync()
+		{
+			await ClearCustomCacheChooser.OpenAsync().ConfigureAwait(false);
+			await base.OpenMayOverrideAsync().ConfigureAwait(false);
+		}
+
+		protected override async Task CloseMayOverrideAsync()
+		{
+			await ClearCustomCacheChooser.CloseAsync().ConfigureAwait(false);
+			await base.CloseMayOverrideAsync().ConfigureAwait(false);
+		}
+
+		private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
         {
             if (MainVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
             {

@@ -47,10 +47,11 @@ namespace LolloGPS.Core
 			InitializeComponent();
 			// BackPressedRaiser = MainVM;
 		}
-		public void Close()
+		protected override Task CloseMayOverrideAsync()
 		{
 			_holdingTimer?.Dispose();
 			_holdingTimer = null;
+			return Task.CompletedTask;
 		}
 		#endregion lifecycle
 
