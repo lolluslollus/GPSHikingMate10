@@ -1,6 +1,5 @@
-﻿using LolloBaseUserControls;
+﻿using Utilz.Controlz;
 using LolloGPS.Data;
-using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class PointInfoPanel : OrientationResponsiveUserControl
+	public sealed partial class PointInfoPanel : OpObsOrControl
 	{
 		public event EventHandler PointChanged;
 
@@ -27,7 +26,7 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null, OnMainVM_Changed));
 		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as OrientationResponsiveUserControl;
+			var instance = obj as OpObsOrControl;
 			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
 		}
 

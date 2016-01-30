@@ -272,6 +272,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
+      <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
+      <Name>Utilz</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BackgroundTask\GPSHikingMate10BackgroundTasks.csproj">
       <Project>{fccfa2fc-f84a-47ea-b42a-8d90d5545551}</Project>
       <Name>GPSHikingMate10BackgroundTasks</Name>
@@ -284,11 +288,6 @@
     <ProjectReference Include="..\GPSInteractor\GPSInteractor.csproj">
       <Project>{a23cd15a-9d3a-4ff6-95bd-eb0a2ddfc68e}</Project>
       <Name>GPSInteractor</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilz\Utilz.csproj">
-      <Project>{687098c3-0ae8-4a13-bf87-99e363cb609d}</Project>
-      <Name>Utilz</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

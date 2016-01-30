@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
-using Utilz;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 
-namespace LolloBaseUserControls
+namespace Utilz.Controlz
 {
-	public abstract class ObservablePage : Page, INotifyPropertyChanged
+	public abstract class ObservableControl : UserControl, INotifyPropertyChanged
 	{
 		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -19,15 +15,15 @@ namespace LolloBaseUserControls
 		{
 			PropertyChanged = null;
 		}
-		//protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
-		//{
-		//	PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		//}
+		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 		protected void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
 			try
 			{
-				Task raise = RunInUiThreadAsync(delegate { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); });
+				Task raise = RunInUiThreadAsync(delegate { RaisePropertyChanged(propertyName); });
 			}
 			catch (Exception ex)
 			{
@@ -38,7 +34,7 @@ namespace LolloBaseUserControls
 
 
 		#region construct dispose
-		public ObservablePage() { }
+		public ObservableControl() { }
 		#endregion construct dispose
 
 
@@ -52,6 +48,18 @@ namespace LolloBaseUserControls
 			else
 			{
 				await Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
+			}
+		}
+
+		protected async Task RunInUiThreadAsync(CoreDispatcher dispatcher, DispatchedHandler action)
+		{
+			if (dispatcher?.HasThreadAccess == true)
+			{
+				action();
+			}
+			else
+			{
+				await dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
 			}
 		}
 		#endregion UIThread

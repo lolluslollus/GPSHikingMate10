@@ -1,6 +1,5 @@
-﻿using LolloBaseUserControls;
+﻿using Utilz.Controlz;
 using LolloGPS.Data;
-using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;

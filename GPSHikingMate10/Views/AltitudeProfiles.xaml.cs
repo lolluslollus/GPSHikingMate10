@@ -1,11 +1,10 @@
-﻿using LolloBaseUserControls;
+﻿using Utilz.Controlz;
 using LolloChartMobile;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.UI.Xaml;

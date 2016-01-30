@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Utilz;
-using Utilz.Data.Constants;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -721,14 +720,14 @@ namespace LolloGPS.Data.TileCache
 		{
 			if (tileSource == null)
 			{
-				RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, false.ToString());
-				RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, string.Empty);
+				RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, false.ToString());
+				RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, string.Empty);
 			}
 			else
 			{
 				if (await RegistryAccess.TrySetObject(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, tileSource).ConfigureAwait(false))
 				{
-					RegistryAccess.SetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, isAlsoRemoveSources.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, isAlsoRemoveSources.ToString());
 				}
 			}
 		}

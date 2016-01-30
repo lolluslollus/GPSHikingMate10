@@ -1,21 +1,14 @@
-﻿using LolloBaseUserControls;
-using LolloGPS.Data;
-using LolloGPS.Data.Files;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+using Utilz.Controlz;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-    public sealed partial class HelpPanel : OrientationResponsiveUserControl
-    {
+	public sealed partial class HelpPanel : OpObsOrControl
+	{
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
@@ -28,7 +21,7 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(HelpPanel), new PropertyMetadata(null, OnMainVM_Changed));
 		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as OrientationResponsiveUserControl;
+			var instance = obj as OpObsOrControl;
 			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
 		}
 

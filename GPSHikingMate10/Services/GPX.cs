@@ -1,5 +1,4 @@
 ﻿using LolloGPS.Data;
-using Utilz.Data.Constants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

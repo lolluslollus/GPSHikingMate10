@@ -1,5 +1,4 @@
 ﻿using LolloGPS.Data;
-using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Diagnostics;
@@ -51,7 +50,7 @@ namespace LolloGPS.Core
         {
             try
             {
-                await Logger.SendEmailWithLogsAsync(ConstantData.MYMAIL).ConfigureAwait(false);
+                await Logger.SendEmailWithLogsAsync(ConstantData.MYMAIL, ConstantData.APPNAME).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

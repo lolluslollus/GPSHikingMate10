@@ -118,14 +118,13 @@
     <Content Include="Properties\GPSInteractor.rd.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
+      <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
+      <Name>Utilz</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DataModel\DataModel.csproj">
       <Project>{116cb644-bdca-462f-81a2-8aaeb46ede92}</Project>
       <Name>DataModel</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilz\Utilz.csproj">
-      <Project>{687098c3-0ae8-4a13-bf87-99e363cb609d}</Project>
-      <Name>Utilz</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

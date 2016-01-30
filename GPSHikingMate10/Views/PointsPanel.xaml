@@ -5,8 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:utilz="using:UniversalWrapPanel"
-	xmlns:ctl="using:LolloBaseUserControls"
+	xmlns:ctl="using:Utilz.Controlz"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="800"
@@ -43,7 +42,7 @@
                 Text="Latitude" 
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center" />
-			<utilz:UniversalWrapPanel Orientation="Horizontal">
+			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<Button Tapped="OnLatSign_Tapped"
 					VerticalAlignment="Center">
 					<TextBlock
@@ -59,13 +58,13 @@
 					Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter8DecimalsAbs}}" 
 					InputScope="NumberFullWidth" 
 					LostFocus="OnLatFloat_LostFocus"/>
-			</utilz:UniversalWrapPanel>
+			</ctl:UniversalWrapPanel>
 			<!-- lon float -->
 			<TextBlock
                 Text="Longitude" 
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center" />
-			<utilz:UniversalWrapPanel Orientation="Horizontal">
+			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<Button Tapped="OnLonSign_Tapped"
 					VerticalAlignment="Center">
 					<TextBlock
@@ -81,7 +80,7 @@
 					Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter8DecimalsAbs}}" 
 					InputScope="NumberFullWidth"
 					LostFocus="OnLonFloat_LostFocus"/>
-			</utilz:UniversalWrapPanel>
+			</ctl:UniversalWrapPanel>
 		</StackPanel>
 		<!--target in degrees min sec dec-->
 		<StackPanel Grid.Row="1" Grid.Column="0"
@@ -91,7 +90,7 @@
 			<TextBlock Text="Latitude"
                 VerticalAlignment="Center"
                 Style="{StaticResource BaseMessageStyle}" />
-			<utilz:UniversalWrapPanel Orientation="Horizontal">
+			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LatDeg"
 					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
@@ -144,12 +143,12 @@
 						TextAlignment="Center"
 						Text="{Binding Target.Latitude, Converter={StaticResource FloatLatitudeToNSConverter}}"/>
 				</Button>
-			</utilz:UniversalWrapPanel>
+			</ctl:UniversalWrapPanel>
 			<!--target lon in deg min sec dec-->
 			<TextBlock Text="Longitude"
                 VerticalAlignment="Center"
                 Style="{StaticResource BaseMessageStyle}" />
-			<utilz:UniversalWrapPanel Orientation="Horizontal">
+			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LonDeg"
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
@@ -202,7 +201,7 @@
 						TextAlignment="Center"
 						Text="{Binding Target.Longitude, Converter={StaticResource FloatLongitudeToEWConverter}}"/>
 				</Button>
-			</utilz:UniversalWrapPanel>
+			</ctl:UniversalWrapPanel>
 		</StackPanel>
 		<!-- human description -->
 		<TextBlock Grid.Row="2" Grid.Column="0"

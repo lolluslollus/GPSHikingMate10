@@ -23,8 +23,8 @@ namespace Utilz
 
 			var openPicker = new FolderPicker();
 			openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-			//openPicker.CommitButtonText=
-			//openPicker.ViewMode = PickerViewMode.List;
+			openPicker.ViewMode = PickerViewMode.List;
+
 			foreach (var ext in extensions)
 			{
 				openPicker.FileTypeFilter.Add(ext);
@@ -50,9 +50,10 @@ namespace Utilz
 				await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, delegate
 				{
 					var openPicker = new FileOpenPicker();
-					
+
 					openPicker.ViewMode = PickerViewMode.List;
 					openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
 					foreach (var ext in extensions)
 					{
 						openPicker.FileTypeFilter.Add(ext);
@@ -72,11 +73,11 @@ namespace Utilz
 			return file;
 		}
 
-		public static async Task<StorageFile> PickSaveFileAsync(string[] extensions, string suggestedFileName)
+		public static async Task<StorageFile> PickSaveFileAsync(string[] extensions, string suggestedFileName = "")
 		{
 			var picker = new FileSavePicker();
 			picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-			picker.SuggestedFileName = suggestedFileName;
+			if (!string.IsNullOrWhiteSpace(suggestedFileName)) picker.SuggestedFileName = suggestedFileName;
 
 			foreach (var ext in extensions)
 			{
@@ -87,13 +88,13 @@ namespace Utilz
 			var file = await picker.PickSaveFileAsync();
 			if (file != null)
 			{
-				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_SAVE_FILE_TOKEN, file);				
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_SAVE_FILE_TOKEN, file);
 			}
 
 			return file;
 		}
 
-		public static async Task<StorageFolder> GetLastPickedFolderJustOnceAsync()
+		public static async Task<StorageFolder> GetLastPickedFolderAsync()
 		{
 			StorageFolder result = null;
 			try
@@ -107,7 +108,15 @@ namespace Utilz
 			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedOpenFileJustOnceAsync()
+		public static void SetLastPickedOpenFile(StorageFile file)
+		{
+			if (file != null)
+			{
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(PICKED_OPEN_FILE_TOKEN, file);
+			}
+		}
+
+		public static async Task<StorageFile> GetLastPickedOpenFileAsync()
 		{
 			StorageFile result = null;
 			try
@@ -121,7 +130,7 @@ namespace Utilz
 			return result;
 		}
 
-		public static async Task<StorageFile> GetLastPickedSaveFileJustOnceAsync()
+		public static async Task<StorageFile> GetLastPickedSaveFileAsync()
 		{
 			StorageFile result = null;
 			try

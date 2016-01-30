@@ -1,11 +1,10 @@
-﻿<lollo:OrientationResponsiveUserControl
+﻿<uctl:OpObsOrControl
     x:Class="LolloGPS.Core.MapsPanel"
     x:Name="me"
-    xmlns:lollo="using:LolloBaseUserControls"
+    xmlns:uctl="using:Utilz.Controlz"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:LolloGPS.Core"
-    xmlns:listChooser="using:LolloListChooser"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
@@ -82,7 +81,7 @@
                     Style="{StaticResource BaseMessageStyle}"
                     VerticalAlignment="Center"/>
             <!--IsEnabled="{Binding ElementName=me, Path=MainVM.IsChangeMapSourceEnabled}"-->
-            <listChooser:LolloListChooser
+            <uctl:LolloListChooser
                     x:Name="MapSourceChooser"                    
                     PlaceholderText="Select a source for map tiles"
                     ListHeaderText="Select a source for map tiles"
@@ -131,7 +130,7 @@
                 Visibility="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
                 Text="No connection"/>
 
-        <listChooser:LolloListChooser Grid.Row="6" Grid.Column="0"
+        <uctl:LolloListChooser Grid.Row="6" Grid.Column="0"
                 SelectorVisibility="Collapsed"
                 x:Name="ZoomLevelChooser"
                 PlaceholderText="Select max zoom level to download"
@@ -156,7 +155,7 @@
                 Style="{StaticResource AppBarButtonRecoloured}"
                 IsCompact="True"
                 Icon="Delete"/>
-        <listChooser:LolloListChooser Grid.Row="7" Grid.Column="0"
+        <uctl:LolloListChooser Grid.Row="7" Grid.Column="0"
                 SelectorVisibility="Collapsed"
                 x:Name="ClearCacheChooser"
                 PlaceholderText="Which cache do you want to clear?"
@@ -182,4 +181,4 @@
                 IsCompact="True"
                 Icon="Pin"/>
     </Grid>
-</lollo:OrientationResponsiveUserControl>
+</uctl:OpObsOrControl>

@@ -1,18 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using SQLite;
+using System;
+using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace Utilz.Data
 {
+	[DataContract]
 	public abstract class OpenableObservableData : ObservableData
 	{
 		#region properties
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
 
 		protected volatile bool _isOpen = false;
+		[IgnoreDataMember]
+		[Ignore]
 		public bool IsOpen { get { return _isOpen; } protected set { if (_isOpen != value) { _isOpen = value; RaisePropertyChanged_UI(); } } }
 
 		private volatile SafeCancellationTokenSource _cts = null;
@@ -72,7 +76,7 @@ namespace Utilz.Data
 
 		protected virtual Task OpenMayOverrideAsync()
 		{
-			return Task.CompletedTask; // avoid warning
+			return Task.CompletedTask;
 		}
 
 		public virtual async Task<bool> CloseAsync()
@@ -91,6 +95,7 @@ namespace Utilz.Data
 
 						IsOpen = false;
 						await CloseMayOverrideAsync().ConfigureAwait(false);
+					
 						return true;
 					}
 				}
@@ -110,7 +115,7 @@ namespace Utilz.Data
 
 		protected virtual Task CloseMayOverrideAsync()
 		{
-			return Task.CompletedTask; // avoid warning
+			return Task.CompletedTask;
 		}
 		#endregion open close
 
@@ -208,7 +213,8 @@ namespace Utilz.Data
 			}
 			return false;
 		}
-		protected async Task<bool> RunFunctionIfOpenAsyncT_MT(Func<Task> funcAsync)
+
+		protected async Task<bool> RunFunctionIfOpenAsyncA_MT(Action func)
 		{
 			if (_isOpen)
 			{
@@ -217,7 +223,7 @@ namespace Utilz.Data
 					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
 					if (_isOpen)
 					{
-						await Task.Run(delegate { return funcAsync(); }).ConfigureAwait(false);
+						await Task.Run(func).ConfigureAwait(false);
 						return true;
 					}
 				}
@@ -233,6 +239,75 @@ namespace Utilz.Data
 			}
 			return false;
 		}
+
+		public enum BoolWhenOpen { Yes, No, ObjectClosed, Error };
+
+		protected async Task<BoolWhenOpen> RunFunctionIfOpenThreeStateAsyncB(Func<bool> func)
+		{
+			BoolWhenOpen result = BoolWhenOpen.ObjectClosed;
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
+					{
+						if (func()) result = BoolWhenOpen.Yes;
+						else result = BoolWhenOpen.No;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+					{
+						result = BoolWhenOpen.Error;
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+					}
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+			return result;
+		}
+
+		protected async Task<BoolWhenOpen> RunFunctionIfOpenThreeStateAsyncT(Func<Task> funcAsync)
+		{
+			if (_isOpen)
+			{
+				try
+				{
+					await _isOpenSemaphore.WaitAsync(); //.ConfigureAwait(false);
+					if (_isOpen)
+					{
+						await funcAsync().ConfigureAwait(false);
+						return BoolWhenOpen.Yes;
+					}
+				}
+				catch (Exception ex)
+				{
+					if (SemaphoreSlimSafeRelease.IsAlive(_isOpenSemaphore))
+					{
+						await Logger.AddAsync(GetType().Name + ex.ToString(), Logger.ForegroundLogFilename);
+						return BoolWhenOpen.Error;
+					}
+				}
+				finally
+				{
+					SemaphoreSlimSafeRelease.TryRelease(_isOpenSemaphore);
+				}
+			}
+
+			return BoolWhenOpen.ObjectClosed;
+		}
 		#endregion while open
+	}
+
+	public interface IOpenable
+	{
+		Task<bool> OpenAsync();
+		Task<bool> CloseAsync();
+		bool IsOpen { get; }
 	}
 }

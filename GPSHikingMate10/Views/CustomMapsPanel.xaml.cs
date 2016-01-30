@@ -1,8 +1,6 @@
-﻿using LolloBaseUserControls;
+﻿using Utilz.Controlz;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
-using LolloListChooser;
-using System;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 
@@ -10,8 +8,8 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class CustomMapsPanel : OrientationResponsiveUserControl
-    {
+    public sealed partial class CustomMapsPanel : OpObsOrControl
+	{
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
@@ -24,7 +22,7 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null, OnMainVM_Changed));
 		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as OrientationResponsiveUserControl;
+			var instance = obj as OpObsOrControl;
 			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
 		}
 

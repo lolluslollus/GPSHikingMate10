@@ -8,12 +8,12 @@ using System.Linq;
 namespace Utilz
 {
 	// LOLLO http://blog.stephencleary.com/2009/07/interpreting-notifycollectionchangedeve.html
-	public sealed class SwitchableObservableCollection<T> : ObservableCollection<T>
+	public class SwitchableObservableCollection<T> : ObservableCollection<T>
 	{
-		private bool _isObserving = true;
+		protected bool _isObserving = true;
 		public bool IsObserving { get { return _isObserving; } set { _isObserving = value; } }
 
-		private uint _capacity = UInt32.MaxValue;
+		protected uint _capacity = UInt32.MaxValue;
 		public uint Capacity { get { return _capacity; } }
 
 		public SwitchableObservableCollection() : base() { }

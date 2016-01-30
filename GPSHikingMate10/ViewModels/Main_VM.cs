@@ -1,7 +1,6 @@
 ﻿using GPX;
-using LolloBaseUserControls;
+using Utilz.Controlz;
 using LolloGPS.Data;
-using Utilz.Data.Constants;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using LolloGPS.GPSInteraction;

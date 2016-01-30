@@ -24,18 +24,20 @@ namespace Utilz
 			return output;
 		}
 
-		public static void SetValue(string regKey, string value)
+		public static bool TrySetValue(string regKey, string value)
 		{
 			try
 			{
 				Debug.WriteLine("writing value " + value + " into reg key " + regKey);
 				var settings = ApplicationData.Current.LocalSettings;
 				settings.Values[regKey] = value;
+				return true;
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			return false;
 		}
 
 		public static string GetValue(string regKey)
@@ -91,7 +93,7 @@ namespace Utilz
 			{
 				if (instance == null)
 				{
-					SetValue(regKey, string.Empty);
+					TrySetValue(regKey, string.Empty);
 				}
 				else
 				{
@@ -104,7 +106,7 @@ namespace Utilz
 						using (StreamReader streamReader = new StreamReader(memoryStream))
 						{
 							string serialised = await streamReader.ReadToEndAsync().ConfigureAwait(false);
-							SetValue(regKey, serialised);
+							TrySetValue(regKey, serialised);
 							return true;
 						}
 					}

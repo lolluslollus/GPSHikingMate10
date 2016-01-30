@@ -114,6 +114,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data_Constants.cs" />
     <Compile Include="Data_File.cs" />
     <Compile Include="Data_Persistent.cs" />
     <Compile Include="Data_Runtime.cs" />
@@ -123,24 +124,14 @@
     <Compile Include="Record_DownloadSession.cs" />
     <Compile Include="Record_Point.cs" />
     <Compile Include="Record_TileSource.cs" />
-    <Compile Include="SQLite.cs" />
     <Compile Include="TileCache.cs" />
     <Content Include="Properties\DataModel.rd.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Utilz\Utilz.csproj">
-      <Project>{687098c3-0ae8-4a13-bf87-99e363cb609d}</Project>
+    <ProjectReference Include="..\..\Utilz\Utilz\Utilz.csproj">
+      <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
       <Name>Utilz</Name>
-      <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <SDKReference Include="Microsoft.VCLibs, Version=14.0">
-      <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
-    </SDKReference>
-    <SDKReference Include="SQLite.UAP.2015, Version=3.10.2">
-      <Name>SQLite for Universal App Platform</Name>
-    </SDKReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

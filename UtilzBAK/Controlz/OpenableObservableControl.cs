@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Utilz;
+using Utilz.Data;
 using Windows.UI.Xaml;
 
-namespace LolloBaseUserControls
+namespace Utilz.Controlz
 {
 	/// <summary>
 	/// This is a smarter UserControl that can be opened and closed, asynchronously. 
 	/// It will stay disabled as long as it is closed.
 	/// Do not bind to IsEnabled, but to IsEnabledOverride instead.
 	/// </summary>
-	public abstract class OpObsOrControl : OrientationResponsiveUserControl
+	public abstract class OpenableObservableControl : ObservableControl, IOpenable
 	{
 		#region properties
 		protected volatile SemaphoreSlimSafeRelease _isOpenSemaphore = null;
@@ -39,10 +39,10 @@ namespace LolloBaseUserControls
 			set { SetValue(IsEnabledOverrideProperty, value); }
 		}
 		public static readonly DependencyProperty IsEnabledOverrideProperty =
-			DependencyProperty.Register("IsEnabledOverride", typeof(bool), typeof(OpObsOrControl), new PropertyMetadata(true, OnIsEnabledOverrideChanged));
+			DependencyProperty.Register("IsEnabledOverride", typeof(bool), typeof(OpenableObservableControl), new PropertyMetadata(true, OnIsEnabledOverrideChanged));
 		private static void OnIsEnabledOverrideChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			Task upd = (obj as OpObsOrControl)?.UpdateIsEnabledAsync();
+			Task upd = (obj as OpenableObservableControl)?.UpdateIsEnabledAsync();
 		}
 		private Task UpdateIsEnabledAsync()
 		{
@@ -75,7 +75,7 @@ namespace LolloBaseUserControls
 
 
 		#region ctor
-		public OpObsOrControl() : base()
+		public OpenableObservableControl() : base()
 		{
 			Task upd = UpdateIsEnabledAsync();
 		}
@@ -119,7 +119,7 @@ namespace LolloBaseUserControls
 
 		protected virtual Task OpenMayOverrideAsync()
 		{
-			return Task.CompletedTask; // avoid warning
+			return Task.CompletedTask;
 		}
 
 		public virtual async Task<bool> CloseAsync()
@@ -138,6 +138,7 @@ namespace LolloBaseUserControls
 
 						IsEnabledAllowed = false;
 						IsOpen = false;
+
 						await CloseMayOverrideAsync().ConfigureAwait(false);
 						return true;
 					}
@@ -155,9 +156,11 @@ namespace LolloBaseUserControls
 			}
 			return false;
 		}
-#pragma warning disable 1998
-		protected virtual async Task CloseMayOverrideAsync() { } // LOLLO return null dumps
-#pragma warning restore 1998
+
+		protected virtual Task CloseMayOverrideAsync()
+		{
+			return Task.CompletedTask;
+		}
 		#endregion open close
 
 
@@ -213,6 +216,7 @@ namespace LolloBaseUserControls
 			}
 			return false;
 		}
+
 		protected async Task<bool> RunFunctionIfOpenAsyncB(Func<bool> func)
 		{
 			if (_isOpen)
@@ -234,6 +238,7 @@ namespace LolloBaseUserControls
 			}
 			return false;
 		}
+
 		protected async Task<bool> RunFunctionIfOpenAsyncT(Func<Task> funcAsync)
 		{
 			if (_isOpen)
@@ -280,6 +285,7 @@ namespace LolloBaseUserControls
 			}
 			return false;
 		}
+
 		protected async Task<bool> RunFunctionIfOpenAsyncT_MT(Func<Task> funcAsync)
 		{
 			if (_isOpen)

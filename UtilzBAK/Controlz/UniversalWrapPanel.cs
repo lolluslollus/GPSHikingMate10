@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
 // namespace Gregstoll
 // LOLLO downloaded from https://github.com/gregstoll/UniversalWrapPanel
-namespace UniversalWrapPanel
+namespace Utilz.Controlz
 {
-    public class UniversalWrapPanel : Panel
+	public class UniversalWrapPanel : Panel
     {
 
         public Orientation Orientation

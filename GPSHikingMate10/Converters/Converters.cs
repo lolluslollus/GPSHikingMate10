@@ -1,5 +1,4 @@
 ﻿using LolloGPS.Data;
-using LolloListChooser;
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
@@ -8,8 +7,8 @@ using Windows.Devices.Geolocation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
-using Utilz.Data.Constants;
 using System.Diagnostics;
+using Utilz.Controlz;
 
 namespace LolloGPS.Converters
 {

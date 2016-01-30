@@ -1,5 +1,4 @@
-﻿using Utilz.Data.Constants;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -20,7 +19,7 @@ namespace Utilz
 
         private static readonly SemaphoreSlimSafeRelease _semaphore = new SemaphoreSlimSafeRelease(1, 1); // , "LOLLOLoggerSemaphore");
         private const long MAX_SIZE_BYTES = 16000;
-		public const string DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss.fff";
+		public const string DATE_TIME_FORMAT = "dd/MM/yyyy HH:mm:ss.ffffff";
 
 		static Logger()
         {
@@ -222,12 +221,12 @@ namespace Utilz
             });
         }
 
-        public static async Task SendEmailWithLogsAsync(string recipient)
+        public static async Task SendEmailWithLogsAsync(string recipient, string appName)
         {
             EmailRecipient emailRecipient = new EmailRecipient(recipient);
 
             EmailMessage emailMsg = new EmailMessage();
-            emailMsg.Subject = string.Format("Feedback from {0} with logs", ConstantData.AppName);
+            emailMsg.Subject = string.Format("Feedback from {0} with logs", appName);
             emailMsg.To.Add(emailRecipient);
             //emailMsg.Body = await ReadAllLogsIntoStringAsync(); // LOLLO this only works with a short body...
 

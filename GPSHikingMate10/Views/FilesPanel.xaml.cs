@@ -1,6 +1,5 @@
-﻿using LolloBaseUserControls;
+﻿using Utilz.Controlz;
 using LolloGPS.Data;
-using Utilz.Data.Constants;
 using System;
 using System.Threading.Tasks;
 using Windows.UI.Popups;

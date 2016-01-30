@@ -12,11 +12,21 @@ namespace Utilz.Data
 	[DataContract]
 	public abstract class ObservableData : INotifyPropertyChanged
 	{
+		#region INotifyPropertyChanged
 		public event PropertyChangedEventHandler PropertyChanged;
+		protected void ClearListeners()
+		{
+			PropertyChanged = null;
+		}
+
 		protected void RaisePropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
+		/// <summary>
+		/// Runs in the UI thread if available, otherwise queues the operation in it.
+		/// </summary>
+		/// <param name="propertyName"></param>
 		protected async void RaisePropertyChanged_UI([CallerMemberName] string propertyName = "")
 		{
 			await RunInUiThreadAsync(delegate
@@ -37,9 +47,10 @@ namespace Utilz.Data
 			{ }
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
+		#endregion INotifyPropertyChanged
 
 
 		#region UIThread
@@ -60,7 +71,7 @@ namespace Utilz.Data
 			{ }
 			catch (Exception ex)
 			{
-				await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
 		#endregion UIThread

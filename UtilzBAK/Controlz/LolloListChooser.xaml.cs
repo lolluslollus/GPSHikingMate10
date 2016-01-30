@@ -1,9 +1,7 @@
-﻿using LolloBaseUserControls;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Phone.UI.Input;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -11,10 +9,10 @@ using Windows.UI.Xaml.Input;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
-namespace LolloListChooser
+namespace Utilz.Controlz
 {
-    public sealed partial class LolloListChooser : OrientationResponsiveUserControl
-    {
+    public sealed partial class LolloListChooser : OpObsOrControl
+	{
         #region properties
         private const string DefaultPlaceholderText = "Select an item";
         private const string DefaultListHeaderText = "Choose an item";
@@ -322,7 +320,7 @@ namespace LolloListChooser
 
         private void OnMyListViewItems_VectorChanged(Windows.Foundation.Collections.IObservableVector<object> sender, Windows.Foundation.Collections.IVectorChangedEventArgs @event)
         {
-			Task updSelIdx = RunInUiThreadAsync(MyListView.Dispatcher, delegate
+			Task updSelIdx = RunInUiThreadAsync(MyListView?.Dispatcher, delegate
             {
                 if (MyListView.Items.Count > SelectedIndex)
                 {

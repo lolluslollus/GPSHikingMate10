@@ -1,26 +1,25 @@
-﻿<lollo:OrientationResponsiveUserControl
+﻿<uctl:OpObsOrControl
     x:Class="LolloGPS.Core.PointInfoPanel"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:lollo="using:LolloBaseUserControls"
+    xmlns:uctl="using:Utilz.Controlz"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="using:LolloGPS.Core"
     xmlns:data="using:LolloGPS.Data"
-	xmlns:utilz="using:UniversalWrapPanel"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="600"
     d:DesignWidth="400">
-	<lollo:OrientationResponsiveUserControl.Resources>
+	<uctl:OpObsOrControl.Resources>
 		<LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
 			<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
 			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
 			<!--<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.85"/>
 					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0.99"/>-->
 		</LinearGradientBrush>
-	</lollo:OrientationResponsiveUserControl.Resources>
+	</uctl:OpObsOrControl.Resources>
 
 	<Grid Margin="{StaticResource Thickness0}">
 		<!-- choose a series to see the point details -->
@@ -69,7 +68,7 @@
 			Background="{StaticResource BackgroundBrush}">
 			<StackPanel Orientation="Vertical">
 				<!-- header -->
-				<utilz:UniversalWrapPanel Orientation="Horizontal">
+				<uctl:UniversalWrapPanel Orientation="Horizontal">
 					<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 						Text="{Binding SelectedSeries, Converter={StaticResource SeriesTextConverter}}"/>
 					<!-- point n of m -->
@@ -103,14 +102,14 @@
 						<Run Text=" of "/>
 						<Run Text="{Binding Checkpoints.Count}"/>
 					</TextBlock>
-				</utilz:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{Binding Selected.TimePoint, Converter={StaticResource DateNotNullToVisibilityConverter}}">
 					<Run Text="Time: "/>
 					<Run Text="{Binding Selected.TimePoint}"/>
 				</TextBlock>
 				<!-- human description -->
-				<utilz:UniversalWrapPanel Orientation="Horizontal">
+				<uctl:UniversalWrapPanel Orientation="Horizontal">
 					<TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"
@@ -129,9 +128,9 @@
 						PlaceholderText="you can type a note here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
-				</utilz:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 				<!-- point navigation -->
-				<utilz:UniversalWrapPanel Orientation="Horizontal">
+				<uctl:UniversalWrapPanel Orientation="Horizontal">
 					<AppBarButton
                           Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
                           Icon="Previous"
@@ -149,7 +148,7 @@
                           Icon="Delete"
                           IsCompact="True"                          
                           Style="{StaticResource AppBarButtonRecoloured}"/>
-				</utilz:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 				<!-- data -->
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" >
 					<Run Text="Latitude: "/>
@@ -179,7 +178,7 @@
 				</TextBlock>
 
 				<!-- link to media -->
-				<utilz:UniversalWrapPanel Orientation="Horizontal">
+				<uctl:UniversalWrapPanel Orientation="Horizontal">
 					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
 						TextWrapping="Wrap"
 						Style="{StaticResource BaseMessageStyle}"
@@ -197,9 +196,9 @@
 						PlaceholderText="you can type a link here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
-				</utilz:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 				<!-- name of media -->
-				<utilz:UniversalWrapPanel Orientation="Horizontal"
+				<uctl:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{Binding Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}">
 					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
 						TextWrapping="Wrap"
@@ -224,7 +223,7 @@
 						Icon="View"
 						IsCompact="True"
 						Style="{StaticResource AppBarButtonRecoloured}"/>
-				</utilz:UniversalWrapPanel>
+				</uctl:UniversalWrapPanel>
 
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left">
 					<Run Text="Speed: "/>
@@ -239,4 +238,4 @@
 			</StackPanel>
 		</ScrollViewer>
 	</Grid>
-</lollo:OrientationResponsiveUserControl>
+</uctl:OpObsOrControl>
