@@ -1,7 +1,7 @@
-﻿<ctl:OpObsOrControl
+﻿<uctl:OpenableObservableControl
     x:Class="LolloGPS.Core.CustomMapsPanel"
     x:Name="me"
-    xmlns:ctl="using:Utilz.Controlz"
+    xmlns:uctl="using:Utilz.Controlz"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:LolloGPS.Core"
@@ -129,7 +129,6 @@
                 Style="{StaticResource BaseMessageStyle}"
                 TextWrapping="Wrap"
                 Text="Erase custom sources"/>
-			<!--IsEnabled="{Binding TileSourcez.Count, Converter={StaticResource CustomTileSourcezToEnabledConverter}}"-->
 			<AppBarButton Grid.Row="3" Grid.Column="2"
                 VerticalAlignment="Center"
                 IsEnabled="{Binding ElementName=me, Path=MainVM.IsClearCustomCacheEnabled}"
@@ -137,7 +136,7 @@
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
                 Icon="Delete"/>
-			<ctl:LolloListChooser Grid.Row="3" Grid.Column="1"
+			<uctl:LolloListChooser Grid.Row="3" Grid.Column="1"
                 SelectorVisibility="Collapsed"
                 x:Name="ClearCustomCacheChooser"
                 PlaceholderText="Which source do you want to erase?"
@@ -150,19 +149,6 @@
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache}"
                 ItemSelected="OnClearCustomCacheChooser_ItemSelected"
                 BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"/>
-
-			<!--<AppBarButton Grid.Row="3" Grid.Column="0"
-                    VerticalAlignment="Center"                    
-                    IsCompact="True"
-                    Style="{StaticResource AppBarButtonRecoloured}"
-                    Click="OnOpenCloseCustom_Click"
-                    Label="All maps" Icon="Back"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
-                   VerticalAlignment="Center"
-                   Style="{StaticResource BaseMessageStyle}"
-                   TextWrapping="WrapWholeWords"
-                   Text="Go back to all maps."/>-->
-
 		</Grid>
 	</Grid>
-</ctl:OpObsOrControl>
+</uctl:OpenableObservableControl>

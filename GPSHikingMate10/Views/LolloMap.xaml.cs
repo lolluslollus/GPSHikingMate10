@@ -25,7 +25,7 @@ using Windows.UI.Xaml.Media;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
-	public sealed partial class LolloMap : OpObsOrControl, IGeoBoundingBoxProvider, IMapApController, IInfoPanelEventReceiver
+	public sealed partial class LolloMap : OpenableObservableControl, IGeoBoundingBoxProvider, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
 		// LOLLO TODO checkpoints are still expensive to draw, no matter what I tried, 
@@ -989,7 +989,7 @@ namespace LolloGPS.Core
 	{
 		//private const double VerticalHalfCircM = 20004000.0;
 		private const double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
-		private static double _lastZoomScale = 0.0; //remember this to avoid repeating the same calculation
+		private static double _lastZoom = 0.0; //remember this to avoid repeating the same calculation
 		private static double _imageScaleTransform = 1.0;
 		private static string _distRoundedFormatted = "1 m";
 		private static double _rightLabelX = LolloMap.SCALE_IMAGE_WIDTH;
@@ -997,17 +997,17 @@ namespace LolloGPS.Core
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			MapControl mapControl = LolloMap.GetMapControlInstance();
-			double currentZoomScale = 0.0;
+			double currentZoom = 0.0;
 			if (mapControl != null)
 			{
-				double.TryParse(value.ToString(), out currentZoomScale);
+				double.TryParse(value.ToString(), out currentZoom);
 
-				if (currentZoomScale != _lastZoomScale)
+				if (currentZoom != _lastZoom)
 				{
 					try
 					{
 						Calc(mapControl);
-						_lastZoomScale = currentZoomScale; //remember this to avoid repeating the same calculation
+						_lastZoom = currentZoom; //remember this to avoid repeating the same calculation
 					}
 					catch (Exception ex)
 					{
@@ -1032,7 +1032,7 @@ namespace LolloGPS.Core
 			}
 			else if (param == "techZoom")
 			{
-				return currentZoomScale.ToString("zoom #0.#", CultureInfo.CurrentUICulture);
+				return currentZoom.ToString("zoom #0.#", CultureInfo.CurrentUICulture);
 			}
 			Debug.WriteLine("ERROR: XAML used a wrong parameter, or no parameter");
 			return 1.0; //should never get here

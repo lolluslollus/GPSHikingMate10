@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class MapsPanel : OpObsOrControl
+    public sealed partial class MapsPanel : OpenableObservableControl
 	{
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -22,12 +22,7 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null, OnMainVM_Changed));
-		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			var instance = obj as OpObsOrControl;
-			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
-		}
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null));
 
 
 		public MapsPanel()

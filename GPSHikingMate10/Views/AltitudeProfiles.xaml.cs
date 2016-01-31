@@ -17,7 +17,7 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class AltitudeProfiles : OpObsOrControl, IMapApController, IInfoPanelEventReceiver
+	public sealed partial class AltitudeProfiles : OpenableObservableControl, IMapApController, IInfoPanelEventReceiver
 	{
 		#region properties
 		public MainVM MainVM

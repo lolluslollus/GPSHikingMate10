@@ -1,4 +1,4 @@
-﻿<ctl:OpObsOrControl
+﻿<ctl:OpenableObservableControl
     x:Class="LolloGPS.Core.AltitudeProfiles"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -61,4 +61,4 @@
             </Grid>
         </ScrollViewer>
     </Grid>
-</ctl:OpObsOrControl>
+</ctl:OpenableObservableControl>

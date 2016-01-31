@@ -1,4 +1,4 @@
-﻿<uctl:OpObsOrControl
+﻿<uctl:BackOrientOpenObservControl
     x:Class="LolloGPS.Core.PointInfoPanel"
     x:Name="me"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -12,12 +12,12 @@
     mc:Ignorable="d"
     d:DesignHeight="600"
     d:DesignWidth="400">
-	<uctl:OpObsOrControl.Resources>
+	<uctl:BackOrientOpenObservControl.Resources>
 		<LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
 			<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
 			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.1"/>
 		</LinearGradientBrush>
-	</uctl:OpObsOrControl.Resources>
+	</uctl:BackOrientOpenObservControl.Resources>
 
 	<Grid Margin="{StaticResource Thickness0}">
 		<!-- choose a series to see the point details -->
@@ -231,4 +231,4 @@
 			</StackPanel>
 		</ScrollViewer>
 	</Grid>
-</uctl:OpObsOrControl>
+</uctl:BackOrientOpenObservControl>

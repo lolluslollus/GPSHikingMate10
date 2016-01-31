@@ -13,7 +13,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class PointInfoPanel : OpObsOrControl
+	public sealed partial class PointInfoPanel : BackOrientOpenObservControl
 	{
 		public event EventHandler PointChanged;
 
@@ -26,7 +26,7 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null, OnMainVM_Changed));
 		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as OpObsOrControl;
+			var instance = obj as BackOrientOpenObservControl;
 			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
 		}
 
@@ -207,7 +207,7 @@ namespace LolloGPS.Core
 
 
 		#region ui event handlers
-		protected override void OnVisibleBoundsChanged(ApplicationView sender, object args)
+		protected override void OnVisibleBoundsChangedMayOverride(ApplicationView sender, object args)
 		{
 			UpdateWidth();
 			UpdateHeight();

@@ -3,13 +3,13 @@ using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Input;
+
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-    public sealed partial class CustomMapsPanel : OpObsOrControl
+    public sealed partial class CustomMapsPanel : OpenableObservableControl
 	{
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -20,12 +20,7 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null, OnMainVM_Changed));
-		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			var instance = obj as OpObsOrControl;
-			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
-		}
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
 
 		public CustomMapsPanel()
@@ -69,17 +64,5 @@ namespace LolloGPS.Core
         {
             Task uuu = MainVM.StartUserTestingTileSourceAsync();
         }
-
-        //#region events
-        //public event EventHandler Goto2DRequested;
-        //private void RaiseGoto2DRequested()
-        //{
-        //    var listener = Goto2DRequested;
-        //    if (listener != null)
-        //    {
-        //        listener(this, EventArgs.Empty);
-        //    }
-        //}
-        //#endregion events
     }
 }

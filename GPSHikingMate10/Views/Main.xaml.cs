@@ -58,7 +58,7 @@ namespace LolloGPS.Core
 				UpdateAltitudeColumnMaxWidth();
 				await MyAltitudeProfiles.OpenAsync();
 
-				await MyHelpPanel.OpenAsync();
+				// await MyHelpPanel.OpenAsync();
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
 

@@ -1,4 +1,4 @@
-﻿<uctl:OpObsOrControl
+﻿<UserControl
     x:Class="LolloGPS.Core.HelpPanel"
     x:Name="me"
     xmlns:uctl="using:Utilz.Controlz"
@@ -109,4 +109,4 @@
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
 	</StackPanel>
-</uctl:OpObsOrControl>
+</UserControl>

@@ -1,4 +1,4 @@
-﻿<uctl:OpObsOrControl
+﻿<uctl:OpenableObservableControl
     x:Class="LolloGPS.Core.MapsPanel"
     x:Name="me"
     xmlns:uctl="using:Utilz.Controlz"
@@ -174,4 +174,4 @@
             IsCompact="True"
             Icon="Pin"/>
 	</Grid>
-</uctl:OpObsOrControl>
+</uctl:OpenableObservableControl>

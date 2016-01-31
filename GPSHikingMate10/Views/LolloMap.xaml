@@ -1,8 +1,8 @@
-﻿<ctl:OpObsOrControl
+﻿<uctl:OpenableObservableControl
 	x:Class="LolloGPS.Core.LolloMap"
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-	xmlns:ctl="using:Utilz.Controlz"
+	xmlns:uctl="using:Utilz.Controlz"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:LolloGPS.Core"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -158,4 +158,4 @@
 				ItemsSource="{Binding ElementName=me, Path=CheckpointLocations}"/>-->
 		</Maps:MapControl>
 	</Grid>
-</ctl:OpObsOrControl>
+</uctl:OpenableObservableControl>
