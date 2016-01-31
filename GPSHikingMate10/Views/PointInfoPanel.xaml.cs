@@ -46,6 +46,14 @@ namespace LolloGPS.Core
 		{
 			InitializeComponent();
 		}
+		protected override Task OnLoadedMayOverrideAsync()
+		{
+			return OpenAsync();
+		}
+		protected override Task OnUnloadedMayOverrideAsync()
+		{
+			return CloseAsync();
+		}
 		#endregion lifecycle
 
 

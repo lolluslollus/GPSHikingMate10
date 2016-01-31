@@ -41,7 +41,7 @@ namespace LolloGPS.Core
 		}
 
 		public enum YesNoError { Yes, No, Error };
-		public async Task<YesNoError> OpenAsync(/*bool readDataFromDb, bool readSettingsFromDb*/)
+		public async Task<YesNoError> OpenAsync()
 		{
 			if (_isOpen) return YesNoError.No;
 			try
@@ -49,9 +49,10 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_mainVM = new MainVM(/*readDataFromDb, readSettingsFromDb*/);
+				_mainVM = new MainVM();
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
+				await Task.Delay(1);
 
 				await MyLolloMap.OpenAsync();
 				UpdateAltitudeColumnMaxWidth();
@@ -60,7 +61,6 @@ namespace LolloGPS.Core
 				await MyHelpPanel.OpenAsync();
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
-				//await MyPointInfoPanel.OpenAsync();
 
 				AddHandlers();
 
