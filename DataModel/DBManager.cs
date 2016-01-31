@@ -522,12 +522,12 @@ namespace LolloGPS.Data
 
 	internal static class LolloSQLiteConnectionPoolMT
 	{
-		private sealed class Entry : IDisposable
+		private sealed class ConnectionEntry : IDisposable
 		{
 			public SQLiteConnectionString ConnectionString { get; private set; }
 			public SQLiteConnection Connection { get; private set; }
 
-			public Entry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+			public ConnectionEntry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 			{
 				ConnectionString = connectionString;
 				Connection = new SQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
@@ -535,16 +535,13 @@ namespace LolloGPS.Data
 
 			public void Dispose()
 			{
-				if (Connection != null)
-				{
-					Connection.Dispose();
-					Connection = null;
-				}
+				Connection?.Dispose();
+				Connection = null;
 			}
 		}
 
-		private static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
-		private static Semaphore _entriesSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteEntriesSemaphore");
+		private static readonly Dictionary<string, ConnectionEntry> _connectionsDict = new Dictionary<string, ConnectionEntry>();
+		private static Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteEntriesSemaphore");
 
 		private static volatile bool _isClosed = true;
 		public static bool IsClosed { get { return _isClosed; } }
@@ -554,24 +551,24 @@ namespace LolloGPS.Data
 
 		internal static SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 		{
-			Entry entry = null;
+			ConnectionEntry conn = null;
 			try
 			{
-				_entriesSemaphore.WaitOne();
+				_connectionsDictSemaphore.WaitOne();
 				string key = connectionString.ConnectionString;
 
-				if (!_entries.TryGetValue(key, out entry))
+				if (!_connectionsDict.TryGetValue(key, out conn))
 				{
-					entry = new Entry(connectionString, openFlags);
-					_entries[key] = entry;
+					conn = new ConnectionEntry(connectionString, openFlags);
+					_connectionsDict[key] = conn;
 				}
 			}
 			catch (Exception) { } // semaphore disposed
 			finally
 			{
-				SemaphoreExtensions.TryRelease(_entriesSemaphore);
+				SemaphoreExtensions.TryRelease(_connectionsDictSemaphore);
 			}
-			if (entry != null) return entry.Connection;
+			if (conn != null) return conn.Connection;
 			return null;
 		}
 
@@ -580,20 +577,23 @@ namespace LolloGPS.Data
 		/// </summary>
 		internal static void ResetConnection(string connectionString)
 		{
+			if (connectionString == null) return;
+
+			ConnectionEntry conn = null;
 			try
 			{
-				_entriesSemaphore.WaitOne();
-				Entry entry;
-				if (_entries.TryGetValue(connectionString, out entry))
+				_connectionsDictSemaphore.WaitOne();
+				
+				if (_connectionsDict.TryGetValue(connectionString, out conn))
 				{
-					entry.Dispose();
-					_entries.Remove(connectionString);
+					conn.Dispose();
+					_connectionsDict.Remove(connectionString);
 				}
 			}
 			catch (Exception) { } // semaphore disposed
 			finally
 			{
-				SemaphoreExtensions.TryRelease(_entriesSemaphore);
+				SemaphoreExtensions.TryRelease(_connectionsDictSemaphore);
 			}
 		}
 
