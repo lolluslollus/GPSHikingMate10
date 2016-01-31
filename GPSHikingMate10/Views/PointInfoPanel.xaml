@@ -28,36 +28,31 @@
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="1*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="1*"/>
-			</Grid.ColumnDefinitions>
-			<TextBlock Grid.Row="0" Grid.ColumnSpan="5" 
-                    Text="You have tapped a point with multiple series, choose one" 
-                    TextWrapping="WrapWholeWords"
-                    Margin="8" 
-                    Style="{StaticResource BaseMessageStyle}"/>
-			<AppBarButton x:Name="ChooseDisplayHistoryButton" Grid.Column="1" Grid.Row="1"
-                          Click="OnDisplayHistory_Click"
-                          VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                          Icon="Directions" Label="Trk history"
-                          Foreground="{StaticResource HistoryBrushOpaque}"
-                          Style="{StaticResource AppBarButtonRecoloured}"/>
-			<AppBarButton x:Name="ChooseDisplayRoute0Button" Grid.Column="2" Grid.Row="1"
-                          Click="OnDisplayRoute0_Click"
-                          VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                          Icon="Directions" Label="Route"
-                          Foreground="{StaticResource Route0BrushOpaque}"
-                          Style="{StaticResource AppBarButtonRecoloured}"/>
-			<AppBarButton x:Name="ChooseDisplayCheckpointsButton" Grid.Column="3" Grid.Row="1"
-                          Click="OnDisplayCheckpoints_Click"
-                          VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                          Icon="Target" Label="Checkpoints"
-                          Foreground="{StaticResource CheckpointBrushOpaque}"
-                          Style="{StaticResource AppBarButtonRecoloured}"/>
+			<TextBlock
+                Text="You have tapped a point with multiple series, choose one" 
+                TextWrapping="WrapWholeWords"
+                Margin="8" 
+                Style="{StaticResource BaseMessageStyle}"/>
+			<uctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
+				<AppBarButton x:Name="ChooseDisplayHistoryButton"
+                    Click="OnDisplayHistory_Click"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                    Icon="Directions" Label="Trk history"
+                    Foreground="{StaticResource HistoryBrushOpaque}"
+                    Style="{StaticResource AppBarButtonRecoloured}"/>
+				<AppBarButton x:Name="ChooseDisplayRoute0Button"
+                    Click="OnDisplayRoute0_Click"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                    Icon="Directions" Label="Route"
+                    Foreground="{StaticResource Route0BrushOpaque}"
+                    Style="{StaticResource AppBarButtonRecoloured}"/>
+				<AppBarButton x:Name="ChooseDisplayCheckpointsButton"
+                    Click="OnDisplayCheckpoints_Click"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                    Icon="Target" Label="Checkpoints"
+                    Foreground="{StaticResource CheckpointBrushOpaque}"
+                    Style="{StaticResource AppBarButtonRecoloured}"/>
+			</uctl:UniversalWrapPanel>
 		</Grid>
 		<!-- info grid -->
 		<ScrollViewer x:Name="InfoGrid"

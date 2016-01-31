@@ -813,7 +813,7 @@ namespace LolloGPS.Converters
 	{
 		public const int MaxDecimalPlaces = 6;
 		public readonly static int TenPowerMaxDecimalPlaces = (int)Math.Pow(10.0, MaxDecimalPlaces);
-		public const string FLOAT_LAT_LON_FORMAT = "#0.###";
+		public const string FLOAT_LAT_LON_FORMAT = "#0.######";
 
 		public static string LatitudeToString(object value, object parameter)
 		{
