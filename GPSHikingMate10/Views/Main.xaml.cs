@@ -60,6 +60,7 @@ namespace LolloGPS.Core
 				await MyHelpPanel.OpenAsync();
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
+				//await MyPointInfoPanel.OpenAsync();
 
 				AddHandlers();
 

@@ -182,7 +182,6 @@ namespace LolloGPS.Core
 			}
 
 			await _lolloMapVM.CloseAsync().ConfigureAwait(false);
-			//MyPointInfoPanel?.Close();
 		}
 		#endregion lifecycle
 
@@ -785,9 +784,6 @@ namespace LolloGPS.Core
 					{
 						Task vibrate = Task.Run(() => App.ShortVibration());
 						ShowManyPointDetailsRequested?.Invoke(this, new ShowManyPointDetailsRequestedArgs(selectedRecords, selectedSeriess));
-						//MyPointInfoPanel.SetDetails(selectedRecords, selectedSeriess);
-						//SelectedPointPopup.IsOpen = true;
-						//// SelectedPointFlyout.ShowAt(MyMap);
 					}
 				}
 				catch (Exception ex) // there may be errors if I tap in an awkward place, such as the arctic

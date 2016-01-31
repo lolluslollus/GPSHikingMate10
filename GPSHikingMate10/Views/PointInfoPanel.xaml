@@ -15,9 +15,7 @@
 	<uctl:OpObsOrControl.Resources>
 		<LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
 			<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
-			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.3"/>
-			<!--<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.85"/>
-					<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0.99"/>-->
+			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.1"/>
 		</LinearGradientBrush>
 	</uctl:OpObsOrControl.Resources>
 

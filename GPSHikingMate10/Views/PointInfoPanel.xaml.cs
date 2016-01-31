@@ -45,13 +45,6 @@ namespace LolloGPS.Core
 		public PointInfoPanel()
 		{
 			InitializeComponent();
-			// BackPressedRaiser = MainVM;
-		}
-		protected override Task CloseMayOverrideAsync()
-		{
-			_holdingTimer?.Dispose();
-			_holdingTimer = null;
-			return Task.CompletedTask;
 		}
 		#endregion lifecycle
 
@@ -211,19 +204,27 @@ namespace LolloGPS.Core
 			UpdateWidth();
 			UpdateHeight();
 		}
-		protected override void OnLoaded()
+		protected override Task OpenMayOverrideAsync()
 		{
 			PersistentData.GetInstance().IsShowingPivot = false;
 			PersistentData.GetInstance().IsBackButtonEnabled = true;
 			RuntimeData.GetInstance().IsAllowCentreOnCurrent = false;
 			UpdateWidth();
 			UpdateHeight();
+
+			return base.OpenMayOverrideAsync();
 		}
-		protected override void OnUnloaded()
+		protected override Task CloseMayOverrideAsync()
 		{
+			_holdingTimer?.Dispose();
+			_holdingTimer = null;
+
 			PersistentData.GetInstance().IsBackButtonEnabled = false;
 			RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
+
+			return base.CloseMayOverrideAsync();
 		}
+
 		private void UpdateWidth()
 		{
 			//    ChooseSeriesGrid.Width = InfoGrid.Width = PopupContainer.ActualWidth;
