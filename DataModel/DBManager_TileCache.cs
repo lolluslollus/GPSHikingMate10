@@ -177,7 +177,7 @@ namespace LolloGPS.Data.TileCache
 					var commandInsert = conn.CreateCommand(sCommandInsert);
 					int res = commandInsert.ExecuteNonQuery();
 
-					Debug.WriteLine("InsertRecord() has successfully run the command " + sCommandInsert +  " with res = " + res);
+					Debug.WriteLine("InsertRecord() has successfully run the command " + sCommandInsert + " with res = " + res);
 					result = true;  //(res > 0);
 				}
 			}
@@ -249,12 +249,14 @@ namespace LolloGPS.Data.TileCache
 
 	internal static class LolloSQLiteConnectionPoolMT
 	{
-		private sealed class Entry : IDisposable
+		private sealed class ConnectionEntry : IDisposable
 		{
-			public SQLiteConnectionString ConnectionString { get; private set; }
-			public TileSQLiteConnection Connection { get; private set; }
+			private volatile SQLiteConnectionString _connectionString = null;
+			public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+			private volatile TileSQLiteConnection _connection = null;
+			public TileSQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
-			public Entry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
+			public ConnectionEntry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 			{
 				ConnectionString = connectionString;
 				Connection = new TileSQLiteConnection(connectionString.DatabasePath, openFlags, connectionString.StoreDateTimeAsTicks);
@@ -262,45 +264,39 @@ namespace LolloGPS.Data.TileCache
 
 			public void Dispose()
 			{
-				if (Connection != null)
-				{
-					Connection.Dispose();
-					Connection = null;
-				}
+				Connection?.Dispose();
+				Connection = null;
 			}
 		}
 
-		static readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
-		private static SemaphoreSlimSafeRelease _entriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		static readonly Dictionary<string, ConnectionEntry> _connectionEntries = new Dictionary<string, ConnectionEntry>();
+		private static SemaphoreSlimSafeRelease _connectionEntriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static volatile bool _isOpen = false;
-		/// <summary>
-		/// Gets a value telling if the DB is suspended.
-		/// </summary>
 		public static bool IsOpen { get { return _isOpen; } }
 		internal static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 		{
-			Entry entry = null;
+			ConnectionEntry entry = null;
 			try
 			{
-				_entriesSemaphore.Wait();
+				_connectionEntriesSemaphore.Wait();
 				string key = connectionString.ConnectionString;
 
-				if (!_entries.TryGetValue(key, out entry))
+				if (!_connectionEntries.TryGetValue(key, out entry))
 				{
-					entry = new Entry(connectionString, openFlags);
-					_entries[key] = entry;
+					entry = new ConnectionEntry(connectionString, openFlags);
+					_connectionEntries[key] = entry;
 				}
 			}
 			catch (Exception ex)
 			{
 				// Ignore semaphore disposed or semaphore null exceptions
-				if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+				if (SemaphoreSlimSafeRelease.IsAlive(_connectionEntriesSemaphore))
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_connectionEntriesSemaphore);
 			}
 			return entry?.Connection;
 		}
@@ -313,22 +309,22 @@ namespace LolloGPS.Data.TileCache
 			try
 			{
 				DBManager._writingSemaphore.Wait();
-				_entriesSemaphore.Wait();
-				foreach (var entry in _entries.Values)
+				_connectionEntriesSemaphore.Wait();
+				foreach (var entry in _connectionEntries.Values)
 				{
 					entry.Dispose();
 				}
-				_entries.Clear();
+				_connectionEntries.Clear();
 			}
 			catch (Exception ex)
 			{
 				// Ignore semaphore disposed or semaphore null exceptions
-				if (SemaphoreSlimSafeRelease.IsAlive(DBManager._writingSemaphore) && SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+				if (SemaphoreSlimSafeRelease.IsAlive(DBManager._writingSemaphore) && SemaphoreSlimSafeRelease.IsAlive(_connectionEntriesSemaphore))
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_connectionEntriesSemaphore);
 				SemaphoreSlimSafeRelease.TryRelease(DBManager._writingSemaphore);
 			}
 		}
@@ -339,28 +335,25 @@ namespace LolloGPS.Data.TileCache
 		{
 			try
 			{
-				_entriesSemaphore.Wait();
-				Entry entry;
-				if (_entries.TryGetValue(connectionString, out entry))
+				_connectionEntriesSemaphore.Wait();
+				ConnectionEntry entry;
+				if (_connectionEntries.TryGetValue(connectionString, out entry))
 				{
 					entry.Dispose();
-					_entries.Remove(connectionString);
+					_connectionEntries.Remove(connectionString);
 				}
 			}
 			catch (Exception ex)
 			{
 				// Ignore semaphore disposed or semaphore null exceptions
-				if (SemaphoreSlimSafeRelease.IsAlive(_entriesSemaphore))
+				if (SemaphoreSlimSafeRelease.IsAlive(_connectionEntriesSemaphore))
 					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 			finally
 			{
-				SemaphoreSlimSafeRelease.TryRelease(_entriesSemaphore);
+				SemaphoreSlimSafeRelease.TryRelease(_connectionEntriesSemaphore);
 			}
 		}
-		/// <summary>
-		/// Close any open connections.
-		/// </summary>
 		public static async Task CloseAsync()
 		{
 			if (!_isOpen) return;

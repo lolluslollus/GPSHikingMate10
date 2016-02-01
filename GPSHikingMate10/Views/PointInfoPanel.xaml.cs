@@ -17,6 +17,7 @@ namespace LolloGPS.Core
 	{
 		public event EventHandler PointChanged;
 
+		#region properties
 		public MainVM MainVM
 		{
 			get { return (MainVM)GetValue(MainVMProperty); }
@@ -31,14 +32,18 @@ namespace LolloGPS.Core
 		}
 
 
-		private bool _isGotoPreviousEnabled = false;
+		private volatile bool _isGotoPreviousEnabled = false;
 		public bool IsGotoPreviousEnabled { get { return _isGotoPreviousEnabled; } private set { _isGotoPreviousEnabled = value; RaisePropertyChanged_UI(); } }
-		private bool _isGotoNextEnabled = false;
+		private volatile bool _isGotoNextEnabled = false;
 		public bool IsGotoNextEnabled { get { return _isGotoNextEnabled; } private set { _isGotoNextEnabled = value; RaisePropertyChanged_UI(); } }
 		private double _distanceMFromPrevious = default(double);
 		public double DistanceMFromPrevious { get { return _distanceMFromPrevious; } private set { _distanceMFromPrevious = value; RaisePropertyChanged_UI(); } }
-		private bool _isSeriesChoicePresented = false;
+		private volatile bool _isSeriesChoicePresented = false;
 		public bool IsSeriesChoicePresented { get { return _isSeriesChoicePresented; } private set { _isSeriesChoicePresented = value; RaisePropertyChanged_UI(); } }
+
+		private List<PointRecord> _mySelectedRecords;
+		private List<PersistentData.Tables> _mySelectedSeriess;
+		#endregion properties
 
 
 		#region lifecycle
@@ -264,8 +269,6 @@ namespace LolloGPS.Core
 			selectedSerieses.Add(selectedSeries);
 			SetDetails(selectedRecords, selectedSerieses);
 		}
-		private List<PointRecord> _mySelectedRecords;
-		private List<PersistentData.Tables> _mySelectedSeriess;
 		/// <summary>
 		/// This method expects max 1 record each series
 		/// </summary>

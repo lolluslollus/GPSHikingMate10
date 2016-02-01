@@ -1,6 +1,5 @@
 ﻿using SQLite;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -282,12 +281,12 @@ namespace LolloGPS.Data
 		{
 			return Task.Run(delegate
 			{
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 				try
 				{
 					semaphore.WaitOne();
-					if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+					if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 					IEnumerable<T> items_mt = null;
 					if (checkMaxEntries)
@@ -328,13 +327,13 @@ namespace LolloGPS.Data
 		}
 		private static List<T> ReadTable<T>(string dbPath, SQLiteOpenFlags openFlags, Semaphore semaphore) where T : new()
 		{
-			if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return null;
 
 			List<T> result = null;
 			try
 			{
 				semaphore.WaitOne();
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return null;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return null;
 
 				var connectionString = new SQLiteConnectionString(dbPath, _isStoreDateTimeAsTicks);
 				try
@@ -359,12 +358,12 @@ namespace LolloGPS.Data
 		{
 			return Task.Run(delegate
 			{
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 				try
 				{
 					semaphore.WaitOne();
-					if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+					if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 					var connectionString = new SQLiteConnectionString(dbPath, _isStoreDateTimeAsTicks);
 					try
@@ -393,13 +392,13 @@ namespace LolloGPS.Data
 		}
 		private static bool Insert<T>(string dbPath, SQLiteOpenFlags openFlags, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
 		{
-			if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
 
 			bool result = false;
 			try
 			{
 				semaphore.WaitOne();
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return false;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return false;
 
 				//bool isTesting = true;
 				//if (isTesting)
@@ -448,12 +447,12 @@ namespace LolloGPS.Data
 		}
 		private static void Delete<T>(string dbPath, SQLiteOpenFlags openFlags, object item, Semaphore semaphore) where T : new()
 		{
-			if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 			try
 			{
 				semaphore.WaitOne();
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 				//bool isTesting = true;
 				//if (isTesting)
@@ -491,12 +490,12 @@ namespace LolloGPS.Data
 		}
 		private static void Update<T>(string dbPath, SQLiteOpenFlags openFlags, object item, Semaphore semaphore) where T : new()
 		{
-			if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+			if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 			try
 			{
 				semaphore.WaitOne();
-				if (LolloSQLiteConnectionPoolMT.IsClosed) return;
+				if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
 				var connectionString = new SQLiteConnectionString(dbPath, _isStoreDateTimeAsTicks);
 				try
@@ -524,8 +523,10 @@ namespace LolloGPS.Data
 	{
 		private sealed class ConnectionEntry : IDisposable
 		{
-			public SQLiteConnectionString ConnectionString { get; private set; }
-			public SQLiteConnection Connection { get; private set; }
+			private volatile SQLiteConnectionString _connectionString = null;
+			public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+			private volatile SQLiteConnection _connection = null;
+			public SQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
 			public ConnectionEntry(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 			{
@@ -541,11 +542,11 @@ namespace LolloGPS.Data
 		}
 
 		private static readonly Dictionary<string, ConnectionEntry> _connectionsDict = new Dictionary<string, ConnectionEntry>();
-		private static Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteEntriesSemaphore");
+		private static Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteConnectionEntriesSemaphore");
 
-		private static volatile bool _isClosed = true;
-		public static bool IsClosed { get { return _isClosed; } }
-		private static Semaphore _isClosedSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsClosedSemaphore");
+		private static volatile bool _isOpen = true;
+		public static bool IsOpen { get { return _isOpen; } }
+		private static Semaphore _isOpenSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsOpenSemaphore");
 
 		private static Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
 
@@ -601,21 +602,21 @@ namespace LolloGPS.Data
 		{
 			try
 			{
-				if (!_isClosed)
+				if (_isOpen)
 				{
 					Close2();
 				}
 			}
 			finally
 			{
-				SemaphoreExtensions.TryRelease(_isClosedSemaphore);
+				SemaphoreExtensions.TryRelease(_isOpenSemaphore);
 			}
 		}
 		private static void Close2()
 		{
-			if (!_isClosed)
+			if (_isOpen)
 			{
-				_isClosed = true;
+				_isOpen = false;
 			}
 		}
 
@@ -623,10 +624,10 @@ namespace LolloGPS.Data
 		{
 			try
 			{
-				if (_isClosed)
+				if (!_isOpen)
 				{
-					_isClosedSemaphore.WaitOne();
-					if (_isClosed)
+					_isOpenSemaphore.WaitOne();
+					if (!_isOpen)
 					{
 						Open2();
 					}
@@ -639,9 +640,9 @@ namespace LolloGPS.Data
 		}
 		private static void Open2()
 		{
-			if (_isClosed)
+			if (!_isOpen)
 			{
-				_isClosed = false;
+				_isOpen = true;
 			}
 		}
 

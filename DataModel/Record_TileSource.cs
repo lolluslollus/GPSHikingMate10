@@ -51,7 +51,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public string TechName { get { return _techName; } set { _techName = value; RaisePropertyChanged(); } }
 
-		private string _displayName = TileSourceRecord.DefaultTileSourceDisplayName;
+		private string _displayName = DefaultTileSourceDisplayName;
 		[DataMember]
 		public string DisplayName { get { return _displayName; } set { _displayName = value; RaisePropertyChanged(); } }
 
@@ -100,14 +100,10 @@ namespace LolloGPS.Data
 			MinZoom = minZoom;
 			MaxZoom = maxZoom;
 			TilePixelSize = tilePixelSize;
-			//IsTesting = isTesting;
 			IsDeletable = isDeletable;
-			//IsValid = isValid;
 		}
 		public string Check(bool skipAlreadyInUse) //string techName, string displayName, string uri, int minZoom, int maxZoom, int tilePixelSize, bool isTesting)
 		{
-			//IsValid = false;
-
 			string errorMsg = string.Empty;
 			errorMsg = CheckTechName(TechName, skipAlreadyInUse);
 			if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
@@ -122,7 +118,6 @@ namespace LolloGPS.Data
 			errorMsg = CheckTilePixelSize(TilePixelSize);
 			if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
 
-			//IsValid = true;
 			return string.Empty;
 		}
 		private static string CheckTechName(string techName, bool skipAlreadyInUse)
@@ -223,31 +218,28 @@ namespace LolloGPS.Data
 			{
 				if (target == null) target = GetDefaultTileSource();
 
-				target.TechName = source.TechName;
-				target.DisplayName = source.DisplayName;
-				target.UriString = source.UriString;
-				target.ProviderUriString = source.ProviderUriString;
-				target.MinZoom = source.MinZoom;
-				target.MaxZoom = source.MaxZoom;
-				target.TilePixelSize = source.TilePixelSize;
-				//target.IsTesting = source.IsTesting;
-				target.IsDeletable = source.IsDeletable;
-				//target.IsValid = source.IsValid;
+				target.TechName = source._techName;
+				target.DisplayName = source._displayName;
+				target.UriString = source._uriString;
+				target.ProviderUriString = source._providerUriString;
+				target.MinZoom = source._minZoom;
+				target.MaxZoom = source._maxZoom;
+				target.TilePixelSize = source._tilePixelSize;
+				target.IsDeletable = source._isDeletable;
 			}
 		}
 		public bool IsEqualTo(TileSourceRecord comp)
 		{
 			if (comp == null) return false;
 
-			return comp.TechName == TechName
-				&& comp.DisplayName == DisplayName
-				&& comp.UriString == UriString
-				&& comp.ProviderUriString == ProviderUriString
-				&& comp.MinZoom == MinZoom
-				&& comp.MaxZoom == MaxZoom
-				&& comp.TilePixelSize == TilePixelSize
-				//&& comp.IsTesting == IsTesting
-				&& comp.IsDeletable == IsDeletable;
+			return comp._techName == _techName
+				&& comp._displayName == _displayName
+				&& comp._uriString == _uriString
+				&& comp._providerUriString == _providerUriString
+				&& comp._minZoom == _minZoom
+				&& comp._maxZoom == _maxZoom
+				&& comp._tilePixelSize == _tilePixelSize
+				&& comp._isDeletable == _isDeletable;
 		}
 		public static List<TileSourceRecord> GetDefaultTileSources()
 		{
@@ -301,6 +293,5 @@ namespace LolloGPS.Data
 		{
 			return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, SampleUriString, DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false); //true, false, false);
 		}
-
 	}
 }

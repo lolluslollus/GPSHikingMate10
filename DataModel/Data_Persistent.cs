@@ -74,7 +74,7 @@ namespace LolloGPS.Data
 		#endregion events
 
 		#region construct dispose and clone
-		private static PersistentData _instance;
+		private static volatile PersistentData _instance;
 		private static readonly object _instanceLock = new object();
 		public static PersistentData GetInstance()
 		{
@@ -181,7 +181,7 @@ namespace LolloGPS.Data
 		}
 		private PersistentData()
 		{
-			_checkpoints = new SwitchableObservableCollection<PointRecord>((uint)MaxRecordsInCheckpoints);
+			_checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
 		}
 
 		public static Task OpenTileCacheDbAsync()
@@ -220,11 +220,11 @@ namespace LolloGPS.Data
 		#endregion construct dispose and clone
 
 		#region properties
-		private bool _isShowingPivot = false;
+		private volatile bool _isShowingPivot = false;
 		[DataMember]
 		public bool IsShowingPivot { get { return _isShowingPivot; } set { _isShowingPivot = value; RaisePropertyChanged_UI(); IsBackButtonEnabled = _isShowingPivot; } }
 
-		private bool _isBackButtonEnabled = false;
+		private volatile bool _isBackButtonEnabled = false;
 		[DataMember]
 		public bool IsBackButtonEnabled { get { return _isBackButtonEnabled; } set { _isBackButtonEnabled = value; RaisePropertyChanged_UI(); } }
 
@@ -261,15 +261,17 @@ namespace LolloGPS.Data
 		private bool _isShowAimOnce = false;
 		[DataMember]
 		public bool IsShowAimOnce { get { return _isShowAimOnce; } set { if (_isShowAimOnce != value) { _isShowAimOnce = value; RaisePropertyChanged_UI(); } } }
-		private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
+
+		private volatile PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
-		private Tables _selectedSeries = Tables.nil;
+		private volatile Tables _selectedSeries = Tables.nil;
 		[DataMember]
 		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
-		private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
+		private volatile int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
 		[DataMember]
 		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
+
 		private SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
 		[IgnoreDataMember] // we save the history into the DB 
 		public SwitchableObservableCollection<PointRecord> History { get { return _history; } private set { _history = value; RaisePropertyChanged(); } }
@@ -280,7 +282,7 @@ namespace LolloGPS.Data
 		[IgnoreDataMember] // we save the checkpoints into the DB 
 		public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } private set { _checkpoints = value; RaisePropertyChanged(); } }
 
-		private uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
+		private volatile uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
 		[DataMember]
 		public uint BackgroundUpdatePeriodInMinutes
 		{
@@ -306,7 +308,7 @@ namespace LolloGPS.Data
 				}
 			}
 		}
-		private uint _desiredAccuracyInMeters = DefaultDesiredAccuracyInMetres;
+		private volatile uint _desiredAccuracyInMeters = DefaultDesiredAccuracyInMetres;
 		[DataMember]
 		public uint DesiredAccuracyInMeters
 		{
@@ -332,7 +334,7 @@ namespace LolloGPS.Data
 				}
 			}
 		}
-		private uint _reportIntervalInMilliSec = DefaultReportIntervalInMilliSec;
+		private volatile uint _reportIntervalInMilliSec = DefaultReportIntervalInMilliSec;
 		[DataMember]
 		public uint ReportIntervalInMilliSec
 		{
@@ -380,13 +382,13 @@ namespace LolloGPS.Data
 		[Ignore]
 		public int MaxRecordsInCheckpointsProp { get { return MaxRecordsInCheckpoints; } }
 
-		private string _lastMessage = string.Empty;
+		private volatile string _lastMessage = string.Empty;
 		[DataMember]
 		public string LastMessage { get { return _lastMessage; } set { _lastMessage = value; RaisePropertyChanged_UI(); } }
 		private bool _isShowSpeed = false;
 		[DataMember]
 		public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged_UI(); } }
-		private bool _isTracking = false;
+		private volatile bool _isTracking = false;
 		[DataMember]
 		public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged_UI(); } }
 		private volatile bool _isBackgroundEnabled = false;
@@ -422,10 +424,10 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } }
 
-		private MapStyle _mapStyle = MapStyle.Terrain;
+		private volatile MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
 		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
-		private volatile bool _isMapCached = false;
+		private bool _isMapCached = false;
 		[DataMember]
 		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
 		private double _mapLastLat = default(double);
@@ -444,35 +446,71 @@ namespace LolloGPS.Data
 		[DataMember]
 		public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged(); } }
 
-		private volatile bool _isTilesDownloadDesired = false;
+		private static readonly object _lastDownloadLocker = new object();
+		private bool _isTilesDownloadDesired = false;
 		[DataMember]
-		public bool IsTilesDownloadDesired { get { return _isTilesDownloadDesired; } set { if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); } } }
+		public bool IsTilesDownloadDesired
+		{
+			get
+			{
+				lock (_lastDownloadLocker)
+				{
+					return _isTilesDownloadDesired;
+				}
+			}
+			private set
+			{
+				lock (_lastDownloadLocker)
+				{
+					if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
+				}
+			}
+		}
 		private int _maxZoomForDownloadingTiles = -1;
 		[DataMember]
-		public int MaxDesiredZoomForDownloadingTiles { get { return _maxZoomForDownloadingTiles; } set { _maxZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); } }
+		public int MaxDesiredZoomForDownloadingTiles
+		{
+			get
+			{
+				lock (_lastDownloadLocker)
+				{
+					return _maxZoomForDownloadingTiles;
+				}
+			}
+			private set
+			{
+				lock (_lastDownloadLocker)
+				{
+					if (_maxZoomForDownloadingTiles != value) { _maxZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
+				}
+			}
+		}
 		public void SetIsTilesDownloadDesired(bool isTilesDownloadDesired, int maxZoom)
 		{
-			// we must handle these two variables together because they belong together.
-			// an event handler registered on one and reading both may catch the change in the first before the second has changed.
-			bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-			bool isMaxZoomChanged = maxZoom != _maxZoomForDownloadingTiles;
+			lock (_lastDownloadLocker)
+			{
+				// we must handle these two variables together because they belong together.
+				// an event handler registered on one and reading both may catch the change in the first before the second has changed.
+				bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
+				bool isMaxZoomChanged = maxZoom != _maxZoomForDownloadingTiles;
 
-			_isTilesDownloadDesired = isTilesDownloadDesired;
-			_maxZoomForDownloadingTiles = maxZoom;
+				_isTilesDownloadDesired = isTilesDownloadDesired;
+				_maxZoomForDownloadingTiles = maxZoom;
 
-			if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(IsTilesDownloadDesired));
-			if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
+				if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(IsTilesDownloadDesired));
+				if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
+			}
 		}
 		private volatile DownloadSession _lastDownloadSession;
 		[DataMember]
 		public DownloadSession LastDownloadSession { get { return _lastDownloadSession; } set { _lastDownloadSession = value; } }
 
-		private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
+		private volatile PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
 		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times. This is difficult to reproduce.
-		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
+		private SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
 
@@ -982,6 +1020,9 @@ namespace LolloGPS.Data
 		#endregion checkpointsMethods
 
 		#region selectedRecordMethods
+		// LOLLO we should put some locks here, but all the selected series stuff is about the point info panel, 
+		// which is not critical because one cannot change much while it's open, other than add a point to the history if the tracking is on.
+		// So we leave it unlocked.
 		public bool IsSelectedRecordFromAnySeriesFirst()
 		{
 			if (_selectedSeries == Tables.nil || _selected == null) return false;
@@ -1006,10 +1047,6 @@ namespace LolloGPS.Data
 			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Count > 0;
 			else return false;
 		}
-		//public void SelectCurrentHistoryRecord()
-		//{
-		//	SelectRecordFromSeries(Current, Tables.History);
-		//}
 		public void SelectRecordFromSeries(PointRecord dataRecord, Tables whichTable, int index = -1)
 		{
 			if (dataRecord != null && !dataRecord.IsEmpty())
@@ -1168,6 +1205,16 @@ namespace LolloGPS.Data
 		#endregion tileSourcesMethods
 
 		#region otherMethods
+		private SemaphoreSlimSafeRelease GetSemaphoreForSeries(Tables whichSeries)
+		{
+			switch (whichSeries)
+			{
+				case Tables.History: return _historySemaphore;
+				case Tables.Route0: return _route0Semaphore;
+				case Tables.Checkpoints: return _checkpointsSemaphore;
+				default: return null;
+			}
+		}
 		public void CycleMapStyle()
 		{
 			switch (MapStyle)

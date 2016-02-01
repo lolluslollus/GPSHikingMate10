@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
@@ -148,13 +147,13 @@ namespace LolloGPS.Core
 			// maybe the user cancelled: that means they are happy with this download, or at least we can consider it complete.
 			if (IsCancelledByUser)
 			{
-				persistentData.IsTilesDownloadDesired = false;
+				persistentData.SetIsTilesDownloadDesired(false, 0);
 				persistentData.LastDownloadSession = null;
 			}
 			// unless it was interrupted by suspension or connection going missing, the download is no more required because it finished: mark it.
 			else if (!IsCancelledBySuspend && RuntimeData.GetInstance().IsConnectionAvailable)
 			{
-				if (isSuccess) persistentData.IsTilesDownloadDesired = false;
+				if (isSuccess) persistentData.SetIsTilesDownloadDesired(false, 0);
 				persistentData.LastDownloadSession = null;
 			}
 		}

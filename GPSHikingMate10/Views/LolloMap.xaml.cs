@@ -122,6 +122,10 @@ namespace LolloGPS.Core
 		{
 			return _myMapInstance?.Target as MapControl;
 		}
+
+		private bool _isHistoryInMap = false;
+		private bool _isRoute0InMap = false;
+		private bool _isFlyoutPointInMap = false;
 		#endregion properties
 
 
@@ -341,9 +345,6 @@ namespace LolloGPS.Core
 			});
 		}
 
-		private bool _isHistoryInMap = false;
-		private bool _isRoute0InMap = false;
-		private bool _isFlyoutPointInMap = false;
 		/// <summary>
 		/// Initialises all map elements except for checkpoints, which have their dedicated method
 		/// </summary>
@@ -824,7 +825,7 @@ namespace LolloGPS.Core
 		{
 			Task vibrate = Task.Run(() => App.ShortVibration());
 
-			await _lolloMapVM.AddMapCentreToCheckpoints();
+			await _lolloMapVM.AddMapCentreToCheckpoints(); // .ConfigureAwait(false);
 			if (PersistentData.IsShowAimOnce)
 			{
 				PersistentData.IsShowAim = false;
@@ -939,7 +940,7 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private bool _isHandlerActive = false;
+		private volatile bool _isHandlerActive = false;
 		private void AddHandlers()
 		{
 			if (PersistentData != null && !_isHandlerActive)

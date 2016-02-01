@@ -83,7 +83,7 @@ namespace LolloGPS.Core
 
 
 		#region data event handlers
-		private bool _isHandlersActive = false;
+		private volatile bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
 			if (!_isHandlersActive && PersistentData != null)

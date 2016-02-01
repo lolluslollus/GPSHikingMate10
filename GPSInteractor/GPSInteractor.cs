@@ -3,7 +3,6 @@ using Utilz.Data;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel.Background;
@@ -17,9 +16,9 @@ namespace LolloGPS.GPSInteraction
 	{
 		#region properties
 		private IGPSDataModel _persistentData = null;
-		private Geolocator _geolocator = null;
+		private volatile Geolocator _geolocator = null;
 
-		private bool _isGpsWorking = false;
+		private volatile bool _isGpsWorking = false;
 		public bool IsGPSWorking { get { return _isGpsWorking; } private set { _isGpsWorking = value; RaisePropertyChanged_UI(); } }
 
 		private volatile IBackgroundTaskRegistration _getlocBkgTask = null;

@@ -47,28 +47,28 @@ namespace LolloGPS.Core
 		private GPSInteractor _gpsInteractor = null;
 		public GPSInteractor GPSInteractor { get { return _gpsInteractor; } }
 
-		private bool _isClearCustomCacheEnabled = false;
+		private volatile bool _isClearCustomCacheEnabled = false;
 		public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged_UI(); } } }
-		private bool _isClearCacheEnabled = false;
+		private volatile bool _isClearCacheEnabled = false;
 		public bool IsClearCacheEnabled { get { return _isClearCacheEnabled; } set { if (_isClearCacheEnabled != value) { _isClearCacheEnabled = value; RaisePropertyChanged_UI(); } } }
-		private bool _isCacheBtnEnabled = false;
+		private volatile bool _isCacheBtnEnabled = false;
 		public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged_UI(); } } }
-		private bool _isLeechingEnabled = false;
+		private volatile bool _isLeechingEnabled = false;
 		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged_UI(); } } }
 
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isLastMessageVisible = false;
+		private volatile bool _isLastMessageVisible = false;
 		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isLoading = false;
+		private volatile bool _isLoading = false;
 		/// <summary>
 		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
 		/// </summary>
 		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChangedUrgent_UI(); } }
 
-		private bool _isSaving = false;
+		private volatile bool _isSaving = false;
 		/// <summary>
 		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
 		/// </summary>
@@ -76,16 +76,11 @@ namespace LolloGPS.Core
 
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
-
-		//private bool _readDataFromDbWhenOpening = false;
-		//private bool _readSettingsFromDbWhenOpening = false;
 		#endregion properties
 
 		#region construct and dispose
-		public MainVM(/*bool readDataFromDbWhenOpening, bool readSettingsFromDbWhenOpening*/)
+		public MainVM()
 		{
-			//_readDataFromDbWhenOpening = readDataFromDbWhenOpening;
-			//_readSettingsFromDbWhenOpening = readSettingsFromDbWhenOpening;
 			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 		}
 

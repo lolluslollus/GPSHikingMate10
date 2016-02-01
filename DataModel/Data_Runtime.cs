@@ -3,11 +3,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
-using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.Resources;
-using Windows.Foundation;
 using Windows.Networking.Connectivity;
-using Windows.UI.Core;
+
 
 namespace LolloGPS.Data.Runtime
 {
@@ -16,19 +14,19 @@ namespace LolloGPS.Data.Runtime
 		#region properties
 		private static SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
-		private bool _isTrial = true;
+		private volatile bool _isTrial = true;
 		public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
 
 		private int _trialResidualDays = -1;
 		public int TrialResidualDays { get { return _trialResidualDays; } set { _trialResidualDays = value; RaisePropertyChanged_UI(); } }
 
-		private bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
+		private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
 		public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
 
-		private bool _isAllowCentreOnCurrent = false;
+		private volatile bool _isAllowCentreOnCurrent = false;
 		public bool IsAllowCentreOnCurrent { get { return _isAllowCentreOnCurrent; } set { if (_isAllowCentreOnCurrent != value) { _isAllowCentreOnCurrent = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isSettingsRead = false;
+		private volatile bool _isSettingsRead = false;
 		public bool IsSettingsRead { get { return _isSettingsRead; } }
 		private async Task Set_IsSettingsRead_Async(bool value)
 		{
@@ -55,7 +53,7 @@ namespace LolloGPS.Data.Runtime
 			Task set = GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
 		}
 
-		private bool _isDBDataRead = false;
+		private volatile bool _isDBDataRead = false;
 		public bool IsDBDataRead { get { return _isDBDataRead; } }
 		private async Task Set_IsDBDataRead_Async(bool value)
 		{
@@ -79,7 +77,7 @@ namespace LolloGPS.Data.Runtime
 			Task set = GetInstance().Set_IsDBDataRead_Async(isDbDataRead);
 		}
 
-		private bool _isCommandsActive = false;
+		private volatile bool _isCommandsActive = false;
 		public bool IsCommandsActive
 		{
 			get { return _isCommandsActive; }
@@ -93,30 +91,6 @@ namespace LolloGPS.Data.Runtime
 			}
 		}
 
-		//public async Task RunFunctionUnderSemaphore(Action func)
-		//{
-		//    try
-		//    {
-		//        await SettingsDbDataReadSemaphore.WaitAsync(); //.ConfigureAwait(false);
-		//        func();
-		//    }
-		//    finally
-		//    {
-		//        SemaphoreSlimSafeRelease.TryRelease(SettingsDbDataReadSemaphore);
-		//    }
-		//}
-		public async Task RunFunctionUnderSemaphoreT(Func<Task> func)
-		{
-			try
-			{
-				await _settingsDbDataReadSemaphore.WaitAsync(); //.ConfigureAwait(false);
-				await func().ConfigureAwait(false);
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
-			}
-		}
 		private double _downloadProgressValue = default(double);
 		public double DownloadProgressValue { get { return _downloadProgressValue; } private set { if (_downloadProgressValue != value) { _downloadProgressValue = value; RaisePropertyChanged(); } } }
 		public static void SetDownloadProgressValue_UI(double newProgressValue)
@@ -154,7 +128,7 @@ namespace LolloGPS.Data.Runtime
 				{
 					if (_persistentData == null) _persistentData = PersistentData.GetInstance();
 					if (
-						(_persistentData != null && _persistentData.IsAllowMeteredConnection)
+						(_persistentData.IsAllowMeteredConnection)
 						||
 						NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
 						)
@@ -190,7 +164,7 @@ namespace LolloGPS.Data.Runtime
 
 
 		#region lifecycle
-		private static RuntimeData _instance;
+		private static volatile RuntimeData _instance;
 		private static readonly object _instanceLock = new object();
 		private volatile bool _isOpen = false;
 		public static RuntimeData GetInstance()
@@ -206,7 +180,7 @@ namespace LolloGPS.Data.Runtime
 			}
 		}
 
-		private static PersistentData _persistentData = null;
+		private static volatile PersistentData _persistentData = null;
 		private RuntimeData()
 		{
 			Open();
@@ -227,7 +201,7 @@ namespace LolloGPS.Data.Runtime
 
 
 		#region event helpers
-		private bool _isHandlersActive = false;
+		private volatile bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
 			if (!_isHandlersActive)
@@ -235,14 +209,14 @@ namespace LolloGPS.Data.Runtime
 				_isHandlersActive = true;
 				if (_persistentData == null) _persistentData = PersistentData.GetInstance();
 				NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
-				if (_persistentData != null) _persistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				_persistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 			}
 		}
 		private void RemoveHandlers()
 		{
 			if (_persistentData == null) _persistentData = PersistentData.GetInstance();
 			NetworkInformation.NetworkStatusChanged -= OnNetworkStatusChanged;
-			if (_persistentData != null) _persistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+			_persistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 			_isHandlersActive = false;
 		}
 		#endregion event helpers

@@ -118,7 +118,7 @@ namespace LolloGPS.Core
 
 
 		#region event handling
-		private bool _isDataChangedHandlerActive = false;
+		private volatile bool _isDataChangedHandlerActive = false;
 		private void AddHandlers()
 		{
 			if (!_isDataChangedHandlerActive)
@@ -243,7 +243,7 @@ namespace LolloGPS.Core
 
 		private async void OnTestFiles_Click(object sender, RoutedEventArgs e)
 		{
-			string txt = await FileData.GetAllFilesInLocalFolderAsync().ConfigureAwait(false);
+			string txt = await FileDirectoryExtensions.GetAllFilesInLocalFolderAsync().ConfigureAwait(false);
 
 			await RunInUiThreadAsync(delegate
 			{
