@@ -357,7 +357,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
@@ -372,7 +372,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -395,7 +395,7 @@ namespace LolloGPS.Core
 					_iconEndHistory.Location = new Geopoint(lastGeoposition);
 				}
 
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				if (!_isHistoryInMap)
 				{
@@ -418,7 +418,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
@@ -433,7 +433,7 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				if (basicGeoPositions.Count > 0)
 				{
@@ -447,7 +447,7 @@ namespace LolloGPS.Core
 					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 				}
 
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				if (!_isRoute0InMap)
 				{
@@ -468,7 +468,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 				if (!InitCheckpoints())
@@ -477,7 +477,7 @@ namespace LolloGPS.Core
 					return;
 				}
 
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 #if DEBUG
 				Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -499,7 +499,7 @@ namespace LolloGPS.Core
 				sw0.Stop(); Debug.WriteLine("Making geopoints for checkpoints took " + sw0.ElapsedMilliseconds + " msec");
 				sw0.Restart();
 #endif
-				if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 				try
 				{
@@ -517,7 +517,7 @@ namespace LolloGPS.Core
 						j++;
 					}
 
-					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+					if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInCheckpoints; i++)
 					{

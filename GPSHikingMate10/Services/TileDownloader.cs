@@ -195,7 +195,7 @@ namespace LolloGPS.Core
 #endif
 					try
 					{
-						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = CancellationTokenSafe }, (tile) =>
+						Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = Cts.TokenSafe }, (tile) =>
 						{
 							bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom).Result;
 							if (isOk) currentOkCnt++;

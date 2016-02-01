@@ -414,12 +414,12 @@ namespace LolloGPS.GPSInteraction
 
 				try
 				{
-					if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+					if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 					if (_geolocator != null)
 					{
-						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancellationTokenSafe).ConfigureAwait(false);
+						var pos = await _geolocator.GetGeopositionAsync().AsTask(SafeCancellationTokenSource.GetCancellationTokenSafe(Cts)).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						if (Cts == null || Cts.IsCancellationRequestedSafe) return;
+						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
 						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;

@@ -623,7 +623,7 @@ namespace LolloGPS.Data.TileCache
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
 
-			if (_cts == null || _cts.IsCancellationRequestedSafe) return;
+			if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
 
 			if (tileSource == null)
 			{
@@ -647,7 +647,7 @@ namespace LolloGPS.Data.TileCache
 				{
 					try
 					{
-						if (_cts == null || _cts.IsCancellationRequestedSafe) return;
+						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
 
 						/*	Delete db entries first.
 						 *  It's not terrible if some files are not deleted and the db thinks they are:
@@ -657,7 +657,7 @@ namespace LolloGPS.Data.TileCache
 						 */
 						var dbResult = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-						if (_cts == null || _cts.IsCancellationRequestedSafe) return;
+						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
 
 						if (dbResult.Item1)
 						{

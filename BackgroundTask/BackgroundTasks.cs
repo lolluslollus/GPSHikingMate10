@@ -46,7 +46,7 @@ namespace BackgroundTasks
 				_taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
 
 				_cts = new SafeCancellationTokenSource();
-				CancellationToken cancToken = _cts.TokenSafe; //.Token;
+				CancellationToken cancToken = _cts.TokenSafe;
 
 				// LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
 				// only in the background task and only if called before GetDeferral and only if awaited
@@ -83,7 +83,8 @@ namespace BackgroundTasks
 					// memory saving process
 					var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
 					var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
-					if (_cts == null || _cts.IsCancellationRequestedSafe) return;
+					if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
+
 					bool isSaved = PersistentData.RunDbOpInOtherTask(delegate
 					{
 						return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
