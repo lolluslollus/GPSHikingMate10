@@ -126,45 +126,7 @@ namespace UnitTestProject1
             Assert.AreEqual(nnn.Count, 15);
 
             _tdMock = null;
-        }
-
-		[TestMethod]
-		public void LongRunner1()
-		{
-			LongRunner1_();
-		}
-
-		private async void LongRunner1_()
-		{
-			var aaa = new LongRunnerNoSemaphore();
-
-			await aaa.OpenAsync();
-
-			Task longRunner = aaa.ManySeconds();
-			await Task.Delay(3000);
-			aaa.Cancel();
-
-			Assert.AreEqual(aaa.HowManyDelays, 2);
-		}
-
-		[TestMethod]
-		public void LongRunner2()
-		{
-			LongRunner2_();
-		}
-
-		private async void LongRunner2_()
-		{
-			var aaa = new LongRunnerUnderSemaphore();
-
-			await aaa.OpenAsync();
-
-			Task longRunner = aaa.ManySecondsWhenOpen();
-			await Task.Delay(3000);
-			aaa.Cancel();
-
-			Assert.AreEqual(aaa.HowManyDelays, 2);
-		}
+        }		
 
 
 		public class TileDownloaderMock : TileDownloader

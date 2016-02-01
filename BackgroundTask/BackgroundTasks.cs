@@ -46,7 +46,7 @@ namespace BackgroundTasks
 				_taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
 
 				_cts = new SafeCancellationTokenSource();
-				CancellationToken cancToken = _cts.TokenSafe;
+				CancellationToken cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(_cts);
 
 				// LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
 				// only in the background task and only if called before GetDeferral and only if awaited
