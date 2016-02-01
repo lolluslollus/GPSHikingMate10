@@ -490,7 +490,6 @@ namespace LolloGPS.Data.TileCache
 				}
 				finally
 				{
-					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
 					SemaphoreSlimSafeRelease.TryDispose(_semaphore);
 					_semaphore = null;
 				}

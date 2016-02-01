@@ -262,13 +262,13 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsShowAimOnce { get { return _isShowAimOnce; } set { if (_isShowAimOnce != value) { _isShowAimOnce = value; RaisePropertyChanged_UI(); } } }
 
-		private volatile PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
+		private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
-		private volatile Tables _selectedSeries = Tables.nil;
+		private Tables _selectedSeries = Tables.nil;
 		[DataMember]
 		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
-		private volatile int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
+		private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
 		[DataMember]
 		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 
@@ -424,7 +424,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } }
 
-		private volatile MapStyle _mapStyle = MapStyle.Terrain;
+		private MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
 		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
 		private bool _isMapCached = false;
@@ -447,42 +447,30 @@ namespace LolloGPS.Data
 		public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged(); } }
 
 		private static readonly object _lastDownloadLocker = new object();
-		private bool _isTilesDownloadDesired = false;
+		private volatile bool _isTilesDownloadDesired = false;
 		[DataMember]
 		public bool IsTilesDownloadDesired
 		{
 			get
 			{
-				lock (_lastDownloadLocker)
-				{
-					return _isTilesDownloadDesired;
-				}
+				return _isTilesDownloadDesired;
 			}
 			private set
 			{
-				lock (_lastDownloadLocker)
-				{
-					if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
-				}
+				if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
 			}
 		}
-		private int _maxZoomForDownloadingTiles = -1;
+		private volatile int _maxZoomForDownloadingTiles = -1;
 		[DataMember]
 		public int MaxDesiredZoomForDownloadingTiles
 		{
 			get
 			{
-				lock (_lastDownloadLocker)
-				{
-					return _maxZoomForDownloadingTiles;
-				}
+				return _maxZoomForDownloadingTiles;
 			}
 			private set
 			{
-				lock (_lastDownloadLocker)
-				{
-					if (_maxZoomForDownloadingTiles != value) { _maxZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
-				}
+				if (_maxZoomForDownloadingTiles != value) { _maxZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
 			}
 		}
 		public void SetIsTilesDownloadDesired(bool isTilesDownloadDesired, int maxZoom)
@@ -501,11 +489,27 @@ namespace LolloGPS.Data
 				if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
 			}
 		}
-		private volatile DownloadSession _lastDownloadSession;
+		private DownloadSession _lastDownloadSession;
 		[DataMember]
-		public DownloadSession LastDownloadSession { get { return _lastDownloadSession; } set { _lastDownloadSession = value; } }
+		public DownloadSession LastDownloadSession
+		{
+			get
+			{
+				lock (_lastDownloadLocker)
+				{
+					return _lastDownloadSession;
+				}
+			}
+			set
+			{
+				lock (_lastDownloadLocker)
+				{
+					_lastDownloadSession = value;
+				}
+			}
+		}
 
-		private volatile PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
+		private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
