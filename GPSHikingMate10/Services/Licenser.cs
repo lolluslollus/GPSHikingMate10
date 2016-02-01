@@ -6,11 +6,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
-using Windows.ApplicationModel.Core;
 using Windows.ApplicationModel.Store;
 using Windows.Storage;
 using Windows.System;
-using Windows.UI.Core;
 using Windows.UI.Popups;
 using LolloGPS.Data;
 
