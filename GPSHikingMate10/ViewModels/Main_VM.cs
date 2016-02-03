@@ -260,12 +260,13 @@ namespace LolloGPS.Core
 			UpdateCacheButtonIsEnabled();
 			UpdateDownloadButtonIsEnabled();
 		}
-		private async void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
+		private void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
 		{
-			if (args.IsAlsoRemoveSources && args.IsCacheCleared)
-			{
-				await PersistentData.RemoveTileSourcesAsync(args.TileSource);
-			}
+			// LOLLO TODO do this where you delete the cache
+			//if (args.IsAlsoRemoveSources && args.IsCacheCleared)
+			//{
+			//	await PersistentData.RemoveTileSourcesAsync(args.TileSource);
+			//}
 
 			// output messages
 			if (args.TileSource.IsAll)

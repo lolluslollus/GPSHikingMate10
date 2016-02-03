@@ -102,12 +102,12 @@ namespace LolloGPS.Data
 			TilePixelSize = tilePixelSize;
 			IsDeletable = isDeletable;
 		}
-		public string Check(bool skipAlreadyInUse) //string techName, string displayName, string uri, int minZoom, int maxZoom, int tilePixelSize, bool isTesting)
+		public string Check()
 		{
 			string errorMsg = string.Empty;
-			errorMsg = CheckTechName(TechName, skipAlreadyInUse);
+			errorMsg = CheckTechName(TechName);
 			if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
-			errorMsg = CheckDisplayName(DisplayName, skipAlreadyInUse); // not sure we want to ask for a display name
+			errorMsg = CheckDisplayName(DisplayName); // not sure we want to ask for a display name
 			if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
 			errorMsg = CheckUri(UriString, false);
 			if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
@@ -120,7 +120,7 @@ namespace LolloGPS.Data
 
 			return string.Empty;
 		}
-		private static string CheckTechName(string techName, bool skipAlreadyInUse)
+		private static string CheckTechName(string techName)
 		{
 			if (string.IsNullOrWhiteSpace(techName)) return "Name must not be empty";
 			if (techName.Length > MaxTechNameLength) return string.Format("Name must be max {0} characters", MaxTechNameLength);
@@ -128,22 +128,14 @@ namespace LolloGPS.Data
 			//if (invalidCharIndex >= 0) return string.Format("{0} is an invalid character", techName.Substring(invalidCharIndex, 1));
 			//invalidCharIndex = techName.IndexOfAny(Path.GetInvalidFileNameChars());
 			//if (invalidCharIndex >= 0) return string.Format("{0} is an invalid character", techName.Substring(invalidCharIndex, 1));
-			if (!techName.All(Char.IsLetter)) return "Name: only letters are allowed";
-			if (!skipAlreadyInUse)
-			{
-				if (PersistentData.GetInstance().GetTileSourceWithTechOrDisplayName(techName) != null) return "Name already in use, use a new name to make changes";
-			}
+			if (!techName.All(char.IsLetter)) return "Name: only letters are allowed";
 
 			return string.Empty;
 		}
-		private static string CheckDisplayName(string displayName, bool skipAlreadyInUse)
+		private static string CheckDisplayName(string displayName)
 		{
 			if (string.IsNullOrWhiteSpace(displayName)) return "Name must not be empty";
 			if (displayName.Length > MaxTechNameLength) return string.Format("Name must be max {0} characters", MaxTechNameLength);
-			if (!skipAlreadyInUse)
-			{
-				if (PersistentData.GetInstance().GetTileSourceWithTechOrDisplayName(displayName) != null) return "Name already in use, use a new name to make changes";
-			}
 
 			return string.Empty;
 		}

@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Utilz;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.Devices.Geolocation;
+using Windows.Storage;
+using System.IO;
 
 
 // There is a sqlite walkthrough at:
@@ -1125,49 +1127,7 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
-		public TileSourceRecord GetTileSourceWithTechOrDisplayName(string tileSourceName)
-		{
-			try
-			{
-				_tileSourcezSemaphore.Wait();
-				var tech = _tileSourcez.FirstOrDefault(a => a.TechName == tileSourceName);
-				if (tech == null) tech = _tileSourcez.FirstOrDefault(a => a.DisplayName == tileSourceName);
-				return tech;
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				return null;
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-			}
-		}
-		public async Task<List<string>> GetDeletableSourceNamesAsync()
-		{
-			var deletableSourceNames = new List<string>();
-			try
-			{
-				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-				foreach (var item in _tileSourcez)
-				{
-					if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
-					{
-						deletableSourceNames.Add(item.TechName);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-			}
-			return deletableSourceNames;
-		}
+
 		/// <summary>
 		/// Checks TestTileSource and, if good, adds it to TileSourcez and sets CurrentTileSource to it.
 		/// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
@@ -1183,7 +1143,7 @@ namespace LolloGPS.Data
 				// set non-screen properties
 				TestTileSource.DisplayName = TestTileSource.TechName; // we always set it automatically
 				TestTileSource.IsDeletable = true;
-				string errorMsg = TestTileSource.Check(true);
+				string errorMsg = TestTileSource.Check();
 
 				if (!string.IsNullOrEmpty(errorMsg))
 				{
@@ -1233,46 +1193,150 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
-		public async Task RemoveTileSourcesAsync(TileSourceRecord tileSource)
+		public async Task<Tuple<TileCache.TileCacheProcessingQueue.ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, SafeCancellationTokenSource cts)
+		{
+			int howManyRecordsDeletedTotal = 0;
+			// LOLLO TODO where do I update PersistentData.TileSourcez ? I must!
+			List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
+			if (folderNamesToBeDeleted?.Count > 0)
+			{
+				var localFolder = ApplicationData.Current.LocalFolder;
+
+				foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
+				{
+					try
+					{
+						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
+							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
+
+						/*	Delete db entries first.
+						 *  It's not terrible if some files are not deleted and the db thinks they are:
+							they will be downloaded again, and not resaved (with the current logic).
+						 *  It's terrible if files are deleted and the db thinks they are still there,
+							because they will never be downloaded again, and the tiles will be forever empty.
+						 */
+						var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
+
+						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
+							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
+
+						if (dbResult.Item1)
+						{
+							// delete the files next.
+							var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
+							await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+							howManyRecordsDeletedTotal += dbResult.Item2;
+
+							// remove tile source from collection
+							await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+						}
+						else
+						{
+							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Error, howManyRecordsDeletedTotal);
+							// there was some trouble with the DB: cancel processing and get out
+							//await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
+							//CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
+							//return;
+						}
+					}
+					catch (FileNotFoundException)
+					{
+						Debug.WriteLine("FileNotFound in ClearCacheAsync()");
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
+					}
+				}
+			}
+			return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.OK, howManyRecordsDeletedTotal);
+		}
+		private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		{
+			var folderNamesToBeDeleted = new List<string>();
+			if (tileSource != null)
+			{
+				PersistentData persistentData = PersistentData.GetInstance();
+				if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
+				{
+					folderNamesToBeDeleted.Add(tileSource.TechName);
+				}
+				else if (tileSource.IsAll)
+				{
+					foreach (var item in persistentData.TileSourcez)
+					{
+						if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
+						{
+							folderNamesToBeDeleted.Add(item.TechName);
+						}
+					}
+				}
+			}
+			return folderNamesToBeDeleted;
+		}
+		private async Task RemoveTileSourceAsync(string tileSourceTechName)
 		{
 			try
 			{
-				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-				await RunInUiThreadAsync(delegate
+				var tileSourceToBeDeleted = TileSourcez.FirstOrDefault(ts => ts.TechName == tileSourceTechName);
+				if (tileSourceToBeDeleted?.IsDeletable == true)
 				{
-					if (tileSource.IsAll)
-					{
-						Collection<TileSourceRecord> tsTBDeleted = new Collection<TileSourceRecord>();
-						foreach (var item in TileSourcez.Where(ts => ts.IsDeletable))
-						{
-							// restore default if removing current tile source
-							if (CurrentTileSource.TechName == item.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
-							tsTBDeleted.Add(item);
-							// TileSourcez.Remove(item); // nope, it dumps if you modify a collection while looping over it
-						}
-						foreach (var item in tsTBDeleted)
-						{
-							TileSourcez.Remove(item);
-						}
-					}
-					else if (tileSource.IsDeletable)
+					await RunInUiThreadAsync(delegate
 					{
 						// restore default if removing current tile source
-						if (CurrentTileSource.TechName == tileSource.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
-						TileSourcez.Remove(tileSource);
-					}
-					RaisePropertyChanged(nameof(TileSourcez));
-				}).ConfigureAwait(false);
+						if (CurrentTileSource.TechName == tileSourceTechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
+
+						TileSourcez.Remove(tileSourceToBeDeleted);
+						RaisePropertyChanged(nameof(TileSourcez));
+
+					}).ConfigureAwait(false);
+				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			finally
-			{
-				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-			}
 		}
+		//public async Task RemoveTileSourcesAsync(TileSourceRecord tileSource)
+		//{
+		//	try
+		//	{
+		//		await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+		//		await RunInUiThreadAsync(delegate
+		//		{
+		//			if (tileSource.IsAll)
+		//			{
+		//				Collection<TileSourceRecord> tsTBDeleted = new Collection<TileSourceRecord>();
+		//				foreach (var item in TileSourcez.Where(ts => ts.IsDeletable))
+		//				{
+		//					// restore default if removing current tile source
+		//					if (CurrentTileSource.TechName == item.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
+		//					tsTBDeleted.Add(item);
+		//					// TileSourcez.Remove(item); // nope, it dumps if you modify a collection while looping over it
+		//				}
+		//				foreach (var item in tsTBDeleted)
+		//				{
+		//					TileSourcez.Remove(item);
+		//				}
+		//			}
+		//			else if (tileSource.IsDeletable)
+		//			{
+		//				// restore default if removing current tile source
+		//				if (CurrentTileSource.TechName == tileSource.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
+		//				TileSourcez.Remove(tileSource);
+		//			}
+		//			RaisePropertyChanged(nameof(TileSourcez));
+		//		}).ConfigureAwait(false);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+		//	}
+		//	finally
+		//	{
+		//		SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+		//	}
+		//}
 		#endregion tileSourcesMethods
 
 		#region download session methods
@@ -1287,25 +1351,27 @@ namespace LolloGPS.Data
 				{
 					if (gbb != null)
 					{
-						var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
-
-						var newDownloadSession = new DownloadSession(
-							newTileCache.GetMinZoom(),
-							Math.Min(newTileCache.GetMaxZoom(), MaxDesiredZoomForDownloadingTiles),
-							gbb,
-							newTileCache.TileSource.TechName);
-						// never write an invalid DownloadSession into the persistent data
-						if (newDownloadSession?.IsValid == true)
+						try
 						{
+							var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
+
+							var newDownloadSession = new DownloadSession(
+								newTileCache.GetMinZoom(),
+								Math.Min(newTileCache.GetMaxZoom(), MaxDesiredZoomForDownloadingTiles),
+								gbb,
+								newTileCache.TileSource.TechName);
+
+							// never write an invalid DownloadSession into the persistent data. If it is invalid, it throws in the ctor so I won't get here.
 							_lastDownloadSession = newDownloadSession;
 							return newTileCache;
 						}
+						catch (Exception) { }
 					}
 				}
 				// last download did not complete: start a new one with the old tile source
-				else if (_lastDownloadSession.IsValid)
+				else
 				{
-					var prevSessionTileSource = GetTileSourceWithTechName(_lastDownloadSession.TileSourceTechName);
+					var prevSessionTileSource = _lastDownloadSession.GetLastValidTileSource();
 					if (prevSessionTileSource != null)
 					{
 						var newTileCache = new TileCache.TileCache(prevSessionTileSource, false);

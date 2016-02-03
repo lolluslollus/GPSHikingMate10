@@ -53,17 +53,25 @@ namespace LolloGPS.Data.Leeching
 			private set { _tileSourceTechName = value; }
         }
 
-        public bool IsValid
-        {
-            get
-            {
-                return string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom))
-                    && PersistentData.GetInstance().GetTileSourceWithTechName(_tileSourceTechName) != null;
-            }
-        }
+		public TileSourceRecord GetLastValidTileSource()
+		{
+			if (string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom)))
+			{
+				return PersistentData.GetInstance().GetTileSourceWithTechName(_tileSourceTechName);
+			}
+			else return null;
+		}
 
-        public DownloadSession() { }
+		public DownloadSession() { }
 
+		/// <summary>
+		/// Instantiates a DownloadSession
+		/// </summary>
+		/// <param name="minZoom"></param>
+		/// <param name="maxZoom"></param>
+		/// <param name="gbb"></param>
+		/// <param name="tileSourceTechName"></param>
+		/// <exception cref="ArgumentException"/>
         public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, string tileSourceTechName)
         {
             MinZoom = minZoom;
@@ -82,6 +90,10 @@ namespace LolloGPS.Data.Leeching
 			}
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman
+
+			if (tsr == null) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+			string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom);
+			if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: "+ zoomErrorMsg);
 		}
 
 		public static void Clone(DownloadSession source, ref DownloadSession target)

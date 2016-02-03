@@ -170,7 +170,6 @@ namespace LolloGPS.Core
 			}
 			catch (Exception ex)
 			{
-				//CloseDownload(persistentData, false);
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 			finally
@@ -304,15 +303,13 @@ namespace LolloGPS.Core
 						gbb,
 						//tileCache.TileSource.TechName);
 						currentTileSource_mt.TechName);
-					if (session.IsValid)
-					{
-						List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
+					// if the session is invalid, it will throw in the ctor so I won't get here
+					List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
 
-						for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
-						{
-							int howManyAtOrBeforeZoom = tilesOrderedByZoom.Count(a => a.Zoom <= zoom);
-							output.Add(Tuple.Create(zoom, howManyAtOrBeforeZoom));
-						}
+					for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+					{
+						int howManyAtOrBeforeZoom = tilesOrderedByZoom.Count(a => a.Zoom <= zoom);
+						output.Add(Tuple.Create(zoom, howManyAtOrBeforeZoom));
 					}
 				}
 			}
