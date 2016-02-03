@@ -107,7 +107,7 @@ namespace LolloGPS.Core
         {
             if (e == null || e.Tag == null || !(e.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
-            PersistentData.SetIsTilesDownloadDesired(true, maxZoom);
+            PersistentData.SetIsTilesDownloadDesired(true, maxZoom, false);
             PersistentData.IsShowingPivot = false;
         }
 

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
+using System.Threading;
 
 namespace LolloGPS.Core
 {
@@ -164,9 +165,9 @@ namespace LolloGPS.Core
 			{
 				await _saveSemaphore.WaitAsync().ConfigureAwait(false);
 				IsCancelledByUser = false;
-				var tileCache = persistentData.StartOrResumeDownloadSession(await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false));
+				var tileCacheAndSession = persistentData.InitOrReinitDownloadSession(await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false));
 
-				DownloadTiles_RespondingToCancel(tileCache, persistentData.LastDownloadSession);
+				DownloadTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
 			}
 			catch (Exception ex)
 			{
@@ -194,14 +195,12 @@ namespace LolloGPS.Core
 			// maybe the user cancelled: that means they are happy with this download, or at least we can consider it complete.
 			if (IsCancelledByUser)
 			{
-				persistentData.SetIsTilesDownloadDesired(false, 0);
-				persistentData.LastDownloadSession = null;
+				persistentData.SetIsTilesDownloadDesired(false, 0, true);
 			}
 			// unless it was interrupted by suspension or connection going missing, the download is no more required because it finished: mark it.
 			else if (!IsCancelledBySuspend && RuntimeData.GetInstance().IsConnectionAvailable)
 			{
-				if (isSuccess) persistentData.SetIsTilesDownloadDesired(false, 0);
-				persistentData.LastDownloadSession = null;
+				if (isSuccess) persistentData.SetIsTilesDownloadDesired(false, 0, true);
 			}
 		}
 		private Tuple<int, int> SaveTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
@@ -323,8 +322,9 @@ namespace LolloGPS.Core
 		protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
 		{
 			var output = new List<TileCacheRecord>();
+			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
 
-			if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts) && session != null &&
+			if (!cancToken.IsCancellationRequested && session != null &&
 					(session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
 			{
 				int totalCnt = 0;
@@ -345,7 +345,7 @@ namespace LolloGPS.Core
 						{
 							output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
 							totalCnt++;
-							if (IsMustBreak(totalCnt))
+							if (IsMustBreak(totalCnt, cancToken))
 							{
 								exit = true;
 								break;
@@ -369,14 +369,14 @@ namespace LolloGPS.Core
 							}
 						}
 					}
-					if (IsMustBreak(totalCnt)) break;
+					if (IsMustBreak(totalCnt, cancToken)) break;
 				}
 			}
 			return output;
 		}
-		private bool IsMustBreak(int totalCnt)
+		private bool IsMustBreak(int totalCnt, CancellationToken cancToken)
 		{
-			return totalCnt > ConstantData.MAX_TILES_TO_LEECH || SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts);
+			return totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested;
 		}
 		#endregion read services
 

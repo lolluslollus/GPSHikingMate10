@@ -466,7 +466,7 @@ namespace LolloGPS.Data
 				if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
 			}
 		}
-		private int _maxZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
+		private int _maxDesiredZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
 		[DataMember]
 		public int MaxDesiredZoomForDownloadingTiles
 		{
@@ -474,28 +474,30 @@ namespace LolloGPS.Data
 			{
 				lock (_lastDownloadLocker)
 				{
-					return _maxZoomForDownloadingTiles;
+					return _maxDesiredZoomForDownloadingTiles;
 				}
 			}
 			private set
 			{
-				if (_maxZoomForDownloadingTiles != value) { _maxZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
+				if (_maxDesiredZoomForDownloadingTiles != value) { _maxDesiredZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
 			}
 		}
-		public void SetIsTilesDownloadDesired(bool isTilesDownloadDesired, int maxZoom)
+		public void SetIsTilesDownloadDesired(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
 		{
 			lock (_lastDownloadLocker)
 			{
 				// we must handle these two variables together because they belong together.
 				// an event handler registered on one and reading both may catch the change in the first before the second has changed.
 				bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-				bool isMaxZoomChanged = maxZoom != _maxZoomForDownloadingTiles;
+				bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
 
 				_isTilesDownloadDesired = isTilesDownloadDesired;
-				_maxZoomForDownloadingTiles = maxZoom;
+				_maxDesiredZoomForDownloadingTiles = maxZoom;
 
 				if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(IsTilesDownloadDesired));
 				if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
+
+				if (resetLastDownloadSession) LastDownloadSession = null;
 			}
 		}
 		private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
@@ -509,7 +511,7 @@ namespace LolloGPS.Data
 					return _lastDownloadSession;
 				}
 			}
-			set
+			private set
 			{
 				lock (_lastDownloadLocker)
 				{
@@ -1193,77 +1195,85 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
+
 		public async Task<Tuple<TileCache.TileCacheProcessingQueue.ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, SafeCancellationTokenSource cts)
 		{
-			int howManyRecordsDeletedTotal = 0;
-			// LOLLO TODO where do I update PersistentData.TileSourcez ? I must!
-			List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
-			if (folderNamesToBeDeleted?.Count > 0)
+			try
 			{
-				var localFolder = ApplicationData.Current.LocalFolder;
+				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				int howManyRecordsDeletedTotal = 0;
+				List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
 
-				foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
+				if (folderNamesToBeDeleted?.Count > 0)
 				{
-					try
+					var localFolder = ApplicationData.Current.LocalFolder;
+
+					foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
 					{
-						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
-							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
-
-						/*	Delete db entries first.
-						 *  It's not terrible if some files are not deleted and the db thinks they are:
-							they will be downloaded again, and not resaved (with the current logic).
-						 *  It's terrible if files are deleted and the db thinks they are still there,
-							because they will never be downloaded again, and the tiles will be forever empty.
-						 */
-						var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
-
-						if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
-							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
-
-						if (dbResult.Item1)
+						try
 						{
-							// delete the files next.
-							var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
-							await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-							howManyRecordsDeletedTotal += dbResult.Item2;
+							if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
+								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
-							// remove tile source from collection
-							await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+							/*	Delete db entries first.
+							 *  It's not terrible if some files are not deleted and the db thinks they are:
+								they will be downloaded again, and not resaved (with the current logic).
+							 *  It's terrible if files are deleted and the db thinks they are still there,
+								because they will never be downloaded again, and the tiles will be forever empty.
+							 */
+							var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
+
+							if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
+								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
+
+							if (dbResult.Item1)
+							{
+								// delete the files next.
+								var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
+								await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+								howManyRecordsDeletedTotal += dbResult.Item2;
+
+								// remove tile source from collection last.
+								await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+							}
+							else
+							{
+								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Error, howManyRecordsDeletedTotal);
+								// there was some trouble with the DB: cancel processing and get out
+								//await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
+								//CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
+								//return;
+							}
 						}
-						else
+						catch (FileNotFoundException)
 						{
-							return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Error, howManyRecordsDeletedTotal);
-							// there was some trouble with the DB: cancel processing and get out
-							//await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-							//CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
-							//return;
+							Debug.WriteLine("FileNotFound in ClearCacheAsync()");
 						}
-					}
-					catch (FileNotFoundException)
-					{
-						Debug.WriteLine("FileNotFound in ClearCacheAsync()");
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
+						catch (Exception ex)
+						{
+							Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
+						}
 					}
 				}
+				return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.OK, howManyRecordsDeletedTotal);
 			}
-			return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.OK, howManyRecordsDeletedTotal);
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
 		}
-		private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		private List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
 		{
 			var folderNamesToBeDeleted = new List<string>();
 			if (tileSource != null)
 			{
-				PersistentData persistentData = PersistentData.GetInstance();
 				if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
 				{
 					folderNamesToBeDeleted.Add(tileSource.TechName);
 				}
 				else if (tileSource.IsAll)
 				{
-					foreach (var item in persistentData.TileSourcez)
+					foreach (var item in _tileSourcez)
 					{
 						if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
 						{
@@ -1278,7 +1288,7 @@ namespace LolloGPS.Data
 		{
 			try
 			{
-				var tileSourceToBeDeleted = TileSourcez.FirstOrDefault(ts => ts.TechName == tileSourceTechName);
+				var tileSourceToBeDeleted = _tileSourcez.FirstOrDefault(ts => ts.TechName == tileSourceTechName);
 				if (tileSourceToBeDeleted?.IsDeletable == true)
 				{
 					await RunInUiThreadAsync(delegate
@@ -1286,7 +1296,7 @@ namespace LolloGPS.Data
 						// restore default if removing current tile source
 						if (CurrentTileSource.TechName == tileSourceTechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
 
-						TileSourcez.Remove(tileSourceToBeDeleted);
+						_tileSourcez.Remove(tileSourceToBeDeleted);
 						RaisePropertyChanged(nameof(TileSourcez));
 
 					}).ConfigureAwait(false);
@@ -1340,7 +1350,7 @@ namespace LolloGPS.Data
 		#endregion tileSourcesMethods
 
 		#region download session methods
-		public TileCache.TileCache StartOrResumeDownloadSession(GeoboundingBox gbb)
+		public Tuple<TileCache.TileCache, DownloadSession> InitOrReinitDownloadSession(GeoboundingBox gbb)
 		{
 			if (gbb == null) return null;
 			//IsCancelledByUser = false;
@@ -1357,13 +1367,13 @@ namespace LolloGPS.Data
 
 							var newDownloadSession = new DownloadSession(
 								newTileCache.GetMinZoom(),
-								Math.Min(newTileCache.GetMaxZoom(), MaxDesiredZoomForDownloadingTiles),
+								Math.Min(newTileCache.GetMaxZoom(), _maxDesiredZoomForDownloadingTiles),
 								gbb,
 								newTileCache.TileSource.TechName);
 
 							// never write an invalid DownloadSession into the persistent data. If it is invalid, it throws in the ctor so I won't get here.
 							_lastDownloadSession = newDownloadSession;
-							return newTileCache;
+							return Tuple.Create(newTileCache, _lastDownloadSession);
 						}
 						catch (Exception) { }
 					}
@@ -1375,7 +1385,7 @@ namespace LolloGPS.Data
 					if (prevSessionTileSource != null)
 					{
 						var newTileCache = new TileCache.TileCache(prevSessionTileSource, false);
-						return newTileCache;
+						return Tuple.Create(newTileCache, _lastDownloadSession);
 					}
 					// of course, we don't touch the unfinished download session
 				}

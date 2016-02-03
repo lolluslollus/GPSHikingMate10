@@ -9,49 +9,49 @@ using Windows.Devices.Geolocation;
 
 namespace LolloGPS.Data.Leeching
 {
-    [DataContract]
-    public sealed class DownloadSession
-    {
+	[DataContract]
+	public sealed class DownloadSession
+	{
 
-        private BasicGeoposition _NWCorner;
-        [DataMember]
-        public BasicGeoposition NWCorner
-        {
-            get { return _NWCorner; }
-            private set { _NWCorner = value; }
-        }
+		private BasicGeoposition _NWCorner;
+		[DataMember]
+		public BasicGeoposition NWCorner
+		{
+			get { return _NWCorner; }
+			private set { _NWCorner = value; }
+		}
 
-        private BasicGeoposition _SECorner;
-        [DataMember]
-        public BasicGeoposition SECorner
-        {
-            get { return _SECorner; }
+		private BasicGeoposition _SECorner;
+		[DataMember]
+		public BasicGeoposition SECorner
+		{
+			get { return _SECorner; }
 			private set { _SECorner = value; }
-        }
+		}
 
-        private int _minZoom;
-        [DataMember]
-        public int MinZoom
-        {
-            get { return _minZoom; }
+		private int _minZoom;
+		[DataMember]
+		public int MinZoom
+		{
+			get { return _minZoom; }
 			private set { _minZoom = value; }
-        }
+		}
 
-        private int _maxZoom;
-        [DataMember]
-        public int MaxZoom
-        {
-            get { return _maxZoom; }
+		private int _maxZoom;
+		[DataMember]
+		public int MaxZoom
+		{
+			get { return _maxZoom; }
 			private set { _maxZoom = value; }
-        }
+		}
 
-        private string _tileSourceTechName;
-        [DataMember]
-        public string TileSourceTechName
-        {
-            get { return _tileSourceTechName; }
+		private string _tileSourceTechName;
+		[DataMember]
+		public string TileSourceTechName
+		{
+			get { return _tileSourceTechName; }
 			private set { _tileSourceTechName = value; }
-        }
+		}
 
 		public TileSourceRecord GetLastValidTileSource()
 		{
@@ -72,13 +72,13 @@ namespace LolloGPS.Data.Leeching
 		/// <param name="gbb"></param>
 		/// <param name="tileSourceTechName"></param>
 		/// <exception cref="ArgumentException"/>
-        public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, string tileSourceTechName)
-        {
-            MinZoom = minZoom;
-            MaxZoom = maxZoom;
-            NWCorner = gbb.NorthwestCorner;
-            SECorner = gbb.SoutheastCorner;
-            TileSourceTechName = tileSourceTechName;
+		public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, string tileSourceTechName)
+		{
+			MinZoom = minZoom;
+			MaxZoom = maxZoom;
+			NWCorner = gbb.NorthwestCorner;
+			SECorner = gbb.SoutheastCorner;
+			TileSourceTechName = tileSourceTechName;
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
 
@@ -93,21 +93,21 @@ namespace LolloGPS.Data.Leeching
 
 			if (tsr == null) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
 			string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom);
-			if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: "+ zoomErrorMsg);
+			if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
 		}
 
 		public static void Clone(DownloadSession source, ref DownloadSession target)
-        {
-            if (source != null)
-            {
-                if (target == null) target = new DownloadSession();
+		{
+			if (source != null)
+			{
+				if (target == null) target = new DownloadSession();
 
-                target.NWCorner = source.NWCorner;
-                target.SECorner = source.SECorner;
-                target.MinZoom = source.MinZoom;
-                target.MaxZoom = source.MaxZoom;
-                target.TileSourceTechName = source.TileSourceTechName;
-            }
-        }
-    }
+				target.NWCorner = source.NWCorner;
+				target.SECorner = source.SECorner;
+				target.MinZoom = source.MinZoom;
+				target.MaxZoom = source.MaxZoom;
+				target.TileSourceTechName = source.TileSourceTechName;
+			}
+		}
+	}
 }
