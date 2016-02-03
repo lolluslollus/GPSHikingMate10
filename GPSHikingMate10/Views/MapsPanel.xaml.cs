@@ -101,12 +101,16 @@ namespace LolloGPS.Core
         {
             if (e == null || e.Tag == null || !(e.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
-            PersistentData.SetIsTilesDownloadDesired(true, maxZoom, false);
-            PersistentData.IsShowingPivot = false;
+			Task set = MainVM?.SetTilesDownloadPropsAsync(maxZoom);
         }
+		private void OnMapSourceChooser_ItemSelected(object sender, TextAndTag e)
+		{
+			Task set = MainVM?.SetCurrentTileSourceAsync(e?.Tag as TileSourceRecord);
+		}
 
-        #region events
-        public event EventHandler Goto2DRequested;
+
+		#region events
+		public event EventHandler Goto2DRequested;
         private void RaiseGoto2DRequested()
         {
             var listener = Goto2DRequested;
@@ -115,6 +119,6 @@ namespace LolloGPS.Core
                 listener(this, EventArgs.Empty);
             }
         }
-        #endregion events
-    }
+		#endregion events
+	}
 }

@@ -843,9 +843,10 @@ namespace LolloGPS.Core
 			{
 				try
 				{
-					if (!string.IsNullOrWhiteSpace(PersistentData.CurrentTileSource.ProviderUriString) && RuntimeData.IsConnectionAvailable)
+					string uriString = PersistentData.CurrentTileSource.ProviderUriString;
+					if (!string.IsNullOrWhiteSpace(uriString) && RuntimeData.IsConnectionAvailable)
 					{
-						await Launcher.LaunchUriAsync(new Uri(PersistentData.CurrentTileSource.ProviderUriString, UriKind.Absolute));
+						await Launcher.LaunchUriAsync(new Uri(uriString, UriKind.Absolute));
 					}
 				}
 				catch (Exception) { }

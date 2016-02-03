@@ -43,9 +43,9 @@ namespace LolloGPS.Core
 		protected override async Task OpenMayOverrideAsync()
 		{
 			await _tileDownloader.OpenAsync();
+			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
 			if (!PersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(PersistentData.CurrentTileSource, PersistentData.IsMapCached);
-			AddHandler_DataChanged();
 		}
 		private void OpenAlternativeMap_Http(TileSourceRecord tileSource, bool isCaching)
 		{
@@ -135,9 +135,8 @@ namespace LolloGPS.Core
 		{
 			if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
 			{
-				Tuple<int, int> downloadResult = await Task.Run(delegate { return _tileDownloader.StartOrResumeDownloadTilesAsync(); }).ConfigureAwait(false);
-				// Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
-				MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
+				Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+				if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
 			}
 		}
 
@@ -193,10 +192,7 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
 			{
-				if (RuntimeData.IsConnectionAvailable)
-				{
-					Task resume = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-				}
+				Task resume = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
 			}
 		}
 		private async void OnDataSource_UriRequested(HttpMapTileDataSource sender, MapTileUriRequestedEventArgs args)

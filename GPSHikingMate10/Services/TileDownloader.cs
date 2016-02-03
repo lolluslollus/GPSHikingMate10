@@ -98,11 +98,7 @@ namespace LolloGPS.Core
 		private void RaiseSaveProgressChanged(double progress)
 		{
 			RuntimeData.SetDownloadProgressValue_UI(progress);
-			var listener = SaveProgressChanged;
-			if (listener != null)
-			{
-				listener(this, progress);
-			}
+			SaveProgressChanged?.Invoke(this, progress);
 		}
 		#endregion events
 
@@ -158,49 +154,51 @@ namespace LolloGPS.Core
 		}
 		public async Task<Tuple<int, int>> StartOrResumeDownloadTilesAsync()
 		{
-			var output = Tuple.Create(0, 0);
-			var persistentData = PersistentData.GetInstance();
-
-			try
+			var result = Tuple.Create(0, 0);
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				await _saveSemaphore.WaitAsync().ConfigureAwait(false);
-				IsCancelledByUser = false;
-				var tileCacheAndSession = persistentData.InitOrReinitDownloadSession(await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false));
-
-				DownloadTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			finally
-			{
-				// even if something went wrong (maybe the new session is not valid), do not leave the download open!
-				CloseDownload(persistentData, true);
-				SemaphoreSlimSafeRelease.TryRelease(_saveSemaphore);
-			}
-			return output;
+				var persistentData = PersistentData.GetInstance();
+				if (persistentData.IsTilesDownloadDesired && _runtimeData.IsConnectionAvailable)
+				{
+					try
+					{
+						await _saveSemaphore.WaitAsync().ConfigureAwait(false);
+						IsCancelledByUser = false;
+						var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
+						if (gbb != null)
+						{
+							var tileCacheAndSession = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
+							if (tileCacheAndSession != null)
+							{
+								result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
+					finally
+					{
+						// even if something went wrong (maybe the new session is not valid), do not leave the download open!
+						await CloseDownloadAsync(persistentData, true).ConfigureAwait(false);
+						SemaphoreSlimSafeRelease.TryRelease(_saveSemaphore);
+					}
+				}
+			}).ConfigureAwait(false);
+			return result;
 		}
-		private Tuple<int, int> DownloadTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
-		{
-			var output = Tuple.Create(0, 0);
-			if (RuntimeData.GetInstance().IsConnectionAvailable && tileCache != null && session != null)
-			{
-				output = SaveTiles_RespondingToCancel(tileCache, session);
-			}
-			return output;
-		}
-		private void CloseDownload(PersistentData persistentData, bool isSuccess)
+		private async Task CloseDownloadAsync(PersistentData persistentData, bool isSuccess)
 		{
 			// maybe the user cancelled: that means they are happy with this download, or at least we can consider it complete.
 			if (IsCancelledByUser)
 			{
-				persistentData.SetIsTilesDownloadDesired(false, 0, true);
+				await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
 			}
 			// unless it was interrupted by suspension or connection going missing, the download is no more required because it finished: mark it.
-			else if (!IsCancelledBySuspend && RuntimeData.GetInstance().IsConnectionAvailable)
+			else if (!IsCancelledBySuspend && _runtimeData.IsConnectionAvailable)
 			{
-				if (isSuccess) persistentData.SetIsTilesDownloadDesired(false, 0, true);
+				if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
 			}
 		}
 		private Tuple<int, int> SaveTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
@@ -211,7 +209,7 @@ namespace LolloGPS.Core
 			int currentOkCnt = 0;
 			int currentCnt = 0;
 
-			if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts))
+			if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts) && tileCache != null && session != null && _runtimeData.IsConnectionAvailable)
 			{
 				List<TileCacheRecord> requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session);
 				totalCnt = requiredTilesOrderedByZoom.Count;
@@ -279,43 +277,39 @@ namespace LolloGPS.Core
 		#region read services
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZooms4CurrentConditionsAsync()
 		{
-			PersistentData persistentData = PersistentData.GetInstance();
-			var currentTileSource_mt = persistentData.CurrentTileSource;
-			//var isMapCached_mt = persistentData.IsMapCached;
-
-			IsCancelledByUser = false;
 			var output = new List<Tuple<int, int>>();
 
-			try
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				//TileCache tileCache = new TileCache(currentTileSource_mt, isMapCached_mt);
-
-				var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
-				if (gbb != null)
+				try
 				{
-					// now I have a geobounding box that certainly encloses the screen.
-					DownloadSession session = new DownloadSession(
-						//tileCache.GetMinZoom(),
-						currentTileSource_mt.MinZoom,
-						//tileCache.GetMaxZoom(),
-						currentTileSource_mt.MaxZoom,
-						gbb,
-						//tileCache.TileSource.TechName);
-						currentTileSource_mt.TechName);
-					// if the session is invalid, it will throw in the ctor so I won't get here
-					List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
+					IsCancelledByUser = false;
 
-					for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+					var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
+					if (gbb != null)
 					{
-						int howManyAtOrBeforeZoom = tilesOrderedByZoom.Count(a => a.Zoom <= zoom);
-						output.Add(Tuple.Create(zoom, howManyAtOrBeforeZoom));
+						// now I have a geobounding box that certainly encloses the screen.
+						var session = await PersistentData.GetInstance().GetDownloadSession4CurrentTileSourceAsync(gbb).ConfigureAwait(false);
+						if (session != null)
+						{
+							List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
+							if (tilesOrderedByZoom != null)
+							{
+								for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+								{
+									int howManyAtOrBeforeZoom = tilesOrderedByZoom.Count(a => a.Zoom <= zoom);
+									output.Add(Tuple.Create(zoom, howManyAtOrBeforeZoom));
+								}
+							}
+						}
 					}
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			}).ConfigureAwait(false);
+
 			return output;
 		}
 

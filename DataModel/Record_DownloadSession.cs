@@ -53,13 +53,9 @@ namespace LolloGPS.Data.Leeching
 			private set { _tileSourceTechName = value; }
 		}
 
-		public TileSourceRecord GetLastValidTileSource()
+		public bool IsZoomsValid()
 		{
-			if (string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom)))
-			{
-				return PersistentData.GetInstance().GetTileSourceWithTechName(_tileSourceTechName);
-			}
-			else return null;
+			return string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom));
 		}
 
 		public DownloadSession() { }
@@ -70,28 +66,25 @@ namespace LolloGPS.Data.Leeching
 		/// <param name="minZoom"></param>
 		/// <param name="maxZoom"></param>
 		/// <param name="gbb"></param>
-		/// <param name="tileSourceTechName"></param>
+		/// <param name="tileSource"></param>
 		/// <exception cref="ArgumentException"/>
-		public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, string tileSourceTechName)
+		public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, TileSourceRecord tileSource)
 		{
+			if (tileSource == null) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+
 			MinZoom = minZoom;
 			MaxZoom = maxZoom;
 			NWCorner = gbb.NorthwestCorner;
 			SECorner = gbb.SoutheastCorner;
-			TileSourceTechName = tileSourceTechName;
+			TileSourceTechName = tileSource.TechName;
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
 
-			var tsr = PersistentData.GetInstance().GetTileSourceWithTechName(_tileSourceTechName);
-			if (tsr != null)
-			{
-				MinZoom = Math.Max(_minZoom, tsr.MinZoom);
-				MaxZoom = Math.Min(_maxZoom, tsr.MaxZoom);
-			}
+			MinZoom = Math.Max(_minZoom, tileSource.MinZoom);
+			MaxZoom = Math.Min(_maxZoom, tileSource.MaxZoom);
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman
 
-			if (tsr == null) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
 			string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom);
 			if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
 		}

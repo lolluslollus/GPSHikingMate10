@@ -420,6 +420,21 @@ namespace LolloGPS.Core
 				Task add = PersistentData?.TryAddPointToCheckpointsAsync(currentClone);
 			});
 		}
+		public Task SetTilesDownloadPropsAsync(int maxZoom)
+		{
+			return RunFunctionIfOpenAsyncA(async delegate
+			{
+				await PersistentData.SetTilesDownloadPropsAsync(true, maxZoom, false).ConfigureAwait(false);
+				PersistentData.IsShowingPivot = false;
+			});
+		}
+		public Task SetCurrentTileSourceAsync(TileSourceRecord tileSource)
+		{
+			return RunFunctionIfOpenAsyncT(delegate
+			{
+				return PersistentData.SetCurrentTileSourceAsync(tileSource);
+			});
+		}
 		#endregion services
 
 

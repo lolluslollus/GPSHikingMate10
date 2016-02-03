@@ -90,7 +90,8 @@
                 AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
                 TextItemStyle="{StaticResource ListItemTextStyle}"
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting}"
-                SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=TwoWay}"/>
+                SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
+				ItemSelected="OnMapSourceChooser_ItemSelected"/>
 		</StackPanel>
 
 		<TextBlock Grid.Row="4" Grid.Column="0" 

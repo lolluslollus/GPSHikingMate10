@@ -6,7 +6,7 @@ using Windows.Devices.Geolocation;
 using System.Collections.Generic;
 using LolloGPS.Data.TileCache;
 using LolloGPS.Data.Leeching;
-
+using LolloGPS.Data;
 
 namespace UnitTestProject1
 {
@@ -153,7 +153,9 @@ namespace UnitTestProject1
             public List<TileCacheRecord> GetTileData_RespondingToCancelTest()
             {
                 GeoboundingBox nw_se = _gbbProvider.GetMinMaxLatLonAsync().Result;
-                var ds = new DownloadSession(MinZoom, MaxZoom, nw_se, "lolloTest");
+				var dummyTileSource = TileSourceRecord.GetDefaultTileSource();
+				dummyTileSource.TechName = "lolloTest";
+                var ds = new DownloadSession(MinZoom, MaxZoom, nw_se, dummyTileSource);
                 return GetTileData_RespondingToCancel(ds);
             }
         }

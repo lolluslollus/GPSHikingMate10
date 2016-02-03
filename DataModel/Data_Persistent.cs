@@ -483,24 +483,7 @@ namespace LolloGPS.Data
 				if (_maxDesiredZoomForDownloadingTiles != value) { _maxDesiredZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
 			}
 		}
-		public void SetIsTilesDownloadDesired(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
-		{
-			lock (_lastDownloadLocker)
-			{
-				// we must handle these two variables together because they belong together.
-				// an event handler registered on one and reading both may catch the change in the first before the second has changed.
-				bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-				bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
 
-				_isTilesDownloadDesired = isTilesDownloadDesired;
-				_maxDesiredZoomForDownloadingTiles = maxZoom;
-
-				if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged_UI(nameof(IsTilesDownloadDesired));
-				if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
-
-				if (resetLastDownloadSession) LastDownloadSession = null;
-			}
-		}
 		private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
 		[DataMember]
 		public DownloadSession LastDownloadSession
@@ -514,10 +497,7 @@ namespace LolloGPS.Data
 			}
 			private set
 			{
-				lock (_lastDownloadLocker)
-				{
-					_lastDownloadSession = value;
-				}
+				_lastDownloadSession = value;
 			}
 		}
 
@@ -1114,17 +1094,20 @@ namespace LolloGPS.Data
 		#endregion selectedRecordMethods
 
 		#region tileSourcesMethods
-		public TileSourceRecord GetTileSourceWithTechName(string tileSourceTechName)
+		public async Task SetCurrentTileSourceAsync(TileSourceRecord tileSource)
 		{
+			if (tileSource == null) return;
 			try
 			{
-				_tileSourcezSemaphore.Wait();
-				return _tileSourcez.FirstOrDefault(a => a.TechName == tileSourceTechName);
+				await _tileSourcezSemaphore.WaitAsync();
+				await RunInUiThreadAsync(delegate
+				{
+					CurrentTileSource = tileSource;
+				}).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				return null;
 			}
 			finally
 			{
@@ -1142,12 +1125,13 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync();
-				if (TestTileSource == null) return Tuple.Create(false, "Record not found");
-				if (string.IsNullOrWhiteSpace(TestTileSource.TechName)) return Tuple.Create(false, "Name is empty");
+
+				if (_testTileSource == null) return Tuple.Create(false, "Record not found");
+				if (string.IsNullOrWhiteSpace(_testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
 				// set non-screen properties
-				TestTileSource.DisplayName = TestTileSource.TechName; // we always set it automatically
-				TestTileSource.IsDeletable = true;
-				string errorMsg = TestTileSource.Check();
+				_testTileSource.DisplayName = _testTileSource.TechName; // we always set it automatically
+				_testTileSource.IsDeletable = true;
+				string errorMsg = _testTileSource.Check();
 
 				if (!string.IsNullOrEmpty(errorMsg))
 				{
@@ -1155,42 +1139,51 @@ namespace LolloGPS.Data
 				}
 				else
 				{
-					string successMessage = string.Format("Source {0} added", TestTileSource.DisplayName);
-					var recordsWithSameName = TileSourcez.Where(tileSource => tileSource.TechName == TestTileSource.TechName || tileSource.DisplayName == TestTileSource.TechName);
-					if (recordsWithSameName != null)
+					Tuple<bool, string> result = null;
+
+					await RunInUiThreadAsync(delegate
 					{
-						if (recordsWithSameName.Count() > 1)
+						string successMessage = string.Format("Source {0} added", _testTileSource.DisplayName);
+						var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName);
+						if (recordsWithSameName != null)
 						{
-							return Tuple.Create(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
+							if (recordsWithSameName.Count() > 1)
+							{
+								result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+							}
+							else if (recordsWithSameName.Count() == 1)
+							{
+								var recordWithSameName = recordsWithSameName.First();
+								if (recordWithSameName.IsDeletable)
+								{
+									_tileSourcez.Remove(recordWithSameName);
+									successMessage = string.Format("Source {0} changed", _testTileSource.DisplayName);
+								}
+								else
+								{
+									result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+								}
+							}
 						}
-						else if (recordsWithSameName.Count() == 1)
+						if (result == null)
 						{
-							var recordWithSameName = recordsWithSameName.First();
-							if (recordWithSameName.IsDeletable)
-							{
-								TileSourcez.Remove(recordWithSameName);
-								successMessage = string.Format("Source {0} changed", TestTileSource.DisplayName);
-							}
-							else
-							{
-								return Tuple.Create(false, string.Format("Tile source {0} cannot be changed", TestTileSource.TechName));
-							}
+							TileSourceRecord newRecord = null;
+							TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
+							_tileSourcez.Add(newRecord);
+							RaisePropertyChanged(nameof(TileSourcez));
+							CurrentTileSource = newRecord;
+
+							result = Tuple.Create(true, successMessage);
 						}
-					}
+					}).ConfigureAwait(false);
 
-					TileSourceRecord newRecord = null;
-					TileSourceRecord.Clone(TestTileSource, ref newRecord); // do not overwrite the current instance
-					TileSourcez.Add(newRecord);
-					RaisePropertyChanged(nameof(TileSourcez));
-					CurrentTileSource = newRecord;
-
-					return Tuple.Create(true, successMessage);
+					return result;
 				}
 			}
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				return Tuple.Create(false, string.Format("Error with tile source {0}", TestTileSource.TechName));
+				return Tuple.Create(false, string.Format("Error with tile source {0}", _testTileSource.TechName));
 			}
 			finally
 			{
@@ -1199,6 +1192,7 @@ namespace LolloGPS.Data
 		}
 
 		public enum ClearCacheResult { OK, Error, Cancelled }
+
 		public async Task<Tuple<ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
 		{
 			if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return Tuple.Create(ClearCacheResult.Error, 0);
@@ -1349,48 +1343,114 @@ namespace LolloGPS.Data
 		#endregion tileSourcesMethods
 
 		#region download session methods
-		public Tuple<TileCache.TileCache, DownloadSession> InitOrReinitDownloadSession(GeoboundingBox gbb)
+		public Task SetTilesDownloadPropsAsync(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
 		{
-			if (gbb == null) return null;
-			//IsCancelledByUser = false;
-			lock (_lastDownloadLocker)
+			return RunInUiThreadAsync(delegate
 			{
-				// last download completed: start a new one with the current tile source
-				if (_lastDownloadSession == null)
+				lock (_lastDownloadLocker)
 				{
-					if (gbb != null)
+					// we must handle these two variables together because they belong together.
+					// an event handler registered on one and reading both may catch the change in the first before the second has changed.
+					bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
+					bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
+
+					_isTilesDownloadDesired = isTilesDownloadDesired;
+					_maxDesiredZoomForDownloadingTiles = maxZoom;
+
+					//if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
+					//if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
+					if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
+					if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
+
+					if (resetLastDownloadSession) _lastDownloadSession = null;
+				}
+			});
+		}
+
+		public async Task<Tuple<TileCache.TileCache, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
+		{
+			Tuple<TileCache.TileCache, DownloadSession> result = null;
+			if (gbb == null) return null;
+
+			try
+			{
+				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				lock (_lastDownloadLocker)
+				{
+					// last download completed: start a new one with the current tile source
+					if (_lastDownloadSession == null)
 					{
-						try
+						if (gbb != null)
 						{
-							var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
+							try
+							{
+								var newDownloadSession = new DownloadSession(
+									CurrentTileSource.MinZoom,
+									Math.Min(CurrentTileSource.MaxZoom, _maxDesiredZoomForDownloadingTiles),
+									gbb,
+									CurrentTileSource);
+								// Never write an invalid DownloadSession into the persistent data. 
+								// If it is invalid, it throws in the ctor so I won't get here.
+								_lastDownloadSession = newDownloadSession;
 
-							var newDownloadSession = new DownloadSession(
-								newTileCache.GetMinZoom(),
-								Math.Min(newTileCache.GetMaxZoom(), _maxDesiredZoomForDownloadingTiles),
-								gbb,
-								newTileCache.TileSource.TechName);
+								var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
 
-							// never write an invalid DownloadSession into the persistent data. If it is invalid, it throws in the ctor so I won't get here.
-							_lastDownloadSession = newDownloadSession;
-							return Tuple.Create(newTileCache, _lastDownloadSession);
+								result = Tuple.Create(newTileCache, _lastDownloadSession);
+							}
+							catch (Exception) { }
 						}
-						catch (Exception) { }
 					}
-				}
-				// last download did not complete: start a new one with the old tile source
-				else
-				{
-					var prevSessionTileSource = _lastDownloadSession.GetLastValidTileSource();
-					if (prevSessionTileSource != null)
-					{
-						var newTileCache = new TileCache.TileCache(prevSessionTileSource, false);
-						return Tuple.Create(newTileCache, _lastDownloadSession);
-					}
+					// last download did not complete: start a new one with the old tile source
 					// of course, we don't touch the unfinished download session
+					else
+					{
+						var lastTileSource = _tileSourcez.FirstOrDefault(ts => ts.TechName == _lastDownloadSession.TileSourceTechName);
+						if (lastTileSource != null && _lastDownloadSession.IsZoomsValid())
+						{
+							var newTileCache = new TileCache.TileCache(lastTileSource, false);
+							result = Tuple.Create(newTileCache, _lastDownloadSession);
+						}
+					}
 				}
-
-				return null;
 			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+
+			return result;
+		}
+
+		public async Task<DownloadSession> GetDownloadSession4CurrentTileSourceAsync(GeoboundingBox gbb)
+		{
+			DownloadSession result = null;
+			if (gbb == null) return null;
+
+			try
+			{
+				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				var session = new DownloadSession(
+					CurrentTileSource.MinZoom,
+					CurrentTileSource.MaxZoom,
+					gbb,
+					CurrentTileSource);
+				// If the session is invalid, it throws in the ctor so I won't get here.
+				result = session;
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+
+			return result;
 		}
 		#endregion download session methods
 

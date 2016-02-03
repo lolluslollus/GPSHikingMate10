@@ -30,13 +30,14 @@ namespace LolloGPS.Data.TileCache
 
 		private StorageFolder _imageFolder = null;
 
-		private volatile bool _isCaching = false;
+		private readonly object _isCachingLocker = new object();
+		private bool _isCaching = false;
 		/// <summary>
 		/// Gets if this cache writes away (ie caches) the data it picks up.
 		/// Only relevant for supplying map tiles on the fly.
 		/// We could read this from PersistentData whenever we need it, but it does not work well.
 		/// </summary>
-		public bool IsCaching { get { return _isCaching; } set { _isCaching = value; } }
+		public bool IsCaching { get { lock (_isCachingLocker) { return _isCaching; } } set { lock (_isCachingLocker) { _isCaching = value; } } }
 
 		private readonly string _webUriFormat = string.Empty;
 		private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
@@ -154,8 +155,9 @@ namespace LolloGPS.Data.TileCache
 				{
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
+						Debug.WriteLine("IsCaching = " + _isCaching);
 						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
-						if (IsCaching)
+						if (_isCaching) // this is cheaper than checking IsCaching, which has a lock. It works and it is not critical anyway.
 						{
 							if (await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false)) result = GetUriForFile(fileName);
 						}
