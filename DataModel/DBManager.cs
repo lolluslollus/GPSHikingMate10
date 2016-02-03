@@ -20,9 +20,9 @@ namespace LolloGPS.Data
 		private static readonly string _checkpointsDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Checkpoints.db");
 		private static readonly bool _isStoreDateTimeAsTicks = true;
 		private static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
-		internal static Semaphore _HistorySemaphore = new Semaphore(1, 1, "GPSHikingMate10_HistorySemaphore");
-		internal static Semaphore _Route0Semaphore = new Semaphore(1, 1, "GPSHikingMate10_Route0Semaphore");
-		internal static Semaphore _CheckpointsSemaphore = new Semaphore(1, 1, "GPSHikingMate10_CheckpointsSemaphore");
+		internal static readonly Semaphore _HistorySemaphore = new Semaphore(1, 1, "GPSHikingMate10_HistorySemaphore");
+		internal static readonly Semaphore _Route0Semaphore = new Semaphore(1, 1, "GPSHikingMate10_Route0Semaphore");
+		internal static readonly Semaphore _CheckpointsSemaphore = new Semaphore(1, 1, "GPSHikingMate10_CheckpointsSemaphore");
 
 		internal static async Task UpdateHistoryAsync(PointRecord record, bool runSync)
 		{
@@ -542,13 +542,13 @@ namespace LolloGPS.Data
 		}
 
 		private static readonly Dictionary<string, ConnectionEntry> _connectionsDict = new Dictionary<string, ConnectionEntry>();
-		private static Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteConnectionEntriesSemaphore");
+		private static readonly Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteConnectionEntriesSemaphore");
 
 		private static volatile bool _isOpen = true;
 		public static bool IsOpen { get { return _isOpen; } }
-		private static Semaphore _isOpenSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsOpenSemaphore");
+		private static readonly Semaphore _isOpenSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsOpenSemaphore");
 
-		private static Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
+		private static readonly Semaphore _dbActionInOtherTaskSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteDbActionInOtherTaskSemaphore");
 
 		internal static SQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)
 		{

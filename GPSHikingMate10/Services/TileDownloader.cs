@@ -23,15 +23,73 @@ namespace LolloGPS.Core
 		#region properties
 		public const int MaxProgressStepsToReport = 25;
 
-		private volatile bool _isCancelledBySuspend = false;
-		public bool IsCancelledBySuspend { get { return _isCancelledBySuspend; } private set { _isCancelledBySuspend = value; } }
+		private readonly RuntimeData _runtimeData = RuntimeData.GetInstance();
 
-		private volatile bool _isCancelledByUser = false;
-		public bool IsCancelledByUser { get { return _isCancelledByUser; } private set { _isCancelledByUser = value; } }
+		private readonly object _isCancLocker = new object();
+		private bool _isCancelledBySuspend = false;
+		public bool IsCancelledBySuspend
+		{
+			get
+			{
+				lock (_isCancLocker)
+				{
+					return _isCancelledBySuspend;
+				}
+			}
+			private set
+			{
+				lock (_isCancLocker)
+				{
+					_isCancelledBySuspend = value;
+					UpdateIsCancelled();
+				}
+			}
+		}
 
-		public bool IsCancelled { get { return _isCancelledBySuspend || _isCancelledByUser || !(RuntimeData.GetInstance().IsConnectionAvailable); } }
+		private bool _isCancelledByUser = false;
+		public bool IsCancelledByUser
+		{
+			get
+			{
+				lock (_isCancLocker)
+				{
+					return _isCancelledByUser;
+				}
+			}
+			private set
+			{
+				lock (_isCancLocker)
+				{
+					_isCancelledByUser = value;
+					UpdateIsCancelled();
+				}
+			}
+		}
+		private bool _isCancelled = false;
+		public bool IsCancelled
+		{
+			get
+			{
+				lock (_isCancLocker)
+				{
+					return _isCancelled;
+				}
+			}
+			private set
+			{
+				_isCancelled = value;
+				if (_isCancelled) Cts?.CancelSafe(true);
+			}
+		}
+		private void UpdateIsCancelled()
+		{
+			lock (_isCancLocker)
+			{
+				IsCancelled = _isCancelledBySuspend || _isCancelledByUser || !(_runtimeData.IsConnectionAvailable);
+			}
+		}
 
-		protected IGeoBoundingBoxProvider _gbbProvider = null;
+		protected readonly IGeoBoundingBoxProvider _gbbProvider = null;
 		#endregion properties
 
 		#region events
@@ -56,17 +114,43 @@ namespace LolloGPS.Core
 		{
 			IsCancelledBySuspend = false;
 			IsCancelledByUser = false;
+			AddRuntimeHandler();
 			return Task.CompletedTask;
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
 			IsCancelledBySuspend = true;
+			RemoveRuntimeHandler();
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle
 
+		#region event handlers
+		private bool _isRuntimeHandlerActive = false;
+		private void AddRuntimeHandler()
+		{
+			if (!_isRuntimeHandlerActive && _runtimeData != null)
+			{
+				_isRuntimeHandlerActive = true;
+				_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
+			}
+		}
+		private void RemoveRuntimeHandler()
+		{
+			if (_runtimeData != null)
+			{
+				_runtimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
+			}
+			_isRuntimeHandlerActive = false;
+		}
+		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			UpdateIsCancelled();
+		}
+		#endregion event handlers
+
 		#region save services
-		private static SemaphoreSlimSafeRelease _saveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _saveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		internal void CancelDownloadByUser()
 		{
 			IsCancelledByUser = true;
@@ -75,50 +159,14 @@ namespace LolloGPS.Core
 		{
 			var output = Tuple.Create(0, 0);
 			var persistentData = PersistentData.GetInstance();
-			var currentTileSource_mt = persistentData.CurrentTileSource; // read the value as soon as the present method is called
-			var maxDesiredZoomForDownloadingTiles_mt = persistentData.MaxDesiredZoomForDownloadingTiles; // read the value as soon as the present method is called
-																										 //var isMapCached_mt = persistentData.IsMapCached; // useless here
+
 			try
 			{
 				await _saveSemaphore.WaitAsync().ConfigureAwait(false);
-
-				var lastDownloadSession_mt = persistentData.LastDownloadSession; // read the latest available value
-				var tileSourcez_mt = persistentData.TileSourcez; // read the latest available value
-
 				IsCancelledByUser = false;
+				var tileCache = persistentData.StartOrResumeDownloadSession(await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false));
 
-				TileCache tileCache = null;
-				// last download completed: start a new one with the current tile source
-				if (lastDownloadSession_mt == null)
-				{
-					var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
-					if (gbb != null)
-					{
-						tileCache = new TileCache(currentTileSource_mt, false);
-
-						var newDownloadSession = new DownloadSession(
-							tileCache.GetMinZoom(),
-							Math.Min(tileCache.GetMaxZoom(), maxDesiredZoomForDownloadingTiles_mt),
-							gbb,
-							tileCache.TileSource.TechName);
-						// never write an invalid DownloadSession into the persistent data
-						if (newDownloadSession.IsValid) persistentData.LastDownloadSession = lastDownloadSession_mt = newDownloadSession;
-						//else CloseDownload(persistentData, false);
-					}
-				}
-				// last download did not complete: start a new one with the old tile source
-				else
-				{
-					var prevSessionTileSource = tileSourcez_mt.FirstOrDefault(a => a.TechName == lastDownloadSession_mt.TileSourceTechName);
-					if (prevSessionTileSource != null) tileCache = new TileCache(prevSessionTileSource, false);
-					// of course, we don't touch the unfinished download session
-				}
-
-				if (tileCache != null && lastDownloadSession_mt != null)
-				{
-					if (lastDownloadSession_mt.IsValid) output = DownloadTiles_RespondingToCancel(tileCache, lastDownloadSession_mt);
-					//else CloseDownload(persistentData, false);
-				}
+				DownloadTiles_RespondingToCancel(tileCache, persistentData.LastDownloadSession);
 			}
 			catch (Exception ex)
 			{
@@ -136,7 +184,7 @@ namespace LolloGPS.Core
 		private Tuple<int, int> DownloadTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
 		{
 			var output = Tuple.Create(0, 0);
-			if (RuntimeData.GetInstance().IsConnectionAvailable)
+			if (RuntimeData.GetInstance().IsConnectionAvailable && tileCache != null && session != null)
 			{
 				output = SaveTiles_RespondingToCancel(tileCache, session);
 			}
@@ -165,12 +213,12 @@ namespace LolloGPS.Core
 			int currentOkCnt = 0;
 			int currentCnt = 0;
 
-			if (!IsCancelled)
+			if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts))
 			{
 				List<TileCacheRecord> requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session);
 				totalCnt = requiredTilesOrderedByZoom.Count;
 
-				if (!IsCancelled && totalCnt > 0)
+				if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts) && totalCnt > 0)
 				{
 					int howManyProgressStepsIWantToReport = Math.Min(MaxProgressStepsToReport, totalCnt);
 
@@ -201,7 +249,6 @@ namespace LolloGPS.Core
 
 							currentCnt++;
 							if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
-							if (IsCancelled) Cts?.CancelSafe(true);
 						});
 					}
 					catch (OperationCanceledException) { } // comes from the canc token
@@ -280,62 +327,59 @@ namespace LolloGPS.Core
 		{
 			var output = new List<TileCacheRecord>();
 
-			if (!IsCancelled)
-			{
-				if (!IsCancelled && session != null &&
+			if (!SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts) && session != null &&
 					(session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
+			{
+				int totalCnt = 0;
+				for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
 				{
-					int totalCnt = 0;
-					for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+					TileCacheRecord topLeftTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
+					TileCacheRecord bottomRightTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
+					int maxX4Zoom = MaxTilexX4Zoom(zoom);
+					Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
+
+					bool exit = false;
+					bool hasJumpedDateLine = false;
+
+					int x = topLeftTile.X;
+					while (!exit)
 					{
-						TileCacheRecord topLeftTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
-						TileCacheRecord bottomRightTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
-						int maxX4Zoom = MaxTilexX4Zoom(zoom);
-						Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
-
-						bool exit = false;
-						bool hasJumpedDateLine = false;
-
-						int x = topLeftTile.X;
-						while (!exit)
+						for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
 						{
-							for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
+							output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
+							totalCnt++;
+							if (IsMustBreak(totalCnt))
 							{
-								output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
-								totalCnt++;
-								if (IsMustBreak(totalCnt))
-								{
-									exit = true;
-									break;
-								}
-							}
-
-							x++;
-							if (x > bottomRightTile.X)
-							{
-								if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
-								{
-									if (x > maxX4Zoom)
-									{
-										x = 0;
-										hasJumpedDateLine = true;
-									}
-								}
-								else
-								{
-									exit = true;
-								}
+								exit = true;
+								break;
 							}
 						}
-						if (IsMustBreak(totalCnt)) break;
+
+						x++;
+						if (x > bottomRightTile.X)
+						{
+							if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
+							{
+								if (x > maxX4Zoom)
+								{
+									x = 0;
+									hasJumpedDateLine = true;
+								}
+							}
+							else
+							{
+								exit = true;
+							}
+						}
 					}
+					if (IsMustBreak(totalCnt)) break;
 				}
 			}
 			return output;
 		}
 		private bool IsMustBreak(int totalCnt)
 		{
-			return totalCnt > ConstantData.MAX_TILES_TO_LEECH || IsCancelled;
+			return totalCnt > ConstantData.MAX_TILES_TO_LEECH || SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts);
 		}
 		#endregion read services
 

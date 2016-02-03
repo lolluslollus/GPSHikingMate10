@@ -15,7 +15,7 @@ namespace LolloGPS.GPSInteraction
 	public sealed class GPSInteractor : OpenableObservableData
 	{
 		#region properties
-		private IGPSDataModel _persistentData = null;
+		private readonly IGPSDataModel _persistentData = null;
 		private volatile Geolocator _geolocator = null;
 
 		private volatile bool _isGpsWorking = false;

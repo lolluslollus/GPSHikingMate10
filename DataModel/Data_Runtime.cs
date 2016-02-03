@@ -12,12 +12,12 @@ namespace LolloGPS.Data.Runtime
 	public sealed class RuntimeData : ObservableData
 	{
 		#region properties
-		private static SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private volatile bool _isTrial = true;
 		public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
 
-		private int _trialResidualDays = -1;
+		private volatile int _trialResidualDays = -1;
 		public int TrialResidualDays { get { return _trialResidualDays; } set { _trialResidualDays = value; RaisePropertyChanged_UI(); } }
 
 		private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
@@ -101,10 +101,17 @@ namespace LolloGPS.Data.Runtime
 			});
 		}
 
-		private volatile bool _isConnectionAvailable = false;
+		private readonly object _isConnAvailLocker = new object();
+		private bool _isConnectionAvailable = false; // no volatile here: I have the locker already, so I use it. volatile is very fast, but the locker is way faster.
 		public bool IsConnectionAvailable
 		{
-			get { return _isConnectionAvailable; }
+			get
+			{
+				lock (_isConnAvailLocker)
+				{
+					return _isConnectionAvailable;
+				}
+			}
 			private set
 			{
 				if (_isConnectionAvailable != value)
@@ -116,37 +123,40 @@ namespace LolloGPS.Data.Runtime
 		}
 		private void UpdateIsConnectionAvailable()
 		{
-			var profile = NetworkInformation.GetInternetConnectionProfile();
-			if (profile == null)
+			lock (_isConnAvailLocker)
 			{
-				IsConnectionAvailable = false;
-			}
-			else
-			{
-				var level = profile.GetNetworkConnectivityLevel();
-				if (level == NetworkConnectivityLevel.InternetAccess || level == NetworkConnectivityLevel.LocalAccess)
+				var profile = NetworkInformation.GetInternetConnectionProfile();
+				if (profile == null)
 				{
-					if (_persistentData == null) _persistentData = PersistentData.GetInstance();
-					if (
-						(_persistentData.IsAllowMeteredConnection)
-						||
-						NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
-						)
+					IsConnectionAvailable = false;
+				}
+				else
+				{
+					var level = profile.GetNetworkConnectivityLevel();
+					if (level == NetworkConnectivityLevel.InternetAccess || level == NetworkConnectivityLevel.LocalAccess)
 					{
-						IsConnectionAvailable = true;
+						if (_persistentData == null) _persistentData = PersistentData.GetInstance();
+						if (
+							(_persistentData.IsAllowMeteredConnection)
+							||
+							NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
+							)
+						{
+							IsConnectionAvailable = true;
+						}
+						else
+						{
+							IsConnectionAvailable = false;
+						}
 					}
 					else
 					{
 						IsConnectionAvailable = false;
 					}
 				}
-				else
-				{
-					IsConnectionAvailable = false;
-				}
 			}
 		}
-		private static ResourceLoader _resourceLoader = new ResourceLoader();
+		private static readonly ResourceLoader _resourceLoader = new ResourceLoader();
 		/// <summary>
 		/// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
 		/// For that, you need Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
@@ -164,7 +174,7 @@ namespace LolloGPS.Data.Runtime
 
 
 		#region lifecycle
-		private static volatile RuntimeData _instance;
+		private static RuntimeData _instance;
 		private static readonly object _instanceLock = new object();
 		private volatile bool _isOpen = false;
 		public static RuntimeData GetInstance()
@@ -189,8 +199,9 @@ namespace LolloGPS.Data.Runtime
 		{
 			if (_isOpen) return;
 			_isOpen = true;
-			UpdateIsConnectionAvailable();
+
 			AddHandlers();
+			UpdateIsConnectionAvailable();
 		}
 		public void Close()
 		{

@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.UI.Xaml.Controls.Maps;
+using Windows.Devices.Geolocation;
 
 
 // There is a sqlite walkthrough at:
@@ -64,17 +65,17 @@ namespace LolloGPS.Data
 		public const string DefaultPositionSource = ConstantData.APPNAME;
 		private const int DefaultSelectedIndex_Base1 = 0;
 
-		private static SemaphoreSlimSafeRelease _historySemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static SemaphoreSlimSafeRelease _route0Semaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static SemaphoreSlimSafeRelease _checkpointsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static SemaphoreSlimSafeRelease _tileSourcezSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _historySemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _route0Semaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _checkpointsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _tileSourcezSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		#region events
 		public event EventHandler CurrentChanged;
 		#endregion events
 
 		#region construct dispose and clone
-		private static volatile PersistentData _instance;
+		private static PersistentData _instance;
 		private static readonly object _instanceLock = new object();
 		public static PersistentData GetInstance()
 		{
@@ -236,12 +237,12 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsShowingAltitudeProfiles { get { return _isShowingAltitudeProfiles; } set { if (_isShowingAltitudeProfiles != value) { _isShowingAltitudeProfiles = value; RaisePropertyChanged_UI(); } } }
 
-		private PointRecord _current = new PointRecord();
+		private volatile PointRecord _current = new PointRecord();
 		[IgnoreDataMember] // we pick Current from History
 		public PointRecord Current
 		{
 			get { return _current; }
-			set
+			private set
 			{
 				PointRecord oldValue = _current;
 				_current = value;
@@ -427,7 +428,7 @@ namespace LolloGPS.Data
 		private MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
 		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
-		private bool _isMapCached = false;
+		private volatile bool _isMapCached = false;
 		[DataMember]
 		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
 		private double _mapLastLat = default(double);
@@ -447,26 +448,32 @@ namespace LolloGPS.Data
 		public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged(); } }
 
 		private static readonly object _lastDownloadLocker = new object();
-		private volatile bool _isTilesDownloadDesired = false;
+		private bool _isTilesDownloadDesired = false; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
 		[DataMember]
 		public bool IsTilesDownloadDesired
 		{
 			get
 			{
-				return _isTilesDownloadDesired;
+				lock (_lastDownloadLocker)
+				{
+					return _isTilesDownloadDesired;
+				}
 			}
 			private set
 			{
 				if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
 			}
 		}
-		private volatile int _maxZoomForDownloadingTiles = -1;
+		private int _maxZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
 		[DataMember]
 		public int MaxDesiredZoomForDownloadingTiles
 		{
 			get
 			{
-				return _maxZoomForDownloadingTiles;
+				lock (_lastDownloadLocker)
+				{
+					return _maxZoomForDownloadingTiles;
+				}
 			}
 			private set
 			{
@@ -489,7 +496,7 @@ namespace LolloGPS.Data
 				if (isMaxZoomChanged) RaisePropertyChanged_UI(nameof(MaxDesiredZoomForDownloadingTiles));
 			}
 		}
-		private DownloadSession _lastDownloadSession;
+		private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
 		[DataMember]
 		public DownloadSession LastDownloadSession
 		{
@@ -522,7 +529,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public TileSourceRecord TestTileSource { get { return _testTileSource; } set { _testTileSource = value; RaisePropertyChanged(); } }
 
-		private TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
+		private volatile TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
 		[DataMember]
 		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged(); } } }
 
@@ -557,30 +564,30 @@ namespace LolloGPS.Data
 		public async Task<bool> DeleteSelectedPointFromSeriesAsync()
 		{
 			SwitchableObservableCollection<PointRecord> series = null;
-			SemaphoreSlimSafeRelease semaphore = null;
+			SemaphoreSlimSafeRelease seriesSemaphore = null;
 			if (Selected != null)
 			{
 				if (_selectedSeries == Tables.History)
 				{
 					series = History;
-					semaphore = _historySemaphore;
+					seriesSemaphore = _historySemaphore;
 				}
 				else if (_selectedSeries == Tables.Route0)
 				{
 					series = Route0;
-					semaphore = _route0Semaphore;
+					seriesSemaphore = _route0Semaphore;
 				}
 				else if (_selectedSeries == Tables.Checkpoints)
 				{
 					series = Checkpoints;
-					semaphore = _checkpointsSemaphore;
+					seriesSemaphore = _checkpointsSemaphore;
 				}
 			}
-			if (series != null && semaphore != null && Selected != null)
+			if (series != null && seriesSemaphore != null && Selected != null)
 			{
 				try
 				{
-					await semaphore.WaitAsync();
+					await seriesSemaphore.WaitAsync();
 					var matchingPointInSeries = series.FirstOrDefault(point => point.Latitude == Selected.Latitude && point.Longitude == Selected.Longitude);
 					if (matchingPointInSeries != null)
 					{
@@ -636,7 +643,7 @@ namespace LolloGPS.Data
 				}
 				finally
 				{
-					SemaphoreSlimSafeRelease.TryRelease(semaphore);
+					SemaphoreSlimSafeRelease.TryRelease(seriesSemaphore);
 				}
 			}
 			LastMessage = "Error updating data";
@@ -1101,6 +1108,66 @@ namespace LolloGPS.Data
 		#endregion selectedRecordMethods
 
 		#region tileSourcesMethods
+		public TileSourceRecord GetTileSourceWithTechName(string tileSourceTechName)
+		{
+			try
+			{
+				_tileSourcezSemaphore.Wait();
+				return _tileSourcez.FirstOrDefault(a => a.TechName == tileSourceTechName);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				return null;
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+		}
+		public TileSourceRecord GetTileSourceWithTechOrDisplayName(string tileSourceName)
+		{
+			try
+			{
+				_tileSourcezSemaphore.Wait();
+				var tech = _tileSourcez.FirstOrDefault(a => a.TechName == tileSourceName);
+				if (tech == null) tech = _tileSourcez.FirstOrDefault(a => a.DisplayName == tileSourceName);
+				return tech;
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				return null;
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+		}
+		public async Task<List<string>> GetDeletableSourceNamesAsync()
+		{
+			var deletableSourceNames = new List<string>();
+			try
+			{
+				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				foreach (var item in _tileSourcez)
+				{
+					if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
+					{
+						deletableSourceNames.Add(item.TechName);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+			return deletableSourceNames;
+		}
 		/// <summary>
 		/// Checks TestTileSource and, if good, adds it to TileSourcez and sets CurrentTileSource to it.
 		/// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
@@ -1207,6 +1274,50 @@ namespace LolloGPS.Data
 			}
 		}
 		#endregion tileSourcesMethods
+
+		#region download session methods
+		public TileCache.TileCache StartOrResumeDownloadSession(GeoboundingBox gbb)
+		{
+			if (gbb == null) return null;
+			//IsCancelledByUser = false;
+			lock (_lastDownloadLocker)
+			{
+				// last download completed: start a new one with the current tile source
+				if (_lastDownloadSession == null)
+				{
+					if (gbb != null)
+					{
+						var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
+
+						var newDownloadSession = new DownloadSession(
+							newTileCache.GetMinZoom(),
+							Math.Min(newTileCache.GetMaxZoom(), MaxDesiredZoomForDownloadingTiles),
+							gbb,
+							newTileCache.TileSource.TechName);
+						// never write an invalid DownloadSession into the persistent data
+						if (newDownloadSession?.IsValid == true)
+						{
+							_lastDownloadSession = newDownloadSession;
+							return newTileCache;
+						}
+					}
+				}
+				// last download did not complete: start a new one with the old tile source
+				else if (_lastDownloadSession.IsValid)
+				{
+					var prevSessionTileSource = GetTileSourceWithTechName(_lastDownloadSession.TileSourceTechName);
+					if (prevSessionTileSource != null)
+					{
+						var newTileCache = new TileCache.TileCache(prevSessionTileSource, false);
+						return newTileCache;
+					}
+					// of course, we don't touch the unfinished download session
+				}
+
+				return null;
+			}
+		}
+		#endregion download session methods
 
 		#region otherMethods
 		private SemaphoreSlimSafeRelease GetSemaphoreForSeries(Tables whichSeries)

@@ -24,7 +24,7 @@ namespace LolloGPS.Core
 		private MainVM _mainVM = null;
 		public MainVM MainVM { get { return _mainVM; } }
 
-		private static SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
 		#endregion properties
 
@@ -152,7 +152,7 @@ namespace LolloGPS.Core
 			_mainVM?.GoBackTabletSoft(sender, e);
 		}
 
-		private DispatcherTimerPlus _animationTimer = null;
+		private volatile DispatcherTimerPlus _animationTimer = null;
 
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
@@ -291,7 +291,7 @@ namespace LolloGPS.Core
 			_mainVM.LogText = string.Empty;
 		}
 
-		private void OnOpenPivot_Click(object sender, RoutedEventArgs e)
+		private void OnToggleOpenPivot_Click(object sender, RoutedEventArgs e)
 		{
 			PersistentData.IsShowingPivot = !PersistentData.IsShowingPivot;
 		}

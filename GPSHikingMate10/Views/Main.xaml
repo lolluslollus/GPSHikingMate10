@@ -393,7 +393,7 @@
 			<AppBarButton Grid.Column="4"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
-						  Click="OnOpenPivot_Click"
+						  Click="OnToggleOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Column="5"
@@ -461,7 +461,7 @@
 			<AppBarButton Grid.Row="4"
 						  HorizontalAlignment="Center" 
 						  Label="Menu" Icon="Setting"
-						  Click="OnOpenPivot_Click"
+						  Click="OnToggleOpenPivot_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Row="5"

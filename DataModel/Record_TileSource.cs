@@ -131,8 +131,7 @@ namespace LolloGPS.Data
 			if (!techName.All(Char.IsLetter)) return "Name: only letters are allowed";
 			if (!skipAlreadyInUse)
 			{
-				if (PersistentData.GetInstance().TileSourcez.FirstOrDefault(a => a.TechName == techName) != null) return "Name already in use, use a new name to make changes";
-				if (PersistentData.GetInstance().TileSourcez.FirstOrDefault(a => a.DisplayName == techName) != null) return "Name already in use, use a new name to make changes";
+				if (PersistentData.GetInstance().GetTileSourceWithTechOrDisplayName(techName) != null) return "Name already in use, use a new name to make changes";
 			}
 
 			return string.Empty;
@@ -143,8 +142,7 @@ namespace LolloGPS.Data
 			if (displayName.Length > MaxTechNameLength) return string.Format("Name must be max {0} characters", MaxTechNameLength);
 			if (!skipAlreadyInUse)
 			{
-				if (PersistentData.GetInstance().TileSourcez.FirstOrDefault(a => a.TechName == displayName) != null) return "Name already in use, use a new name to make changes";
-				if (PersistentData.GetInstance().TileSourcez.FirstOrDefault(a => a.DisplayName == displayName) != null) return "Name already in use, use a new name to make changes";
+				if (PersistentData.GetInstance().GetTileSourceWithTechOrDisplayName(displayName) != null) return "Name already in use, use a new name to make changes";
 			}
 
 			return string.Empty;
@@ -167,9 +165,9 @@ namespace LolloGPS.Data
 			string sTestUri = string.Empty;
 			try
 			{
-				string testUriFormat = uri.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
-				testUriFormat = testUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
-				testUriFormat = testUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
+				string testUriFormat = uri.Replace(ZoomLevelPlaceholder, ZoomLevelPlaceholder_Internal);
+				testUriFormat = testUriFormat.Replace(XPlaceholder, XPlaceholder_Internal);
+				testUriFormat = testUriFormat.Replace(YPlaceholder, YPlaceholder_Internal);
 
 				sTestUri = string.Format(testUriFormat, 0, 0, 0);
 

@@ -637,7 +637,7 @@ namespace LolloGPS.Data.TileCache
 			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
 			//// test end
 
-			var folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
+			var folderNamesToBeDeleted = await GetFolderNamesToBeDeletedAsync(tileSource).ConfigureAwait(false);
 			if (folderNamesToBeDeleted?.Count > 0)
 			{
 				var localFolder = ApplicationData.Current.LocalFolder;
@@ -689,7 +689,7 @@ namespace LolloGPS.Data.TileCache
 			Debug.WriteLine("ClearCacheAsync() ended");
 		}
 
-		private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
+		private static async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource)
 		{
 			var folderNamesToBeDeleted = new List<string>();
 			if (tileSource != null)
@@ -701,13 +701,7 @@ namespace LolloGPS.Data.TileCache
 				}
 				else if (tileSource.IsAll)
 				{
-					foreach (var item in persistentData.TileSourcez)
-					{
-						if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
-						{
-							folderNamesToBeDeleted.Add(item.TechName);
-						}
-					}
+					folderNamesToBeDeleted.AddRange(await persistentData.GetDeletableSourceNamesAsync());
 				}
 			}
 			return folderNamesToBeDeleted;

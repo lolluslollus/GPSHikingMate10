@@ -53,14 +53,14 @@ namespace LolloGPS.Core
 		//private Point _checkpointsNormalisedIconPoint = new Point(0.5, 0.5);
 		//public Point CheckpointsNormalisedIconPoint { get { return _checkpointsNormalisedIconPoint; } }
 
-		private MapPolyline _mapPolylineRoute0 = new MapPolyline()
+		private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["Route0Brush"])).Color,
 			StrokeThickness = (double)(Application.Current.Resources["Route0Thickness"]),
 			MapTabIndex = ROUTE0_TAB_INDEX,
 		};
 
-		private MapPolyline _mapPolylineHistory = new MapPolyline()
+		private readonly MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["HistoryBrush"])).Color,
 			StrokeThickness = (double)(Application.Current.Resources["HistoryThickness"]),
@@ -69,7 +69,7 @@ namespace LolloGPS.Core
 		//private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		//private static Image _imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		//private static Image _imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-		private MapIcon _iconStartHistory = new MapIcon()
+		private readonly MapIcon _iconStartHistory = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)),
@@ -77,7 +77,7 @@ namespace LolloGPS.Core
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
 		};
-		private MapIcon _iconEndHistory = new MapIcon()
+		private readonly MapIcon _iconEndHistory = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)),
@@ -85,7 +85,7 @@ namespace LolloGPS.Core
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
 		};
-		private MapIcon _iconFlyoutPoint = new MapIcon()
+		private readonly MapIcon _iconFlyoutPoint = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
 			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)),

@@ -16,7 +16,7 @@ namespace Utilz
 {
 	internal class Licenser : ObservableData
 	{
-		private static RuntimeData _runtimeData = RuntimeData.GetInstance();
+		private static readonly RuntimeData _runtimeData = RuntimeData.GetInstance();
 		public static async Task<bool> CheckLicensedAsync()
 		{
 			// do not use persistent data across this class

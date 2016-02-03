@@ -16,7 +16,7 @@ namespace LolloGPS.Data.TileCache
 		internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
 		internal static readonly bool _isStoreDateTimeAsTicks = true;
 		internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
-		internal static SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		internal static readonly SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		internal static async Task<TileCacheRecord> GetTileRecordAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
 		{
@@ -270,8 +270,8 @@ namespace LolloGPS.Data.TileCache
 		}
 
 		static readonly Dictionary<string, ConnectionEntry> _connectionEntries = new Dictionary<string, ConnectionEntry>();
-		private static SemaphoreSlimSafeRelease _connectionEntriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-		private static SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _connectionEntriesSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _isOpenSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private static volatile bool _isOpen = false;
 		public static bool IsOpen { get { return _isOpen; } }
 		internal static TileSQLiteConnection GetConnection(SQLiteConnectionString connectionString, SQLiteOpenFlags openFlags)

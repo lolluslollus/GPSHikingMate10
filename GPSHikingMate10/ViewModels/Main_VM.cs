@@ -44,35 +44,55 @@ namespace LolloGPS.Core
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
-		private GPSInteractor _gpsInteractor = null;
+		private readonly GPSInteractor _gpsInteractor = null;
 		public GPSInteractor GPSInteractor { get { return _gpsInteractor; } }
 
-		private volatile bool _isClearCustomCacheEnabled = false;
-		public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged_UI(); } } }
-		private volatile bool _isClearCacheEnabled = false;
-		public bool IsClearCacheEnabled { get { return _isClearCacheEnabled; } set { if (_isClearCacheEnabled != value) { _isClearCacheEnabled = value; RaisePropertyChanged_UI(); } } }
-		private volatile bool _isCacheBtnEnabled = false;
-		public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged_UI(); } } }
-		private volatile bool _isLeechingEnabled = false;
-		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged_UI(); } } }
+		// the following bools should be volatile, instead we choose to only read and write them in the UI thread.
+		private bool _isClearCustomCacheEnabled = false;
+		public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } private set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged(); } } }
+		private bool _isClearCacheEnabled = false;
+		public bool IsClearCacheEnabled { get { return _isClearCacheEnabled; } private set { if (_isClearCacheEnabled != value) { _isClearCacheEnabled = value; RaisePropertyChanged(); } } }
+		private bool _isCacheBtnEnabled = false;
+		public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } private set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged(); } } }
+		private bool _isLeechingEnabled = false;
+		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } private set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged(); } } }
 
 		private string _testTileSourceErrorMsg = "";
-		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
+		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
-		private volatile bool _isLastMessageVisible = false;
-		public bool IsLastMessageVisible { get { return _isLastMessageVisible; } set { if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); } } }
+		private readonly object _isMessageVisibleLocker = new object();
+		private bool _isLastMessageVisible = false;
+		public bool IsLastMessageVisible
+		{
+			get
+			{
+				lock (_isMessageVisibleLocker)
+				{
+					return _isLastMessageVisible;
+				}
+			}
+			set
+			{
+				lock (_isMessageVisibleLocker)
+				{
+					if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); }
+				}
+			}
+		}
 
-		private volatile bool _isLoading = false;
+		private readonly object _loadSaveLocker = new object();
+		private bool _isLoading = false;
 		/// <summary>
 		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
 		/// </summary>
-		public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChangedUrgent_UI(); } }
+		public bool IsLoading { get { lock (_loadSaveLocker) { return _isLoading; } } private set { lock (_loadSaveLocker) { _isLoading = value; RaisePropertyChangedUrgent_UI(); } } }
 
-		private volatile bool _isSaving = false;
+		private bool _isSaving = false;
+
 		/// <summary>
 		/// Perhaps not the best, but it beats using the registry, which gets stuck to a value whenever the app crashes
 		/// </summary>
-		public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChangedUrgent_UI(); } }
+		public bool IsSaving { get { lock (_loadSaveLocker) { return _isSaving; } } private set { lock (_loadSaveLocker) { _isSaving = value; RaisePropertyChangedUrgent_UI(); } } }
 
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
@@ -129,26 +149,38 @@ namespace LolloGPS.Core
 		#region updaters
 		internal void UpdateClearCustomCacheButtonIsEnabled()
 		{
-			IsClearCustomCacheEnabled =
-				PersistentData.TileSourcez.FirstOrDefault(ts => ts.IsDeletable) != null &&
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsClearCustomCacheEnabled =
+				PersistentData.TileSourcez.FirstOrDefault(ts => ts.IsDeletable) != null && // not atomic, not volatile, not critical
 				TileCacheProcessingQueue.IsFree;
+			});
 		}
 		internal void UpdateClearCacheButtonIsEnabled()
 		{
-			IsClearCacheEnabled = TileCacheProcessingQueue.IsFree;
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsClearCacheEnabled = TileCacheProcessingQueue.IsFree;
+			});
 		}
 		internal void UpdateCacheButtonIsEnabled()
 		{
-			IsCacheBtnEnabled =
-				PersistentData.CurrentTileSource?.IsDefault == false
-				&& TileCacheProcessingQueue.IsFree;
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsCacheBtnEnabled =
+					PersistentData.CurrentTileSource?.IsDefault == false
+					&& TileCacheProcessingQueue.IsFree;
+			});
 		}
 		internal void UpdateDownloadButtonIsEnabled()
 		{
-			IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
 				&& PersistentData.CurrentTileSource?.IsDefault == false
 				&& RuntimeData.IsConnectionAvailable
 				&& TileCacheProcessingQueue.IsFree;
+			});
 		}
 		#endregion updaters
 
@@ -310,30 +342,34 @@ namespace LolloGPS.Core
 
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
-			if (_lolloMapVM != null)
+			var lmVM = _lolloMapVM;
+			if (lmVM != null)
 			{
-				var output = await _lolloMapVM.GetHowManyTiles4DifferentZoomsAsync();
+				var output = await lmVM.GetHowManyTiles4DifferentZoomsAsync();
 				return output;
 			}
 			else return new List<Tuple<int, int>>();
 		}
 		public void CancelDownloadByUser()
 		{
-			if (_lolloMapVM != null) _lolloMapVM.CancelDownloadByUser();
+			_lolloMapVM?.CancelDownloadByUser();
 		}
 
-		public async Task StartUserTestingTileSourceAsync()
+		public Task StartUserTestingTileSourceAsync()
 		{
-			Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
-
-			if (result?.Item1 == true)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				TestTileSourceErrorMsg = string.Empty; // ok
-				PersistentData.IsShowingPivot = false;
-			}
-			else TestTileSourceErrorMsg = result.Item2; // error
+				Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
 
-			SetLastMessage_UI(result.Item2);
+				if (result?.Item1 == true)
+				{
+					TestTileSourceErrorMsg = string.Empty; // ok
+					PersistentData.IsShowingPivot = false;
+				}
+				else TestTileSourceErrorMsg = result.Item2; // error
+
+				SetLastMessage_UI(result.Item2);
+			});
 		}
 		/// <summary>
 		/// Makes sure the numbers make sense:
@@ -396,20 +432,26 @@ namespace LolloGPS.Core
 		public async Task CentreOnRoute0Async()
 		{
 			PersistentData.IsShowingPivot = false;
-			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnRoute0Async();
-			if (_lolloMapVM != null) await _lolloMapVM.CentreOnRoute0Async().ConfigureAwait(false);
+			var apVM = _altitudeProfilesVM;
+			if (apVM != null) await apVM.CentreOnRoute0Async();
+			var lmVM = _lolloMapVM;
+			if (lmVM != null) await lmVM.CentreOnRoute0Async().ConfigureAwait(false);
 		}
 		public async Task CentreOnHistoryAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnHistoryAsync();
-			if (_lolloMapVM != null) await _lolloMapVM.CentreOnHistoryAsync().ConfigureAwait(false);
+			var apVM = _altitudeProfilesVM;
+			if (apVM != null) await apVM.CentreOnHistoryAsync();
+			var lmVM = _lolloMapVM;
+			if (lmVM != null) await lmVM.CentreOnHistoryAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnCheckpointsAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			if (_altitudeProfilesVM != null) await _altitudeProfilesVM.CentreOnCheckpointsAsync();
-			if (_lolloMapVM != null) await _lolloMapVM.CentreOnCheckpointsAsync().ConfigureAwait(false);
+			var apVM = _altitudeProfilesVM;
+			if (apVM != null) await apVM.CentreOnCheckpointsAsync();
+			var lmVM = _lolloMapVM;
+			if (lmVM != null) await lmVM.CentreOnCheckpointsAsync().ConfigureAwait(false);
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
@@ -422,13 +464,15 @@ namespace LolloGPS.Core
 		{
 			PersistentData.IsShowingPivot = false;
 			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless
-			if (_lolloMapVM != null) await _lolloMapVM.CentreOnTargetAsync().ConfigureAwait(false);
+			var lmVM = _lolloMapVM;
+			if (lmVM != null) await lmVM.CentreOnTargetAsync().ConfigureAwait(false);
 		}
 		public async Task CentreOnCurrentAsync()
 		{
 			PersistentData.IsShowingPivot = false;
 			// await _myAltitudeProfiles_VM?.CentreOnCurrentAsync(); // useless
-			if (_lolloMapVM != null) await _lolloMapVM.CentreOnCurrentAsync().ConfigureAwait(false);
+			var lmVM = _lolloMapVM;
+			if (lmVM != null) await lmVM.CentreOnCurrentAsync().ConfigureAwait(false);
 		}
 		public Task Goto2DAsync()
 		{

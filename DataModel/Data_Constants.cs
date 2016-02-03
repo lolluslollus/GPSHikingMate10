@@ -40,7 +40,7 @@ namespace LolloGPS.Data
 		public const int TRIAL_LENGTH_DAYS = 7;
 
 		public static string AppName { get { return APPNAME; } }
-        private static string _version = Package.Current.Id.Version.Major.ToString()
+        private static readonly string _version = Package.Current.Id.Version.Major.ToString()
             + "."
             + Package.Current.Id.Version.Minor.ToString()
             + "."

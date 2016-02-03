@@ -37,7 +37,7 @@ namespace LolloGPS.Core
 		public bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
 
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-		private static SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		#endregion properties
 
 
