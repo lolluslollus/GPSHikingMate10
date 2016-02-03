@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Controls.Maps;
 using Windows.Devices.Geolocation;
 using Windows.Storage;
 using System.IO;
+using System.Threading;
 
 
 // There is a sqlite walkthrough at:
@@ -1197,11 +1198,15 @@ namespace LolloGPS.Data
 			}
 		}
 
-		public async Task<Tuple<TileCache.TileCacheProcessingQueue.ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, SafeCancellationTokenSource cts)
+		public enum ClearCacheResult { OK, Error, Cancelled }
+		public async Task<Tuple<ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
 		{
+			if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return Tuple.Create(ClearCacheResult.Error, 0);
+
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+
 				int howManyRecordsDeletedTotal = 0;
 				List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
 
@@ -1213,8 +1218,8 @@ namespace LolloGPS.Data
 					{
 						try
 						{
-							if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
-								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
+							if (cancToken.IsCancellationRequested)
+								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							/*	Delete db entries first.
 							 *  It's not terrible if some files are not deleted and the db thinks they are:
@@ -1224,8 +1229,8 @@ namespace LolloGPS.Data
 							 */
 							var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-							if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(cts))
-								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
+							if (cancToken.IsCancellationRequested)
+								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							if (dbResult.Item1)
 							{
@@ -1235,28 +1240,21 @@ namespace LolloGPS.Data
 								howManyRecordsDeletedTotal += dbResult.Item2;
 
 								// remove tile source from collection last.
-								await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+								if (isAlsoRemoveSources) await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
 							}
 							else
 							{
-								return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.Error, howManyRecordsDeletedTotal);
+								return Tuple.Create(ClearCacheResult.Error, howManyRecordsDeletedTotal);
 								// there was some trouble with the DB: cancel processing and get out
-								//await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-								//CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
-								//return;
 							}
 						}
-						catch (FileNotFoundException)
-						{
-							Debug.WriteLine("FileNotFound in ClearCacheAsync()");
-						}
-						catch (Exception ex)
-						{
-							Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
-						}
+						catch (OperationCanceledException) { return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal); }
+						catch (ObjectDisposedException) { return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal); }
+						catch (FileNotFoundException) { Debug.WriteLine("FileNotFound in ClearCacheAsync()"); }
+						catch (Exception ex) { Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename); }
 					}
 				}
-				return Tuple.Create(TileCache.TileCacheProcessingQueue.ClearCacheResult.OK, howManyRecordsDeletedTotal);
+				return Tuple.Create(ClearCacheResult.OK, howManyRecordsDeletedTotal);
 			}
 			finally
 			{

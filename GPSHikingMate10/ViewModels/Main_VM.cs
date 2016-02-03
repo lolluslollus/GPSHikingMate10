@@ -262,12 +262,6 @@ namespace LolloGPS.Core
 		}
 		private void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
 		{
-			// LOLLO TODO do this where you delete the cache
-			//if (args.IsAlsoRemoveSources && args.IsCacheCleared)
-			//{
-			//	await PersistentData.RemoveTileSourcesAsync(args.TileSource);
-			//}
-
 			// output messages
 			if (args.TileSource.IsAll)
 			{
@@ -333,7 +327,7 @@ namespace LolloGPS.Core
 		}
 		public void ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
-			if (!tileSource.IsNone && !tileSource.IsDefault)
+			if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
 			{
 				PersistentData.LastMessage = "clearing the cache...";
 				TileCache.ScheduleClear(tileSource, isAlsoRemoveSources);

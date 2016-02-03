@@ -324,59 +324,60 @@ namespace LolloGPS.Core
 			var output = new List<TileCacheRecord>();
 			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
 
-			if (!cancToken.IsCancellationRequested && session != null &&
-					(session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
+			try
 			{
-				int totalCnt = 0;
-				for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+				if (!cancToken.IsCancellationRequested && session != null &&
+						(session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
 				{
-					TileCacheRecord topLeftTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
-					TileCacheRecord bottomRightTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
-					int maxX4Zoom = MaxTilexX4Zoom(zoom);
-					Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
-
-					bool exit = false;
-					bool hasJumpedDateLine = false;
-
-					int x = topLeftTile.X;
-					while (!exit)
+					int totalCnt = 0;
+					for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
 					{
-						for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
-						{
-							output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
-							totalCnt++;
-							if (IsMustBreak(totalCnt, cancToken))
-							{
-								exit = true;
-								break;
-							}
-						}
+						TileCacheRecord topLeftTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
+						TileCacheRecord bottomRightTile = new TileCacheRecord(session.TileSourceTechName, Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
+						int maxX4Zoom = MaxTilexX4Zoom(zoom);
+						Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
 
-						x++;
-						if (x > bottomRightTile.X)
+						bool exit = false;
+						bool hasJumpedDateLine = false;
+
+						int x = topLeftTile.X;
+						while (!exit)
 						{
-							if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
+							for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
 							{
-								if (x > maxX4Zoom)
+								output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
+								totalCnt++;
+								if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested)
 								{
-									x = 0;
-									hasJumpedDateLine = true;
+									exit = true;
+									break;
 								}
 							}
-							else
+
+							x++;
+							if (x > bottomRightTile.X)
 							{
-								exit = true;
+								if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
+								{
+									if (x > maxX4Zoom)
+									{
+										x = 0;
+										hasJumpedDateLine = true;
+									}
+								}
+								else
+								{
+									exit = true;
+								}
 							}
 						}
+						if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested) break;
 					}
-					if (IsMustBreak(totalCnt, cancToken)) break;
 				}
 			}
+			catch (OperationCanceledException) { }
+			catch (ObjectDisposedException) { }
 			return output;
-		}
-		private bool IsMustBreak(int totalCnt, CancellationToken cancToken)
-		{
-			return totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested;
 		}
 		#endregion read services
 

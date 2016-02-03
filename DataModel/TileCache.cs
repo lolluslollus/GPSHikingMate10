@@ -566,8 +566,11 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
-						await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
-						await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+						if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
+						{
+							await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+							await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+						}
 					}
 				}
 				catch (Exception) { } // semaphore disposed
@@ -617,92 +620,34 @@ namespace LolloGPS.Data.TileCache
 			}
 			return false;
 		}
-		public enum ClearCacheResult { OK, Error, Cancelled }
+
 		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
 
-			if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
+			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(_cts);
 
-			if (tileSource == null)
+			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, cancToken).ConfigureAwait(false);
+			if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Error)
 			{
 				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, 0));
-				return;
-			}
-
-			int howManyRecordsDeletedTotal = 0;
-
-			//// test begin
-			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
-			//// test end
-			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, _cts).ConfigureAwait(false);
-			if (tryCancResult.Item1 == ClearCacheResult.Error)
-			{
-				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
+				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, tryCancResult.Item2));
 				Debug.WriteLine("ClearCacheAsync() ended with error");
 			}
-
-			//await PersistentData.GetInstance().RunInTileSourceSemaphore(async delegate
-			//{
-			//	List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
-			//	if (folderNamesToBeDeleted?.Count > 0)
-			//	{
-			//		var localFolder = ApplicationData.Current.LocalFolder;
-
-			//		foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
-			//		{
-			//			try
-			//			{
-			//				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
-
-			//				/*	Delete db entries first.
-			//				 *  It's not terrible if some files are not deleted and the db thinks they are:
-			//					they will be downloaded again, and not resaved (with the current logic).
-			//				 *  It's terrible if files are deleted and the db thinks they are still there,
-			//					because they will never be downloaded again, and the tiles will be forever empty.
-			//				 */
-			//				var dbResult = await DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
-
-			//				if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(_cts)) return;
-
-			//				if (dbResult.Item1)
-			//				{
-			//					// delete the files next.
-			//					var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
-			//					await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
-			//					howManyRecordsDeletedTotal += dbResult.Item2;
-			//				}
-			//				else
-			//				{
-			//					// there was some trouble with the DB: cancel processing and get out
-			//					await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-			//					CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, howManyRecordsDeletedTotal));
-			//					return;
-			//				}
-			//			}
-			//			catch (FileNotFoundException)
-			//			{
-			//				Debug.WriteLine("FileNotFound in ClearCacheAsync()");
-			//			}
-			//			catch (Exception ex)
-			//			{
-			//				Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename);
-			//			}
-			//		}
-			//	}
-			//}).ConfigureAwait(false);
-			else if (tryCancResult.Item1 == ClearCacheResult.OK)
+			else if (tryCancResult.Item1 == PersistentData.ClearCacheResult.OK)
 			{
 				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, howManyRecordsDeletedTotal));
+				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, tryCancResult.Item2));
 				Debug.WriteLine("ClearCacheAsync() ended OK");
 			}
 			else
 			{
 				Debug.WriteLine("ClearCacheAsync() cancelled");
 			}
+
+			//// test begin
+			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
+			//// test end
 		}
 
 		//private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
