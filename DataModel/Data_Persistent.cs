@@ -275,15 +275,15 @@ namespace LolloGPS.Data
 		[DataMember]
 		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 
-		private SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
+		private readonly SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
 		[IgnoreDataMember] // we save the history into the DB 
-		public SwitchableObservableCollection<PointRecord> History { get { return _history; } private set { _history = value; RaisePropertyChanged(); } }
-		private SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
+		public SwitchableObservableCollection<PointRecord> History { get { return _history; } }
+		private readonly SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
 		[IgnoreDataMember] // we save the route into the DB 
-		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } private set { _route0 = value; RaisePropertyChanged(); } }
-		private SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints); // we init this in the static ctor
+		public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } }
+		private readonly SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints); // we init this in the static ctor
 		[IgnoreDataMember] // we save the checkpoints into the DB 
-		public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } private set { _checkpoints = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } }
 
 		private volatile uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
 		[DataMember]
@@ -525,6 +525,7 @@ namespace LolloGPS.Data
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
 		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times. This is difficult to reproduce.
+		// I cannot make it readonly coz I need a setter for the deserializer
 		private SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
