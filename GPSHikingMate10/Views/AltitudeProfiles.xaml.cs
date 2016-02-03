@@ -253,12 +253,13 @@ namespace LolloGPS.Core
 			}
 		}
 
+		// the following methods do not seem critical for mt: I am in a screen where, at most, a history point could be added.
 		private void OnHistoryChartTapped(object sender, LolloChart.ChartTappedArguments e)
 		{
 			try
 			{
 				if (e.XMax * PersistentData.History.Count > 0)
-				{
+				{					
 					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.History.Count))], PersistentData.Tables.History));
 				}
 			}
