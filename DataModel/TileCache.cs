@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Storage;
@@ -187,8 +188,9 @@ namespace LolloGPS.Data.TileCache
 			return result;
 		}
 
-		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom)
+		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom/*, CancellationToken cancToken*/)
 		{
+			//if (cancToken == null || cancToken.IsCancellationRequested) return false; // this may throw, so what?
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads.
@@ -400,7 +402,9 @@ namespace LolloGPS.Data.TileCache
 		// private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
 		private static volatile Func<Task> _funcAsSoonAsFree = null;
 		private static volatile bool _isOpen = false;
-		private static volatile SafeCancellationTokenSource _cts = null;
+		private static readonly object _cancLocker = new object();
+		private static SafeCancellationTokenSource _cts = null;
+		private static SafeCancellationTokenSource Cts { get { lock (_cancLocker) { return _cts; } } set { lock (_cancLocker) { _cts = value; } } }
 		#endregion properties
 
 
@@ -442,8 +446,11 @@ namespace LolloGPS.Data.TileCache
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (!_isOpen)
 					{
-						_cts?.Dispose();
-						_cts = new SafeCancellationTokenSource();
+						lock (_cancLocker)
+						{
+							_cts?.Dispose();
+							_cts = new SafeCancellationTokenSource();
+						}
 
 						// resume clearing cache if it was interrupted
 						var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
@@ -470,15 +477,18 @@ namespace LolloGPS.Data.TileCache
 		{
 			if (_isOpen)
 			{
-				_cts?.CancelSafe(true);
+				Cts?.CancelSafe(true);
 
 				try
 				{
 					await _semaphore.WaitAsync().ConfigureAwait(false);
 					if (_isOpen)
 					{
-						_cts?.Dispose();
-						_cts = null;
+						lock (_cancLocker)
+						{
+							_cts?.Dispose();
+							_cts = null;
+						}
 
 						// _funcsAsSoonAsFree.Clear();
 						_funcAsSoonAsFree = null;
@@ -509,6 +519,7 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		internal static async Task<bool> TryAddToQueueAsync(string fileName)
 		{
+			if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return false;
 			if (_isOpen)
 			{
 				try
@@ -522,6 +533,7 @@ namespace LolloGPS.Data.TileCache
 							IsFree = (_fileNames_InProcess.Count == 0);
 							await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 
+							Debug.WriteLine("TryAddToQueueAsync() added an entry");
 							return true;
 						}
 					}
@@ -627,7 +639,7 @@ namespace LolloGPS.Data.TileCache
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
 
-			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(_cts);
+			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
 
 			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, cancToken).ConfigureAwait(false);
 			if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Error)

@@ -3,6 +3,7 @@ using LolloGPS.Data.Runtime;
 using LolloGPS.Suspension;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel;
@@ -72,18 +73,25 @@ namespace LolloGPS.Core
 
 		private async Task CloseAllAsync()
 		{
+			Debug.WriteLine("CloseAllAsync() started");
+			// lock the DBs // LOLLO TODO I moved it up here coz cancelling when downloading tiles takes too long
+			PersistentData.CloseMainDb();
+			Debug.WriteLine("CloseAllAsync() closed the main db");
+			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
+			Debug.WriteLine("CloseAllAsync() closed the tile cache");
 			// unregister events and stop long running tasks.
 			if (IsRootFrameMain)
 			{
 				Main main = (Window.Current.Content as Frame).Content as Main;
 				await main.CloseAsync().ConfigureAwait(false);
 			}
-			// lock the DBs
-			PersistentData.CloseMainDb();
-			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
+			Debug.WriteLine("CloseAllAsync() closed the UI");
+			//// lock the DBs
+			//PersistentData.CloseMainDb();
+			//await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
 			// back up the app settings
 			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
-
+			Debug.WriteLine("CloseAllAsync() saved the settings");
 			RuntimeData?.Close();
 		}
 		#endregion lifecycle

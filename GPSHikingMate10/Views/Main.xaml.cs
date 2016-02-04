@@ -79,10 +79,14 @@ namespace LolloGPS.Core
 
 		public async Task CloseAsync()
 		{
+			// LOLLO TODO I have been testing this and it seems that it won't hit, is it always closed when suspending?
+			Debug.WriteLine("Main.CloseAsync() entered CloseAsync");
 			if (!_isOpen) return;
+			Debug.WriteLine("Main.CloseAsync() is in CloseAsync, which is closed");
 			try
 			{
 				await _openCloseSemaphore.WaitAsync();
+				Debug.WriteLine("Main.CloseAsync() entered the semaphore");
 				if (!_isOpen) return;
 
 				RemoveHandlers();
@@ -95,10 +99,14 @@ namespace LolloGPS.Core
 				{
 					await mainVM.CloseAsync();
 				}
+				Debug.WriteLine("Main.CloseAsync() closed MainVM");
 
 				await MyPointInfoPanel.CloseAsync();
+				Debug.WriteLine("Main.CloseAsync() closed the point info panel");
 				await MyLolloMap.CloseAsync();
+				Debug.WriteLine("Main.CloseAsync() closed the map");
 				await MyAltitudeProfiles.CloseAsync();
+				Debug.WriteLine("Main.CloseAsync() closed the altitude");
 
 				//_owner.Storyboard_NewMessage.SkipToFill();
 

@@ -45,43 +45,47 @@ namespace LolloGPS.Core
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-			if (!PersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(PersistentData.CurrentTileSource, PersistentData.IsMapCached);
+			await OpenAlternativeMap_Http_Async(PersistentData.CurrentTileSource, PersistentData.IsMapCached).ConfigureAwait(false);
 		}
-		private void OpenAlternativeMap_Http(TileSourceRecord tileSource, bool isCaching)
+		private Task OpenAlternativeMap_Http_Async(TileSourceRecord tileSource, bool isCaching)
 		{
+			if (tileSource == null || tileSource.IsDefault) return Task.CompletedTask;
+
 			_tileCache = new TileCache(tileSource, isCaching);
 
-			_tileDataSource_http = new HttpMapTileDataSource()
+			return RunInUiThreadAsync(delegate
 			{
-				// UriFormatString = _tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
-				AllowCaching = false, //true, // we do our own caching
-			};
+				_tileDataSource_http = new HttpMapTileDataSource()
+				{
+					// UriFormatString = _tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
+					AllowCaching = false, //true, // we do our own caching
+				};
 
-			_mapTileSource = new MapTileSource(
-				_tileDataSource_http,
-				// new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() })
-				// The MapControl won't request the uri if the zoom is outside its bounds.
-				// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
-				new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
-			{
-				// Layer = MapTileLayer.BackgroundReplacement,
-				Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
-														// Layer = (MapTileLayer.BackgroundOverlay | MapTileLayer.RoadOverlay), // still does not hide the roads
-				AllowOverstretch = true,
-				//ZoomLevelRange = new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() },
-				IsRetryEnabled = true,
-				TilePixelSize = _tileCache.GetTilePixelSize(),
-				IsFadingEnabled = false, //true,
-				ZIndex = 999,
-			};
+				_mapTileSource = new MapTileSource(
+					_tileDataSource_http,
+					// new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() })
+					// The MapControl won't request the uri if the zoom is outside its bounds.
+					// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
+					new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+				{
+					// Layer = MapTileLayer.BackgroundReplacement,
+					Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
+															// Layer = (MapTileLayer.BackgroundOverlay | MapTileLayer.RoadOverlay), // still does not hide the roads
+					AllowOverstretch = true,
+					//ZoomLevelRange = new MapZoomLevelRange() { Max = _tileCache.GetMaxZoom(), Min = _tileCache.GetMinZoom() },
+					IsRetryEnabled = true,
+					TilePixelSize = _tileCache.GetTilePixelSize(),
+					IsFadingEnabled = false, //true,
+					ZIndex = 999,
+				};
 
-			if (!_mapTileSources.Contains(_mapTileSource))
-			{
-				_mapTileSources.Add(_mapTileSource);
-				_tileDataSource_http.UriRequested += OnDataSource_UriRequested;
-			}
-
-			Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+				if (!_mapTileSources.Contains(_mapTileSource))
+				{
+					_mapTileSources.Add(_mapTileSource);
+					_tileDataSource_http.UriRequested += OnDataSource_UriRequested;
+				}
+			});
+			// Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			//_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
 			//_myMap.Style = MapStyle.None; //so our map will cover the original completely
 		}
@@ -113,17 +117,20 @@ namespace LolloGPS.Core
 		protected override async Task CloseMayOverrideAsync()
 		{
 			RemoveHandler_DataChanged();
-			await _tileDownloader.CloseAsync();
-			CloseAlternativeMap_Http();
+			await _tileDownloader.CloseAsync().ConfigureAwait(false);
+			await CloseAlternativeMap_Http_Async().ConfigureAwait(false);
 		}
 
-		private void CloseAlternativeMap_Http()
+		private Task CloseAlternativeMap_Http_Async()
 		{
-			if (_tileDataSource_http != null) _tileDataSource_http.UriRequested -= OnDataSource_UriRequested;
-			//if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
-			var mts = _mapTileSource;
-			if (mts != null) _mapTileSources?.Remove(mts);
-			Logger.Add_TPL("CloseAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			return RunInUiThreadAsync(delegate
+			{
+				if (_tileDataSource_http != null) _tileDataSource_http.UriRequested -= OnDataSource_UriRequested;
+				//if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
+				var mts = _mapTileSource;
+				if (mts != null) _mapTileSources?.Remove(mts);
+			});
+			// Logger.Add_TPL("CloseAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
 		#endregion construct and dispose
 		/// <summary>
@@ -166,17 +173,17 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
 			{
-				Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
+				Task down = RunFunctionIfOpenAsyncT(delegate
+				{
+					return Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
+				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
 			{
-				Task reopen = RunFunctionIfOpenAsyncA(delegate
+				Task reopen = RunFunctionIfOpenAsyncT(async delegate
 				{
-					Task gt = RunInUiThreadAsync(delegate
-					{
-						CloseAlternativeMap_Http();
-						if (!PersistentData.CurrentTileSource.IsDefault) OpenAlternativeMap_Http(PersistentData.CurrentTileSource, PersistentData.IsMapCached);
-					});
+					await CloseAlternativeMap_Http_Async().ConfigureAwait(false);
+					await OpenAlternativeMap_Http_Async(PersistentData.CurrentTileSource, PersistentData.IsMapCached).ConfigureAwait(false);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
@@ -192,7 +199,10 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
 			{
-				Task resume = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
+				Task resume = RunFunctionIfOpenAsyncT(delegate
+				{
+					return Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
+				});
 			}
 		}
 		private async void OnDataSource_UriRequested(HttpMapTileDataSource sender, MapTileUriRequestedEventArgs args)
