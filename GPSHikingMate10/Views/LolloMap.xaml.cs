@@ -161,7 +161,7 @@ namespace LolloGPS.Core
 
 			DrawHistory();
 			// when resuming, skip drawing the series, which do not update in the background
-			if (!((App)Application.Current).IsResuming)
+			if (!App.IsResuming)
 			{
 				DrawRoute0();
 				DrawCheckpoints();

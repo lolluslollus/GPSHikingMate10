@@ -608,8 +608,6 @@ namespace LolloGPS.Core
 				{
 					return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file);
 				}).ConfigureAwait(false);
-				// To avoid surprises, we enqueue the following under the semaphore. NO!
-				// await ((App)Application.Current).RunAfterResumingAsync(delegate { return SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file); }).ConfigureAwait(false);
 			}
 			else
 			{
@@ -672,8 +670,6 @@ namespace LolloGPS.Core
 				{
 					return LoadSeriesFromFileAsync(file, whichSeries);
 				}).ConfigureAwait(false);
-				// To avoid surprises, we enqueue the following under the semaphore. NO!
-				// await ((App)Application.Current).RunAfterResumingAsync(delegate { return LoadSeriesFromFileAsync(file, whichSeries); }).ConfigureAwait(false);
 			}
 			else
 			{

@@ -36,12 +36,20 @@ namespace LolloGPS.Core
 		private static RuntimeData _runtimeData = null; // RuntimeData.GetInstance();
 		public static RuntimeData RuntimeData { get { return _runtimeData; } }
 
-		private volatile bool _isResuming = false;
-		public bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
+		private static volatile bool _isResuming = false;
+		public static bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
 
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		#endregion properties
+
+
+		#region events
+		// these events are useful to avoid "the action was marshalled for a different thread" errors. 
+		// We don't want to hog the UI thread just to catch these, and we want the response to be immediate.
+		public static event EventHandler ResumingStatic;
+		public static event SuspendingEventHandler SuspendingStatic;
+		#endregion events
 
 
 		#region lifecycle
@@ -182,6 +190,8 @@ namespace LolloGPS.Core
 				Logger.Severity.Info,
 				false);
 
+			SuspendingStatic?.Invoke(this, e);
+
 			await CloseAllAsync().ConfigureAwait(false);
 			Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
@@ -198,6 +208,8 @@ namespace LolloGPS.Core
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
 			{
+				ResumingStatic?.Invoke(this, EventArgs.Empty);
+
 				await _resumingActivatingSemaphore.WaitAsync();
 				IsResuming = true;
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);

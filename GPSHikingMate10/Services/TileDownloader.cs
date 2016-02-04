@@ -130,8 +130,8 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
-			((App)(Application.Current)).Resuming += OnResuming;
-			((App)(Application.Current)).Suspending += OnSuspending;
+			App.ResumingStatic += OnResuming;
+			App.SuspendingStatic += OnSuspending;
 			_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 			IsSuspended = false;
 			IsCancelledByUser = false;
@@ -141,8 +141,8 @@ namespace LolloGPS.Core
 
 		protected override Task CloseMayOverrideAsync()
 		{
-			((App)(Application.Current)).Resuming -= OnResuming;
-			((App)(Application.Current)).Suspending -= OnSuspending;
+			App.ResumingStatic -= OnResuming;
+			App.SuspendingStatic -= OnSuspending;
 			_runtimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
 			lock (_cancUserLocker)
 			{

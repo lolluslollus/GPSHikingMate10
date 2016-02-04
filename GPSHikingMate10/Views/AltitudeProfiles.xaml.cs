@@ -53,7 +53,7 @@ namespace LolloGPS.Core
 			AddHandlers();
 			UpdateCharts();
 
-			if (!((App)Application.Current).IsResuming)
+			if (!App.IsResuming)
 			{
 				Task centre = RunInUiThreadAsync(delegate
 				{
@@ -305,7 +305,7 @@ namespace LolloGPS.Core
 			if (PersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
 			{
 				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
-				if (!((App)Application.Current).IsResuming) // when resuming, skip drawing the series, which do not update in the background
+				if (!App.IsResuming) // when resuming, skip drawing the series, which do not update in the background
 				{
 					Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
 					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
