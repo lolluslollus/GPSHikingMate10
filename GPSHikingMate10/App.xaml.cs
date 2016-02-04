@@ -35,10 +35,7 @@ namespace LolloGPS.Core
 		public static PersistentData PersistentData { get { return _persistentData; } }
 		private static RuntimeData _runtimeData = null; // RuntimeData.GetInstance();
 		public static RuntimeData RuntimeData { get { return _runtimeData; } }
-
-		private static volatile bool _isResuming = false;
-		public static bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
-
+		
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		#endregion properties
@@ -211,7 +208,6 @@ namespace LolloGPS.Core
 				ResumingStatic?.Invoke(this, EventArgs.Empty);
 
 				await _resumingActivatingSemaphore.WaitAsync();
-				IsResuming = true;
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenDataAsync();
@@ -232,7 +228,7 @@ namespace LolloGPS.Core
 					// This also includes the background task state check.
 					// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
 					// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
-					var yne = await main.OpenAsync(/*false, false*/).ConfigureAwait(false);
+					var yne = await main.OpenAsync().ConfigureAwait(false);
 					Logger.Add_TPL("OnResuming() has opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
@@ -248,7 +244,6 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				IsResuming = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}

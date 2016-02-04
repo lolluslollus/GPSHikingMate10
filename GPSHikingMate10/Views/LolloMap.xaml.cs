@@ -146,26 +146,27 @@ namespace LolloGPS.Core
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
 			MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly; // .GestureAndControl;
 																		//MyMap.MapElements.Clear(); // no!
+			_checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			_isHistoryInMap = false;
+			_isRoute0InMap = false;
+			_isFlyoutPointInMap = false;
+
 			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
-			MyMap.Style = PersistentData.MapStyle; // maniman
-			_checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
+
 			await RestoreViewAsync();
 			await _lolloMapVM.OpenAsync();
 
-			InitMapElements();
-
 			AddHandlers();
 
-			DrawHistory();
-			// when resuming, skip drawing the series, which do not update in the background
-			if (!App.IsResuming)
+			await RunInUiThreadAsync(delegate
 			{
+				DrawHistory();
 				DrawRoute0();
 				DrawCheckpoints();
-			}
+			}).ConfigureAwait(false);
 		}
 
 		protected override async Task CloseMayOverrideAsync()
@@ -195,11 +196,15 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
-				return RunInUiThreadAsync(delegate
+				if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.nil)
 				{
-					Task set = MyMap.TrySetViewAsync(gp, PersistentData.MapLastZoom, PersistentData.MapLastHeading, PersistentData.MapLastPitch, MapAnimationKind.None).AsTask();
-				});
+					Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
+					return RunInUiThreadAsync(delegate
+					{
+						Task set = MyMap.TrySetViewAsync(gp, PersistentData.MapLastZoom, PersistentData.MapLastHeading, PersistentData.MapLastPitch, MapAnimationKind.None).AsTask();
+					});
+				}
+				else return CentreOnSeriesAsync(MainVM.WhichSeriesJustLoaded);
 			}
 			catch (Exception ex)
 			{
@@ -345,15 +350,6 @@ namespace LolloGPS.Core
 			});
 		}
 
-		/// <summary>
-		/// Initialises all map elements except for checkpoints, which have their dedicated method
-		/// </summary>
-		private void InitMapElements()
-		{
-			_isHistoryInMap = false;
-			_isRoute0InMap = false;
-			_isFlyoutPointInMap = false;
-		}
 		private void DrawHistory()
 		{
 			try
@@ -860,14 +856,14 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.MapStyle))
 			{
-				Task gt = RunInUiThreadAsync(delegate
+				Task ms = RunInUiThreadAsync(delegate
 				{
 					MyMap.Style = PersistentData.MapStyle;
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
 			{
-				Task gt = RunInUiThreadAsync(delegate
+				Task iu = RunInUiThreadAsync(delegate
 				{
 					if (PersistentData?.Current != null) PersistentData.Current.SpeedInMetreSec = PersistentData.Current.SpeedInMetreSec;
 
@@ -908,6 +904,7 @@ namespace LolloGPS.Core
 					return RunInUiThreadAsync(delegate
 					{
 						DrawHistory();
+						if (e.NewItems.Count > 1) CentreOnHistoryAsync();
 					});
 				});
 			}
@@ -922,6 +919,7 @@ namespace LolloGPS.Core
 					return RunInUiThreadAsync(delegate
 					{
 						DrawRoute0();
+						if (e.NewItems.Count > 1) CentreOnRoute0Async();
 					});
 				});
 			}
@@ -936,17 +934,16 @@ namespace LolloGPS.Core
 					return RunInUiThreadAsync(delegate
 					{
 						DrawCheckpoints();
+						if (e.NewItems.Count > 1) CentreOnCheckpointsAsync();
 					});
 				});
 			}
 		}
 
-		private volatile bool _isHandlerActive = false;
 		private void AddHandlers()
 		{
-			if (PersistentData != null && !_isHandlerActive)
+			if (PersistentData != null)
 			{
-				_isHandlerActive = true;
 				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
@@ -964,7 +961,6 @@ namespace LolloGPS.Core
 				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
 				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
-				_isHandlerActive = false;
 			}
 		}
 		#endregion data event handlers

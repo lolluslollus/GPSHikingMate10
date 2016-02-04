@@ -168,7 +168,7 @@ namespace LolloGPS.Data.TileCache
 				{
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						Debug.WriteLine("IsCaching = " + _isCaching);
+						//Debug.WriteLine("IsCaching = " + _isCaching);
 						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
 						if (_isCaching) // this is cheaper than checking IsCaching, which has a lock. It works and it is not critical anyway.
 						{
@@ -499,6 +499,7 @@ namespace LolloGPS.Data.TileCache
 			// _funcsAsSoonAsFree.Clear();
 			_funcAsSoonAsFree = null;
 			_fileNames_InProcess.Clear();
+			Debug.WriteLine("TryAddToQueueAsync() cleared all entries");
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle
@@ -521,7 +522,7 @@ namespace LolloGPS.Data.TileCache
 					IsFree = (_fileNames_InProcess.Count == 0);
 					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 
-					Debug.WriteLine("TryAddToQueueAsync() added an entry");
+					//Debug.WriteLine("TryAddToQueueAsync() added an entry");
 					return true;
 				}
 				return false;

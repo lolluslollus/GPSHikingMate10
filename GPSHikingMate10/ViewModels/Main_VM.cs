@@ -150,6 +150,9 @@ namespace LolloGPS.Core
 
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
+
+		private PersistentData.Tables _whichSeriesJustLoaded = PersistentData.Tables.nil;
+		public PersistentData.Tables WhichSeriesJustLoaded { get { return _whichSeriesJustLoaded; } }
 		#endregion properties
 
 		#region construct and dispose
@@ -162,6 +165,8 @@ namespace LolloGPS.Core
 		{
 			try
 			{
+				_whichSeriesJustLoaded = PersistentData.Tables.nil;
+
 				await _gpsInteractor.OpenAsync();
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 				AddHandlers_DataChanged();
@@ -590,6 +595,7 @@ namespace LolloGPS.Core
 
 		#region save and load with picker
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
+		// LOLLO TODO this is broken on cheap phone
 		{
 			if (!TrySetIsSaving(true) || whichSeries == PersistentData.Tables.nil) return;
 			SetLastMessage_UI("saving GPX file...");
@@ -656,6 +662,7 @@ namespace LolloGPS.Core
 		}
 
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
+			// LOLLO TODO this is broken on cheap phone
 		{
 			if (!TrySetIsLoading(true)) return;
 			SetLastMessage_UI("reading GPX file...");
@@ -665,14 +672,17 @@ namespace LolloGPS.Core
 			{
 				RegistryAccess.TrySetValue(ConstantData.REG_LOAD_SERIES_WHICH_SERIES, whichSeries.ToString());
 
+				Logger.Add_TPL("Pick open file about to open series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. 
-				await RunFunctionIfOpenAsyncT(delegate
+				bool isDone = await RunFunctionIfOpenAsyncT(delegate
 				{
 					return LoadSeriesFromFileAsync(file, whichSeries);
 				}).ConfigureAwait(false);
+				Logger.Add_TPL("Pick open file has opened series = " + isDone.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			else
 			{
+				Logger.Add_TPL("Pick open file cancelled, series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				SetLastMessage_UI("Loading cancelled");
 				IsLoading = false;
 			}
@@ -709,20 +719,25 @@ namespace LolloGPS.Core
 							switch (whichSeries)
 							{
 								case PersistentData.Tables.History:
+									_whichSeriesJustLoaded = PersistentData.Tables.History;
 									break;
 								case PersistentData.Tables.Route0:
 									await PersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("LoadSeriesFromFileAsync() loaded route0 into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+									_whichSeriesJustLoaded = PersistentData.Tables.Route0;
 									await CentreOnRoute0Async().ConfigureAwait(false);
 									break;
 								case PersistentData.Tables.Checkpoints:
 									await PersistentData.LoadCheckpointsFromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("LoadSeriesFromFileAsync() loaded checkpoints into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+									_whichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
 									await CentreOnCheckpointsAsync().ConfigureAwait(false);
 									break;
 								case PersistentData.Tables.nil:
+									_whichSeriesJustLoaded = PersistentData.Tables.nil;
 									break;
 								default:
+									_whichSeriesJustLoaded = PersistentData.Tables.nil;
 									break;
 							}
 						}

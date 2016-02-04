@@ -45,25 +45,29 @@ namespace LolloGPS.Core
 			if (_isOpen) return YesNoError.No;
 			try
 			{
+				Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
 				_mainVM = new MainVM();
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
-				await Task.Delay(1);
+				//await Task.Delay(2); // just in case
 
+				//MyLolloMap.MainVM = _mainVM;
 				await MyLolloMap.OpenAsync();
-				UpdateAltitudeColumnMaxWidth();
+				//MyAltitudeProfiles.MainVM = _mainVM;
+				await UpdateAltitudeColumnMaxWidthAsync();
 				await MyAltitudeProfiles.OpenAsync();
 
-				// await MyHelpPanel.OpenAsync();
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
 
 				AddHandlers();
 
 				_isOpen = true;
+
+				Logger.Add_TPL("Main.OpenAsync ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				return YesNoError.Yes;
 			}
 			catch (Exception ex)
@@ -193,13 +197,16 @@ namespace LolloGPS.Core
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
 			{
-				UpdateAltitudeColumnMaxWidth();
+				Task alt = UpdateAltitudeColumnMaxWidthAsync();
 			}
 		}
-		private void UpdateAltitudeColumnMaxWidth()
+		private Task UpdateAltitudeColumnMaxWidthAsync()
 		{
-			if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
-			else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+			return RunInUiThreadAsync(delegate
+			{
+				if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
+				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+			});
 		}
 		private void SetShowForAWhileOnly()
 		{

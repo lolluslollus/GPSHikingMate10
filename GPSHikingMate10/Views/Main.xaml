@@ -165,7 +165,7 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
-						MainVM="{Binding ElementName=me, Path=MainVM}"
+						MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
 						DataContext="{Binding}"
 						PointChanged="OnInfoPanelPointChanged"/>
 				</Popup>
@@ -174,13 +174,13 @@
 				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
 				<local:LolloMap Canvas.ZIndex="0"
 					x:Name="MyLolloMap"
-					MainVM="{Binding ElementName=me, Path=MainVM}"
+					MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
 				<!-- Altitude profiles -->
 				<local:AltitudeProfiles Canvas.ZIndex="200"
 					Grid.Column="0"
 					x:Name="MyAltitudeProfiles"
-					MainVM="{Binding ElementName=me, Path=MainVM}"
+					MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
 					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
 			</Grid>
@@ -197,7 +197,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
@@ -205,7 +205,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:FilesPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:FilesPanel MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
@@ -215,7 +215,7 @@
 						Margin="{StaticResource Thickness0}">
 						<local:MapsPanel x:Name="MyMapsPanel"
 							Goto2DRequested="OnMapsGoto2DRequested" 
-							MainVM="{Binding ElementName=me, Path=MainVM}"/>
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
@@ -224,7 +224,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
 						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"
-							MainVM="{Binding ElementName=me, Path=MainVM}"/>
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -232,7 +232,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:SettingsPanel MainVM="{Binding ElementName=me, Path=MainVM}"/>
+						<local:SettingsPanel MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
@@ -241,7 +241,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
 						<local:HelpPanel x:Name="MyHelpPanel"
-							MainVM="{Binding ElementName=me, Path=MainVM}"/>
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">

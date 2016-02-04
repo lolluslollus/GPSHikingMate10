@@ -53,9 +53,9 @@ namespace LolloGPS.Core
 			AddHandlers();
 			UpdateCharts();
 
-			if (!App.IsResuming)
-			{
-				Task centre = RunInUiThreadAsync(delegate
+			//if (!App.IsResuming)
+			//{
+				return RunInUiThreadAsync(delegate
 				{
 					try
 					{
@@ -63,9 +63,7 @@ namespace LolloGPS.Core
 					}
 					catch { }
 				});
-			}
-
-			return Task.CompletedTask;
+			//}
 		}
 		protected override Task CloseMayOverrideAsync()
 		{
@@ -113,36 +111,36 @@ namespace LolloGPS.Core
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
-				&& Visibility == Visibility.Visible
-				&& PersistentData?.History != null)
+				&& Visibility == Visibility.Visible)
 			{
-				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true);
+					await DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true).ConfigureAwait(false);
+					if (e.NewItems.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
 		}
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
-				&& Visibility == Visibility.Visible
-				&& PersistentData?.Route0 != null)
+				&& Visibility == Visibility.Visible)
 			{
-				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true);
+					await DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true).ConfigureAwait(false);
+					if (e.NewItems.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
 		}
 		private void OnCheckpoints_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
-				&& Visibility == Visibility.Visible
-				&& PersistentData?.Checkpoints != null)
+				&& Visibility == Visibility.Visible)
 			{
-				Task draw = RunFunctionIfOpenAsyncT_MT(delegate
+				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
+					await DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
+					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -305,11 +303,11 @@ namespace LolloGPS.Core
 			if (PersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
 			{
 				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
-				if (!App.IsResuming) // when resuming, skip drawing the series, which do not update in the background
-				{
+				//if (!App.IsResuming) // when resuming, skip drawing the series, which do not update in the background // NO! phones will suffe rafter a pick
+				//{
 					Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
 					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
-				}
+				//}
 			}
 		}
 
