@@ -93,7 +93,7 @@ namespace LolloGPS.Data.Runtime
 
 		private double _downloadProgressValue = default(double);
 		public double DownloadProgressValue { get { return _downloadProgressValue; } private set { if (_downloadProgressValue != value) { _downloadProgressValue = value; RaisePropertyChanged(); } } }
-		public static void SetDownloadProgressValue_UI(double newProgressValue)
+		public void SetDownloadProgressValue_UI(double newProgressValue)
 		{
 			Task upd = RunInUiThreadAsync(delegate
 			{

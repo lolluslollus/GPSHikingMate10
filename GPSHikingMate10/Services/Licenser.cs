@@ -16,8 +16,20 @@ namespace Utilz
 {
 	internal class Licenser : ObservableData
 	{
+		private static readonly object _instanceLocker = new object();
+		private static Licenser _instance = null;
+		public static Licenser GetInstance()
+		{
+			lock (_instanceLocker)
+			{
+				if (_instance == null) _instance = new Licenser();
+				return _instance;
+			}
+		}
+		private Licenser() { }
+
 		private static readonly RuntimeData _runtimeData = RuntimeData.GetInstance();
-		public static async Task<bool> CheckLicensedAsync()
+		public async Task<bool> CheckLicensedAsync()
 		{
 			// do not use persistent data across this class
 			// coz you cannot be sure it has been read out yet.
@@ -190,7 +202,7 @@ namespace Utilz
 
 			return expiryDate;
 		}
-		private static async Task<bool> AskQuitOrBuyAsync(string message1, string message2)
+		private async Task<bool> AskQuitOrBuyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
 			UICommand quitCommand = new UICommand(RuntimeData.GetText("LicenserQuit"), (command) => { });
@@ -229,7 +241,7 @@ namespace Utilz
 		/// Opens the store to buy the app and returns false if the app must quit.
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<bool> BuyAsync()
+		public async Task<bool> BuyAsync()
 		{
 			LicenseInformation licenseInformation = await GetLicenseInformation();
 
@@ -279,7 +291,7 @@ namespace Utilz
 		/// Opens the store to rate the app. Returns true if the operation succeeded.
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<bool> RateAsync()
+		public async Task<bool> RateAsync()
 		{
 			try
 			{
@@ -293,7 +305,7 @@ namespace Utilz
 				return false;
 			}
 		}
-		private static async Task NotifyAsync(string message1, string message2)
+		private async Task NotifyAsync(string message1, string message2)
 		{
 			var dialog = new MessageDialog(message1, message2);
 			UICommand okCommand = new UICommand(RuntimeData.GetText("Ok"), (command) => { });

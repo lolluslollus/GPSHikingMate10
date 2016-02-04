@@ -79,7 +79,6 @@ namespace LolloGPS.Core
 
 		public async Task CloseAsync()
 		{
-			// LOLLO TODO I have been testing this and it seems that it won't hit, is it always closed when suspending?
 			Debug.WriteLine("Main.CloseAsync() entered CloseAsync");
 			if (!_isOpen) return;
 			Debug.WriteLine("Main.CloseAsync() is in CloseAsync, which is closed");

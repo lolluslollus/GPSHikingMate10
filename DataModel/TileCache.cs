@@ -262,6 +262,26 @@ namespace LolloGPS.Data.TileCache
 				request.ContinueTimeout = WebRequestTimeoutMsec;
 
 				where = 2;
+
+				//var tf = new TaskFactory(_queue.CancellationToken);
+
+				//request.GetResponseAsync().Wait(_queue.CancellationToken);
+
+				// LOLLO TODO we need a way to abort requests when cancelling, see if this is right.
+				_queue.CancellationToken.Register(delegate
+				{
+					try
+					{
+						request?.Abort();
+						Debug.WriteLine("web request aborted");
+					}
+					catch
+					{
+						Debug.WriteLine("web request aborted with error");
+					}
+				}, false);
+
+
 				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 				{
 					if (_queue.CancellationToken.IsCancellationRequested) return false;
@@ -401,7 +421,7 @@ namespace LolloGPS.Data.TileCache
 	public class TileCacheProcessingQueue : OpenableObservableData
 	{
 		#region properties
-		internal CancellationToken CancellationToken { get { return CancToken; } }
+		public CancellationToken CancellationToken { get { return CancToken; } }
 
 		private volatile bool _isFree = true;
 		public bool IsFree
@@ -431,6 +451,8 @@ namespace LolloGPS.Data.TileCache
 				return _instance;
 			}
 		}
+
+		private TileCacheProcessingQueue() { }
 		#endregion properties
 
 
@@ -477,7 +499,6 @@ namespace LolloGPS.Data.TileCache
 			// _funcsAsSoonAsFree.Clear();
 			_funcAsSoonAsFree = null;
 			_fileNames_InProcess.Clear();
-			_isOpen = false;
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle

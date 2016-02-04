@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Core;
 using Windows.Phone.Devices.Notification;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -77,14 +79,19 @@ namespace LolloGPS.Core
 			// lock the DBs // LOLLO TODO I moved it up here coz cancelling when downloading tiles takes too long
 			PersistentData.CloseMainDb();
 			Debug.WriteLine("CloseAllAsync() closed the main db");
-			await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
+			await PersistentData.CloseTileCacheAsync(); //.ConfigureAwait(false);
 			Debug.WriteLine("CloseAllAsync() closed the tile cache");
 			// unregister events and stop long running tasks.
-			if (IsRootFrameMain)
+			Main main = null;
+			await RunInUiThreadAsync(delegate
 			{
-				Main main = (Window.Current.Content as Frame).Content as Main;
+				main = (Window.Current?.Content as Frame)?.Content as Main;
+			});
+			if (main != null)
+			{
 				await main.CloseAsync().ConfigureAwait(false);
 			}
+
 			Debug.WriteLine("CloseAllAsync() closed the UI");
 			//// lock the DBs
 			//PersistentData.CloseMainDb();
@@ -119,7 +126,7 @@ namespace LolloGPS.Core
 				false);
 
 			await OpenDataAsync();
-			if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
+			if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 
 			try
 			{
@@ -196,7 +203,7 @@ namespace LolloGPS.Core
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenDataAsync();
-				if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
+				if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 
 				if (IsRootFrameMain)
 				{
@@ -257,7 +264,7 @@ namespace LolloGPS.Core
 				bool isAppAlreadyRunning = IsRootFrameMain;
 				if (!isAppAlreadyRunning)
 				{
-					if (!await Licenser.CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
+					if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
 					Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 
@@ -332,27 +339,6 @@ namespace LolloGPS.Core
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}
-		public async Task RunAfterResumingAsync(Func<Task> funcAsync)
-		{
-			try
-			{
-				await _resumingActivatingSemaphore.WaitAsync();
-				Logger.Add_TPL("RunUnderSemaphoreAsync() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				// disable UI commands
-				RuntimeData.SetIsDBDataRead_UI(false);
-
-				await funcAsync().ConfigureAwait(false);
-				Logger.Add_TPL("RunUnderSemaphoreAsync() ended its task OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
-			finally
-			{
-				// reactivate UI commands
-				RuntimeData.SetIsDBDataRead_UI(true);
-
-				Logger.Add_TPL("RunUnderSemaphoreAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-			}
-		}
 		#endregion event handlers
 
 
@@ -416,6 +402,27 @@ namespace LolloGPS.Core
 			{
 				VibrationDevice myDevice = VibrationDevice.GetDefault();
 				myDevice.Vibrate(TimeSpan.FromSeconds(.12));
+			}
+		}
+
+		private async Task RunInUiThreadAsync(DispatchedHandler action)
+		{
+			try
+			{
+				if (CoreApplication.MainView.CoreWindow.Dispatcher?.HasThreadAccess == true)
+				{
+					action();
+				}
+				else
+				{
+					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
+				}
+			}
+			catch (InvalidOperationException) // called from a background task: ignore
+			{ }
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
 		#endregion services

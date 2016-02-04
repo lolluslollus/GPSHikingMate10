@@ -118,7 +118,7 @@ namespace LolloGPS.Core
 		public event EventHandler<double> SaveProgressChanged;
 		private void RaiseSaveProgressChanged(double progress)
 		{
-			RuntimeData.SetDownloadProgressValue_UI(progress);
+			_runtimeData.SetDownloadProgressValue_UI(progress);
 			SaveProgressChanged?.Invoke(this, progress);
 		}
 		#endregion events
@@ -278,7 +278,9 @@ namespace LolloGPS.Core
 						var cancTokenSuspend = SuspendCts.Token;
 						var cancTokenUser = UserCts.Token;
 						var cancTokenConn = ConnCts.Token;
-						var cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(cancTokenBase, cancTokenSuspend, cancTokenUser, cancTokenConn);
+						var cancTokenQueue = TileCacheProcessingQueue.GetInstance().CancellationToken;
+						var cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
+							cancTokenBase, cancTokenSuspend, cancTokenUser, cancTokenConn, cancTokenQueue);
 						var cancToken = cancTokenSourceLinked.Token;
 
 						if (!cancToken.IsCancellationRequested)

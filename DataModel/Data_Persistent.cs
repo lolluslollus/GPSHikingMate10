@@ -91,9 +91,10 @@ namespace LolloGPS.Data
 
 		public static Task SetInstanceNonDbPropertiesAsync(PersistentData from)
 		{
+			if (from == null) return Task.CompletedTask;
 			try
 			{
-				return RunInUiThreadAsync(delegate
+				return from.RunInUiThreadAsync(delegate
 				{
 					var dataToBeChanged = GetInstance();
 					//I must clone memberwise, otherwise the current event handlers get lost
