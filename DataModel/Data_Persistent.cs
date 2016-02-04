@@ -167,7 +167,7 @@ namespace LolloGPS.Data
 				}
 				target.RaisePropertyChanged(nameof(TileSourcez));
 
-				DownloadSession.Clone(source.LastDownloadSession, ref target._lastDownloadSession);
+				DownloadSession.Clone(source._lastDownloadSession, ref target._lastDownloadSession);
 				target.RaisePropertyChanged(nameof(LastDownloadSession));
 			}
 		}
@@ -1364,14 +1364,14 @@ namespace LolloGPS.Data
 			});
 		}
 
-		public async Task<TileSourceRecord> GetCurrentTileSourceClone()
+		public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource)
 		{
 			TileSourceRecord result = null;
 
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-				TileSourceRecord.Clone(CurrentTileSource, ref result);
+				TileSourceRecord.Clone(tileSource, ref result);
 			}
 			catch (Exception ex)
 			{
@@ -1383,6 +1383,11 @@ namespace LolloGPS.Data
 			}
 
 			return result;
+		}
+
+		public Task<TileSourceRecord> GetCurrentTileSourceClone()
+		{
+			return GetTileSourceClone(CurrentTileSource);
 		}
 		public async Task<Tuple<TileCache.TileCache, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
 		{
@@ -1409,10 +1414,12 @@ namespace LolloGPS.Data
 								// Never write an invalid DownloadSession into the persistent data. 
 								// If it is invalid, it throws in the ctor so I won't get here.
 								_lastDownloadSession = newDownloadSession;
+								DownloadSession sessionClone = null;
+								DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
 								var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
 
-								result = Tuple.Create(newTileCache, _lastDownloadSession);
+								result = Tuple.Create(newTileCache, sessionClone);
 							}
 							catch (Exception) { }
 						}
@@ -1424,8 +1431,12 @@ namespace LolloGPS.Data
 						var lastTileSource = _tileSourcez.FirstOrDefault(ts => ts.TechName == _lastDownloadSession.TileSourceTechName);
 						if (lastTileSource != null && _lastDownloadSession.IsZoomsValid())
 						{
+							DownloadSession sessionClone = null;
+							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
+
 							var newTileCache = new TileCache.TileCache(lastTileSource, false);
-							result = Tuple.Create(newTileCache, _lastDownloadSession);
+
+							result = Tuple.Create(newTileCache, sessionClone);
 						}
 					}
 				}

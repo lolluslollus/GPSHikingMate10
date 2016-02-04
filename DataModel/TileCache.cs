@@ -525,8 +525,10 @@ namespace LolloGPS.Data.TileCache
 			{
 				if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
 				{
-					await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
-					await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+					var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource).ConfigureAwait(false);
+					if (tileSourceClone == null) return;
+					await SetIsClearingCacheProps(tileSourceClone, isAlsoRemoveSources).ConfigureAwait(false);
+					await ScheduleClearCache2Async(tileSourceClone, isAlsoRemoveSources).ConfigureAwait(false);
 				}
 			});
 		}

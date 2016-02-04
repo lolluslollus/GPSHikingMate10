@@ -187,7 +187,6 @@ namespace LolloGPS.Core
 		#endregion event handlers
 
 		#region save services
-		private static readonly SemaphoreSlimSafeRelease _saveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		public async Task<Tuple<int, int>> StartOrResumeDownloadTilesAsync()
 		{
 			var result = Tuple.Create(0, 0);
@@ -195,12 +194,11 @@ namespace LolloGPS.Core
 			{
 				var persistentData = PersistentData.GetInstance();
 				if (persistentData.IsTilesDownloadDesired && _runtimeData.IsConnectionAvailable)
+				// if persistentData.IsTilesDownloadDesired changes in the coming ticks, tough! Not atomic, but not critical at all.
 				{
 					try
 					{
 						IsCancelledByUser = false;
-
-						await _saveSemaphore.WaitAsync().ConfigureAwait(false);
 
 						var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
 						if (gbb != null)
@@ -220,7 +218,6 @@ namespace LolloGPS.Core
 					{
 						// even if something went wrong (maybe the new session is not valid), do not leave the download open!
 						await CloseDownloadAsync(persistentData, true).ConfigureAwait(false);
-						SemaphoreSlimSafeRelease.TryRelease(_saveSemaphore);
 					}
 				}
 			}).ConfigureAwait(false);

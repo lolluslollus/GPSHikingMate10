@@ -517,7 +517,7 @@ namespace LolloGPS.Core
 		}
 		public Task SetTilesDownloadPropsAsync(int maxZoom)
 		{
-			return RunFunctionIfOpenAsyncA(async delegate
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
 				await PersistentData.SetTilesDownloadPropsAsync(true, maxZoom, false).ConfigureAwait(false);
 				PersistentData.IsShowingPivot = false;
