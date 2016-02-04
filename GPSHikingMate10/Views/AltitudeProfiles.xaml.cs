@@ -352,7 +352,7 @@ namespace LolloGPS.Core
 #if DEBUG
 					Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
-					if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
 					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
@@ -371,7 +371,7 @@ namespace LolloGPS.Core
 					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					chart.Draw();
 

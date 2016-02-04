@@ -277,10 +277,10 @@ namespace LolloGPS.Core
 #endif
 					try
 					{
-						var cancTokenBase = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
-						var cancTokenSuspend = SafeCancellationTokenSource.GetCancellationTokenSafe(SuspendCts);
-						var cancTokenUser = SafeCancellationTokenSource.GetCancellationTokenSafe(UserCts);
-						var cancTokenConn = SafeCancellationTokenSource.GetCancellationTokenSafe(ConnCts);
+						var cancTokenBase = CancToken;
+						var cancTokenSuspend = SuspendCts.Token;
+						var cancTokenUser = UserCts.Token;
+						var cancTokenConn = ConnCts.Token;
 						var cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(cancTokenBase, cancTokenSuspend, cancTokenUser, cancTokenConn);
 						var cancToken = cancTokenSourceLinked.Token;
 
@@ -366,13 +366,14 @@ namespace LolloGPS.Core
 		protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
 		{
 			var output = new List<TileCacheRecord>();
-			var cancTokenBase = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
-			var cancTokenSuspend = SafeCancellationTokenSource.GetCancellationTokenSafe(SuspendCts);
-			var cancTokenUser = SafeCancellationTokenSource.GetCancellationTokenSafe(UserCts);
-			var cancTokenConn = SafeCancellationTokenSource.GetCancellationTokenSafe(ConnCts);
 
 			try
 			{
+				var cancTokenBase = CancToken;
+				var cancTokenSuspend = SuspendCts.Token;
+				var cancTokenUser = UserCts.Token;
+				var cancTokenConn = ConnCts.Token;
+
 				if (!cancTokenBase.IsCancellationRequested && !cancTokenSuspend.IsCancellationRequested && !cancTokenUser.IsCancellationRequested && !cancTokenConn.IsCancellationRequested
 					&& session != null
 					&& (session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))

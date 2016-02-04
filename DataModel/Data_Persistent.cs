@@ -84,10 +84,7 @@ namespace LolloGPS.Data
 		{
 			lock (_instanceLock)
 			{
-				if (_instance == null)
-				{
-					_instance = new PersistentData();
-				}
+				if (_instance == null) _instance = new PersistentData();
 				return _instance;
 			}
 		}
@@ -1367,6 +1364,26 @@ namespace LolloGPS.Data
 			});
 		}
 
+		public async Task<TileSourceRecord> GetCurrentTileSourceClone()
+		{
+			TileSourceRecord result = null;
+
+			try
+			{
+				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				TileSourceRecord.Clone(CurrentTileSource, ref result);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+
+			return result;
+		}
 		public async Task<Tuple<TileCache.TileCache, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
 		{
 			Tuple<TileCache.TileCache, DownloadSession> result = null;
@@ -1464,6 +1481,13 @@ namespace LolloGPS.Data
 				case Tables.Checkpoints: return _checkpointsSemaphore;
 				default: return null;
 			}
+		}
+		public SwitchableObservableCollection<PointRecord> GetSeries(Tables whichSeries)
+		{
+			if (whichSeries == Tables.History) return _history;
+			else if (whichSeries == Tables.Route0) return _route0;
+			else if (whichSeries == Tables.Checkpoints) return _checkpoints;
+			else return null;
 		}
 		public void CycleMapStyle()
 		{

@@ -10,7 +10,8 @@ namespace LolloGPS.Data
     public static class ConstantData
     {
         public const string GPX_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
-        public const string MYMAIL = "lollus@hotmail.co.uk";
+		public const string GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS = "yyyyMMddTHHmmssZ";
+		public const string MYMAIL = "lollus@hotmail.co.uk";
         public const string APPNAME = "GPS Hiking Mate for Windows 10";
         public const string APPNAME_ALL_IN_ONE = "GPSHikingMate";
         public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
@@ -20,6 +21,11 @@ namespace LolloGPS.Data
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
 		public const string REG_CLEARING_CACHE_TILE_SOURCE = "IsClearingCache_TileSource";
 		public const string REG_CLEARING_CACHE_IS_REMOVE_SOURCES = "IsClearingCache_IsAlsoRemoveSources";
+		public const string REG_LOAD_SERIES_IS_LOADING = "LoadSeries_IsLoading";
+		public const string REG_LOAD_SERIES_WHICH_SERIES = "LoadSeries_WhichSeries";
+		public const string REG_SAVE_SERIES_IS_SAVING = "SaveSeries_IsSaving";
+		public const string REG_SAVE_SERIES_WHICH_SERIES = "SaveSeries_WhichSeries";
+		public const string REG_SAVE_SERIES_FILE_CREATION_DATE_TIME = "SaveSeries_FileCreationDateTime";
 		//public const double MILE_TO_KM = 1.609344;
 		public const double MILE_TO_M = 1609.344;
 		public const double KM_TO_MILE = 0.621371192237;
@@ -35,7 +41,7 @@ namespace LolloGPS.Data
 		//public const string RegIsSavingFile = "IsSavingFile";
 		//public const string RegIsLoadingFile = "IsLoadingFile";
 		//public const string RegWhichSeries = "WhichSeries";
-		public const string GpxDateTimeFormat = "yyyyMMddTHHmmssZ";
+
 		public const ulong MaxFileSize = (ulong)10000000;
 		public const int TRIAL_LENGTH_DAYS = 7;
 

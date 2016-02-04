@@ -361,7 +361,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				// block any new db operations
 				_isOpen = false;
-				await TileCacheProcessingQueue.CloseAsync().ConfigureAwait(false);
+				await TileCacheProcessingQueue.GetInstance().CloseAsync().ConfigureAwait(false);
 				// wait until there is a free slot between operations taking place
 				// and break off all queued operations
 				await Task.Run(() => ResetAllConnections()).ConfigureAwait(false);
@@ -380,7 +380,7 @@ namespace LolloGPS.Data.TileCache
 				if (!_isOpen)
 				{
 					_isOpen = true; // must come before the following
-					await TileCacheProcessingQueue.OpenAsync().ConfigureAwait(false);
+					await TileCacheProcessingQueue.GetInstance().OpenAsync().ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)

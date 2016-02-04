@@ -45,15 +45,17 @@ namespace LolloGPS.Core
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-			await OpenAlternativeMap_Http_Async(PersistentData.CurrentTileSource, PersistentData.IsMapCached).ConfigureAwait(false);
+			await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
 		}
-		private Task OpenAlternativeMap_Http_Async(TileSourceRecord tileSource, bool isCaching)
+		private async Task OpenAlternativeMap_Http_Async()
 		{
-			if (tileSource == null || tileSource.IsDefault) return Task.CompletedTask;
+			var tileSource = await PersistentData.GetCurrentTileSourceClone().ConfigureAwait(false);
+			if (tileSource == null || tileSource.IsDefault) return;
 
+			bool isCaching = PersistentData.IsMapCached;
 			_tileCache = new TileCache(tileSource, isCaching);
 
-			return RunInUiThreadAsync(delegate
+			await RunInUiThreadAsync(delegate
 			{
 				_tileDataSource_http = new HttpMapTileDataSource()
 				{
@@ -84,7 +86,7 @@ namespace LolloGPS.Core
 					_mapTileSources.Add(_mapTileSource);
 					_tileDataSource_http.UriRequested += OnDataSource_UriRequested;
 				}
-			});
+			}).ConfigureAwait(false);
 			// Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			//_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
 			//_myMap.Style = MapStyle.None; //so our map will cover the original completely
@@ -183,7 +185,7 @@ namespace LolloGPS.Core
 				Task reopen = RunFunctionIfOpenAsyncT(async delegate
 				{
 					await CloseAlternativeMap_Http_Async().ConfigureAwait(false);
-					await OpenAlternativeMap_Http_Async(PersistentData.CurrentTileSource, PersistentData.IsMapCached).ConfigureAwait(false);
+					await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))

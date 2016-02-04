@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -43,10 +44,20 @@ namespace LolloGPS.Data.TileCache
 		private readonly string _webUriFormat = string.Empty;
 		private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
+		private readonly TileCacheProcessingQueue _queue = null;
+
 		#region construct and dispose
+		/// <summary>
+		/// Make sure you supply a thread-safe tile source
+		/// </summary>
+		/// <param name="tileSource"></param>
+		/// <param name="isCaching"></param>
 		public TileCache(TileSourceRecord tileSource, bool isCaching)
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
+
+			_queue = TileCacheProcessingQueue.GetInstance();
+
 			TileSourceRecord.Clone(tileSource, ref _tileSource);
 			try
 			{
@@ -111,10 +122,10 @@ namespace LolloGPS.Data.TileCache
 
 
 		#region services
-		public static void ScheduleClear(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		public void ScheduleClear(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			Debug.WriteLine("About to call ProcessingQueue.ClearCacheIfQueueEmptyAsync");
-			Task.Run(delegate { Task sch = TileCacheProcessingQueue.ScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); });
+			Task.Run(delegate { Task sch = _queue.ScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); });
 			Debug.WriteLine("returned from ProcessingQueue.ClearCacheIfQueueEmptyAsync");
 		}
 
@@ -123,6 +134,7 @@ namespace LolloGPS.Data.TileCache
 
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
 		{
+			if (_queue.CancellationToken.IsCancellationRequested) return null;
 			// out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
 			// To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
 			//if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
@@ -135,7 +147,7 @@ namespace LolloGPS.Data.TileCache
 			// already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
 
 			// I must return null if I haven't got the tile yet, otherwise the caller will stop searching and present an empty tile forever
-			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null; // return GetUriForFile(fileName); NO!
+			if (!await _queue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return null; // return GetUriForFile(fileName); NO!
 
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			Uri result = null;
@@ -179,24 +191,26 @@ namespace LolloGPS.Data.TileCache
 					}
 				}
 			}
+			catch (OperationCanceledException) { }
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in GetTileUri(): " + ex.Message + ex.StackTrace);
 			}
 
-			await TileCacheProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 			return result;
 		}
 
 		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom/*, CancellationToken cancToken*/)
 		{
+			if (_queue.CancellationToken.IsCancellationRequested) return false;
 			//if (cancToken == null || cancToken.IsCancellationRequested) return false; // this may throw, so what?
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads.
 			// already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return false.
 			// if I am not caching and another TileCache is working on the same tile at the same time, tough: this tile won't be downloaded.
-			if (!await TileCacheProcessingQueue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
+			if (!await _queue.TryAddToQueueAsync(fileName).ConfigureAwait(false)) return false;
 			// from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 			bool result = false;
 
@@ -225,12 +239,13 @@ namespace LolloGPS.Data.TileCache
 					}
 				}
 			}
+			catch (OperationCanceledException) { }
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
 			}
 
-			await TileCacheProcessingQueue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 			return result;
 		}
 
@@ -241,6 +256,7 @@ namespace LolloGPS.Data.TileCache
 
 			try
 			{
+				if (_queue.CancellationToken.IsCancellationRequested) return false;
 				var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
 				request.AllowReadStreamBuffering = true;
 				request.ContinueTimeout = WebRequestTimeoutMsec;
@@ -248,6 +264,7 @@ namespace LolloGPS.Data.TileCache
 				where = 2;
 				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 				{
+					if (_queue.CancellationToken.IsCancellationRequested) return false;
 					if (IsWebResponseHeaderOk(response))
 					{
 						where = 3;
@@ -259,6 +276,7 @@ namespace LolloGPS.Data.TileCache
 							var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
+							if (_queue.CancellationToken.IsCancellationRequested) return false;
 							if (IsWebResponseContentOk(newRecord))
 							{
 								// If I am here, the file does not exist. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
@@ -307,6 +325,7 @@ namespace LolloGPS.Data.TileCache
 				}
 				if (!result) Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
 			}
+			catch (OperationCanceledException) { }
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
@@ -379,13 +398,13 @@ namespace LolloGPS.Data.TileCache
 	/// <summary>
 	/// As soon as a file (ie a unique combination of TileSource, X, Y, Z and Zoom) is in process, this class stores it.
 	/// </summary>
-	public static class TileCacheProcessingQueue
+	public class TileCacheProcessingQueue : OpenableObservableData
 	{
 		#region properties
-		private static volatile SemaphoreSlimSafeRelease _semaphore = null; // new SemaphoreSlimSafeRelease(1, 1);
+		internal CancellationToken CancellationToken { get { return CancToken; } }
 
-		private static volatile bool _isFree = true;
-		public static bool IsFree
+		private volatile bool _isFree = true;
+		public bool IsFree
 		{
 			get { return _isFree; }
 			private set
@@ -398,13 +417,20 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
-		private static volatile List<string> _fileNames_InProcess = new List<string>();
+		private List<string> _fileNames_InProcess = new List<string>();
 		// private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
-		private static volatile Func<Task> _funcAsSoonAsFree = null;
-		private static volatile bool _isOpen = false;
-		private static readonly object _cancLocker = new object();
-		private static SafeCancellationTokenSource _cts = null;
-		private static SafeCancellationTokenSource Cts { get { lock (_cancLocker) { return _cts; } } set { lock (_cancLocker) { _cts = value; } } }
+		private volatile Func<Task> _funcAsSoonAsFree = null;
+
+		private static readonly object _instanceLocker = new object();
+		private static TileCacheProcessingQueue _instance = null;
+		public static TileCacheProcessingQueue GetInstance()
+		{
+			lock (_instanceLocker)
+			{
+				if (_instance == null) _instance = new TileCacheProcessingQueue();
+				return _instance;
+			}
+		}
 		#endregion properties
 
 
@@ -436,76 +462,23 @@ namespace LolloGPS.Data.TileCache
 
 
 		#region lifecycle
-		public static async Task OpenAsync()
+		protected override async Task OpenMayOverrideAsync()
 		{
-			if (!_isOpen)
+			// resume clearing cache if it was interrupted
+			var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
+			if (cacheClearingProps != null)
 			{
-				if (!SemaphoreSlimSafeRelease.IsAlive(_semaphore)) _semaphore = new SemaphoreSlimSafeRelease(1, 1);
-				try
-				{
-					await _semaphore.WaitAsync().ConfigureAwait(false);
-					if (!_isOpen)
-					{
-						lock (_cancLocker)
-						{
-							_cts?.Dispose();
-							_cts = new SafeCancellationTokenSource();
-						}
-
-						// resume clearing cache if it was interrupted
-						var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
-						if (cacheClearingProps != null)
-						{
-							await ScheduleClearCache2Async(cacheClearingProps.TileSource, cacheClearingProps.IsAlsoRemoveSources).ConfigureAwait(false);
-						}
-
-						_isOpen = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(_semaphore)) Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
-				}
+				await ScheduleClearCache2Async(cacheClearingProps.TileSource, cacheClearingProps.IsAlsoRemoveSources).ConfigureAwait(false);
 			}
 		}
 
-		public static async Task CloseAsync()
+		protected override Task CloseMayOverrideAsync()
 		{
-			if (_isOpen)
-			{
-				Cts?.CancelSafe(true);
-
-				try
-				{
-					await _semaphore.WaitAsync().ConfigureAwait(false);
-					if (_isOpen)
-					{
-						lock (_cancLocker)
-						{
-							_cts?.Dispose();
-							_cts = null;
-						}
-
-						// _funcsAsSoonAsFree.Clear();
-						_funcAsSoonAsFree = null;
-						_fileNames_InProcess.Clear();
-						_isOpen = false;
-					}
-				}
-				catch (Exception ex)
-				{
-					if (SemaphoreSlimSafeRelease.IsAlive(_semaphore)) Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryDispose(_semaphore);
-					_semaphore = null;
-				}
-			}
+			// _funcsAsSoonAsFree.Clear();
+			_funcAsSoonAsFree = null;
+			_fileNames_InProcess.Clear();
+			_isOpen = false;
+			return Task.CompletedTask;
 		}
 		#endregion lifecycle
 
@@ -517,85 +490,48 @@ namespace LolloGPS.Data.TileCache
 		/// </summary>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
-		internal static async Task<bool> TryAddToQueueAsync(string fileName)
+		internal Task<bool> TryAddToQueueAsync(string fileName)
 		{
-			if (SafeCancellationTokenSource.IsNullOrCancellationRequestedSafe(Cts)) return false;
-			if (_isOpen)
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				try
+				if (!string.IsNullOrWhiteSpace(fileName) && !_fileNames_InProcess.Contains(fileName))
 				{
-					await _semaphore.WaitAsync().ConfigureAwait(false);
-					if (_isOpen)
-					{
-						if (!string.IsNullOrWhiteSpace(fileName) && !_fileNames_InProcess.Contains(fileName))
-						{
-							_fileNames_InProcess.Add(fileName);
-							IsFree = (_fileNames_InProcess.Count == 0);
-							await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
+					_fileNames_InProcess.Add(fileName);
+					IsFree = (_fileNames_InProcess.Count == 0);
+					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 
-							Debug.WriteLine("TryAddToQueueAsync() added an entry");
-							return true;
-						}
-					}
+					Debug.WriteLine("TryAddToQueueAsync() added an entry");
+					return true;
 				}
-				catch (Exception) { } // semaphore disposed
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
-				}
-			}
-			return false;
+				return false;
+			});
 		}
-		internal static async Task RemoveFromQueueAsync(string fileName)
+		internal Task RemoveFromQueueAsync(string fileName)
 		{
-			if (_isOpen)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				try
+				if (!string.IsNullOrWhiteSpace(fileName))
 				{
-					await _semaphore.WaitAsync().ConfigureAwait(false);
-					if (_isOpen)
-					{
-						if (!string.IsNullOrWhiteSpace(fileName))
-						{
-							_fileNames_InProcess.Remove(fileName);
-							IsFree = (_fileNames_InProcess.Count == 0);
-							await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
-						}
-					}
+					_fileNames_InProcess.Remove(fileName);
+					IsFree = (_fileNames_InProcess.Count == 0);
+					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 				}
-				catch (Exception) { } // semaphore disposed
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
-				}
-			}
+			});
 		}
 
-		internal static async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		public Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
-			if (_isOpen)
+			return RunFunctionIfOpenAsyncT(async delegate
 			{
-				try
+				if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
 				{
-					await _semaphore.WaitAsync().ConfigureAwait(false);
-					if (_isOpen)
-					{
-						if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
-						{
-							await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
-							await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
-						}
-					}
+					await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+					await ScheduleClearCache2Async(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
 				}
-				catch (Exception) { } // semaphore disposed
-				finally
-				{
-					SemaphoreSlimSafeRelease.TryRelease(_semaphore);
-				}
-			}
+			});
 		}
 
-		private static async Task ScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		private async Task ScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			if (tileSource != null && _funcAsSoonAsFree == null)
 			{
@@ -609,7 +545,7 @@ namespace LolloGPS.Data.TileCache
 		/// This method must be run inside the semaphore
 		/// </summary>
 		/// <returns></returns>
-		private static async Task<bool> TryRunFuncAsSoonAsFree()
+		private async Task<bool> TryRunFuncAsSoonAsFree()
 		{
 			//if (IsFree && _funcsAsSoonAsFree.Count > 0)
 			if (IsFree && _funcAsSoonAsFree != null)
@@ -635,13 +571,11 @@ namespace LolloGPS.Data.TileCache
 			return false;
 		}
 
-		private static async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		private async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			Debug.WriteLine("ClearCacheAsync() started");
 
-			var cancToken = SafeCancellationTokenSource.GetCancellationTokenSafe(Cts);
-
-			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, cancToken).ConfigureAwait(false);
+			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, CancToken).ConfigureAwait(false);
 			if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Error)
 			{
 				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
@@ -663,30 +597,6 @@ namespace LolloGPS.Data.TileCache
 			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
 			//// test end
 		}
-
-		//private static List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
-		//{
-		//	var folderNamesToBeDeleted = new List<string>();
-		//	if (tileSource != null)
-		//	{
-		//		PersistentData persistentData = PersistentData.GetInstance();
-		//		if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
-		//		{
-		//			folderNamesToBeDeleted.Add(tileSource.TechName);
-		//		}
-		//		else if (tileSource.IsAll)
-		//		{
-		//			foreach (var item in persistentData.TileSourcez)
-		//			{
-		//				if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
-		//				{
-		//					folderNamesToBeDeleted.Add(item.TechName);
-		//				}
-		//			}
-		//		}
-		//	}
-		//	return folderNamesToBeDeleted;
-		//}
 		#endregion services
 
 
