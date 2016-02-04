@@ -432,13 +432,13 @@ namespace LolloGPS.Core
 
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
-			var lmVM = _lolloMapVM;
-			if (lmVM != null)
+			var result = new List<Tuple<int, int>>();
+			await RunFunctionIfOpenAsyncT(async delegate
 			{
-				var output = await lmVM.GetHowManyTiles4DifferentZoomsAsync();
-				return output;
-			}
-			else return new List<Tuple<int, int>>();
+				var lmVM = _lolloMapVM;
+				if (lmVM != null) result = await lmVM.GetHowManyTiles4DifferentZoomsAsync();
+			}).ConfigureAwait(false);
+			return result;
 		}
 		public void CancelDownloadByUser()
 		{

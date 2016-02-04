@@ -1444,17 +1444,19 @@ namespace LolloGPS.Data
 
 		public async Task<DownloadSession> GetDownloadSession4CurrentTileSourceAsync(GeoboundingBox gbb)
 		{
-			DownloadSession result = null;
 			if (gbb == null) return null;
+			DownloadSession result = null;
 
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				TileSourceRecord currentTileSource = null;
+				TileSourceRecord.Clone(CurrentTileSource, ref currentTileSource);
 				var session = new DownloadSession(
-					CurrentTileSource.MinZoom,
-					CurrentTileSource.MaxZoom,
+					currentTileSource.MinZoom,
+					currentTileSource.MaxZoom,
 					gbb,
-					CurrentTileSource);
+					currentTileSource);
 				// If the session is invalid, it throws in the ctor so I won't get here.
 				result = session;
 			}
