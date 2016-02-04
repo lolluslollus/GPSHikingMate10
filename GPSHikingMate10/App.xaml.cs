@@ -144,7 +144,10 @@ namespace LolloGPS.Core
 
 				var main = rootFrame.Content as Main;
 				await SuspensionManager.LoadDbDataAndSettingsAsync(true, true);
-				var yne = await main.OpenAsync(/*true, true*/).ConfigureAwait(false);
+				//Task readData = SuspensionManager.LoadDbDataAndSettingsAsync(true, true); // this makes trouble, 
+				// it is pointless to do too much in separate threads when the UI is only ready once the data is loaded anyway.
+				// the UI does not freeze, this is as much as it make sense to achieve.
+				var yne = await main.OpenAsync().ConfigureAwait(false);
 				Logger.Add_TPL("OnLaunched opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			catch (Exception ex)

@@ -54,12 +54,9 @@ namespace LolloGPS.Core
 				RaisePropertyChanged_UI(nameof(MainVM));
 				//await Task.Delay(2); // just in case
 
-				//MyLolloMap.MainVM = _mainVM;
 				await MyLolloMap.OpenAsync();
-				//MyAltitudeProfiles.MainVM = _mainVM;
 				await UpdateAltitudeColumnMaxWidthAsync();
 				await MyAltitudeProfiles.OpenAsync();
-
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
 
