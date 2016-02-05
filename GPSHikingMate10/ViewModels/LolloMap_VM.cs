@@ -215,7 +215,7 @@ namespace LolloGPS.Core
 				// I could make _tileCache volatile, because it can be read and changed in different threads 
 				// and there is no guarantee that they happen in sync, because of this very method. 
 				// However, it seems very subtle so I leave it because we want the maximum performance here.
-				var newUri = await _tileCache.GetTileUri(args.X, args.Y, 0, args.ZoomLevel).ConfigureAwait(false);
+				var newUri = await _tileCache.GetTileUri(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
 				if (newUri != null) args.Request.Uri = newUri;
 			}
 			catch (Exception /*ex*/)

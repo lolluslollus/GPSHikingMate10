@@ -30,7 +30,7 @@ namespace LolloGPS.Data.TileCache
 																								 /// </summary>
 		public TileSourceRecord TileSource { get { return _tileSource; } }
 
-		private StorageFolder _imageFolder = null;
+		private readonly StorageFolder _imageFolder = null;
 
 		private readonly object _isCachingLocker = new object();
 		private bool _isCaching = false;
@@ -48,7 +48,7 @@ namespace LolloGPS.Data.TileCache
 
 		#region construct and dispose
 		/// <summary>
-		/// Make sure you supply a thread-safe tile source
+		/// Make sure you supply a thread-safe tile source, ie a clone, to preserve atomicity
 		/// </summary>
 		/// <param name="tileSource"></param>
 		/// <param name="isCaching"></param>
@@ -132,9 +132,10 @@ namespace LolloGPS.Data.TileCache
 		private static readonly Uri _mustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
 		private static readonly Uri _mustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
 
-		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom)
+		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom, CancellationToken cancToken)
 		{
-			if (_queue.CancellationToken.IsCancellationRequested) return null;
+			if (cancToken == null || cancToken.IsCancellationRequested) return null;
+
 			// out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
 			// To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
 			//if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
@@ -172,7 +173,7 @@ namespace LolloGPS.Data.TileCache
 						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
 						if (_isCaching) // this is cheaper than checking IsCaching, which has a lock. It works and it is not critical anyway.
 						{
-							if (await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false)) result = GetUriForFile(fileName);
+							if (await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName, cancToken)).ConfigureAwait(false)) result = GetUriForFile(fileName);
 						}
 						// tile not in cache and cache off: return the web uri of the tile
 						else
@@ -196,15 +197,18 @@ namespace LolloGPS.Data.TileCache
 			{
 				Debug.WriteLine("ERROR in GetTileUri(): " + ex.Message + ex.StackTrace);
 			}
+			finally
+			{
+				await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			}
 
-			await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
 			return result;
 		}
 
-		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom/*, CancellationToken cancToken*/)
+		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
 		{
-			if (_queue.CancellationToken.IsCancellationRequested) return false;
-			//if (cancToken == null || cancToken.IsCancellationRequested) return false; // this may throw, so what?
+			if (cancToken == null || cancToken.IsCancellationRequested) return false;
+
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
 			// not working on this set of data? Mark it as busy, closing the gate for other threads.
@@ -226,7 +230,7 @@ namespace LolloGPS.Data.TileCache
 					// tile is not in cache: download it and save it
 					if (RuntimeData.GetInstance().IsConnectionAvailable)
 					{
-						result = await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName)).ConfigureAwait(false);
+						result = await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileName, cancToken)).ConfigureAwait(false);
 					}
 				}
 				// tile is in cache: return ok
@@ -239,7 +243,7 @@ namespace LolloGPS.Data.TileCache
 					}
 				}
 			}
-			catch (OperationCanceledException) { }
+			catch (OperationCanceledException) { result = false; }
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
@@ -249,14 +253,14 @@ namespace LolloGPS.Data.TileCache
 			return result;
 		}
 
-		private async Task<bool> TrySaveTile2Async(string sWebUri, int x, int y, int z, int zoom, string fileName)
+		private async Task<bool> TrySaveTile2Async(string sWebUri, int x, int y, int z, int zoom, string fileName, CancellationToken cancToken)
 		{
+			if (cancToken == null || cancToken.IsCancellationRequested) return false;
 			bool result = false;
 			int where = 0;
 
 			try
 			{
-				if (_queue.CancellationToken.IsCancellationRequested) return false;
 				var request = WebRequest.CreateHttp(sWebUri); // request.Accept = MimeTypeImageAny;
 				request.AllowReadStreamBuffering = true;
 				request.ContinueTimeout = WebRequestTimeoutMsec;
@@ -267,8 +271,8 @@ namespace LolloGPS.Data.TileCache
 
 				//request.GetResponseAsync().Wait(_queue.CancellationToken);
 
-				// LOLLO TODO we need a way to abort requests when cancelling, see if this is right.
-				_queue.CancellationToken.Register(delegate
+				// LOLLO TODO we need a way to abort requests when cancelling, see if this is right. It does work.
+				cancToken.Register(delegate
 				{
 					try
 					{
@@ -284,7 +288,7 @@ namespace LolloGPS.Data.TileCache
 
 				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 				{
-					if (_queue.CancellationToken.IsCancellationRequested) return false;
+					if (cancToken == null || cancToken.IsCancellationRequested) return false;
 					if (IsWebResponseHeaderOk(response))
 					{
 						where = 3;
@@ -296,7 +300,7 @@ namespace LolloGPS.Data.TileCache
 							var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
 
-							if (_queue.CancellationToken.IsCancellationRequested) return false;
+							if (cancToken == null || cancToken.IsCancellationRequested) return false;
 							if (IsWebResponseContentOk(newRecord))
 							{
 								// If I am here, the file does not exist. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
@@ -345,7 +349,7 @@ namespace LolloGPS.Data.TileCache
 				}
 				if (!result) Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
 			}
-			catch (OperationCanceledException) { }
+			catch (OperationCanceledException) { return false; }
 			catch (Exception ex)
 			{
 				Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
@@ -438,8 +442,8 @@ namespace LolloGPS.Data.TileCache
 		}
 
 		private List<string> _fileNames_InProcess = new List<string>();
-		// private static List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
-		private volatile Func<Task> _funcAsSoonAsFree = null;
+		// private List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
+		private Func<Task> _funcAsSoonAsFree = null;
 
 		private static readonly object _instanceLocker = new object();
 		private static TileCacheProcessingQueue _instance = null;
@@ -555,6 +559,10 @@ namespace LolloGPS.Data.TileCache
 			});
 		}
 
+		/// <summary>
+		/// This method must be run inside the semaphore
+		/// </summary>
+		/// <returns></returns>
 		private async Task ScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
 			if (tileSource != null && _funcAsSoonAsFree == null)

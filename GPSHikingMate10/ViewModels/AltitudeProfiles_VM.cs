@@ -173,17 +173,17 @@ namespace LolloGPS.Core
 
 		public Task CentreOnTargetAsync()
 		{
-			return Task.CompletedTask; // altitude profiles has no target
+			return _altitudeProfilesController?.CentreOnTargetAsync();
 		}
 
 		public Task CentreOnCurrentAsync()
 		{
-			return Task.CompletedTask; // altitude profiles has no current view
+			return _altitudeProfilesController?.CentreOnCurrentAsync();
 		}
 
 		public Task Goto2DAsync()
         {
-            return _altitudeProfilesController.Goto2DAsync();
+            return _altitudeProfilesController?.Goto2DAsync();
         }
         #endregion IAltitudeProfilesController
     }

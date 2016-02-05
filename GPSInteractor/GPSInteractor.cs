@@ -369,7 +369,10 @@ namespace LolloGPS.GPSInteraction
 			Debug.WriteLine("BackgroundTask completed, event caught");
 			Task getLoc = GetGeoLocationAppendingHistoryAsync();
 		}
-
+		/// <summary>
+		/// this method must run in the is open semaphore
+		/// </summary>
+		/// <returns></returns>
 		private async Task<bool> TryUpdateBackgroundPropsAfterPropsChanged()
 		{
 			if (_persistentData.IsBackgroundEnabled)
@@ -413,12 +416,12 @@ namespace LolloGPS.GPSInteraction
 
 				try
 				{
-					if (CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					if (_geolocator != null)
 					{
 						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;

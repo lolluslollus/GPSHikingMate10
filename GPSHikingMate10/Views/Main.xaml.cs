@@ -26,6 +26,25 @@ namespace LolloGPS.Core
 
 		private static readonly SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
+
+
+
+		public bool IsWideEnough
+		{
+			get { return (bool)GetValue(IsWideEnoughProperty); }
+			set { SetValue(IsWideEnoughProperty, value); }
+		}
+		public static readonly DependencyProperty IsWideEnoughProperty =
+			DependencyProperty.Register("IsWideEnough", typeof(bool), typeof(Main), new PropertyMetadata(false, OnIsWideEnoughChanged));
+		private static void OnIsWideEnoughChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		{
+			Task alt0 = (obj as Main).UpdateIsExtraButtonsEnabledAsync();
+			Task alt1 = (obj as Main).UpdateAltitudeColumnWidthAsync();
+		}
+
+		private bool _isExtraButtonsEnabled = false;
+		public bool IsExtraButtonsEnabled { get { return _isExtraButtonsEnabled; } private set { if (_isExtraButtonsEnabled != value) { _isExtraButtonsEnabled = value; RaisePropertyChanged_UI(); } } }
+
 		#endregion properties
 
 
@@ -40,6 +59,10 @@ namespace LolloGPS.Core
 		}
 
 		public enum YesNoError { Yes, No, Error };
+		/// <summary>
+		/// This method must run in the UI thread
+		/// </summary>
+		/// <returns></returns>				 
 		public async Task<YesNoError> OpenAsync()
 		{
 			if (_isOpen) return YesNoError.No;
@@ -52,10 +75,13 @@ namespace LolloGPS.Core
 				_mainVM = new MainVM();
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
-				//await Task.Delay(2); // just in case
+				await Task.Delay(1); // just in case, try not to hog the ui thread too long
+
+				Task alt0 = UpdateAltitudeColumnWidthAsync();
+				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
+				Task butt = UpdateIsExtraButtonsEnabledAsync();
 
 				await MyLolloMap.OpenAsync();
-				await UpdateAltitudeColumnMaxWidthAsync();
 				await MyAltitudeProfiles.OpenAsync();
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
@@ -82,7 +108,7 @@ namespace LolloGPS.Core
 		{
 			Debug.WriteLine("Main.CloseAsync() entered CloseAsync");
 			if (!_isOpen) return;
-			Debug.WriteLine("Main.CloseAsync() is in CloseAsync, which is closed");
+			Debug.WriteLine("Main.CloseAsync() is in CloseAsync and is open");
 			try
 			{
 				await _openCloseSemaphore.WaitAsync();
@@ -102,9 +128,7 @@ namespace LolloGPS.Core
 				Debug.WriteLine("Main.CloseAsync() closed MainVM");
 
 				await MyPointInfoPanel.CloseAsync();
-				Debug.WriteLine("Main.CloseAsync() closed the point info panel");
 				await MyLolloMap.CloseAsync();
-				Debug.WriteLine("Main.CloseAsync() closed the map");
 				await MyAltitudeProfiles.CloseAsync();
 				Debug.WriteLine("Main.CloseAsync() closed the altitude");
 
@@ -133,7 +157,8 @@ namespace LolloGPS.Core
 				_isDataChangedHandlerActive = true;
 				if (PersistentData != null) PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-				Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnTabletSoftwareButton_BackPressed;
+				var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
+				if (naviManager != null) naviManager.BackRequested += OnTabletSoftwareButton_BackPressed;
 			}
 		}
 
@@ -141,7 +166,8 @@ namespace LolloGPS.Core
 		{
 			if (PersistentData != null) PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 			if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-			Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnTabletSoftwareButton_BackPressed;
+			var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
+			if (naviManager != null) naviManager.BackRequested -= OnTabletSoftwareButton_BackPressed;
 			_isDataChangedHandlerActive = false;
 		}
 
@@ -195,24 +221,10 @@ namespace LolloGPS.Core
 			else if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
 			{
 				Task alt = UpdateAltitudeColumnMaxWidthAsync();
+				Task butt = UpdateIsExtraButtonsEnabledAsync();
 			}
 		}
-		private Task UpdateAltitudeColumnMaxWidthAsync()
-		{
-			return RunInUiThreadAsync(delegate
-			{
-				if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
-				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
-			});
-		}
-		private void SetShowForAWhileOnly()
-		{
-			_mainVM.IsLastMessageVisible = true;
-		}
-		private void StopShowingNotice()
-		{
-			_mainVM.IsLastMessageVisible = false;
-		}
+
 		private void OnLastMessage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
 			if (!_mainVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.PersistentData.LastMessage))
@@ -304,7 +316,7 @@ namespace LolloGPS.Core
 
 		private void OnToggleOpenPivot_Click(object sender, RoutedEventArgs e)
 		{
-			PersistentData.IsShowingPivot = !PersistentData.IsShowingPivot;
+			//PersistentData.IsShowingPivot = !PersistentData.IsShowingPivot;
 		}
 
 		private void OnAltitude_Click(object sender, RoutedEventArgs e)
@@ -317,6 +329,44 @@ namespace LolloGPS.Core
 			PersistentData.CycleMapStyle();
 		}
 		#endregion event handling
+
+
+		#region services
+		private Task UpdateAltitudeColumnMaxWidthAsync()
+		{
+			return RunInUiThreadAsync(delegate
+			{
+				if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
+				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+			});
+		}
+		private Task UpdateIsExtraButtonsEnabledAsync()
+		{
+			return RunInUiThreadAsync(delegate
+			{
+				IsExtraButtonsEnabled = IsWideEnough || !PersistentData.IsShowingAltitudeProfiles;
+			});
+		}
+		private Task UpdateAltitudeColumnWidthAsync()
+		{
+			return RunInUiThreadAsync(delegate
+			{
+				if (IsWideEnough) AltitudeColumn.Width = new GridLength(1.0, GridUnitType.Star);
+				else AltitudeColumn.Width = new GridLength(0.0);
+
+				if (IsWideEnough) Grid.SetColumn(MyAltitudeProfiles, 1);
+				else Grid.SetColumn(MyAltitudeProfiles, 0);
+			});
+		}
+		private void SetShowForAWhileOnly()
+		{
+			_mainVM.IsLastMessageVisible = true;
+		}
+		private void StopShowingNotice()
+		{
+			_mainVM.IsLastMessageVisible = false;
+		}
+		#endregion services
 
 
 		#region point info panel

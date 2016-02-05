@@ -58,7 +58,7 @@ namespace LolloGPS.Core
 		private bool _isLeechingEnabled = false;
 		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } private set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged(); } } }
 		private bool _isTestBtnEnabled = false;
-		public bool IsTestBtnEnabled { get { return _isTestBtnEnabled; } private set { if (_isTestBtnEnabled != value) { _isTestBtnEnabled = value; RaisePropertyChanged(); } } }
+
 
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
@@ -285,15 +285,6 @@ namespace LolloGPS.Core
 				&& TileCacheProcessingQueue.GetInstance().IsFree;
 			});
 		}
-		//internal void UpdateTestButtonIsEnabled()
-		//{
-		//	Task ui = RunInUiThreadAsync(delegate
-		//	{
-		//		IsTestBtnEnabled = !PersistentData.IsTilesDownloadDesired
-		//		&& RuntimeData.IsConnectionAvailable
-		//		&& TileCacheProcessingQueue.GetInstance().IsFree;
-		//	});
-		//}
 		#endregion updaters
 
 		#region event handlers
@@ -592,12 +583,12 @@ namespace LolloGPS.Core
 			var lmVM = _lolloMapVM;
 			if (lmVM != null) await lmVM.CentreOnTargetAsync().ConfigureAwait(false);
 		}
-		public async Task CentreOnCurrentAsync()
+		public Task CentreOnCurrentAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			// await _myAltitudeProfiles_VM?.CentreOnCurrentAsync(); // useless
-			var lmVM = _lolloMapVM;
-			if (lmVM != null) await lmVM.CentreOnCurrentAsync().ConfigureAwait(false);
+			Task cenA = _altitudeProfilesVM?.CentreOnCurrentAsync();
+			Task cenM = _lolloMapVM.CentreOnCurrentAsync();
+			return Task.WhenAll(cenA, cenM);
 		}
 		public Task Goto2DAsync()
 		{
@@ -610,7 +601,6 @@ namespace LolloGPS.Core
 
 		#region save and load with picker
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
-		// LOLLO TODO this is broken on cheap phone
 		{
 			if (!TrySetIsSaving(true) || whichSeries == PersistentData.Tables.nil) return;
 			SetLastMessage_UI("saving GPX file...");
@@ -654,10 +644,10 @@ namespace LolloGPS.Core
 			{
 				if (file != null && whichSeries != PersistentData.Tables.nil)
 				{
-					if (CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
 					{
-						if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 						SetLastMessage_UI("saving GPX file...");
 
 						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancToken).ConfigureAwait(false);
@@ -677,7 +667,6 @@ namespace LolloGPS.Core
 		}
 
 		internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
-			// LOLLO TODO this is broken on cheap phone
 		{
 			if (!TrySetIsLoading(true)) return;
 			SetLastMessage_UI("reading GPX file...");
@@ -716,16 +705,16 @@ namespace LolloGPS.Core
 			{
 				if (file != null && whichSeries != PersistentData.Tables.nil)
 				{
-					if (CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("reading GPX file...");
 
-						if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 						// load the file
 						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
-						if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 						Logger.Add_TPL("LoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						// update the UI with the file data
@@ -795,13 +784,13 @@ namespace LolloGPS.Core
 
 				try
 				{
-					if (CancToken.IsCancellationRequested) return result;
+					if (CancToken == null || CancToken.IsCancellationRequested) return result;
 					SetLastMessage_UI("reading GPX file...");
 					// load the file, attempting to read checkpoints and route. GPX files can contain both.
 					StorageFile file_mt = args.Files[0] as StorageFile;
-					if (CancToken.IsCancellationRequested) return result;
+					if (CancToken == null || CancToken.IsCancellationRequested) return result;
 					checkpointsResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Checkpoints, CancToken).ConfigureAwait(false);
-					if (CancToken.IsCancellationRequested) return result;
+					if (CancToken == null || CancToken.IsCancellationRequested) return result;
 					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
 				}
 				catch (Exception) { }

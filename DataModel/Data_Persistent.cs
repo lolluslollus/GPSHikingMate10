@@ -174,7 +174,7 @@ namespace LolloGPS.Data
 		}
 		static PersistentData()
 		{
-			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC
+			var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC, less than 200000000 on phone
 			Logger.Add_TPL("mem usage limit = " + memUsageLimit, Logger.AppEventsLogFilename, Logger.Severity.Info);
 			if (memUsageLimit < 1e+9) MaxRecordsInCheckpoints = MaxCheckpoints1;
 			else if (memUsageLimit < 2e+9) MaxRecordsInCheckpoints = MaxCheckpoints2;
@@ -1210,7 +1210,7 @@ namespace LolloGPS.Data
 					{
 						try
 						{
-							if (cancToken.IsCancellationRequested)
+							if (cancToken == null || cancToken.IsCancellationRequested)
 								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							/*	Delete db entries first.
@@ -1221,7 +1221,7 @@ namespace LolloGPS.Data
 							 */
 							var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-							if (cancToken.IsCancellationRequested)
+							if (cancToken == null || cancToken.IsCancellationRequested)
 								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							if (dbResult.Item1)
@@ -1462,13 +1462,13 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-				TileSourceRecord currentTileSource = null;
-				TileSourceRecord.Clone(CurrentTileSource, ref currentTileSource);
+				TileSourceRecord currentTileSourceClone = null;
+				TileSourceRecord.Clone(CurrentTileSource, ref currentTileSourceClone);
 				var session = new DownloadSession(
-					currentTileSource.MinZoom,
-					currentTileSource.MaxZoom,
+					currentTileSourceClone.MinZoom,
+					currentTileSourceClone.MaxZoom,
 					gbb,
-					currentTileSource);
+					currentTileSourceClone);
 				// If the session is invalid, it throws in the ctor so I won't get here.
 				result = session;
 			}

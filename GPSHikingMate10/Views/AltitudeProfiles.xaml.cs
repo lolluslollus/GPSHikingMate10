@@ -45,26 +45,31 @@ namespace LolloGPS.Core
 		protected override Task OpenMayOverrideAsync()
 		{
 			_altitudeProfilesVM = new AltitudeProfilesVM(this as IMapApController, MainVM);
+			RaisePropertyChanged_UI(nameof(AltitudeProfilesVM));
 
 			HistoryChart.Open();
 			Route0Chart.Open();
 			CheckpointsChart.Open();
 
 			AddHandlers();
-			UpdateCharts();
 
-			//if (!App.IsResuming)
-			//{
-				return RunInUiThreadAsync(delegate
-				{
-					try
-					{
-						MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true);
-					}
-					catch { }
-				});
-			//}
+			//bool isVisible = await GetIsVisibleAsync();
+			if (PersistentData?.IsShowingAltitudeProfiles == true)
+			{
+				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
+			}
+			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+			{
+				Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
+			}
+			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+			{
+				Task drawC = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
+			}
+
+			return RestoreViewAsync();
 		}
+
 		protected override Task CloseMayOverrideAsync()
 		{
 			RemoveHandlers();
@@ -81,12 +86,10 @@ namespace LolloGPS.Core
 
 
 		#region data event handlers
-		private volatile bool _isHandlersActive = false;
 		private void AddHandlers()
 		{
-			if (!_isHandlersActive && PersistentData != null)
+			if (PersistentData != null)
 			{
-				_isHandlersActive = true;
 				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
 				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
@@ -104,14 +107,47 @@ namespace LolloGPS.Core
 				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
 				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
 				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
-				_isHandlersActive = false;
 			}
 		}
 
+		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if ((e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles) || e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+				&& PersistentData.IsShowingAltitudeProfiles)
+			{
+				//bool isVisible = await GetIsVisibleAsync().ConfigureAwait(false);
+				Task drawH = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true);
+				});
+
+				Task drawR = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true);
+				});
+
+				Task drawC = RunFunctionIfOpenAsyncT_MT(delegate
+				{
+					return DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
+				});
+			}
+		}
+		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
+		{
+			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
+			// Unless the tracking is on and the autocentre too.
+			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent && PersistentData.IsShowingAltitudeProfiles)
+			{
+				Task cen = RunFunctionIfOpenAsyncT(delegate
+				{
+					return CentreOnHistoryAsync();
+				});
+			}
+		}
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
-				&& Visibility == Visibility.Visible)
+				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
@@ -123,7 +159,7 @@ namespace LolloGPS.Core
 		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
-				&& Visibility == Visibility.Visible)
+				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
@@ -135,44 +171,13 @@ namespace LolloGPS.Core
 		private void OnCheckpoints_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
-				&& Visibility == Visibility.Visible)
+				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					await DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
+					await DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false).ConfigureAwait(false);
 					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
-			}
-		}
-		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(PersistentData.IsShowingAltitudeProfiles))
-			{
-				Task upd = RunFunctionIfOpenAsyncA(delegate
-				{
-					UpdateCharts();
-				});
-			}
-			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
-			{
-				Task upd = RunFunctionIfOpenAsyncT(async delegate
-				{
-					bool doUpdate = false;
-					await RunInUiThreadAsync(delegate
-					{
-						doUpdate = (Visibility == Visibility.Visible);
-					}).ConfigureAwait(false);
-					UpdateCharts();
-				});
-			}
-		}
-		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
-		{
-			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
-			// Unless the tracking is on and the autocentre too.
-			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
-			{
-				Task cen = CentreOnHistoryAsync();
 			}
 		}
 		#endregion data event handlers
@@ -257,7 +262,7 @@ namespace LolloGPS.Core
 			try
 			{
 				if (e.XMax * PersistentData.History.Count > 0)
-				{					
+				{
 					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.History.Count))], PersistentData.Tables.History));
 				}
 			}
@@ -298,17 +303,29 @@ namespace LolloGPS.Core
 
 
 		#region services
-		private void UpdateCharts()
+		private Task RestoreViewAsync()
 		{
-			if (PersistentData?.IsShowingAltitudeProfiles == true) // even if still invisible!
+			return RunInUiThreadAsync(delegate
 			{
-				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
-				//if (!App.IsResuming) // when resuming, skip drawing the series, which do not update in the background // NO! phones will suffe rafter a pick
-				//{
-					Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
-					Task drawL = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
-				//}
-			}
+				try
+				{
+					if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.History) CentreOnHistoryAsync();
+					else if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0) CentreOnRoute0Async();
+					else if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints) CentreOnCheckpointsAsync();
+					else MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true);
+				}
+				catch { }
+			});
+		}
+
+		private async Task<bool> GetIsVisibleAsync()
+		{
+			bool isVisible = false;
+			await RunInUiThreadAsync(delegate
+			{
+				isVisible = (Visibility == Visibility.Visible);
+			}).ConfigureAwait(false);
+			return isVisible;
 		}
 
 		private async Task DrawOneSeriesAsync(Collection<PointRecord> coll, LolloChart chart, bool isHistogram, bool respectDatesAndTimes)
@@ -326,65 +343,65 @@ namespace LolloGPS.Core
 				_altitudeProfilesVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
 					ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
 
-				await RunInUiThreadAsync(delegate
-				{
-					DrawOneSeries(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram);
-				}).ConfigureAwait(false);
+				await DrawOneSeriesUIAsync(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) { } // fires when cts is cancelled
+			catch (ObjectDisposedException) { }
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 		}
 
-		private void DrawOneSeries(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
+		private Task DrawOneSeriesUIAsync(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
 			LolloChart chart, bool isHistogram)
 		{
-			// this method must run in the UI thread
-			chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
-			if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
+			return RunInUiThreadAsync(delegate
 			{
-				try
+				chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
+				if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
 				{
+					try
+					{
 #if DEBUG
-					Stopwatch sw = new Stopwatch(); sw.Start();
+						Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
-					if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
-					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
-					double[] xLabels = { maxTime, minTime };
-					//chart.XGridLabels = new GridLabels(xLabels);
-					chart.XPrimaryGridLines = new GridLines(xLabels);
+						chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
+						chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
+						double[] xLabels = { maxTime, minTime };
+						//chart.XGridLabels = new GridLabels(xLabels);
+						chart.XPrimaryGridLines = new GridLines(xLabels);
 
-					chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
-					double[] yLabels = {
+						chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
+						double[] yLabels = {
 						maxAltitude,
 						minAltitude + (maxAltitude - minAltitude) * .75,
 						minAltitude + (maxAltitude - minAltitude) * .5,
 						minAltitude + (maxAltitude - minAltitude) * .25,
 						minAltitude };
-					chart.YPrimaryGridLines = new GridLines(yLabels);
-					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
-					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
+						chart.YPrimaryGridLines = new GridLines(yLabels);
+						if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
+						else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					if (CancToken.IsCancellationRequested) return;
+						if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-					chart.Draw();
+						chart.Draw();
 
-					chart.Visibility = Visibility.Visible;
+						chart.Visibility = Visibility.Visible;
 #if DEBUG
-					sw.Stop();
-					Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
+						sw.Stop();
+						Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
 #endif
+					}
+					catch (Exception ex)
+					{
+						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+					}
 				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				}
-			}
-			RefreshTBNoData();
+				RefreshTBNoData();
+			});
 		}
 
 		private void RefreshTBNoData()
@@ -415,7 +432,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && HistoryChart.Visibility == Visibility.Visible)
+					if (PersistentData?.IsShowingAltitudeProfiles == true && HistoryChart.Visibility == Visibility.Visible)
 					{
 						MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
 					}
@@ -434,7 +451,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && Route0Chart.Visibility == Visibility.Visible)
+					if (PersistentData?.IsShowingAltitudeProfiles == true && Route0Chart.Visibility == Visibility.Visible)
 					{
 						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
 						MyScrollViewer.ChangeView(0.0, vOffset, 1, false);
@@ -454,7 +471,7 @@ namespace LolloGPS.Core
 			{
 				return RunInUiThreadAsync(delegate
 				{
-					if (PersistentData != null && PersistentData.IsShowingAltitudeProfiles && CheckpointsChart.Visibility == Visibility.Visible)
+					if (PersistentData?.IsShowingAltitudeProfiles == true && CheckpointsChart.Visibility == Visibility.Visible)
 					{
 						double vOffset = HistoryChart.Visibility == Visibility.Visible ? HistoryChart.ActualHeight : 0.0;
 						if (Route0Chart.Visibility == Visibility.Visible) vOffset += Route0Chart.ActualHeight;
@@ -484,7 +501,7 @@ namespace LolloGPS.Core
 
 		public Task CentreOnCurrentAsync()
 		{
-			return Task.CompletedTask; // altitude profiles has no current view
+			return CentreOnHistoryAsync();
 		}
 
 		public Task Goto2DAsync()

@@ -83,7 +83,7 @@ namespace BackgroundTasks
 					// memory saving process
 					var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
 					var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
-					if (cancToken.IsCancellationRequested) return;
+					if (cancToken == null || cancToken.IsCancellationRequested) return;
 
 					bool isSaved = PersistentData.RunDbOpInOtherTask(delegate
 					{

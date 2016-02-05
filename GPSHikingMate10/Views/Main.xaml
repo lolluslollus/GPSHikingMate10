@@ -38,9 +38,11 @@
 						<AdaptiveTrigger MinWindowWidth="1201"/>
 					</VisualState.StateTriggers>
 					<VisualState.Setters>
-						<Setter Target="AltitudeColumn.Width" Value="1*"/>
-						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
-						<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>
+						<Setter Target="me.IsWideEnough" Value="true"/>
+						<!-- the following works but I did it in code behind so it's all in one place -->
+						<!--<Setter Target="AltitudeColumn.Width" Value="1*"/>
+						--><!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property --><!--
+						<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -372,36 +374,36 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
-			<ContentControl Grid.Column="2" 
-				IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}">
+			<ContentControl Grid.Column="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
 				<AppBarButton Grid.Column="2"
-						  VerticalAlignment="Center"
-						  Label="Go to last" Icon="Target"
-						  IsEnabled="{Binding ElementName=me, Path=MainVM.PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
-						  Click="OnGotoLast_Click" 
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+					VerticalAlignment="Center"
+					Label="Go to last" Icon="Target"
+					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
+					Click="OnGotoLast_Click" 
+					Style="{StaticResource AppBarButtonRecoloured}"
+					Foreground="{StaticResource HistoryBrushOpaque}"/>
 			</ContentControl>
 			<!-- altitude profiles -->
 			<AppBarToggleButton Grid.Column="3"
-						  VerticalAlignment="Center"
-						  Label="Altitude" Icon="List"
-						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
-						  Click="OnAltitude_Click"
-						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+				VerticalAlignment="Center"
+				Label="Altitude" Icon="List"
+				IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+				Click="OnAltitude_Click"
+				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
-			<AppBarButton Grid.Column="4"
-						  HorizontalAlignment="Center" 
-						  Label="Menu" Icon="Setting"
-						  Click="OnToggleOpenPivot_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"/>
+			<AppBarToggleButton Grid.Column="4"
+				HorizontalAlignment="Center" 
+				Label="Menu" Icon="Setting"
+				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
+				Click="OnToggleOpenPivot_Click"
+				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Column="5"
                 HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
-                Style="{StaticResource AppBarButtonRecoloured}"
-				IsEnabled="{Binding ElementName=me, Path=MainVM.PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
+				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
+				Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
@@ -440,36 +442,36 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
-			<ContentControl Grid.Row="2" 
-				IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}">
+			<ContentControl Grid.Row="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
 				<AppBarButton Grid.Row="2"
-						  VerticalAlignment="Center"
-						  Label="Go to last" Icon="Target"
-						  IsEnabled="{Binding ElementName=me, Path=MainVM.PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}"
-						  Click="OnGotoLast_Click" 
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+					VerticalAlignment="Center"
+					Label="Go to last" Icon="Target"
+					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
+					Click="OnGotoLast_Click" 
+					Style="{StaticResource AppBarButtonRecoloured}"
+					Foreground="{StaticResource HistoryBrushOpaque}"/>
 			</ContentControl>
 			<!-- altitude profiles -->
 			<AppBarToggleButton Grid.Row="3"
-						  HorizontalAlignment="Center" 
-						  Label="Altitude" Icon="List"
-						  IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
-						  Click="OnAltitude_Click"
-						  Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+				HorizontalAlignment="Center" 
+				Label="Altitude" Icon="List"
+				IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+				Click="OnAltitude_Click"
+				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
-			<AppBarButton Grid.Row="4"
-						  HorizontalAlignment="Center" 
-						  Label="Menu" Icon="Setting"
-						  Click="OnToggleOpenPivot_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"/>
+			<AppBarToggleButton Grid.Row="4"
+				HorizontalAlignment="Center" 
+				Label="Menu" Icon="Setting"
+				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
+				Click="OnToggleOpenPivot_Click"
+				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Row="5"
                 HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
-                Style="{StaticResource AppBarButtonRecoloured}"
-				IsEnabled="{Binding ElementName=me, Path=MainVM.PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource TrueToFalseConverter}}">
+				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
+                Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
                         Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>

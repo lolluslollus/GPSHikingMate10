@@ -107,7 +107,6 @@
                 Style="{StaticResource BaseMessageStyle}"
                 TextWrapping="Wrap"
                 Text="Use this source"/>
-			<!--IsEnabled="{Binding ElementName=me, Path=MainVM.IsTestBtnEnabled}"-->
 			<AppBarButton Grid.Row="1" Grid.Column="2"
                 VerticalAlignment="Center"
                 Click="OnTestClicked"

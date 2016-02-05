@@ -155,18 +155,22 @@ namespace LolloGPS.Core
 			_isFlyoutPointInMap = false;
 
 			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
-
-			await RestoreViewAsync();
 			await _lolloMapVM.OpenAsync();
+			RaisePropertyChanged_UI(nameof(LolloMapVM));
 
 			AddHandlers();
 
-			await RunInUiThreadAsync(delegate
+			Task drawH = DrawHistoryAsync();
+			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
 			{
-				DrawHistory();
-				DrawRoute0();
-				DrawCheckpoints();
-			}).ConfigureAwait(false);
+				Task drawR = DrawRoute0Async();
+			}
+			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+			{
+				Task drawC = DrawCheckpointsAsync();
+			}
+
+			Task restore = RestoreViewAsync();
 		}
 
 		protected override async Task CloseMayOverrideAsync()
@@ -293,9 +297,9 @@ namespace LolloGPS.Core
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
-			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
-			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
+			if (series == PersistentData.Tables.History) return CentreAsync(PersistentData.History);
+			else if (series == PersistentData.Tables.Route0) return CentreAsync(PersistentData.Route0);
+			else if (series == PersistentData.Tables.Checkpoints) return CentreAsync(PersistentData.Checkpoints);
 			else return Task.CompletedTask;
 		}
 		public Task CentreOnTargetAsync()
@@ -350,11 +354,11 @@ namespace LolloGPS.Core
 			});
 		}
 
-		private void DrawHistory()
+		private async Task DrawHistoryAsync()
 		{
 			try
 			{
-				if (CancToken.IsCancellationRequested) return;
+				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
@@ -369,41 +373,43 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-				if (basicGeoPositions.Count > 0)
+				await RunInUiThreadAsync(delegate
 				{
-					_mapPolylineHistory.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
-																			   // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-																			   //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-																			   //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
-					_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
-					_iconEndHistory.Location = new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]);
-				}
-				//Better even: use binding; sadly, it is broken for the moment
-				else
-				{
-					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
-					basicGeoPositions.Add(lastGeoposition);
-					_mapPolylineHistory.Path = new Geopath(basicGeoPositions);
-					//MapControl.SetLocation(_imageStartHistory, new Geopoint(lastGeoposition));
-					//MapControl.SetLocation(_imageEndHistory, new Geopoint(lastGeoposition));
-					_iconStartHistory.Location = new Geopoint(lastGeoposition);
-					_iconEndHistory.Location = new Geopoint(lastGeoposition);
-				}
+					if (basicGeoPositions.Count > 0)
+					{
+						_mapPolylineHistory.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
+																				   // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+																				   //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+																				   //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+						_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
+						_iconEndHistory.Location = new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]);
+					}
+					//Better even: use binding; sadly, it is broken for the moment
+					else
+					{
+						BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
+						basicGeoPositions.Add(lastGeoposition);
+						_mapPolylineHistory.Path = new Geopath(basicGeoPositions);
+						//MapControl.SetLocation(_imageStartHistory, new Geopoint(lastGeoposition));
+						//MapControl.SetLocation(_imageEndHistory, new Geopoint(lastGeoposition));
+						_iconStartHistory.Location = new Geopoint(lastGeoposition);
+						_iconEndHistory.Location = new Geopoint(lastGeoposition);
+					}
 
-				if (CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-				if (!_isHistoryInMap)
-				{
-					if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
-					//if (!MyMap.Children.Contains(_imageStartHistory)) MyMap.Children.Add(_imageStartHistory);
-					//if (!MyMap.Children.Contains(_imageEndHistory)) MyMap.Children.Add(_imageEndHistory);
-					if (!MyMap.MapElements.Contains(_iconStartHistory)) MyMap.MapElements.Add(_iconStartHistory);
-					if (!MyMap.MapElements.Contains(_iconEndHistory)) MyMap.MapElements.Add(_iconEndHistory);
-					_isHistoryInMap = true;
-				}
-
+					if (!_isHistoryInMap)
+					{
+						if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
+						//if (!MyMap.Children.Contains(_imageStartHistory)) MyMap.Children.Add(_imageStartHistory);
+						//if (!MyMap.Children.Contains(_imageEndHistory)) MyMap.Children.Add(_imageEndHistory);
+						if (!MyMap.MapElements.Contains(_iconStartHistory)) MyMap.MapElements.Add(_iconStartHistory);
+						if (!MyMap.MapElements.Contains(_iconEndHistory)) MyMap.MapElements.Add(_iconEndHistory);
+						_isHistoryInMap = true;
+					}
+				}).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -411,11 +417,11 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void DrawRoute0()
+		private async Task DrawRoute0Async()
 		{
 			try
 			{
-				if (CancToken.IsCancellationRequested) return;
+				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
 				try
@@ -430,30 +436,33 @@ namespace LolloGPS.Core
 					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-				if (basicGeoPositions.Count > 0)
+				await RunInUiThreadAsync(delegate
 				{
-					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
-				}                                                             // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-																			  //Better even: use binding; sadly, it is broken for the moment
-				else
-				{
-					BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
-					basicGeoPositions.Add(lastGeoposition);
-					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
-				}
-
-				if (CancToken.IsCancellationRequested) return;
-
-				if (!_isRoute0InMap)
-				{
-					if (!MyMap.MapElements.Contains(_mapPolylineRoute0))
+					if (basicGeoPositions.Count > 0)
 					{
-						MyMap.MapElements.Add(_mapPolylineRoute0);
+						_mapPolylineRoute0.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
+					}                                                             // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+																				  //Better even: use binding; sadly, it is broken for the moment
+					else
+					{
+						BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
+						basicGeoPositions.Add(lastGeoposition);
+						_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 					}
-					_isRoute0InMap = true;
-				}
+
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
+
+					if (!_isRoute0InMap)
+					{
+						if (!MyMap.MapElements.Contains(_mapPolylineRoute0))
+						{
+							MyMap.MapElements.Add(_mapPolylineRoute0);
+						}
+						_isRoute0InMap = true;
+					}
+				}).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -461,12 +470,25 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private void DrawCheckpoints()
+		private async Task DrawCheckpointsAsync()
 		{
+			if (CancToken == null || CancToken.IsCancellationRequested) return;
+
+			List<Geopoint> geoPoints = new List<Geopoint>();
 			try
 			{
-				if (CancToken.IsCancellationRequested) return;
+				foreach (var item in PersistentData.Checkpoints)
+				{
+					geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
+				}
+			}
+			catch (OutOfMemoryException)
+			{
+				var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
+			}
 
+			await RunInUiThreadAsync(delegate
+			{
 				// this method is always called within _isOpenSemaphore, so I don't need to protect the following with a dedicated semaphore
 				if (!InitCheckpoints())
 				{
@@ -474,29 +496,11 @@ namespace LolloGPS.Core
 					return;
 				}
 
-				if (CancToken.IsCancellationRequested) return;
+				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 #if DEBUG
 				Stopwatch sw0 = new Stopwatch(); sw0.Start();
 #endif
-
-				List<Geopoint> geoPoints = new List<Geopoint>();
-				try
-				{
-					foreach (var item in PersistentData.Checkpoints)
-					{
-						geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
-					}
-				}
-				catch (OutOfMemoryException)
-				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true); // LOLLO this is probably too late! Let's hope it does not happen since PersistentData puts a limit on the points.
-				}
-#if DEBUG
-				sw0.Stop(); Debug.WriteLine("Making geopoints for checkpoints took " + sw0.ElapsedMilliseconds + " msec");
-				sw0.Restart();
-#endif
-				if (CancToken.IsCancellationRequested) return;
 
 				try
 				{
@@ -514,7 +518,7 @@ namespace LolloGPS.Core
 						j++;
 					}
 
-					if (CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInCheckpoints; i++)
 					{
@@ -534,11 +538,7 @@ namespace LolloGPS.Core
 #if DEBUG
 				sw0.Stop(); Debug.WriteLine("attaching icons to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
+			}).ConfigureAwait(false);
 		}
 
 		private bool InitCheckpoints()
@@ -575,27 +575,33 @@ namespace LolloGPS.Core
 #endif
 			return isInit;
 		}
-		private void HideFlyoutPoint()
+		private Task HideFlyoutPointAsync()
 		{
-			//_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
-			_iconFlyoutPoint.Visible = false;
-		}
-		private void DrawFlyoutPoint()
-		{
-			//_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Visible;
-			_iconFlyoutPoint.Visible = true;
-
-			//MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
-			_iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
-
-			if (!_isFlyoutPointInMap)
+			return RunInUiThreadAsync(delegate
 			{
-				if (!MyMap.MapElements.Contains(_iconFlyoutPoint))
+				//_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+				_iconFlyoutPoint.Visible = false;
+			});
+		}
+		private Task DrawFlyoutPointAsync()
+		{
+			return RunInUiThreadAsync(delegate
+			{
+				//_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Visible;
+				_iconFlyoutPoint.Visible = true;
+
+				//MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
+				_iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
+
+				if (!_isFlyoutPointInMap)
 				{
-					MyMap.MapElements.Add(_iconFlyoutPoint);
+					if (!MyMap.MapElements.Contains(_iconFlyoutPoint))
+					{
+						MyMap.MapElements.Add(_iconFlyoutPoint);
+					}
+					_isFlyoutPointInMap = true;
 				}
-				_isFlyoutPointInMap = true;
-			}
+			});
 		}
 		#endregion services
 
@@ -794,7 +800,7 @@ namespace LolloGPS.Core
 		{
 			if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 			{
-				DrawFlyoutPoint();
+				await DrawFlyoutPointAsync().ConfigureAwait(false);
 				await CentreOnSelectedPointAsync();
 			}
 			//else
@@ -805,17 +811,8 @@ namespace LolloGPS.Core
 
 		public void OnInfoPanelClosed(object sender, object e)
 		{
-			HideFlyoutPoint();
+			Task hide = HideFlyoutPointAsync();
 		}
-
-		//private void OnMap_Holding(MapControl sender, MapInputEventArgs args)
-		//{
-		//	Task resp = RunFunctionIfOpenAsyncA(delegate
-		//	{
-		//		Task vibrate = Task.Run(() => App.ShortVibration());
-		//		Task cen = CentreOnCurrentAsync();
-		//	});
-		//}
 
 		private async void OnAim_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
@@ -852,6 +849,30 @@ namespace LolloGPS.Core
 
 
 		#region data event handlers
+		private void AddHandlers()
+		{
+			if (PersistentData != null)
+			{
+				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged += OnCheckpoints_CollectionChanged;
+			}
+		}
+
+		private void RemoveHandlers()
+		{
+			if (PersistentData != null)
+			{
+				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
+				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
+				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
+				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
+				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
+			}
+		}
+
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PersistentData.MapStyle))
@@ -876,13 +897,6 @@ namespace LolloGPS.Core
 					// MyMap.ZoomLevel = MyMap.ZoomLevel; does nothing
 				});
 			}
-			//else if (e.PropertyName == "IsCentreOnCurrent")
-			//{
-			//    if (PersistentData != null && PersistentData.IsCentreOnCurrent)
-			//    {
-			//        CentreOnCurrent();
-			//    }
-			//}
 		}
 
 		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
@@ -891,7 +905,10 @@ namespace LolloGPS.Core
 			// Unless the tracking is on and the autocentre too.
 			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
 			{
-				Task cen = CentreOnCurrentAsync();
+				Task cen = RunFunctionIfOpenAsyncT(delegate
+				{
+					return CentreOnCurrentAsync();
+				});
 			}
 		}
 
@@ -899,13 +916,10 @@ namespace LolloGPS.Core
 		{
 			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
 			{
-				Task draw = RunFunctionIfOpenAsyncT(delegate
+				Task draw = RunFunctionIfOpenAsyncT(async delegate
 				{
-					return RunInUiThreadAsync(delegate
-					{
-						DrawHistory();
-						if (e.NewItems.Count > 1) CentreOnHistoryAsync();
-					});
+					await DrawHistoryAsync().ConfigureAwait(false);
+					if (e.NewItems.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -914,13 +928,10 @@ namespace LolloGPS.Core
 		{
 			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
 			{
-				Task draw = RunFunctionIfOpenAsyncT(delegate
+				Task draw = RunFunctionIfOpenAsyncT(async delegate
 				{
-					return RunInUiThreadAsync(delegate
-					{
-						DrawRoute0();
-						if (e.NewItems.Count > 1) CentreOnRoute0Async();
-					});
+					await DrawRoute0Async().ConfigureAwait(false);
+					if (e.NewItems.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
 		}
@@ -929,38 +940,11 @@ namespace LolloGPS.Core
 		{
 			if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
 			{
-				Task draw = RunFunctionIfOpenAsyncT(delegate
+				Task draw = RunFunctionIfOpenAsyncT(async delegate
 				{
-					return RunInUiThreadAsync(delegate
-					{
-						DrawCheckpoints();
-						if (e.NewItems.Count > 1) CentreOnCheckpointsAsync();
-					});
+					await DrawCheckpointsAsync().ConfigureAwait(false);
+					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
-			}
-		}
-
-		private void AddHandlers()
-		{
-			if (PersistentData != null)
-			{
-				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
-				PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
-				PersistentData.Route0.CollectionChanged += OnRoute0_CollectionChanged;
-				PersistentData.Checkpoints.CollectionChanged += OnCheckpoints_CollectionChanged;
-			}
-		}
-
-		private void RemoveHandlers()
-		{
-			if (PersistentData != null)
-			{
-				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-				PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
-				PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
-				PersistentData.Route0.CollectionChanged -= OnRoute0_CollectionChanged;
-				PersistentData.Checkpoints.CollectionChanged -= OnCheckpoints_CollectionChanged;
 			}
 		}
 		#endregion data event handlers
@@ -1045,19 +1029,22 @@ namespace LolloGPS.Core
 			if (mapControl != null)
 			{
 				// we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
-				// in practise, we can also move along the parallels, it works anyway
+				// in practise, we can also move along the parallels, it works anyway.
 				// we put a hypothetical bar on the map, and we ask the map to measure where it starts and ends.
 				// then we compare the bar length with the scale length, so we find out the distance in metres between the scale ends.
-				double hypotheticalParallelBarX1 = mapControl.ActualWidth / 2.0;
-				double hypotheticalMeridianBarY1 = mapControl.ActualHeight / 2.0;
-				if (hypotheticalMeridianBarY1 <= 0 || hypotheticalParallelBarX1 <= 0) return;
-				double hypotheticalMeridianBarLength = 99.0; // I use a shortish bar length so it always fits snugly in the MapControl. Too short would be inaccurate.
-															 // The map may be shifted badly; these maps can shift vertically so badly, that the north or the south pole can be in the centre of the control.
-															 // If this happens, we place the hypothetical bar lower or higher, so it is always safely on the Earth.
-															 // Since these shifts happen vertically, it is easier to use a horizontal hypothetical bar.
+
+				double hypotheticalMeasureBarLength = mapControl.ActualWidth / 3.0; // I use a shortish bar length so it always fits snugly in the MapControl. Too short would be inaccurate.
+															// The map may be shifted badly; these maps can shift vertically so badly, that the north or the south pole can be in the centre of the control.
+															// If this happens, we place the hypothetical bar lower or higher, so it is always safely on the Earth.
+															// Since these shifts happen vertically, it is easier to use a horizontal hypothetical bar.
+
+				double hypotheticalMeasureBarX1 = mapControl.ActualWidth / 2.0;
+				double hypotheticalMeasureBarY1 = mapControl.ActualHeight / 2.0;
+				if (hypotheticalMeasureBarY1 <= 0 || hypotheticalMeasureBarX1 <= 0) return;
+
 				Geopoint centre = mapControl.Center;
-				if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeridianBarY1 *= 1.5; /*Debug.WriteLine("halfMapHeight + ");*/ }
-				else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeridianBarY1 *= .5; /*Debug.WriteLine("halfMapHeight - ");*/ }
+				if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeasureBarY1 *= 1.5; /*Debug.WriteLine("halfMapHeight + ");*/ }
+				else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeasureBarY1 *= .5; /*Debug.WriteLine("halfMapHeight - ");*/ }
 
 				double headingRadians = mapControl.Heading * ConstantData.DEG_TO_RAD;
 
@@ -1070,15 +1057,18 @@ namespace LolloGPS.Core
 				//mapControl.GetLocationFromOffset(pointN, out locationN);
 				//mapControl.GetLocationFromOffset(pointS, out locationS);
 
-				Point pointW = new Point(hypotheticalParallelBarX1, hypotheticalMeridianBarY1);
-				Point pointE = new Point(hypotheticalParallelBarX1 + hypotheticalMeridianBarLength * Math.Sin(headingRadians + ConstantData.PI_HALF), hypotheticalMeridianBarY1 + hypotheticalMeridianBarLength * Math.Cos(headingRadians + ConstantData.PI_HALF));
+				Point pointW = new Point(hypotheticalMeasureBarX1, hypotheticalMeasureBarY1);
+				Point pointE = new Point(
+					hypotheticalMeasureBarX1 + hypotheticalMeasureBarLength * Math.Sin(ConstantData.PI_HALF - headingRadians), 
+					hypotheticalMeasureBarY1 - hypotheticalMeasureBarLength * Math.Cos(ConstantData.PI_HALF - headingRadians));
+				// if(pointE.X > 360.0 || pointW.X > 360.0) { }
 				Geopoint locationW = null;
-				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved
+				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved. I tweaked something, check if it works.
 				mapControl.GetLocationFromOffset(pointW, out locationW);
 				mapControl.GetLocationFromOffset(pointE, out locationE);
 
 				//double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
-				double scaleEndsDistanceMetres = Math.Abs(locationE.Position.Longitude - locationW.Position.Longitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
+				double scaleEndsDistanceMetres = Math.Abs(locationE.Position.Longitude - locationW.Position.Longitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;
 
 				double distInChosenUnit = 0.0;
 				double distInChosenUnitRounded = 0.0;

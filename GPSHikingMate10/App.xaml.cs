@@ -38,6 +38,9 @@ namespace LolloGPS.Core
 		
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+
+		private static volatile bool _isResuming = false;
+		public static bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
 		#endregion properties
 
 
@@ -208,9 +211,9 @@ namespace LolloGPS.Core
 			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			try
 			{
-				ResumingStatic?.Invoke(this, EventArgs.Empty);
-
 				await _resumingActivatingSemaphore.WaitAsync();
+				ResumingStatic?.Invoke(this, EventArgs.Empty);
+				IsResuming = true;
 				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenDataAsync();
@@ -247,6 +250,7 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
+				IsResuming = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}
