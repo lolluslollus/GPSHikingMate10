@@ -68,17 +68,16 @@
 			</AppBarButton.Icon>
 		</AppBarButton>
 
-		<StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal">
+		<Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="2*"/>
+			</Grid.ColumnDefinitions>
 			<TextBlock
                 Text="Map source "
                 Style="{StaticResource BaseMessageStyle}"
                 VerticalAlignment="Center"/>
-			<TextBlock
-                Width="20"
-                Text="   "
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center"/>
-			<uctl:LolloListChooser
+			<uctl:LolloListChooser Grid.Column="1"
 				x:Name="MapSourceChooser"
                 PlaceholderText="Select a source for map tiles"
                 ListHeaderText="Select a source for map tiles"
@@ -92,7 +91,7 @@
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting}"
                 SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
 				ItemSelected="OnMapSourceChooser_ItemSelected"/>
-		</StackPanel>
+		</Grid>
 
 		<TextBlock Grid.Row="4" Grid.Column="0" 
             Text="As you visit a part of a map, cache it for offline use"
