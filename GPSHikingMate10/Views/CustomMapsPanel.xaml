@@ -110,7 +110,7 @@
 			<AppBarButton Grid.Row="1" Grid.Column="2"
                 VerticalAlignment="Center"
                 Click="OnTestClicked"
-                IsEnabled="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsTestBtnEnabled}"
                 IsCompact="True"
                 Style="{StaticResource AppBarButtonRecoloured}"
                 Icon="View"

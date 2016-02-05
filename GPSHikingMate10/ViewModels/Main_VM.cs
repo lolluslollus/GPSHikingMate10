@@ -57,6 +57,8 @@ namespace LolloGPS.Core
 		public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } private set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged(); } } }
 		private bool _isLeechingEnabled = false;
 		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } private set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged(); } } }
+		private bool _isTestBtnEnabled = false;
+		public bool IsTestBtnEnabled { get { return _isTestBtnEnabled; } private set { if (_isTestBtnEnabled != value) { _isTestBtnEnabled = value; RaisePropertyChanged(); } } }
 
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
@@ -175,6 +177,7 @@ namespace LolloGPS.Core
 				UpdateClearCustomCacheButtonIsEnabled();
 				UpdateCacheButtonIsEnabled();
 				UpdateDownloadButtonIsEnabled();
+				UpdateTestButtonIsEnabled();
 				await RunInUiThreadAsync(delegate
 				{
 					KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
@@ -282,6 +285,15 @@ namespace LolloGPS.Core
 				&& TileCacheProcessingQueue.GetInstance().IsFree;
 			});
 		}
+		internal void UpdateTestButtonIsEnabled()
+		{
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsTestBtnEnabled = !PersistentData.IsTilesDownloadDesired
+				&& RuntimeData.IsConnectionAvailable
+				&& TileCacheProcessingQueue.GetInstance().IsFree;
+			});
+		}
 		#endregion updaters
 
 		#region event handlers
@@ -323,6 +335,7 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					UpdateDownloadButtonIsEnabled();
+					UpdateTestButtonIsEnabled();
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
@@ -349,6 +362,7 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					UpdateDownloadButtonIsEnabled();
+					UpdateTestButtonIsEnabled();
 				});
 			}
 		}
@@ -359,6 +373,7 @@ namespace LolloGPS.Core
 			UpdateClearCustomCacheButtonIsEnabled();
 			UpdateCacheButtonIsEnabled();
 			UpdateDownloadButtonIsEnabled();
+			UpdateTestButtonIsEnabled();
 		}
 		private void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
 		{
