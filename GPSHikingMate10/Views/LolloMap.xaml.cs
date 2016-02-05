@@ -1073,7 +1073,7 @@ namespace LolloGPS.Core
 				Point pointW = new Point(hypotheticalParallelBarX1, hypotheticalMeridianBarY1);
 				Point pointE = new Point(hypotheticalParallelBarX1 + hypotheticalMeridianBarLength * Math.Sin(headingRadians + ConstantData.PI_HALF), hypotheticalMeridianBarY1 + hypotheticalMeridianBarLength * Math.Cos(headingRadians + ConstantData.PI_HALF));
 				Geopoint locationW = null;
-				Geopoint locationE = null;
+				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved
 				mapControl.GetLocationFromOffset(pointW, out locationW);
 				mapControl.GetLocationFromOffset(pointE, out locationE);
 

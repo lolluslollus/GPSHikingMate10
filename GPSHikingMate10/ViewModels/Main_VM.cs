@@ -177,7 +177,7 @@ namespace LolloGPS.Core
 				UpdateClearCustomCacheButtonIsEnabled();
 				UpdateCacheButtonIsEnabled();
 				UpdateDownloadButtonIsEnabled();
-				UpdateTestButtonIsEnabled();
+				//UpdateTestButtonIsEnabled();
 				await RunInUiThreadAsync(delegate
 				{
 					KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
@@ -285,15 +285,15 @@ namespace LolloGPS.Core
 				&& TileCacheProcessingQueue.GetInstance().IsFree;
 			});
 		}
-		internal void UpdateTestButtonIsEnabled()
-		{
-			Task ui = RunInUiThreadAsync(delegate
-			{
-				IsTestBtnEnabled = !PersistentData.IsTilesDownloadDesired
-				&& RuntimeData.IsConnectionAvailable
-				&& TileCacheProcessingQueue.GetInstance().IsFree;
-			});
-		}
+		//internal void UpdateTestButtonIsEnabled()
+		//{
+		//	Task ui = RunInUiThreadAsync(delegate
+		//	{
+		//		IsTestBtnEnabled = !PersistentData.IsTilesDownloadDesired
+		//		&& RuntimeData.IsConnectionAvailable
+		//		&& TileCacheProcessingQueue.GetInstance().IsFree;
+		//	});
+		//}
 		#endregion updaters
 
 		#region event handlers
@@ -335,7 +335,7 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					UpdateDownloadButtonIsEnabled();
-					UpdateTestButtonIsEnabled();
+					//UpdateTestButtonIsEnabled();
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
@@ -362,7 +362,7 @@ namespace LolloGPS.Core
 				Task gt = RunInUiThreadAsync(delegate
 				{
 					UpdateDownloadButtonIsEnabled();
-					UpdateTestButtonIsEnabled();
+					//UpdateTestButtonIsEnabled();
 				});
 			}
 		}
@@ -373,7 +373,7 @@ namespace LolloGPS.Core
 			UpdateClearCustomCacheButtonIsEnabled();
 			UpdateCacheButtonIsEnabled();
 			UpdateDownloadButtonIsEnabled();
-			UpdateTestButtonIsEnabled();
+			//UpdateTestButtonIsEnabled();
 		}
 		private void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
 		{
