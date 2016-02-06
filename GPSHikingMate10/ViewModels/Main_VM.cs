@@ -470,12 +470,12 @@ namespace LolloGPS.Core
 		{
 			Task getLoc = _gpsInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
-		public async Task<bool> TryScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{
+		public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{			
 			bool isScheduled = await Task.Run(delegate { return _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); }).ConfigureAwait(false);
-			if (isScheduled) PersistentData.LastMessage = "clearing the cache...";
+			if (isScheduled) PersistentData.LastMessage = "cache will be cleared asap";
 			else PersistentData.LastMessage = "cache busy";
-			return isScheduled;
+
 			//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
 		}
 

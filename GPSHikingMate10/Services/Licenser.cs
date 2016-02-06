@@ -14,7 +14,7 @@ using LolloGPS.Data;
 
 namespace Utilz
 {
-	internal class Licenser : ObservableData
+	internal sealed class Licenser : ObservableData
 	{
 		private static readonly object _instanceLocker = new object();
 		private static Licenser _instance = null;

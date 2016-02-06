@@ -442,7 +442,7 @@ namespace LolloGPS.Data.TileCache
 		#region events
 		public static event PropertyChangedEventHandler IsClearingScheduledChanged;
 		public static event EventHandler<CacheClearedEventArgs> CacheCleared;
-		public class CacheClearedEventArgs : EventArgs
+		public sealed class CacheClearedEventArgs : EventArgs
 		{
 			private TileSourceRecord _tileSource = null;
 			public TileSourceRecord TileSource { get { return _tileSource; } }
@@ -488,12 +488,17 @@ namespace LolloGPS.Data.TileCache
 			await _queue.OpenAsync().ConfigureAwait(false);
 			// resume clearing cache if it was interrupted
 			var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
-			if (cacheClearingProps != null)
+			if (cacheClearingProps != null) // we don't want to hog anything, we schedule it for later.
 			{
-				await TryScheduleClearCache2Async(
-					cacheClearingProps.TileSource,
-					cacheClearingProps.IsAlsoRemoveSources,
-					false).ConfigureAwait(false);
+				await TryScheduleClearCache2Async(cacheClearingProps.TileSource, cacheClearingProps.IsAlsoRemoveSources, false).ConfigureAwait(false);
+				//_runAsSoonAsOpen = delegate
+				//{
+				//	return
+				//		TryScheduleClearCacheAsync(
+				//		cacheClearingProps.TileSource,
+				//		cacheClearingProps.IsAlsoRemoveSources,
+				//		false);
+				//};
 			}
 		}
 		#endregion lifecycle
@@ -606,13 +611,12 @@ namespace LolloGPS.Data.TileCache
 	/// As soon as a file (ie a unique combination of TileSource, X, Y, Z and Zoom) is in process, this class stores it.
 	/// As soon as no files are in process, this class can run a delegate, if it was scheduled.
 	/// </summary>
-	public class TileCacheProcessingQueue : OpenableObservableData
+	public sealed class TileCacheProcessingQueue : OpenableObservableData
 	{
 		#region properties
 		public CancellationToken CancellationToken { get { return CancToken; } }
 
 		private List<string> _fileNames_InProcess = new List<string>();
-		// private List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
 		private Func<Task> _funcAsSoonAsFree = null;
 
 		private static readonly object _instanceLocker = new object();
@@ -633,7 +637,6 @@ namespace LolloGPS.Data.TileCache
 		#region lifecycle
 		protected override Task CloseMayOverrideAsync()
 		{
-			// _funcsAsSoonAsFree.Clear();
 			_funcAsSoonAsFree = null;
 			_fileNames_InProcess.Clear();
 			return Task.CompletedTask;
@@ -678,19 +681,28 @@ namespace LolloGPS.Data.TileCache
 		}
 		/// <summary>
 		/// Schedules a delegate to be run as soon as no data is being processed.
+		/// If it can run it now, it will wait until the method has exited.
 		/// </summary>
 		/// <param name="func"></param>
 		/// <returns></returns>
 		internal Task<bool> TryScheduleTaskAsync(Func<Task> func)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (_funcAsSoonAsFree == null)
 				{
 					_funcAsSoonAsFree = func;
-					// _funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
-					await TryRunFuncAsSoonAsFree().ConfigureAwait(false); // will run now if the cache is free, otherwise later
-					return true; // func has been either ran or scheduled
+
+					Task runFunc = Task.Run(async delegate
+					{
+						// the following will run after the current method is over because it queues before the semaphore.
+						await RunFunctionIfOpenAsyncT(delegate
+						{
+							return TryRunFuncAsSoonAsFree(); // will run now if the cache is free, otherwise later
+						}).ConfigureAwait(false);
+					});
+
+					return true;
 				}
 				return false;
 			});
@@ -702,20 +714,14 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		private async Task<bool> TryRunFuncAsSoonAsFree()
 		{
-			//if (_fileNames_InProcess.Count == 0 && _funcsAsSoonAsFree.Count > 0)
 			if (_fileNames_InProcess.Count == 0 && _funcAsSoonAsFree != null)
 			{
 				try
 				{
-					//foreach (var func in _funcsAsSoonAsFree)
-					//{
-					//	await func().ConfigureAwait(false);
-					//}
 					await _funcAsSoonAsFree().ConfigureAwait(false);
 				}
 				finally
 				{
-					// _funcsAsSoonAsFree.Clear();
 					_funcAsSoonAsFree = null;
 				}
 				return true;

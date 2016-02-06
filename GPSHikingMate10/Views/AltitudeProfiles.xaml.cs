@@ -243,7 +243,7 @@ namespace LolloGPS.Core
 		}
 
 		public event EventHandler<ShowOnePointDetailsRequestedArgs> ShowOnePointDetailsRequested;
-		public class ShowOnePointDetailsRequestedArgs : EventArgs
+		public sealed class ShowOnePointDetailsRequestedArgs : EventArgs
 		{
 			private PointRecord _selectedRecord;
 			public PointRecord SelectedRecord { get { return _selectedRecord; } }

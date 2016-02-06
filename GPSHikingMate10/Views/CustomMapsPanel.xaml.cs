@@ -51,7 +51,7 @@ namespace LolloGPS.Core
 
         private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
-			MainVM?.TryScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
+			MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
         }
 
         private void OnTestClicked(object sender, RoutedEventArgs e)

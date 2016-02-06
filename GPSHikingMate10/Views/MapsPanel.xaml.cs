@@ -65,7 +65,7 @@ namespace LolloGPS.Core
         }
         private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
-			MainVM?.TryScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
+			MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
         }
 
         private async void OnDownloadMap_Click(object sender, RoutedEventArgs e)

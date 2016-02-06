@@ -20,7 +20,7 @@ namespace LolloGPS.Core
 		Task<GeoboundingBox> GetMinMaxLatLonAsync();
 		Task<BasicGeoposition> GetCentreAsync();
 	}
-	public class TileDownloader : OpenableObservableData
+	public sealed class TileDownloader : OpenableObservableData
 	{
 		#region properties
 		public const int MaxProgressStepsToReport = 25;

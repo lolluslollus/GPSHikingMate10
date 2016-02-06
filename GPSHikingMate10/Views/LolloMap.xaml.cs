@@ -708,7 +708,7 @@ namespace LolloGPS.Core
 
 		#region user event handlers
 		public event EventHandler<ShowManyPointDetailsRequestedArgs> ShowManyPointDetailsRequested;
-		public class ShowManyPointDetailsRequestedArgs : EventArgs
+		public sealed class ShowManyPointDetailsRequestedArgs : EventArgs
 		{
 			private List<PointRecord> _selectedRecords;
 			public List<PointRecord> SelectedRecords { get { return _selectedRecords; } }

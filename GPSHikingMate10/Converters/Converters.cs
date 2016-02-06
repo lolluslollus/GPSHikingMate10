@@ -462,7 +462,7 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class FloatConverterHelper
+	public static class FloatConverterHelper
 	{
 		public static object Convert(object value, object parameter, bool abs, string format = @"#0.########")
 		{
