@@ -69,7 +69,7 @@ namespace LolloGPS.Data.TileCache
 		}
 		private static int GetHowManyEntriesMax()
 		{
-			return TileSupplier.MaxRecords;
+			return TileCacheReaderWriter.MaxRecords;
 		}
 
 		private static Task<TileCacheRecord> ReadRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()

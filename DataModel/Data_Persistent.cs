@@ -1404,9 +1404,9 @@ namespace LolloGPS.Data
 		{
 			return GetTileSourceClone(CurrentTileSource);
 		}
-		public async Task<Tuple<TileCache.TileSupplier, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
+		public async Task<Tuple<TileCache.TileCacheReaderWriter, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
 		{
-			Tuple<TileCache.TileSupplier, DownloadSession> result = null;
+			Tuple<TileCache.TileCacheReaderWriter, DownloadSession> result = null;
 			if (gbb == null) return null;
 
 			try
@@ -1433,7 +1433,7 @@ namespace LolloGPS.Data
 								DownloadSession sessionClone = null;
 								DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-								var newTileCache = new TileCache.TileSupplier(CurrentTileSource, false);
+								var newTileCache = new TileCache.TileCacheReaderWriter(CurrentTileSource, false);
 
 								result = Tuple.Create(newTileCache, sessionClone);
 							}
@@ -1450,7 +1450,7 @@ namespace LolloGPS.Data
 							DownloadSession sessionClone = null;
 							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-							var newTileCache = new TileCache.TileSupplier(lastTileSource, false);
+							var newTileCache = new TileCache.TileCacheReaderWriter(lastTileSource, false);
 
 							result = Tuple.Create(newTileCache, sessionClone);
 						}

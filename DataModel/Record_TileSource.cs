@@ -178,7 +178,7 @@ namespace LolloGPS.Data
 				{
 					var request = WebRequest.CreateHttp(sTestUri);
 					request.AllowReadStreamBuffering = true;
-					request.ContinueTimeout = TileCache.TileSupplier.WebRequestTimeoutMsec;
+					request.ContinueTimeout = TileCache.TileCacheReaderWriter.WebRequestTimeoutMsec;
 				}
 				catch (Exception ex)
 				{

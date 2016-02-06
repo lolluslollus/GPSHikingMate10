@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
 using System.Threading;
-using Windows.UI.Xaml;
+
 
 namespace LolloGPS.Core
 {
@@ -20,7 +20,7 @@ namespace LolloGPS.Core
 		Task<GeoboundingBox> GetMinMaxLatLonAsync();
 		Task<BasicGeoposition> GetCentreAsync();
 	}
-	public sealed class TileDownloader : OpenableObservableData
+	public class TileDownloader : OpenableObservableData
 	{
 		#region properties
 		public const int MaxProgressStepsToReport = 25;
@@ -237,7 +237,7 @@ namespace LolloGPS.Core
 				if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
 			}
 		}
-		private Tuple<int, int> SaveTiles_RespondingToCancel(TileSupplier tileCache, DownloadSession session)
+		private Tuple<int, int> SaveTiles_RespondingToCancel(TileCacheReaderWriter tileCache, DownloadSession session)
 		{
 			RaiseSaveProgressChanged(0.0);
 

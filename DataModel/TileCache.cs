@@ -17,7 +17,7 @@ namespace LolloGPS.Data.TileCache
 {
 	// public enum TileSources { Nokia, OpenStreetMap, Swisstopo, Wanderreitkarte, OrdnanceSurvey, ForUMaps, OpenSeaMap, UTTopoLight, ArcGIS }
 
-	public sealed class TileSupplier
+	public sealed class TileCacheReaderWriter
 	{
 		public const string MimeTypeImageAny = "image/*"; // "image/png"
 														  //public const string ImageToCheck = "image";
@@ -52,7 +52,7 @@ namespace LolloGPS.Data.TileCache
 		/// </summary>
 		/// <param name="tileSource"></param>
 		/// <param name="isCaching"></param>
-		public TileSupplier(TileSourceRecord tileSource, bool isCaching)
+		public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching)
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 
