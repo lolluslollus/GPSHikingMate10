@@ -26,7 +26,7 @@ namespace LolloGPS.Core
 		//private CustomMapTileDataSource _tileDataSource_custom = null;
 		private readonly IList<MapTileSource> _mapTileSources = null;
 		private readonly TileDownloader _tileDownloader = null;
-		private TileCache _tileCache = null;
+		private TileSupplier _tileCache = null;
 		private HttpMapTileDataSource _tileDataSource_http = null;
 
 
@@ -53,7 +53,7 @@ namespace LolloGPS.Core
 			if (tileSource == null || tileSource.IsDefault) return;
 
 			bool isCaching = PersistentData.IsMapCached;
-			_tileCache = new TileCache(tileSource, isCaching);
+			_tileCache = new TileSupplier(tileSource, isCaching);
 
 			await RunInUiThreadAsync(delegate
 			{

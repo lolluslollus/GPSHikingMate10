@@ -69,7 +69,7 @@ namespace LolloGPS.Data.TileCache
 		}
 		private static int GetHowManyEntriesMax()
 		{
-			return TileCache.MaxRecords;
+			return TileSupplier.MaxRecords;
 		}
 
 		private static Task<TileCacheRecord> ReadRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()
@@ -361,6 +361,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				// block any new db operations
 				_isOpen = false;
+				await TileCacheClearer.GetInstance().CloseAsync().ConfigureAwait(false);
 				await TileCacheProcessingQueue.GetInstance().CloseAsync().ConfigureAwait(false);
 				// wait until there is a free slot between operations taking place
 				// and break off all queued operations
@@ -381,6 +382,7 @@ namespace LolloGPS.Data.TileCache
 				{
 					_isOpen = true; // must come before the following
 					await TileCacheProcessingQueue.GetInstance().OpenAsync().ConfigureAwait(false);
+					await TileCacheClearer.GetInstance().OpenAsync().ConfigureAwait(false);
 				}
 			}
 			catch (Exception ex)

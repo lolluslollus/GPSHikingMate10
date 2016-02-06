@@ -89,7 +89,8 @@
                 AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
                 TextItemStyle="{StaticResource ListItemTextStyle}"
                 ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting}"
-                SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
+                IsEnabled="{Binding ElementName=me, Path=MainVM.IsChangeTileSourceEnabled}"
+				SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
 				ItemSelected="OnMapSourceChooser_ItemSelected"/>
 		</Grid>
 

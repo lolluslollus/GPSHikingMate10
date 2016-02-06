@@ -45,6 +45,8 @@ namespace LolloGPS.Core
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
+		private readonly TileCacheClearer _tileCacheClearer = null;
+
 		private readonly GPSInteractor _gpsInteractor = null;
 		public GPSInteractor GPSInteractor { get { return _gpsInteractor; } }
 
@@ -58,7 +60,9 @@ namespace LolloGPS.Core
 		private bool _isLeechingEnabled = false;
 		public bool IsLeechingEnabled { get { return _isLeechingEnabled; } private set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged(); } } }
 		private bool _isTestBtnEnabled = false;
-
+		public bool IsTestCustomTileSourceEnabled { get { return _isTestBtnEnabled; } private set { if (_isTestBtnEnabled != value) { _isTestBtnEnabled = value; RaisePropertyChanged(); } } }
+		private bool _isChangeTileSourceEnabled = false;
+		public bool IsChangeTileSourceEnabled { get { return _isChangeTileSourceEnabled; } private set { if (_isChangeTileSourceEnabled != value) { _isChangeTileSourceEnabled = value; RaisePropertyChanged(); } } }
 
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
@@ -161,6 +165,7 @@ namespace LolloGPS.Core
 		public MainVM()
 		{
 			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
+			_tileCacheClearer = TileCacheClearer.GetInstance();
 		}
 
 		protected override async Task OpenMayOverrideAsync()
@@ -173,11 +178,13 @@ namespace LolloGPS.Core
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 				AddHandlers_DataChanged();
 
-				UpdateClearCacheButtonIsEnabled();
-				UpdateClearCustomCacheButtonIsEnabled();
-				UpdateCacheButtonIsEnabled();
-				UpdateDownloadButtonIsEnabled();
-				//UpdateTestButtonIsEnabled();
+				UpdateIsClearCacheEnabled();
+				UpdateIsClearCustomCacheEnabled();
+				UpdateIsCacheBtnEnabled();
+				UpdateIsLeechingEnabled();
+				UpdateIsChangeTileSourceEnabled();
+				UpdateIsTestCustomTileSourceEnabled();
+
 				await RunInUiThreadAsync(delegate
 				{
 					KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
@@ -250,41 +257,62 @@ namespace LolloGPS.Core
 		#endregion construct and dispose
 
 		#region updaters
-		internal void UpdateClearCustomCacheButtonIsEnabled()
+		internal void UpdateIsClearCustomCacheEnabled()
 		{
 			Task ui = RunInUiThreadAsync(delegate
 			{
 				IsClearCustomCacheEnabled =
 				PersistentData.TileSourcez.FirstOrDefault(ts => ts.IsDeletable) != null && // not atomic, not volatile, not critical
-				TileCacheProcessingQueue.GetInstance().IsFree;
+				!_tileCacheClearer.IsClearingScheduled
+				&& !PersistentData.IsTileSourcezBusy;
 			});
 		}
-		internal void UpdateClearCacheButtonIsEnabled()
+		internal void UpdateIsClearCacheEnabled()
 		{
 			Task ui = RunInUiThreadAsync(delegate
 			{
-				IsClearCacheEnabled = TileCacheProcessingQueue.GetInstance().IsFree;
+				IsClearCacheEnabled = !_tileCacheClearer.IsClearingScheduled
+				&& !PersistentData.IsTileSourcezBusy;
 			});
 		}
-		internal void UpdateCacheButtonIsEnabled()
+		internal void UpdateIsCacheBtnEnabled()
 		{
 			Task ui = RunInUiThreadAsync(delegate
 			{
 				IsCacheBtnEnabled =
-					PersistentData.CurrentTileSource?.IsDefault == false
-					&& TileCacheProcessingQueue.GetInstance().IsFree;
+					PersistentData.CurrentTileSource?.IsDefault == false;
+				// && !TileCacheProcessingQueue.GetInstance().IsClearingScheduled;
 			});
 		}
-		internal void UpdateDownloadButtonIsEnabled()
+		internal void UpdateIsLeechingEnabled()
 		{
 			Task ui = RunInUiThreadAsync(delegate
 			{
 				IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
 				&& PersistentData.CurrentTileSource?.IsDefault == false
 				&& RuntimeData.IsConnectionAvailable
-				&& TileCacheProcessingQueue.GetInstance().IsFree;
+				&& !_tileCacheClearer.IsClearingScheduled
+				&& !PersistentData.IsTileSourcezBusy;
 			});
 		}
+		internal void UpdateIsChangeTileSourceEnabled()
+		{
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsChangeTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
+				&& !PersistentData.IsTileSourcezBusy;
+			});
+		}
+		internal void UpdateIsTestCustomTileSourceEnabled()
+		{
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsTestCustomTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
+				&& !PersistentData.IsTileSourcezBusy
+				&& RuntimeData.IsConnectionAvailable;
+			});
+		}
+
 		#endregion updaters
 
 		#region event handlers
@@ -296,8 +324,8 @@ namespace LolloGPS.Core
 				_isDataChangedHandlerActive = true;
 				PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
 				RuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
-				TileCacheProcessingQueue.IsFreeChanged += OnTileCache_IsFreeChanged;
-				TileCacheProcessingQueue.CacheCleared += OnTileCache_CacheCleared;
+				TileCacheClearer.IsClearingScheduledChanged += OnTileCache_IsClearingScheduledChanged;
+				TileCacheClearer.CacheCleared += OnTileCache_CacheCleared;
 			}
 		}
 
@@ -307,8 +335,8 @@ namespace LolloGPS.Core
 			{
 				PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
 				RuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
-				TileCacheProcessingQueue.IsFreeChanged -= OnTileCache_IsFreeChanged;
-				TileCacheProcessingQueue.CacheCleared -= OnTileCache_CacheCleared;
+				TileCacheClearer.IsClearingScheduledChanged -= OnTileCache_IsClearingScheduledChanged;
+				TileCacheClearer.CacheCleared -= OnTileCache_CacheCleared;
 				_isDataChangedHandlerActive = false;
 			}
 		}
@@ -325,7 +353,7 @@ namespace LolloGPS.Core
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					UpdateDownloadButtonIsEnabled();
+					UpdateIsLeechingEnabled();
 					//UpdateTestButtonIsEnabled();
 				});
 			}
@@ -333,15 +361,26 @@ namespace LolloGPS.Core
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					UpdateDownloadButtonIsEnabled();
-					UpdateCacheButtonIsEnabled();
+					UpdateIsLeechingEnabled();
+					UpdateIsCacheBtnEnabled();
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.TileSourcez))
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					UpdateClearCustomCacheButtonIsEnabled();
+					UpdateIsClearCustomCacheEnabled();
+				});
+			}
+			else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
+			{
+				Task gt = RunInUiThreadAsync(delegate
+				{
+					UpdateIsClearCacheEnabled();
+					UpdateIsClearCustomCacheEnabled();
+					UpdateIsLeechingEnabled();
+					UpdateIsChangeTileSourceEnabled();
+					UpdateIsTestCustomTileSourceEnabled();
 				});
 			}
 		}
@@ -352,21 +391,21 @@ namespace LolloGPS.Core
 			{
 				Task gt = RunInUiThreadAsync(delegate
 				{
-					UpdateDownloadButtonIsEnabled();
-					//UpdateTestButtonIsEnabled();
+					UpdateIsLeechingEnabled();
+					UpdateIsTestCustomTileSourceEnabled();
 				});
 			}
 		}
 
-		private void OnTileCache_IsFreeChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void OnTileCache_IsClearingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
-			UpdateClearCacheButtonIsEnabled();
-			UpdateClearCustomCacheButtonIsEnabled();
-			UpdateCacheButtonIsEnabled();
-			UpdateDownloadButtonIsEnabled();
-			//UpdateTestButtonIsEnabled();
+			UpdateIsClearCacheEnabled();
+			UpdateIsClearCustomCacheEnabled();
+			UpdateIsLeechingEnabled();
+			UpdateIsChangeTileSourceEnabled();
+			UpdateIsTestCustomTileSourceEnabled();
 		}
-		private void OnTileCache_CacheCleared(object sender, TileCacheProcessingQueue.CacheClearedEventArgs args)
+		private void OnTileCache_CacheCleared(object sender, TileCacheClearer.CacheClearedEventArgs args)
 		{
 			// output messages
 			if (args.TileSource.IsAll)
@@ -431,14 +470,13 @@ namespace LolloGPS.Core
 		{
 			Task getLoc = _gpsInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
-		public void ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		public async Task<bool> TryScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
-			if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
-			{
-				PersistentData.LastMessage = "clearing the cache...";
-				Task.Run(delegate { Task sch = TileCacheProcessingQueue.GetInstance().ScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); });
-				//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
-			}
+			bool isScheduled = await Task.Run(delegate { return _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); }).ConfigureAwait(false);
+			if (isScheduled) PersistentData.LastMessage = "clearing the cache...";
+			else PersistentData.LastMessage = "cache busy";
+			return isScheduled;
+			//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
 		}
 
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()

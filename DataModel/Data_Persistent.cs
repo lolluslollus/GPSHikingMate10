@@ -517,6 +517,10 @@ namespace LolloGPS.Data
 		[DataMember]
 		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged(); } } }
 
+		private bool _isTileSourcezBusy = false;
+		[IgnoreDataMember]
+		public bool IsTileSourcezBusy { get { return _isTileSourcezBusy; } private set { if (_isTileSourcezBusy != value) { _isTileSourcezBusy = value; RaisePropertyChanged_UI(); } } }
+
 		private double _altLastScroll = 0.0;
 		[DataMember]
 		public double AltLastVScroll { get { return _altLastScroll; } set { _altLastScroll = value; RaisePropertyChanged(); } }
@@ -1098,6 +1102,8 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync();
+				IsTileSourcezBusy = true;
+
 				await RunInUiThreadAsync(delegate
 				{
 					CurrentTileSource = tileSource;
@@ -1109,6 +1115,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
@@ -1123,6 +1130,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync();
+				IsTileSourcezBusy = true;
 
 				if (_testTileSource == null) return Tuple.Create(false, "Record not found");
 				if (string.IsNullOrWhiteSpace(_testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
@@ -1185,6 +1193,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
@@ -1198,6 +1207,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				IsTileSourcezBusy = true;
 
 				int howManyRecordsDeletedTotal = 0;
 				List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
@@ -1250,6 +1260,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
@@ -1372,6 +1383,8 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				IsTileSourcezBusy = true;
+
 				TileSourceRecord.Clone(tileSource, ref result);
 			}
 			catch (Exception ex)
@@ -1380,6 +1393,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 
@@ -1390,14 +1404,15 @@ namespace LolloGPS.Data
 		{
 			return GetTileSourceClone(CurrentTileSource);
 		}
-		public async Task<Tuple<TileCache.TileCache, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
+		public async Task<Tuple<TileCache.TileSupplier, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
 		{
-			Tuple<TileCache.TileCache, DownloadSession> result = null;
+			Tuple<TileCache.TileSupplier, DownloadSession> result = null;
 			if (gbb == null) return null;
 
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				IsTileSourcezBusy = true;
 				lock (_lastDownloadLocker)
 				{
 					// last download completed: start a new one with the current tile source
@@ -1418,7 +1433,7 @@ namespace LolloGPS.Data
 								DownloadSession sessionClone = null;
 								DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-								var newTileCache = new TileCache.TileCache(CurrentTileSource, false);
+								var newTileCache = new TileCache.TileSupplier(CurrentTileSource, false);
 
 								result = Tuple.Create(newTileCache, sessionClone);
 							}
@@ -1435,7 +1450,7 @@ namespace LolloGPS.Data
 							DownloadSession sessionClone = null;
 							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-							var newTileCache = new TileCache.TileCache(lastTileSource, false);
+							var newTileCache = new TileCache.TileSupplier(lastTileSource, false);
 
 							result = Tuple.Create(newTileCache, sessionClone);
 						}
@@ -1448,6 +1463,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 
@@ -1462,6 +1478,8 @@ namespace LolloGPS.Data
 			try
 			{
 				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				IsTileSourcezBusy = true;
+
 				TileSourceRecord currentTileSourceClone = null;
 				TileSourceRecord.Clone(CurrentTileSource, ref currentTileSourceClone);
 				var session = new DownloadSession(
@@ -1478,6 +1496,7 @@ namespace LolloGPS.Data
 			}
 			finally
 			{
+				IsTileSourcezBusy = false;
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 

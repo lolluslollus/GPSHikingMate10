@@ -31,15 +31,6 @@ namespace LolloGPS.Core
 
 		#region events       
 		public event EventHandler CentreOnTargetRequested;
-		private void RaiseCentreOnTarget()
-		{
-			CentreOnTargetRequested?.Invoke(this, EventArgs.Empty);
-		}
-		public event EventHandler CentreOnCheckpointsRequested;
-		private void RaiseCentreOnCheckpoints()
-		{
-			CentreOnCheckpointsRequested?.Invoke(this, EventArgs.Empty);
-		}
 		#endregion events
 
 
@@ -186,7 +177,7 @@ namespace LolloGPS.Core
 
 		private void OnGotoTarget_Click(object sender, RoutedEventArgs e)
 		{
-			RaiseCentreOnTarget();
+			CentreOnTargetRequested?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)

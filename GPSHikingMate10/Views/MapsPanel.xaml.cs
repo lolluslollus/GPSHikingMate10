@@ -48,7 +48,7 @@ namespace LolloGPS.Core
 
 		private void OnGoto2D_Click(object sender, RoutedEventArgs e)
         {
-            RaiseGoto2DRequested();
+			Goto2DRequested?.Invoke(this, EventArgs.Empty);
         }
         private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
         {
@@ -65,7 +65,7 @@ namespace LolloGPS.Core
         }
         private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
-			MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
+			MainVM?.TryScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
         }
 
         private async void OnDownloadMap_Click(object sender, RoutedEventArgs e)
@@ -111,14 +111,6 @@ namespace LolloGPS.Core
 
 		#region events
 		public event EventHandler Goto2DRequested;
-        private void RaiseGoto2DRequested()
-        {
-            var listener = Goto2DRequested;
-            if (listener != null)
-            {
-                listener(this, EventArgs.Empty);
-            }
-        }
 		#endregion events
 	}
 }

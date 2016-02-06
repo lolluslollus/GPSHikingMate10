@@ -17,7 +17,7 @@ namespace LolloGPS.Data.TileCache
 {
 	// public enum TileSources { Nokia, OpenStreetMap, Swisstopo, Wanderreitkarte, OrdnanceSurvey, ForUMaps, OpenSeaMap, UTTopoLight, ArcGIS }
 
-	public sealed class TileCache
+	public sealed class TileSupplier
 	{
 		public const string MimeTypeImageAny = "image/*"; // "image/png"
 														  //public const string ImageToCheck = "image";
@@ -52,7 +52,7 @@ namespace LolloGPS.Data.TileCache
 		/// </summary>
 		/// <param name="tileSource"></param>
 		/// <param name="isCaching"></param>
-		public TileCache(TileSourceRecord tileSource, bool isCaching)
+		public TileSupplier(TileSourceRecord tileSource, bool isCaching)
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 
@@ -122,13 +122,6 @@ namespace LolloGPS.Data.TileCache
 
 
 		#region services
-		public void ScheduleClear(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{
-			Debug.WriteLine("About to call ProcessingQueue.ClearCacheIfQueueEmptyAsync");
-			Task.Run(delegate { Task sch = _queue.ScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); });
-			Debug.WriteLine("returned from ProcessingQueue.ClearCacheIfQueueEmptyAsync");
-		}
-
 		private static readonly Uri _mustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
 		private static readonly Uri _mustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
 
@@ -248,8 +241,10 @@ namespace LolloGPS.Data.TileCache
 			{
 				Debug.WriteLine("ERROR in SaveTileAsync(): " + ex.Message + ex.StackTrace);
 			}
-
-			await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			finally
+			{
+				await _queue.RemoveFromQueueAsync(fileName).ConfigureAwait(false);
+			}
 			return result;
 		}
 
@@ -419,27 +414,202 @@ namespace LolloGPS.Data.TileCache
 		#endregion  services
 	}
 
+	public sealed class TileCacheClearer : OpenableObservableData
+	{
+		#region properties
+		private volatile bool _isClearingScheduled = false;
+		public bool IsClearingScheduled
+		{
+			get { return _isClearingScheduled; }
+			private set
+			{
+				if (_isClearingScheduled != value)
+				{
+					_isClearingScheduled = value;
+					IsClearingScheduledChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsClearingScheduled)));
+				}
+			}
+		}
+
+		private readonly TileCacheProcessingQueue _queue = null;
+
+		private static readonly SemaphoreSlimSafeRelease _clearPropsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+		private static readonly object _instanceLocker = new object();
+		private static TileCacheClearer _instance = null;
+		#endregion properties
+
+
+		#region events
+		public static event PropertyChangedEventHandler IsClearingScheduledChanged;
+		public static event EventHandler<CacheClearedEventArgs> CacheCleared;
+		public class CacheClearedEventArgs : EventArgs
+		{
+			private TileSourceRecord _tileSource = null;
+			public TileSourceRecord TileSource { get { return _tileSource; } }
+			private bool _isAlsoRemoveSources = false;
+			public bool IsAlsoRemoveSources { get { return _isAlsoRemoveSources; } }
+			private bool _isCacheCleared = false;
+			public bool IsCacheCleared { get { return _isCacheCleared; } }
+			private int _howManyRecordsDeleted = 0;
+			public int HowManyRecordsDeleted { get { return _howManyRecordsDeleted; } }
+
+			public CacheClearedEventArgs(TileSourceRecord tileSource, bool isAlsoRemoveSources, bool isCacheCleared, int howManyRecordsDeleted)
+			{
+				_tileSource = tileSource;
+				_isAlsoRemoveSources = isAlsoRemoveSources;
+				_isCacheCleared = isCacheCleared;
+				_howManyRecordsDeleted = howManyRecordsDeleted;
+			}
+		}
+		#endregion events
+
+
+		#region ctor
+		public static TileCacheClearer GetInstance()
+		{
+			lock (_instanceLocker)
+			{
+				if (_instance == null) _instance = new TileCacheClearer();
+				return _instance;
+			}
+		}
+
+		private TileCacheClearer()
+		{
+			_queue = TileCacheProcessingQueue.GetInstance();
+		}
+		#endregion ctor
+
+
+		#region lifecycle
+		protected override async Task OpenMayOverrideAsync()
+		{
+			// open the queue so you can use it
+			await _queue.OpenAsync().ConfigureAwait(false);
+			// resume clearing cache if it was interrupted
+			var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
+			if (cacheClearingProps != null)
+			{
+				await TryScheduleClearCache2Async(
+					cacheClearingProps.TileSource,
+					cacheClearingProps.IsAlsoRemoveSources,
+					false).ConfigureAwait(false);
+			}
+		}
+		#endregion lifecycle
+
+
+		#region core
+		private async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			Debug.WriteLine("ClearCacheAsync() started");
+
+			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, CancToken).ConfigureAwait(false);
+			if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Error)
+			{
+				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
+				IsClearingScheduled = false;
+				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, tryCancResult.Item2));
+				Debug.WriteLine("ClearCacheAsync() ended with error");
+			}
+			else if (tryCancResult.Item1 == PersistentData.ClearCacheResult.OK)
+			{
+				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
+				IsClearingScheduled = false;
+				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, tryCancResult.Item2));
+				Debug.WriteLine("ClearCacheAsync() ended OK");
+			}
+			else
+			{
+				Debug.WriteLine("ClearCacheAsync() cancelled");
+			}
+
+			//// test begin
+			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
+			//// test end
+		}
+		#endregion core
+
+
+		#region utils
+		public Task<bool> TryScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			return RunFunctionIfOpenAsyncTB(async delegate
+			{
+				var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource).ConfigureAwait(false);
+				return await TryScheduleClearCache2Async(tileSourceClone, isAlsoRemoveSources, true).ConfigureAwait(false);
+			});
+		}
+
+		/// <summary>
+		/// This method must run inside the semaphore
+		/// </summary>
+		/// <returns></returns>
+		private async Task<bool> TryScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources, bool writeAwayTheProps)
+		{
+			if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
+			{
+				if (writeAwayTheProps) await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
+				IsClearingScheduled = await _queue.TryScheduleTaskAsync(delegate
+				{
+					return ClearCacheAsync(tileSource, isAlsoRemoveSources);
+				}).ConfigureAwait(false);
+				return IsClearingScheduled;
+			}
+			return false;
+		}
+		private static async Task SetIsClearingCacheProps(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		{
+			try
+			{
+				await _clearPropsSemaphore.WaitAsync().ConfigureAwait(false);
+
+				if (tileSource == null)
+				{
+					RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, false.ToString());
+					RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, string.Empty);
+				}
+				else
+				{
+					if (await RegistryAccess.TrySetObject(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, tileSource).ConfigureAwait(false))
+					{
+						RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, isAlsoRemoveSources.ToString());
+					}
+				}
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_clearPropsSemaphore);
+			}
+		}
+		private static async Task<CacheClearedEventArgs> GetIsClearingCacheProps()
+		{
+			try
+			{
+				await _clearPropsSemaphore.WaitAsync().ConfigureAwait(false);
+
+				string isAlsoRemoveSourcesString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES);
+				string tileSourceString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE);
+				if (string.IsNullOrWhiteSpace(tileSourceString)) return null;
+
+				var tileSource = await RegistryAccess.GetObject<TileSourceRecord>(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE).ConfigureAwait(false);
+				return new CacheClearedEventArgs(tileSource, isAlsoRemoveSourcesString.Equals(true.ToString()), false, 0);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_clearPropsSemaphore);
+			}
+		}
+		#endregion utils
+	}
 	/// <summary>
 	/// As soon as a file (ie a unique combination of TileSource, X, Y, Z and Zoom) is in process, this class stores it.
+	/// As soon as no files are in process, this class can run a delegate, if it was scheduled.
 	/// </summary>
 	public class TileCacheProcessingQueue : OpenableObservableData
 	{
 		#region properties
 		public CancellationToken CancellationToken { get { return CancToken; } }
-
-		private volatile bool _isFree = true;
-		public bool IsFree
-		{
-			get { return _isFree; }
-			private set
-			{
-				if (_isFree != value)
-				{
-					_isFree = value;
-					IsFreeChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFree)));
-				}
-			}
-		}
 
 		private List<string> _fileNames_InProcess = new List<string>();
 		// private List<Func<Task>> _funcsAsSoonAsFree = new List<Func<Task>>();
@@ -460,50 +630,12 @@ namespace LolloGPS.Data.TileCache
 		#endregion properties
 
 
-		#region events
-		public static event PropertyChangedEventHandler IsFreeChanged;
-		public static event EventHandler<CacheClearedEventArgs> CacheCleared;
-
-		public class CacheClearedEventArgs : EventArgs
-		{
-			private TileSourceRecord _tileSource = null;
-			public TileSourceRecord TileSource { get { return _tileSource; } }
-			private bool _isAlsoRemoveSources = false;
-			public bool IsAlsoRemoveSources { get { return _isAlsoRemoveSources; } }
-			private bool _isCacheCleared = false;
-			public bool IsCacheCleared { get { return _isCacheCleared; } }
-			private int _howManyRecordsDeleted = 0;
-			public int HowManyRecordsDeleted { get { return _howManyRecordsDeleted; } }
-
-			public CacheClearedEventArgs(TileSourceRecord tileSource, bool isAlsoRemoveSources, bool isCacheCleared, int howManyRecordsDeleted)
-			{
-				_tileSource = tileSource;
-				_isAlsoRemoveSources = isAlsoRemoveSources;
-				_isCacheCleared = isCacheCleared;
-				_howManyRecordsDeleted = howManyRecordsDeleted;
-
-			}
-		}
-		#endregion events
-
-
 		#region lifecycle
-		protected override async Task OpenMayOverrideAsync()
-		{
-			// resume clearing cache if it was interrupted
-			var cacheClearingProps = await GetIsClearingCacheProps().ConfigureAwait(false);
-			if (cacheClearingProps != null)
-			{
-				await ScheduleClearCache2Async(cacheClearingProps.TileSource, cacheClearingProps.IsAlsoRemoveSources).ConfigureAwait(false);
-			}
-		}
-
 		protected override Task CloseMayOverrideAsync()
 		{
 			// _funcsAsSoonAsFree.Clear();
 			_funcAsSoonAsFree = null;
 			_fileNames_InProcess.Clear();
-			Debug.WriteLine("TryAddToQueueAsync() cleared all entries");
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle
@@ -518,20 +650,21 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		internal Task<bool> TryAddToQueueAsync(string fileName)
 		{
-			return RunFunctionIfOpenAsyncTB(async delegate
+			return RunFunctionIfOpenAsyncB(delegate
 			{
 				if (!string.IsNullOrWhiteSpace(fileName) && !_fileNames_InProcess.Contains(fileName))
 				{
 					_fileNames_InProcess.Add(fileName);
-					IsFree = (_fileNames_InProcess.Count == 0);
-					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
-
-					//Debug.WriteLine("TryAddToQueueAsync() added an entry");
 					return true;
 				}
 				return false;
 			});
 		}
+		/// <summary>
+		/// Not working on this set of data anymore? Mark it as free, opening the gate for other threads.
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
 		internal Task RemoveFromQueueAsync(string fileName)
 		{
 			return RunFunctionIfOpenAsyncT(async delegate
@@ -539,38 +672,28 @@ namespace LolloGPS.Data.TileCache
 				if (!string.IsNullOrWhiteSpace(fileName))
 				{
 					_fileNames_InProcess.Remove(fileName);
-					IsFree = (_fileNames_InProcess.Count == 0);
 					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 				}
 			});
 		}
-
-		public Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{
-			return RunFunctionIfOpenAsyncT(async delegate
-			{
-				if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
-				{
-					var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource).ConfigureAwait(false);
-					if (tileSourceClone == null) return;
-					await SetIsClearingCacheProps(tileSourceClone, isAlsoRemoveSources).ConfigureAwait(false);
-					await ScheduleClearCache2Async(tileSourceClone, isAlsoRemoveSources).ConfigureAwait(false);
-				}
-			});
-		}
-
 		/// <summary>
-		/// This method must be run inside the semaphore
+		/// Schedules a delegate to be run as soon as no data is being processed.
 		/// </summary>
+		/// <param name="func"></param>
 		/// <returns></returns>
-		private async Task ScheduleClearCache2Async(TileSourceRecord tileSource, bool isAlsoRemoveSources)
+		internal Task<bool> TryScheduleTaskAsync(Func<Task> func)
 		{
-			if (tileSource != null && _funcAsSoonAsFree == null)
+			return RunFunctionIfOpenAsyncTB(async delegate
 			{
-				_funcAsSoonAsFree = delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); };
-				// _funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
-				await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
-			}
+				if (_funcAsSoonAsFree == null)
+				{
+					_funcAsSoonAsFree = func;
+					// _funcsAsSoonAsFree.Add(delegate { return ClearCacheAsync(tileSource, isAlsoRemoveSources); });
+					await TryRunFuncAsSoonAsFree().ConfigureAwait(false); // will run now if the cache is free, otherwise later
+					return true; // func has been either ran or scheduled
+				}
+				return false;
+			});
 		}
 
 		/// <summary>
@@ -579,85 +702,27 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		private async Task<bool> TryRunFuncAsSoonAsFree()
 		{
-			//if (IsFree && _funcsAsSoonAsFree.Count > 0)
-			if (IsFree && _funcAsSoonAsFree != null)
+			//if (_fileNames_InProcess.Count == 0 && _funcsAsSoonAsFree.Count > 0)
+			if (_fileNames_InProcess.Count == 0 && _funcAsSoonAsFree != null)
 			{
 				try
 				{
-					IsFree = false;
-
 					//foreach (var func in _funcsAsSoonAsFree)
 					//{
 					//	await func().ConfigureAwait(false);
 					//}
 					await _funcAsSoonAsFree().ConfigureAwait(false);
-					// _funcsAsSoonAsFree.Clear();
-					_funcAsSoonAsFree = null;
 				}
 				finally
 				{
-					IsFree = true;
+					// _funcsAsSoonAsFree.Clear();
+					_funcAsSoonAsFree = null;
 				}
 				return true;
 			}
 			return false;
 		}
-
-		private async Task ClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{
-			Debug.WriteLine("ClearCacheAsync() started");
-
-			var tryCancResult = await PersistentData.GetInstance().TryClearCacheAsync(tileSource, isAlsoRemoveSources, CancToken).ConfigureAwait(false);
-			if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Error)
-			{
-				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, tryCancResult.Item2));
-				Debug.WriteLine("ClearCacheAsync() ended with error");
-			}
-			else if (tryCancResult.Item1 == PersistentData.ClearCacheResult.OK)
-			{
-				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
-				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, true, tryCancResult.Item2));
-				Debug.WriteLine("ClearCacheAsync() ended OK");
-			}
-			else
-			{
-				Debug.WriteLine("ClearCacheAsync() cancelled");
-			}
-
-			//// test begin
-			//await GetAllFilesInLocalFolder().ConfigureAwait(false);
-			//// test end
-		}
 		#endregion services
-
-
-		#region utils		
-		private static async Task SetIsClearingCacheProps(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{
-			if (tileSource == null)
-			{
-				RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, false.ToString());
-				RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, string.Empty);
-			}
-			else
-			{
-				if (await RegistryAccess.TrySetObject(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE, tileSource).ConfigureAwait(false))
-				{
-					RegistryAccess.TrySetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES, isAlsoRemoveSources.ToString());
-				}
-			}
-		}
-		private static async Task<CacheClearedEventArgs> GetIsClearingCacheProps()
-		{
-			string isAlsoRemoveSourcesString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_IS_REMOVE_SOURCES);
-			string tileSourceString = RegistryAccess.GetValue(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE);
-			if (string.IsNullOrWhiteSpace(tileSourceString)) return null;
-
-			var tileSource = await RegistryAccess.GetObject<TileSourceRecord>(ConstantData.REG_CLEARING_CACHE_TILE_SOURCE).ConfigureAwait(false);
-			return new CacheClearedEventArgs(tileSource, isAlsoRemoveSourcesString.Equals(true.ToString()), false, 0);
-		}
-		#endregion utils
 	}
 
 	/// <summary>

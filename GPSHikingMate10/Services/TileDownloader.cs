@@ -237,7 +237,7 @@ namespace LolloGPS.Core
 				if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
 			}
 		}
-		private Tuple<int, int> SaveTiles_RespondingToCancel(TileCache tileCache, DownloadSession session)
+		private Tuple<int, int> SaveTiles_RespondingToCancel(TileSupplier tileCache, DownloadSession session)
 		{
 			RaiseSaveProgressChanged(0.0);
 
