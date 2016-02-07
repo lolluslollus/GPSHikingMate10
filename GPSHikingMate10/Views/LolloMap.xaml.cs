@@ -920,7 +920,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawHistoryAsync().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -932,7 +932,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawRoute0Async().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
 		}
@@ -944,7 +944,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawCheckpointsAsync().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -1064,7 +1064,7 @@ namespace LolloGPS.Core
 					hypotheticalMeasureBarY1 - hypotheticalMeasureBarLength * Math.Cos(ConstantData.PI_HALF - headingRadians));
 				// if(pointE.X > 360.0 || pointW.X > 360.0) { }
 				Geopoint locationW = null;
-				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved. I tweaked something, check if it works.
+				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
 				mapControl.GetLocationFromOffset(pointW, out locationW);
 				mapControl.GetLocationFromOffset(pointE, out locationE);
 

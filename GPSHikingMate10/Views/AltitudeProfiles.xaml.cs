@@ -167,7 +167,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawHistoryAsync().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -179,7 +179,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawRoute0Async().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
 		}
@@ -191,7 +191,7 @@ namespace LolloGPS.Core
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawCheckpointsAsync().ConfigureAwait(false);
-					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
+					if (e.NewItems?.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -450,13 +450,12 @@ namespace LolloGPS.Core
 					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-					// LOLLO TODO start the app, then open the altitude profiles: the first time, the top chart will have no labels.
 					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 					chart.Draw();
 
 					chart.Visibility = Visibility.Visible;
-					chart.UpdateLayout(); // LOLLO TODO remove when done testing
+
 #if DEBUG
 					sw.Stop();
 					Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");

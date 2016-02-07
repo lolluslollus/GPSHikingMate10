@@ -503,8 +503,7 @@ namespace LolloGPS.Data
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
-		// LOLLO TODO when using several custom map sources, they may be repeated in the list. Try starting the app multiple times. This is difficult to reproduce.
-		// I cannot make it readonly coz I need a setter for the deserializer
+		// I cannot make this property readonly coz I need a setter for the deserializer
 		private SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
 		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }

@@ -44,18 +44,21 @@
 					Title="Tracking history" 
 					ChartTapped="OnHistoryChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
+					RightColumnWidth="10"
                     Foreground="{StaticResource HistoryBrushOpaque}"
 					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
                 <chart:LolloChart Grid.Row="1" Grid.Column="1" x:Name="Route0Chart" 
 					Title="Route"
 					ChartTapped="OnRoute0ChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
+					RightColumnWidth="10"
                     Foreground="{StaticResource Route0BrushOpaque}"
 					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
                 <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="CheckpointsChart" 
 					Title="Checkpoints" 
 					ChartTapped="OnCheckpointsChartTapped" 
 					TitleStyle="{StaticResource BaseMessageStyle}"
+					RightColumnWidth="10"
                     Foreground="{StaticResource CheckpointBrushOpaque}"
 					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
             </Grid>

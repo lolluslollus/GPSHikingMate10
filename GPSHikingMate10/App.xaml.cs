@@ -84,7 +84,7 @@ namespace LolloGPS.Core
 		private async Task CloseAllAsync()
 		{
 			Debug.WriteLine("CloseAllAsync() started");
-			// lock the DBs // LOLLO TODO I moved it up here coz cancelling when downloading tiles takes too long
+			// lock the DBs
 			PersistentData.CloseMainDb();
 			Debug.WriteLine("CloseAllAsync() closed the main db");
 			await PersistentData.CloseTileCacheAsync(); //.ConfigureAwait(false);
