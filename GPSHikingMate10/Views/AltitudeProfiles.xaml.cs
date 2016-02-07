@@ -451,7 +451,6 @@ namespace LolloGPS.Core
 					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
 					// LOLLO TODO start the app, then open the altitude profiles: the first time, the top chart will have no labels.
-
 					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
 					chart.Draw();

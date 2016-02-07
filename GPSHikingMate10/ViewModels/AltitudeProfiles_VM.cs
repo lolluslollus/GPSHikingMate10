@@ -89,7 +89,7 @@ namespace LolloGPS.Core
             {
                 for (int i = 0; i < coll.Count; i++)
                 {
-                    if (coll[i].TimePoint == null || coll[i].TimePoint == default(DateTime))
+                    if (coll[i].TimePoint == null || coll[i].TimePoint == default(DateTime) || coll[i].TimePoint.Date == default(DateTime).Date)
                     {
                         isDateTimeAlwaysPresent = false;
                         break;
