@@ -33,6 +33,8 @@ namespace LolloGPS.Core
 
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+
+		private readonly SemaphoreSlimSafeRelease _drawSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		#endregion properties
 
 
@@ -56,18 +58,19 @@ namespace LolloGPS.Core
 			//bool isVisible = await GetIsVisibleAsync();
 			if (PersistentData?.IsShowingAltitudeProfiles == true)
 			{
-				Task drawH = Task.Run(() => DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true));
+				Task drawH = Task.Run(delegate { return DrawHistoryAsync(); });
 			}
 			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
 			{
-				Task drawR = Task.Run(() => DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true));
+				Task drawR = Task.Run(delegate { return DrawRoute0Async(); });
 			}
 			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
 			{
-				Task drawC = Task.Run(() => DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false));
+				Task drawC = Task.Run(delegate { return DrawCheckpointsAsync(); });
 			}
 
-			return RestoreViewAsync();
+			Task restore = Task.Run(() => RestoreViewAsync());
+			return Task.CompletedTask;
 		}
 
 		protected override Task CloseMayOverrideAsync()
@@ -118,18 +121,30 @@ namespace LolloGPS.Core
 				//bool isVisible = await GetIsVisibleAsync().ConfigureAwait(false);
 				Task drawH = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true);
+					return DrawHistoryAsync();
 				});
+				//Task drawH = RunFunctionIfOpenAsyncT(async delegate
+				//{
+				//	await DrawHistoryAsync().ConfigureAwait(false);
+				//});
 
 				Task drawR = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true);
+					return DrawRoute0Async();
 				});
+				//Task drawR = RunFunctionIfOpenAsyncT(async delegate
+				//{
+				//	await DrawRoute0Async().ConfigureAwait(false);
+				//});
 
 				Task drawC = RunFunctionIfOpenAsyncT_MT(delegate
 				{
-					return DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false);
+					return DrawCheckpointsAsync();
 				});
+				//Task drawC = RunFunctionIfOpenAsyncT(async delegate
+				//{
+				//	await DrawCheckpointsAsync().ConfigureAwait(false);
+				//});
 			}
 		}
 		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
@@ -151,7 +166,7 @@ namespace LolloGPS.Core
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					await DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true).ConfigureAwait(false);
+					await DrawHistoryAsync().ConfigureAwait(false);
 					if (e.NewItems.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
@@ -163,7 +178,7 @@ namespace LolloGPS.Core
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					await DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true).ConfigureAwait(false);
+					await DrawRoute0Async().ConfigureAwait(false);
 					if (e.NewItems.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
@@ -175,7 +190,7 @@ namespace LolloGPS.Core
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
-					await DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false).ConfigureAwait(false);
+					await DrawCheckpointsAsync().ConfigureAwait(false);
 					if (e.NewItems.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
 			}
@@ -303,19 +318,26 @@ namespace LolloGPS.Core
 
 
 		#region services
-		private Task RestoreViewAsync()
+		private async Task RestoreViewAsync()
 		{
-			return RunInUiThreadAsync(delegate
+			try
 			{
-				try
-				{
-					if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.History) CentreOnHistoryAsync();
-					else if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0) CentreOnRoute0Async();
-					else if (MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints) CentreOnCheckpointsAsync();
-					else MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true);
-				}
-				catch { }
-			});
+				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+
+				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.nil;
+				// LOLLO NOTE dependency properties must be referenced in the UI thread
+				await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
+
+				if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
+				else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);
+				else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnCheckpointsAsync().ConfigureAwait(false);
+				else await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true); }).ConfigureAwait(false);
+			}
+			catch { }
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+			}
 		}
 
 		private async Task<bool> GetIsVisibleAsync()
@@ -327,81 +349,126 @@ namespace LolloGPS.Core
 			}).ConfigureAwait(false);
 			return isVisible;
 		}
-
-		private async Task DrawOneSeriesAsync(Collection<PointRecord> coll, LolloChart chart, bool isHistogram, bool respectDatesAndTimes)
+		private async Task DrawHistoryAsync()
 		{
-			// this method always runs under _isOpenSemaphore
 			try
 			{
-				bool sortIfRespectingDatesAndTimes = true;
-				double maxAltitude = default(double);
-				double minAltitude = default(double);
-				double maxTime = default(double);
-				double minTime = default(double);
-				double[,] points = null;
-
-				_altitudeProfilesVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
-					ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
-
-				await DrawOneSeriesUIAsync(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram).ConfigureAwait(false);
+				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				await DrawOneSeriesAsync(PersistentData.History, HistoryChart, false, true).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) { } // fires when cts is cancelled
-			catch (ObjectDisposedException) { }
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+			}
+		}
+		private async Task DrawRoute0Async()
+		{
+			try
+			{
+				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				await DrawOneSeriesAsync(PersistentData.Route0, Route0Chart, false, true).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException) { } // fires when cts is cancelled
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+			}
+		}
+		private async Task DrawCheckpointsAsync()
+		{
+			try
+			{
+				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+				await DrawOneSeriesAsync(PersistentData.Checkpoints, CheckpointsChart, true, false).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException) { } // fires when cts is cancelled
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			finally
+			{
+				SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+			}
 		}
 
-		private Task DrawOneSeriesUIAsync(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
+		private async Task DrawOneSeriesAsync(Collection<PointRecord> coll, LolloChart chart, bool isHistogram, bool respectDatesAndTimes)
+		{
+			bool sortIfRespectingDatesAndTimes = true;
+			double maxAltitude = default(double), minAltitude = default(double), maxTime = default(double), minTime = default(double);
+			double[,] points = null;
+
+			if (CancToken == null || CancToken.IsCancellationRequested) return;
+
+			_altitudeProfilesVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
+				ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
+
+			if (CancToken == null || CancToken.IsCancellationRequested) return;
+
+			await RunInUiThreadAsync(delegate
+			{
+				DrawOneSeriesUI(maxAltitude, minAltitude, maxTime, minTime, points, chart, isHistogram);
+			}).ConfigureAwait(false);
+		}
+
+		private void DrawOneSeriesUI(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
 			LolloChart chart, bool isHistogram)
 		{
-			return RunInUiThreadAsync(delegate
+			chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
+			if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
 			{
-				chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
-				if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
+				try
 				{
-					try
-					{
 #if DEBUG
-						Stopwatch sw = new Stopwatch(); sw.Start();
+					Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-						chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
-						chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
-						double[] xLabels = { maxTime, minTime };
-						//chart.XGridLabels = new GridLabels(xLabels);
-						chart.XPrimaryGridLines = new GridLines(xLabels);
+					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
+					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
+					double[] xLabels = { maxTime, minTime };
+					//chart.XGridLabels = new GridLabels(xLabels);
+					chart.XPrimaryGridLines = new GridLines(xLabels);
 
-						chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
-						double[] yLabels = {
+					chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
+					double[] yLabels = {
 						maxAltitude,
 						minAltitude + (maxAltitude - minAltitude) * .75,
 						minAltitude + (maxAltitude - minAltitude) * .5,
 						minAltitude + (maxAltitude - minAltitude) * .25,
 						minAltitude };
-						chart.YPrimaryGridLines = new GridLines(yLabels);
-						if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
-						else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
+					chart.YPrimaryGridLines = new GridLines(yLabels);
+					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
+					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
 
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+					// LOLLO TODO start the app, then open the altitude profiles: the first time, the top chart will have no labels.
 
-						chart.Draw();
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 
-						chart.Visibility = Visibility.Visible;
+					chart.Draw();
+
+					chart.Visibility = Visibility.Visible;
+					chart.UpdateLayout(); // LOLLO TODO remove when done testing
 #if DEBUG
-						sw.Stop();
-						Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
+					sw.Stop();
+					Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
 #endif
-					}
-					catch (Exception ex)
-					{
-						Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-					}
 				}
-				RefreshTBNoData();
-			});
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			}
+			RefreshTBNoData();
 		}
 
 		private void RefreshTBNoData()
