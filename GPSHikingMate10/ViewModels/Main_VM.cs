@@ -67,6 +67,9 @@ namespace LolloGPS.Core
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
+		private bool _isWideEnough = false;
+		public bool IsWideEnough { get { return _isWideEnough; } set { if (_isWideEnough != value) { _isWideEnough = value; RaisePropertyChanged_UI(); } } }
+
 		private readonly object _isMessageVisibleLocker = new object();
 		private bool _isLastMessageVisible = false;
 		public bool IsLastMessageVisible
@@ -162,10 +165,11 @@ namespace LolloGPS.Core
 		#endregion properties
 
 		#region construct and dispose
-		public MainVM()
+		public MainVM(bool isWideEnough)
 		{
 			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 			_tileCacheClearer = TileCacheClearer.GetInstance();
+			IsWideEnough = isWideEnough;
 		}
 
 		protected override async Task OpenMayOverrideAsync()
@@ -471,7 +475,7 @@ namespace LolloGPS.Core
 			Task getLoc = _gpsInteractor.GetGeoLocationAppendingHistoryAsync();
 		}
 		public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
-		{			
+		{
 			bool isScheduled = await Task.Run(delegate { return _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); }).ConfigureAwait(false);
 			if (isScheduled) PersistentData.LastMessage = "cache will be cleared asap";
 			else PersistentData.LastMessage = "cache busy";
@@ -583,29 +587,26 @@ namespace LolloGPS.Core
 
 
 		#region IMapApController
-		public async Task CentreOnRoute0Async()
+		public Task CentreOnRoute0Async()
 		{
 			PersistentData.IsShowingPivot = false;
-			var apVM = _altitudeProfilesVM;
-			if (apVM != null) await apVM.CentreOnRoute0Async();
-			var lmVM = _lolloMapVM;
-			if (lmVM != null) await lmVM.CentreOnRoute0Async().ConfigureAwait(false);
+			Task alt = _altitudeProfilesVM?.CentreOnRoute0Async();
+			Task map = _lolloMapVM?.CentreOnRoute0Async();
+			return Task.WhenAll(alt, map);
 		}
-		public async Task CentreOnHistoryAsync()
+		public Task CentreOnHistoryAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			var apVM = _altitudeProfilesVM;
-			if (apVM != null) await apVM.CentreOnHistoryAsync();
-			var lmVM = _lolloMapVM;
-			if (lmVM != null) await lmVM.CentreOnHistoryAsync().ConfigureAwait(false);
+			Task alt = _altitudeProfilesVM?.CentreOnHistoryAsync();
+			Task map = _lolloMapVM?.CentreOnHistoryAsync();
+			return Task.WhenAll(alt, map);
 		}
-		public async Task CentreOnCheckpointsAsync()
+		public Task CentreOnCheckpointsAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			var apVM = _altitudeProfilesVM;
-			if (apVM != null) await apVM.CentreOnCheckpointsAsync();
-			var lmVM = _lolloMapVM;
-			if (lmVM != null) await lmVM.CentreOnCheckpointsAsync().ConfigureAwait(false);
+			Task alt = _altitudeProfilesVM?.CentreOnCheckpointsAsync();
+			Task map = _lolloMapVM?.CentreOnCheckpointsAsync();
+			return Task.WhenAll(alt, map);
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
 		{
@@ -614,25 +615,25 @@ namespace LolloGPS.Core
 			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
 			else return Task.CompletedTask;
 		}
-		public async Task CentreOnTargetAsync()
+		public Task CentreOnTargetAsync()
 		{
 			PersistentData.IsShowingPivot = false;
 			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless
-			var lmVM = _lolloMapVM;
-			if (lmVM != null) await lmVM.CentreOnTargetAsync().ConfigureAwait(false);
+			return _lolloMapVM?.CentreOnTargetAsync();
 		}
 		public Task CentreOnCurrentAsync()
 		{
 			PersistentData.IsShowingPivot = false;
 			Task cenA = _altitudeProfilesVM?.CentreOnCurrentAsync();
-			Task cenM = _lolloMapVM.CentreOnCurrentAsync();
+			Task cenM = _lolloMapVM?.CentreOnCurrentAsync();
 			return Task.WhenAll(cenA, cenM);
 		}
 		public Task Goto2DAsync()
 		{
 			PersistentData.IsShowingPivot = false;
 			Task alt = _altitudeProfilesVM?.Goto2DAsync();
-			return _lolloMapVM?.Goto2DAsync();
+			Task map = _lolloMapVM?.Goto2DAsync();
+			return Task.WhenAll(alt, map);
 		}
 		#endregion IMapApController
 

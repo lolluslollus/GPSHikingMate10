@@ -38,6 +38,8 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("IsWideEnough", typeof(bool), typeof(Main), new PropertyMetadata(false, OnIsWideEnoughChanged));
 		private static void OnIsWideEnoughChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
+			var vm = (obj as Main).MainVM;
+			if (vm != null) vm.IsWideEnough = (bool)(args.NewValue);
 			Task alt0 = (obj as Main).UpdateIsExtraButtonsEnabledAsync();
 			Task alt1 = (obj as Main).UpdateAltitudeColumnWidthAsync();
 		}
@@ -72,7 +74,7 @@ namespace LolloGPS.Core
 				await _openCloseSemaphore.WaitAsync();
 				if (_isOpen) return YesNoError.No;
 
-				_mainVM = new MainVM();
+				_mainVM = new MainVM(IsWideEnough);
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
 				await Task.Delay(1); // just in case, try not to hog the ui thread too long
@@ -396,7 +398,10 @@ namespace LolloGPS.Core
 
 		private void OnShowOnePointDetailsRequested(object sender, AltitudeProfiles.ShowOnePointDetailsRequestedArgs e)
 		{
-			Task centre = MyLolloMap.CentreOnSeriesAsync(e.SelectedSeries);
+			if (IsWideEnough || !PersistentData.IsShowingAltitudeProfiles)
+			{
+				Task centre = MyLolloMap.CentreOnSeriesAsync(e.SelectedSeries);
+			}
 			MyPointInfoPanel.SetDetails(e.SelectedRecord, e.SelectedSeries);
 			SelectedPointPopup.IsOpen = true;
 		}

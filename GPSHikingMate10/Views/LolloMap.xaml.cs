@@ -802,7 +802,7 @@ namespace LolloGPS.Core
 			if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 			{
 				await DrawFlyoutPointAsync().ConfigureAwait(false);
-				await CentreOnSelectedPointAsync();
+				if (MainVM?.IsWideEnough == true || !PersistentData.IsShowingAltitudeProfiles) await CentreOnSelectedPointAsync();
 			}
 			//else
 			//{
