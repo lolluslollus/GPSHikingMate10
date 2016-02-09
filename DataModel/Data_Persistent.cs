@@ -678,7 +678,7 @@ namespace LolloGPS.Data
 				{
 					try
 					{
-						_history.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						_history.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
 					}
 					catch (IndexOutOfRangeException)
@@ -827,7 +827,7 @@ namespace LolloGPS.Data
 				{
 					try
 					{
-						_route0.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						_route0.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
 					}
 					catch (IndexOutOfRangeException)
@@ -891,7 +891,7 @@ namespace LolloGPS.Data
 				{
 					try
 					{
-						_checkpoints.ReplaceRange(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						_checkpoints.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
 						if (isShowMessageEvenIfSuccess) LastMessage = "Checkpoints updated";
 					}
 					catch (IndexOutOfRangeException)
