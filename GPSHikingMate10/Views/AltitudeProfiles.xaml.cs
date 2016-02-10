@@ -119,32 +119,9 @@ namespace LolloGPS.Core
 				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				//bool isVisible = await GetIsVisibleAsync().ConfigureAwait(false);
-				Task drawH = RunFunctionIfOpenAsyncT_MT(delegate
-				{
-					return DrawHistoryAsync();
-				});
-				//Task drawH = RunFunctionIfOpenAsyncT(async delegate
-				//{
-				//	await DrawHistoryAsync().ConfigureAwait(false);
-				//});
-
-				Task drawR = RunFunctionIfOpenAsyncT_MT(delegate
-				{
-					return DrawRoute0Async();
-				});
-				//Task drawR = RunFunctionIfOpenAsyncT(async delegate
-				//{
-				//	await DrawRoute0Async().ConfigureAwait(false);
-				//});
-
-				Task drawC = RunFunctionIfOpenAsyncT_MT(delegate
-				{
-					return DrawCheckpointsAsync();
-				});
-				//Task drawC = RunFunctionIfOpenAsyncT(async delegate
-				//{
-				//	await DrawCheckpointsAsync().ConfigureAwait(false);
-				//});
+				Task drawH = RunFunctionIfOpenAsyncT_MT(DrawHistoryAsync);
+				Task drawR = RunFunctionIfOpenAsyncT_MT(DrawRoute0Async);
+				Task drawC = RunFunctionIfOpenAsyncT_MT(DrawCheckpointsAsync);
 			}
 		}
 		private void OnPersistentData_CurrentChanged(object sender, EventArgs e)
@@ -153,10 +130,7 @@ namespace LolloGPS.Core
 			// Unless the tracking is on and the autocentre too.
 			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent && PersistentData.IsShowingAltitudeProfiles)
 			{
-				Task cen = RunFunctionIfOpenAsyncT(delegate
-				{
-					return CentreOnHistoryAsync();
-				});
+				Task cen = RunFunctionIfOpenAsyncT(CentreOnHistoryAsync);
 			}
 		}
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -201,33 +175,36 @@ namespace LolloGPS.Core
 		#region user event handlers
 		public void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
-			try
+			Task cen = RunFunctionIfOpenAsyncA(delegate
 			{
-				if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+				try
 				{
-					Task centre = CentreOnSeriesAsync(PersistentData.SelectedSeries);
-					switch (PersistentData.SelectedSeries)
+					if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 					{
-						case PersistentData.Tables.History:
-							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-							break;
-						case PersistentData.Tables.Route0:
-							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-							break;
-						case PersistentData.Tables.Checkpoints:
-							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-							break;
-						case PersistentData.Tables.nil:
-							break;
-						default:
-							break;
+						Task centre = CentreOnSeriesAsync(PersistentData.SelectedSeries);
+						switch (PersistentData.SelectedSeries)
+						{
+							case PersistentData.Tables.History:
+								HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+								break;
+							case PersistentData.Tables.Route0:
+								Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+								break;
+							case PersistentData.Tables.Checkpoints:
+								CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+								break;
+							case PersistentData.Tables.nil:
+								break;
+							default:
+								break;
+						}
 					}
 				}
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
+				catch (Exception ex)
+				{
+					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+				}
+			});
 		}
 
 		public void OnInfoPanelClosed(object sender, object e)

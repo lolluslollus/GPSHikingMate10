@@ -906,10 +906,7 @@ namespace LolloGPS.Core
 			// Unless the tracking is on and the autocentre too.
 			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
 			{
-				Task cen = RunFunctionIfOpenAsyncT(delegate
-				{
-					return CentreOnCurrentAsync();
-				});
+				Task cen = RunFunctionIfOpenAsyncT(CentreOnCurrentAsync);
 			}
 		}
 

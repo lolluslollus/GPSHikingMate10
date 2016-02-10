@@ -693,7 +693,7 @@ namespace LolloGPS.Data.TileCache
 				{
 					_funcAsSoonAsFree = func;
 
-					Task runFunc = Task.Run(async delegate
+					Task runFunc = Task.Run(async delegate // use separate thread to avoid deadlock
 					{
 						// the following will run after the current method is over because it queues before the semaphore.
 						await RunFunctionIfOpenAsyncT(delegate
