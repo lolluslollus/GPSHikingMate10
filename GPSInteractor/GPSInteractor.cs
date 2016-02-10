@@ -106,7 +106,7 @@ namespace LolloGPS.GPSInteraction
 					// if just switched on and ok, get a location now. The foreground tracking does it, so we do it here as well
 					if (isOk && _persistentData.IsBackgroundEnabled)
 					{
-						var loc = await GetGeoLocationAppendingHistoryAsync().ConfigureAwait(false);
+						Task getLoc = Task.Run(GetGeoLocationAppendingHistoryAsync); // use new thread to avoid deadlock
 					}
 				}
 			});

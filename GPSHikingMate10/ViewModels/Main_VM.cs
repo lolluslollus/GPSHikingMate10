@@ -472,7 +472,7 @@ namespace LolloGPS.Core
 		}
 		public void GetAFix()
 		{
-			Task getLoc = _gpsInteractor.GetGeoLocationAppendingHistoryAsync();
+			Task getLoc = Task.Run(_gpsInteractor.GetGeoLocationAppendingHistoryAsync);
 		}
 		public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
@@ -560,13 +560,18 @@ namespace LolloGPS.Core
 			if (gpsInteractor == null) return;
 
 			Task vibrate = Task.Run(() => App.ShortVibration());
+
 			var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
-			Task upd = currrent?.UpdateUIEditablePropertiesAsync(PersistentData?.Target, PersistentData.Tables.History).ContinueWith(delegate
+			var persistentData = PersistentData;
+			if (currrent != null && persistentData != null)
 			{
-				PointRecord currentClone = null;
-				PointRecord.Clone(currrent, ref currentClone);
-				Task add = PersistentData?.TryAddPointToCheckpointsAsync(currentClone);
-			});
+				Task upd = currrent.UpdateUIEditablePropertiesAsync(persistentData.Target, PersistentData.Tables.History).ContinueWith(delegate
+				{
+					PointRecord currentClone = null;
+					PointRecord.Clone(currrent, ref currentClone);
+					Task add = persistentData.TryAddPointToCheckpointsAsync(currentClone);
+				});
+			}
 		}
 		public Task SetTilesDownloadPropsAsync(int maxZoom)
 		{
