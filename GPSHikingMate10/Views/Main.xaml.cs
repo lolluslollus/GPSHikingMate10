@@ -70,8 +70,8 @@ namespace LolloGPS.Core
 			if (_isOpen) return YesNoError.No;
 			try
 			{
-				Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				await _openCloseSemaphore.WaitAsync();
+				Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				if (_isOpen) return YesNoError.No;
 
 				_mainVM = new MainVM(IsWideEnough);
@@ -82,6 +82,8 @@ namespace LolloGPS.Core
 				Task alt0 = UpdateAltitudeColumnWidthAsync();
 				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
 				Task butt = UpdateIsExtraButtonsEnabledAsync();
+
+				Logger.Add_TPL("Main.OpenAsync is about to open its child controls", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await MyLolloMap.OpenAsync();
 				await MyAltitudeProfiles.OpenAsync();

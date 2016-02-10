@@ -46,6 +46,7 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
+			Logger.Add_TPL("AltitudeProfiles started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			_altitudeProfilesVM = new AltitudeProfilesVM(this as IMapApController, MainVM);
 			RaisePropertyChanged_UI(nameof(AltitudeProfilesVM));
 
@@ -58,18 +59,18 @@ namespace LolloGPS.Core
 			//bool isVisible = await GetIsVisibleAsync();
 			if (PersistentData?.IsShowingAltitudeProfiles == true)
 			{
-				Task drawH = Task.Run(delegate { return DrawHistoryAsync(); });
+				Task drawH = Task.Run(DrawHistoryAsync);
 			}
 			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
 			{
-				Task drawR = Task.Run(delegate { return DrawRoute0Async(); });
+				Task drawR = Task.Run(DrawRoute0Async);
 			}
 			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
 			{
-				Task drawC = Task.Run(delegate { return DrawCheckpointsAsync(); });
+				Task drawC = Task.Run(DrawCheckpointsAsync);
 			}
 
-			Task restore = Task.Run(() => RestoreViewAsync());
+			Task restore = Task.Run(RestoreViewAsync);
 			return Task.CompletedTask;
 		}
 
@@ -177,6 +178,7 @@ namespace LolloGPS.Core
 		{
 			Task cen = RunFunctionIfOpenAsyncA(delegate
 			{
+				if (!PersistentData.IsShowingAltitudeProfiles) return;
 				try
 				{
 					if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())

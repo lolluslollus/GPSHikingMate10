@@ -152,6 +152,7 @@ namespace LolloGPS.Core
 		}
 		protected override async Task OpenMayOverrideAsync()
 		{
+			Logger.Add_TPL("LolloMap started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			_isHistoryInMap = false;
 			_isRoute0InMap = false;
 			_isFlyoutPointInMap = false;
@@ -162,17 +163,17 @@ namespace LolloGPS.Core
 
 			AddHandlers();
 
-			Task drawH = Task.Run(() => DrawHistoryAsync());
+			Task drawH = Task.Run(DrawHistoryAsync);
 			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
 			{
-				Task drawR = Task.Run(() => DrawRoute0Async());
+				Task drawR = Task.Run(DrawRoute0Async);
 			}
 			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
 			{
-				Task drawC = Task.Run(() => DrawCheckpointsAsync());
+				Task drawC = Task.Run(DrawCheckpointsAsync);
 			}
 
-			Task restore = Task.Run(() => RestoreViewAsync());
+			Task restore = Task.Run(RestoreViewAsync);
 		}
 
 		protected override async Task CloseMayOverrideAsync()

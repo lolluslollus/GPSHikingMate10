@@ -79,9 +79,9 @@ namespace LolloGPS.Suspension
 			{
 				if (readDataFromDb)
 				{
-					Task loadHistory = PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false);
-					Task loadRoute0 = PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false);
-					Task loadCheckpoints = PersistentData.GetInstance()?.LoadCheckpointsFromDbAsync(false);
+					Task loadHistory = PersistentData.GetInstance()?.LoadHistoryFromDbAsync(false) ?? Task.CompletedTask;
+					Task loadRoute0 = PersistentData.GetInstance()?.LoadRoute0FromDbAsync(false) ?? Task.CompletedTask;
+					Task loadCheckpoints = PersistentData.GetInstance()?.LoadCheckpointsFromDbAsync(false) ?? Task.CompletedTask;
 
 					await Task.WhenAll(loadHistory, loadRoute0, loadCheckpoints).ConfigureAwait(false);
 					Debug.WriteLine("ended reading data from db");

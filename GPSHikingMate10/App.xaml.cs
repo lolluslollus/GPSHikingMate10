@@ -297,7 +297,7 @@ namespace LolloGPS.Core
 					if (main != null)
 					{
 						await SuspensionManager.LoadDbDataAndSettingsAsync(false, !isAppAlreadyRunning);
-						var yne = await main.OpenAsync(/*false, !isAppAlreadyRunning*/);
+						var yne = await main.OpenAsync();
 						Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						var whichTables = await main.LoadFileIntoDbAsync(args as FileActivatedEventArgs);
@@ -324,13 +324,17 @@ namespace LolloGPS.Core
 						// centre view on the file data
 						if (whichTables?.Count > 0)
 						{
-							if (whichTables[0] == PersistentData.Tables.Checkpoints)
+							var mainVM = main?.MainVM;
+							if (mainVM != null)
 							{
-								Task centreView = main?.MainVM?.CentreOnCheckpointsAsync();
-							}
-							else if (whichTables[0] == PersistentData.Tables.Route0)
-							{
-								Task centreView = main?.MainVM?.CentreOnRoute0Async();
+								if (whichTables[0] == PersistentData.Tables.Checkpoints)
+								{
+									Task centreView = Task.Run(mainVM.CentreOnCheckpointsAsync);
+								}
+								else if (whichTables[0] == PersistentData.Tables.Route0)
+								{
+									Task centreView = Task.Run(mainVM.CentreOnRoute0Async);
+								}
 							}
 						}
 

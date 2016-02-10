@@ -666,8 +666,9 @@ namespace LolloGPS.Data
 		#endregion all series methods
 
 		#region historyMethods
-		public async Task LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
+			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
 
 			try
@@ -679,6 +680,7 @@ namespace LolloGPS.Data
 					try
 					{
 						_history.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						result = _history.Count;
 						if (isShowMessageEvenIfSuccess) LastMessage = "History updated";
 					}
 					catch (IndexOutOfRangeException)
@@ -706,6 +708,7 @@ namespace LolloGPS.Data
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
 			}
+			return result;
 		}
 		public async Task ResetHistoryAsync()
 		{
@@ -815,8 +818,9 @@ namespace LolloGPS.Data
 		#endregion historyMethods
 
 		#region route0Methods
-		public async Task LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
+			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
 
 			try
@@ -828,6 +832,7 @@ namespace LolloGPS.Data
 					try
 					{
 						_route0.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						result = _route0.Count;
 						if (isShowMessageEvenIfSuccess) LastMessage = "Route updated";
 					}
 					catch (IndexOutOfRangeException)
@@ -854,6 +859,7 @@ namespace LolloGPS.Data
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_route0Semaphore);
 			}
+			return result;
 		}
 		public static Task SetRoute0InDBAsync(IEnumerable<PointRecord> dataRecords)
 		{
@@ -879,8 +885,9 @@ namespace LolloGPS.Data
 		#endregion route0Methods
 
 		#region checkpointsMethods
-		public async Task LoadCheckpointsFromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadCheckpointsFromDbAsync(bool isShowMessageEvenIfSuccess)
 		{
+			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetCheckpointsAsync().ConfigureAwait(false);
 
 			try
@@ -892,6 +899,7 @@ namespace LolloGPS.Data
 					try
 					{
 						_checkpoints.ReplaceAll(dataRecords?.Where(newRecord => !newRecord.IsEmpty()));
+						result = _checkpoints.Count;
 						if (isShowMessageEvenIfSuccess) LastMessage = "Checkpoints updated";
 					}
 					catch (IndexOutOfRangeException)
@@ -914,6 +922,7 @@ namespace LolloGPS.Data
 			{
 				SemaphoreSlimSafeRelease.TryRelease(_checkpointsSemaphore);
 			}
+			return result;
 		}
 		public static Task SetCheckpointsInDBAsync(IEnumerable<PointRecord> dataRecords)
 		{

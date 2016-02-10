@@ -175,10 +175,7 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
 			{
-				Task down = RunFunctionIfOpenAsyncT(delegate
-				{
-					return Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-				});
+				Task down = RunFunctionIfOpenAsyncT_MT(UpdateDownloadTilesAfterConditionsChangedAsync);
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
 			{
@@ -201,10 +198,7 @@ namespace LolloGPS.Core
 		{
 			if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
 			{
-				Task resume = RunFunctionIfOpenAsyncT(delegate
-				{
-					return Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-				});
+				Task resume = RunFunctionIfOpenAsyncT_MT(UpdateDownloadTilesAfterConditionsChangedAsync);
 			}
 		}
 		private async void OnDataSource_UriRequested(HttpMapTileDataSource sender, MapTileUriRequestedEventArgs args)
