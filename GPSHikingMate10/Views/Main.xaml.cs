@@ -79,6 +79,8 @@ namespace LolloGPS.Core
 				RaisePropertyChanged_UI(nameof(MainVM));
 				await Task.Delay(1); // just in case
 
+				var openMainVmMessage = PersistentData.LastMessage;
+
 				Task alt0 = UpdateAltitudeColumnWidthAsync();
 				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
 				Task butt = UpdateIsExtraButtonsEnabledAsync();
@@ -92,6 +94,7 @@ namespace LolloGPS.Core
 				await MyCustomMapsPanel.OpenAsync();
 
 				AddHandlers();
+				PersistentData.LastMessage = openMainVmMessage; // output the msg into the UI
 
 				_isOpen = true;
 
