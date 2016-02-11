@@ -278,7 +278,7 @@ namespace GPX
 			bool outIsOk = false;
 
 			Logger.Add_TPL("Start writing GPX", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-			if (gpxFile != null)
+			if (gpxFile != null && coll != null && whichTable != PersistentData.Tables.nil)
 			{
 				try
 				{
@@ -324,7 +324,7 @@ namespace GPX
 			}
 			else
 			{
-				Logger.Add_TPL("GPX file null", Logger.ForegroundLogFilename, Logger.Severity.Info);
+				Logger.Add_TPL("SaveAsync(): parameter null", Logger.ForegroundLogFilename, Logger.Severity.Info);
 				outMessage = "file could not be saved";
 			}
 

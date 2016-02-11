@@ -73,17 +73,11 @@ namespace LolloGPS.Core
 		{
 			get
 			{
-				lock (_isMessageVisibleLocker)
-				{
-					return _isLastMessageVisible;
-				}
+				return GetProperty(ref _isLastMessageVisible, _isMessageVisibleLocker);
 			}
 			set
 			{
-				lock (_isMessageVisibleLocker)
-				{
-					if (_isLastMessageVisible != value) { _isLastMessageVisible = value; RaisePropertyChanged_UI(); }
-				}
+				SetPropertyRaising(ref _isLastMessageVisible, value, _isMessageVisibleLocker);
 			}
 		}
 
@@ -204,6 +198,7 @@ namespace LolloGPS.Core
 							out whichSeries)
 							&& whichSeries != PersistentData.Tables.nil)
 						{
+							IsLastMessageVisible = true;
 							await ContinueAfterPickLoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 						}
 					}
@@ -227,6 +222,7 @@ namespace LolloGPS.Core
 								DateTimeStyles.None,
 								out fileCreationDateTime))
 							{
+								IsLastMessageVisible = true;
 								var series = PersistentData.GetSeries(whichSeries);
 								await ContinueAfterPickSaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file).ConfigureAwait(false);
 							}
@@ -480,6 +476,7 @@ namespace LolloGPS.Core
 			var gpsInt = _gpsInteractor;
 			if (gpsInt != null)
 			{
+				IsLastMessageVisible = true;
 				Task getLoc = Task.Run(gpsInt.GetGeoLocationAppendingHistoryAsync);
 			}
 		}
