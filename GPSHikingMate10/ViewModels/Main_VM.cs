@@ -243,7 +243,7 @@ namespace LolloGPS.Core
 			{
 				IsLoading = false;
 				IsSaving = false;
-				// _whichSeriesJustLoaded = PersistentData.Tables.nil;
+				//_whichSeriesJustLoaded = PersistentData.Tables.nil; NO!
 			}
 		}
 		protected override async Task CloseMayOverrideAsync()

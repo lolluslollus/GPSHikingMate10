@@ -61,16 +61,19 @@ namespace LolloGPS.Core
 			{
 				Task drawH = Task.Run(DrawHistoryAsync);
 			}
-			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+			if (PersistentData?.IsShowingAltitudeProfiles == true && (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0))
 			{
 				Task drawR = Task.Run(DrawRoute0Async);
 			}
-			if (PersistentData?.IsShowingAltitudeProfiles == true && !App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+			if (PersistentData?.IsShowingAltitudeProfiles == true && (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints))
 			{
 				Task drawC = Task.Run(DrawCheckpointsAsync);
 			}
 
-			Task restore = Task.Run(RestoreViewAsync);
+			if (!App.IsFileActivating)
+			{
+				Task restore = Task.Run(RestoreViewAsync);
+			}
 			return Task.CompletedTask;
 		}
 

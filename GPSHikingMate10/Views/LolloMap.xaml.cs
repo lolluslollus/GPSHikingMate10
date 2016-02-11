@@ -173,7 +173,10 @@ namespace LolloGPS.Core
 				Task drawC = Task.Run(DrawCheckpointsAsync);
 			}
 
-			Task restore = Task.Run(RestoreViewAsync);
+			if (!App.IsFileActivating)
+			{
+				Task restore = Task.Run(RestoreViewAsync);
+			}
 		}
 
 		protected override async Task CloseMayOverrideAsync()

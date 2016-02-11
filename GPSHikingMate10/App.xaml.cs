@@ -35,12 +35,14 @@ namespace LolloGPS.Core
 		public static PersistentData PersistentData { get { return _persistentData; } }
 		private static RuntimeData _runtimeData = null; // RuntimeData.GetInstance();
 		public static RuntimeData RuntimeData { get { return _runtimeData; } }
-		
+
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
 		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private static volatile bool _isResuming = false;
 		public static bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
+		private static volatile bool _isFileActivating = false;
+		public static bool IsFileActivating { get { return _isFileActivating; } private set { _isFileActivating = value; } }
 		#endregion properties
 
 
@@ -271,6 +273,7 @@ namespace LolloGPS.Core
 			try
 			{
 				await _resumingActivatingSemaphore.WaitAsync();
+				IsFileActivating = true;
 				Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 				await OpenDataAsync();
@@ -354,6 +357,7 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
+				IsFileActivating = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
 			}
 		}
