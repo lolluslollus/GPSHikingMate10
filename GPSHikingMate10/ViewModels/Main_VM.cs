@@ -35,12 +35,9 @@ namespace LolloGPS.Core
 		//private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
+		private readonly IMapApController _lolloMap = null;
 
-		private LolloMapVM _lolloMapVM = null;
-		public LolloMapVM LolloMapVM { get { return _lolloMapVM; } set { _lolloMapVM = value; RaisePropertyChanged_UI(); } }
-
-		private AltitudeProfilesVM _altitudeProfilesVM = null;
-		public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } set { _altitudeProfilesVM = value; RaisePropertyChanged_UI(); } }
+		private readonly IMapApController _altitudeProfiles = null;
 
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -165,11 +162,13 @@ namespace LolloGPS.Core
 		#endregion properties
 
 		#region construct and dispose
-		public MainVM(bool isWideEnough)
+		public MainVM(bool isWideEnough, IMapApController lolloMap, IMapApController altitudeProfiles)
 		{
 			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 			_tileCacheClearer = TileCacheClearer.GetInstance();
 			IsWideEnough = isWideEnough;
+			_lolloMap = lolloMap;
+			_altitudeProfiles = altitudeProfiles;
 		}
 
 		protected override async Task OpenMayOverrideAsync()
@@ -202,7 +201,8 @@ namespace LolloGPS.Core
 						PersistentData.Tables whichSeries = PersistentData.Tables.nil;
 						if (Enum.TryParse(
 							RegistryAccess.GetValue(ConstantData.REG_LOAD_SERIES_WHICH_SERIES),
-							out whichSeries))
+							out whichSeries)
+							&& whichSeries != PersistentData.Tables.nil)
 						{
 							await ContinueAfterPickLoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 						}
@@ -216,7 +216,8 @@ namespace LolloGPS.Core
 						PersistentData.Tables whichSeries = PersistentData.Tables.nil;
 						if (Enum.TryParse(
 							RegistryAccess.GetValue(ConstantData.REG_SAVE_SERIES_WHICH_SERIES),
-							out whichSeries))
+							out whichSeries)
+							&& whichSeries != PersistentData.Tables.nil)
 						{
 							DateTime fileCreationDateTime = default(DateTime);
 							if (DateTime.TryParseExact(
@@ -491,21 +492,6 @@ namespace LolloGPS.Core
 			//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
 		}
 
-		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
-		{
-			var result = new List<Tuple<int, int>>();
-			await RunFunctionIfOpenAsyncT(async delegate
-			{
-				var lmVM = _lolloMapVM;
-				if (lmVM != null) result = await lmVM.GetHowManyTiles4DifferentZoomsAsync();
-			}).ConfigureAwait(false);
-			return result;
-		}
-		public void CancelDownloadByUser()
-		{
-			_lolloMapVM?.CancelDownloadByUser();
-		}
-
 		public Task StartUserTestingTileSourceAsync()
 		{
 			return RunFunctionIfOpenAsyncT(async delegate
@@ -603,22 +589,22 @@ namespace LolloGPS.Core
 		public Task CentreOnRoute0Async()
 		{
 			PersistentData.IsShowingPivot = false;
-			Task alt = _altitudeProfilesVM?.CentreOnRoute0Async() ?? Task.CompletedTask;
-			Task map = _lolloMapVM?.CentreOnRoute0Async() ?? Task.CompletedTask;
+			Task alt = _altitudeProfiles?.CentreOnRoute0Async() ?? Task.CompletedTask;
+			Task map = _lolloMap?.CentreOnRoute0Async() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
 		public Task CentreOnHistoryAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			Task alt = _altitudeProfilesVM?.CentreOnHistoryAsync() ?? Task.CompletedTask;
-			Task map = _lolloMapVM?.CentreOnHistoryAsync() ?? Task.CompletedTask;
+			Task alt = _altitudeProfiles?.CentreOnHistoryAsync() ?? Task.CompletedTask;
+			Task map = _lolloMap?.CentreOnHistoryAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
 		public Task CentreOnCheckpointsAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			Task alt = _altitudeProfilesVM?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
-			Task map = _lolloMapVM?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
+			Task alt = _altitudeProfiles?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
+			Task map = _lolloMap?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
 		public Task CentreOnSeriesAsync(PersistentData.Tables series)
@@ -631,21 +617,21 @@ namespace LolloGPS.Core
 		public Task CentreOnTargetAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			// await _myAltitudeProfiles_VM?.CentreOnTargetAsync(); // useless
-			return _lolloMapVM?.CentreOnTargetAsync();
+			// await _altitudeProfiles?.CentreOnTargetAsync() ?? Task.CompletedTask; // useless
+			return _lolloMap?.CentreOnTargetAsync() ?? Task.CompletedTask;
 		}
 		public Task CentreOnCurrentAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			Task cenA = _altitudeProfilesVM?.CentreOnCurrentAsync() ?? Task.CompletedTask;
-			Task cenM = _lolloMapVM?.CentreOnCurrentAsync() ?? Task.CompletedTask;
+			Task cenA = _altitudeProfiles?.CentreOnCurrentAsync() ?? Task.CompletedTask;
+			Task cenM = _lolloMap?.CentreOnCurrentAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(cenA, cenM);
 		}
 		public Task Goto2DAsync()
 		{
 			PersistentData.IsShowingPivot = false;
-			Task alt = _altitudeProfilesVM?.Goto2DAsync() ?? Task.CompletedTask;
-			Task map = _lolloMapVM?.Goto2DAsync() ?? Task.CompletedTask;
+			Task alt = _altitudeProfiles?.Goto2DAsync() ?? Task.CompletedTask;
+			Task map = _lolloMap?.Goto2DAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
 		#endregion IMapApController

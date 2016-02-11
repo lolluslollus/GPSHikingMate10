@@ -74,10 +74,10 @@ namespace LolloGPS.Core
 				Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				if (_isOpen) return YesNoError.No;
 
-				_mainVM = new MainVM(IsWideEnough);
+				_mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles);
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
-				await Task.Delay(1); // just in case, try not to hog the ui thread too long
+				await Task.Delay(1); // just in case
 
 				Task alt0 = UpdateAltitudeColumnWidthAsync();
 				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
@@ -87,6 +87,7 @@ namespace LolloGPS.Core
 
 				await MyLolloMap.OpenAsync();
 				await MyAltitudeProfiles.OpenAsync();
+				MyMapsPanel.LolloMapVM = MyLolloMap.LolloMapVM;
 				await MyMapsPanel.OpenAsync();
 				await MyCustomMapsPanel.OpenAsync();
 
@@ -264,7 +265,7 @@ namespace LolloGPS.Core
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
 		{
 			_mainVM.SetLastMessage_UI("Cancelling download");
-			_mainVM.CancelDownloadByUser();
+			MyLolloMap?.LolloMapVM?.CancelDownloadByUser();
 		}
 
 		private async void OnTestFiles_Click(object sender, RoutedEventArgs e)
@@ -414,18 +415,5 @@ namespace LolloGPS.Core
 			SelectedPointPopup.IsOpen = true;
 		}
 		#endregion point info panel
-
-
-		#region open app through file
-		/// <summary>
-		/// This method is called in a separate task on low-memory phones
-		/// </summary>
-		/// <param name="args"></param>
-		/// <returns></returns>
-		public Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args)
-		{
-			return MainVM?.LoadFileIntoDbAsync(args);
-		}
-		#endregion open app through file
 	}
 }

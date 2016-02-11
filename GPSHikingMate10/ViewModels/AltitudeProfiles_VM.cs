@@ -10,20 +10,16 @@ using Utilz.Data;
 
 namespace LolloGPS.Core
 {
-	public sealed class AltitudeProfilesVM : ObservableData, IMapApController
+	public sealed class AltitudeProfilesVM : ObservableData
 	{
 		private MainVM _myMainVM = null;
 		public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
 
-		private IMapApController _altitudeProfilesController = null;
-
 		private const double ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL = 50.0;
 
-		internal AltitudeProfilesVM(IMapApController altitudeProfilesController, MainVM mainVM)
+		internal AltitudeProfilesVM(MainVM mainVM)
 		{
 			MyMainVM = mainVM;
-			_altitudeProfilesController = altitudeProfilesController;
-			MyMainVM.AltitudeProfilesVM = this;
 		}
 
 		internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes,
@@ -156,43 +152,5 @@ namespace LolloGPS.Core
 				return myArray[(int)one, 0].CompareTo(myArray[(int)two, 0]);
 			}
 		}
-
-
-		#region IAltitudeProfilesController
-		public Task CentreOnHistoryAsync()
-		{
-			return _altitudeProfilesController?.CentreOnHistoryAsync();
-		}
-		public Task CentreOnRoute0Async()
-		{
-			return _altitudeProfilesController?.CentreOnRoute0Async();
-		}
-		public Task CentreOnCheckpointsAsync()
-		{
-			return _altitudeProfilesController?.CentreOnCheckpointsAsync();
-		}
-		public Task CentreOnSeriesAsync(PersistentData.Tables series)
-		{
-			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
-			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
-			else return Task.CompletedTask;
-		}
-
-		public Task CentreOnTargetAsync()
-		{
-			return _altitudeProfilesController?.CentreOnTargetAsync();
-		}
-
-		public Task CentreOnCurrentAsync()
-		{
-			return _altitudeProfilesController?.CentreOnCurrentAsync();
-		}
-
-		public Task Goto2DAsync()
-		{
-			return _altitudeProfilesController?.Goto2DAsync();
-		}
-		#endregion IAltitudeProfilesController
 	}
 }

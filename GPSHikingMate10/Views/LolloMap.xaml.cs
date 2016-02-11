@@ -157,24 +157,24 @@ namespace LolloGPS.Core
 			_isRoute0InMap = false;
 			_isFlyoutPointInMap = false;
 
-			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, this as IMapApController, MainVM);
+			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, MainVM);
 			await _lolloMapVM.OpenAsync();
 			RaisePropertyChanged_UI(nameof(LolloMapVM));
 
 			AddHandlers();
 
-			Task drawH = Task.Run(DrawHistoryAsync);
-			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
-			{
-				Task drawR = Task.Run(DrawRoute0Async);
-			}
-			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
-			{
-				Task drawC = Task.Run(DrawCheckpointsAsync);
-			}
-
 			if (!App.IsFileActivating)
 			{
+				Task drawH = Task.Run(DrawHistoryAsync);
+				if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+				{
+					Task drawR = Task.Run(DrawRoute0Async);
+				}
+				if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+				{
+					Task drawC = Task.Run(DrawCheckpointsAsync);
+				}
+
 				Task restore = Task.Run(RestoreViewAsync);
 			}
 		}

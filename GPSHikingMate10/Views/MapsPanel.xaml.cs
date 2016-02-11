@@ -24,6 +24,13 @@ namespace LolloGPS.Core
 		public static readonly DependencyProperty MainVMProperty =
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null));
 
+		public LolloMapVM LolloMapVM
+		{
+			get { return (LolloMapVM)GetValue(LolloMapVMProperty); }
+			set { SetValue(LolloMapVMProperty, value); }
+		}
+		public static readonly DependencyProperty LolloMapVMProperty =
+			DependencyProperty.Register("LolloMapVM", typeof(LolloMapVM), typeof(MapsPanel), new PropertyMetadata(null));
 
 		public MapsPanel()
         {
@@ -73,7 +80,7 @@ namespace LolloGPS.Core
             if (MainVM.IsLeechingEnabled) // this is redundant safety
             {
                 // present a choice of zoom levels
-                List<Tuple<int, int>> howManyTiles4DifferentZooms = await MainVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
+                List<Tuple<int, int>> howManyTiles4DifferentZooms = await LolloMapVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
 
                 Collection<TextAndTag> tts = new Collection<TextAndTag>();
                 foreach (var item in howManyTiles4DifferentZooms)

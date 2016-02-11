@@ -11,7 +11,7 @@ using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
 {
-	public sealed class LolloMapVM : OpenableObservableData, IMapApController
+	public sealed class LolloMapVM : OpenableObservableData //, IMapApController
 	{
 		// http://josm.openstreetmap.de/wiki/Maps
 
@@ -21,7 +21,6 @@ namespace LolloGPS.Core
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		private readonly IGeoBoundingBoxProvider _gbbProvider = null;
-		private readonly IMapApController _mapController = null;
 		private MapTileSource _mapTileSource = null;
 		//private CustomMapTileDataSource _tileDataSource_custom = null;
 		private readonly IList<MapTileSource> _mapTileSources = null;
@@ -31,12 +30,11 @@ namespace LolloGPS.Core
 
 
 		#region construct and dispose
-		public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, IMapApController mapController, MainVM mainVM)
+		public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, MainVM mainVM)
 		{
 			MyMainVM = mainVM;
-			MyMainVM.LolloMapVM = this;
+			//MyMainVM.LolloMapVM = this;
 			_gbbProvider = gbbProvider;
-			_mapController = mapController;
 			_mapTileSources = mapTileSources;
 			_tileDownloader = new TileDownloader(gbbProvider);
 		}
@@ -234,14 +232,24 @@ namespace LolloGPS.Core
 		//}
 		#endregion event handling
 
-		public Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
+
+		#region services
+		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
-			return _tileDownloader.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync();
+			var result = new List<Tuple<int, int>>();
+			var tileDownloader = _tileDownloader;
+			if (tileDownloader != null)
+			{
+				await RunFunctionIfOpenAsyncT(async delegate { result = await tileDownloader.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync().ConfigureAwait(false); }).ConfigureAwait(false);
+			}
+			return result;
 		}
+
 		public void CancelDownloadByUser()
 		{
-			_tileDownloader.CancelDownloadByUser();
+			_tileDownloader?.CancelDownloadByUser();
 		}
+
 		public async Task<bool> AddMapCentreToCheckpoints()
 		{
 			if (_gbbProvider != null && PersistentData != null)
@@ -253,37 +261,6 @@ namespace LolloGPS.Core
 			}
 			return false;
 		}
-
-		public Task CentreOnHistoryAsync()
-		{
-			return _mapController?.CentreOnHistoryAsync();
-		}
-		public Task CentreOnCheckpointsAsync()
-		{
-			return _mapController?.CentreOnCheckpointsAsync();
-		}
-		public Task CentreOnRoute0Async()
-		{
-			return _mapController?.CentreOnRoute0Async();
-		}
-		public Task CentreOnSeriesAsync(PersistentData.Tables series)
-		{
-			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
-			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
-			else return Task.CompletedTask;
-		}
-		public Task CentreOnTargetAsync()
-		{
-			return _mapController?.CentreOnTargetAsync();
-		}
-		public Task CentreOnCurrentAsync()
-		{
-			return _mapController?.CentreOnCurrentAsync();
-		}
-		public Task Goto2DAsync()
-		{
-			return _mapController?.Goto2DAsync();
-		}
+		#endregion services
 	}
 }

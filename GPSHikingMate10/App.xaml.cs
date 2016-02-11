@@ -297,52 +297,49 @@ namespace LolloGPS.Core
 					RuntimeData.SetIsDBDataRead_UI(false);
 
 					var main = rootFrame.Content as Main;
-					if (main != null)
+					if (main == null) throw new Exception("OnFileActivated: main is null");
+
+					await SuspensionManager.LoadDbDataAndSettingsAsync(false, !isAppAlreadyRunning);
+					var yne = await main.OpenAsync(); // already open if app already running
+					Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+					var mainVM = main.MainVM;
+					if (mainVM == null) throw new Exception("OnFileActivated: mainVM is null");
+
+					var whichTables = await mainVM.LoadFileIntoDbAsync(args as FileActivatedEventArgs);
+					Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+					if (isAppAlreadyRunning)
 					{
-						await SuspensionManager.LoadDbDataAndSettingsAsync(false, !isAppAlreadyRunning);
-						var yne = await main.OpenAsync();
-						Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-						var whichTables = await main.LoadFileIntoDbAsync(args as FileActivatedEventArgs);
-						Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-						if (isAppAlreadyRunning)
+						if (whichTables != null)
 						{
-							if (whichTables != null)
+							// get file data from DB into UI
+							foreach (var series in whichTables)
 							{
-								// get file data from DB into UI
-								foreach (var series in whichTables)
-								{
-									await PersistentData.LoadSeriesFromDbAsync(series, false);
-									Logger.Add_TPL("just got series " + series.ToString() + " into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-								}
+								await PersistentData.LoadSeriesFromDbAsync(series, false);
+								Logger.Add_TPL("OnFileActivated() got series " + series.ToString() + " into PersistentData", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 							}
 						}
-						else
-						{
-							// get all data from DB into UI
-							await SuspensionManager.LoadDbDataAndSettingsAsync(true, false);
-						}
-
-						// centre view on the file data
-						if (whichTables?.Count > 0)
-						{
-							var mainVM = main?.MainVM;
-							if (mainVM != null)
-							{
-								if (whichTables[0] == PersistentData.Tables.Checkpoints)
-								{
-									Task centreView = Task.Run(mainVM.CentreOnCheckpointsAsync);
-								}
-								else if (whichTables[0] == PersistentData.Tables.Route0)
-								{
-									Task centreView = Task.Run(mainVM.CentreOnRoute0Async);
-								}
-							}
-						}
-
-						Logger.Add_TPL("OnFileActivated() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					}
+					else
+					{
+						// get all data from DB into UI
+						await SuspensionManager.LoadDbDataAndSettingsAsync(true, false);
+					}
+
+					// centre view on the file data
+					if (whichTables?.Count > 0)
+					{
+						if (whichTables[0] == PersistentData.Tables.Checkpoints)
+						{
+							Task centreView = Task.Run(mainVM.CentreOnCheckpointsAsync);
+						}
+						else if (whichTables[0] == PersistentData.Tables.Route0)
+						{
+							Task centreView = Task.Run(mainVM.CentreOnRoute0Async);
+						}
+					}
+
+					Logger.Add_TPL("OnFileActivated() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
 			}
 			catch (Exception ex)
