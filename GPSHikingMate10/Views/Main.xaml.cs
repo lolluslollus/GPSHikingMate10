@@ -27,8 +27,6 @@ namespace LolloGPS.Core
 		private static readonly SemaphoreSlimSafeRelease _openCloseSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 		private volatile bool _isOpen = false;
 
-
-
 		public bool IsWideEnough
 		{
 			get { return (bool)GetValue(IsWideEnoughProperty); }
@@ -46,7 +44,6 @@ namespace LolloGPS.Core
 
 		private bool _isExtraButtonsEnabled = false;
 		public bool IsExtraButtonsEnabled { get { return _isExtraButtonsEnabled; } private set { if (_isExtraButtonsEnabled != value) { _isExtraButtonsEnabled = value; RaisePropertyChanged_UI(); } } }
-
 		#endregion properties
 
 
@@ -125,8 +122,10 @@ namespace LolloGPS.Core
 
 				RemoveHandlers();
 
-				_animationTimer?.Dispose();
-				_animationTimer = null;
+				await RunInUiThreadAsync(() =>
+				{
+					EndAllAnimations();
+				});
 
 				var mainVM = _mainVM;
 				if (mainVM != null)
@@ -139,8 +138,6 @@ namespace LolloGPS.Core
 				await MyLolloMap.CloseAsync();
 				await MyAltitudeProfiles.CloseAsync();
 				Debug.WriteLine("Main.CloseAsync() closed the altitude");
-
-				//_owner.Storyboard_NewMessage.SkipToFill();
 
 				_isOpen = false;
 			}
@@ -194,8 +191,6 @@ namespace LolloGPS.Core
 			_mainVM?.GoBackTabletSoft(sender, e);
 		}
 
-		private volatile DispatcherTimerPlus _animationTimer = null;
-
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PersistentData.LastMessage))
@@ -204,25 +199,8 @@ namespace LolloGPS.Core
 				{
 					Task gt = RunInUiThreadAsync(delegate
 					{
-						try
-						{
-							if (_animationTimer == null)
-							{
-								_animationTimer = new DispatcherTimerPlus(StopShowingNotice, 5);
-							}
-							else
-							{
-								_animationTimer.Stop();
-							}
-							SetShowForAWhileOnly();
-							_animationTimer.Start();
-							//Storyboard_NewMessage.SkipToFill(); // LOLLO disable Storyboard_NewMessage to see if crash goes away
-							//Storyboard_NewMessage.Begin();
-						}
-						catch (Exception ex)
-						{
-							Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-						}
+						EndAllAnimations();
+						ShowHideLastMessageFlashyStoryboard.Begin();
 					});
 				}
 			}
@@ -233,15 +211,25 @@ namespace LolloGPS.Core
 			}
 		}
 
+		private bool _isLastMessageVisible = false;
+
+		private void EndAllAnimations()
+		{
+			ShowHideLastMessageFlashyStoryboard.SkipToFill();
+			ShowHideLastMessageDiscreetStoryboard.SkipToFill();
+		}
 		private void OnLastMessage_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
 		{
-			if (!_mainVM.IsLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.PersistentData.LastMessage))
+			if (!_isLastMessageVisible && !string.IsNullOrWhiteSpace(_mainVM.PersistentData.LastMessage))
 			{
-				_mainVM.IsLastMessageVisible = true;
+				_isLastMessageVisible = true;
+				EndAllAnimations();
+				ShowHideLastMessageDiscreetStoryboard.Begin();
 			}
-			else
+			else if (_isLastMessageVisible)
 			{
-				_mainVM.IsLastMessageVisible = false;
+				_isLastMessageVisible = false;
+				EndAllAnimations();
 			}
 		}
 		private void OnGetAFixNow_Click(object sender, RoutedEventArgs e)
@@ -322,11 +310,6 @@ namespace LolloGPS.Core
 			_mainVM.LogText = string.Empty;
 		}
 
-		private void OnToggleOpenPivot_Click(object sender, RoutedEventArgs e)
-		{
-			//PersistentData.IsShowingPivot = !PersistentData.IsShowingPivot;
-		}
-
 		private void OnAltitude_Click(object sender, RoutedEventArgs e)
 		{
 			PersistentData.IsShowingPivot = false;
@@ -365,14 +348,6 @@ namespace LolloGPS.Core
 				if (IsWideEnough) Grid.SetColumn(MyAltitudeProfiles, 1);
 				else Grid.SetColumn(MyAltitudeProfiles, 0);
 			});
-		}
-		private void SetShowForAWhileOnly()
-		{
-			_mainVM.IsLastMessageVisible = true;
-		}
-		private void StopShowingNotice()
-		{
-			_mainVM.IsLastMessageVisible = false;
 		}
 		#endregion services
 

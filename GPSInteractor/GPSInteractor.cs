@@ -183,8 +183,6 @@ namespace LolloGPS.GPSInteraction
 			{
 				try
 				{
-					IsGPSWorking = true;
-
 					if (e != null)
 					{
 						var newDataRecord = GetNewHistoryRecord(e.Position);
@@ -195,10 +193,6 @@ namespace LolloGPS.GPSInteraction
 				{
 					SetLastMessage_UI(exc.Message);
 					Logger.Add_TPL("OnGeolocator_PositionChangedAsync threw " + exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Error, false);
-				}
-				finally
-				{
-					IsGPSWorking = false;
 				}
 			});
 		}

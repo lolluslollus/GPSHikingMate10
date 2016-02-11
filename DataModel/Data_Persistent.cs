@@ -15,6 +15,7 @@ using Windows.Devices.Geolocation;
 using Windows.Storage;
 using System.IO;
 using System.Threading;
+using System.Globalization;
 
 
 // There is a sqlite walkthrough at:
@@ -749,7 +750,7 @@ namespace LolloGPS.Data
 
 		private bool AddHistoryRecord2(PointRecord dataRecord, bool checkMaxEntries)
 		{
-			if (!dataRecord?.IsEmpty() == true && _history?.Count < MaxRecordsInHistory)
+			if (dataRecord != null && !dataRecord.IsEmpty() == true && _history?.Count < MaxRecordsInHistory)
 			{
 				try
 				{
@@ -757,9 +758,10 @@ namespace LolloGPS.Data
 					//History.Insert(index, dataRecord);
 					_history.Add(dataRecord); // we don't need to need to clone the record first, if the callers always instantiate a new record
 
-					Current = dataRecord;
-					LastMessage = dataRecord.Status;
+					if (!string.IsNullOrEmpty(dataRecord.Status)) LastMessage = dataRecord.Status;
+					else LastMessage = "point added to trk history @ " + dataRecord.TimePoint.ToString(CultureInfo.CurrentUICulture);
 
+					Current = dataRecord;
 					CurrentChanged?.Invoke(this, EventArgs.Empty);
 					return true;
 				}

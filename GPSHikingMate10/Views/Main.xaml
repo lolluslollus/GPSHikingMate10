@@ -12,6 +12,88 @@
 	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
+	<ctl:ObservablePage.Resources>
+		<Storyboard x:Name="ShowHideLastMessageFlashyStoryboard">
+			<!-- LOLLO NOTE the animation makes the container of the animated object swell. 
+			So we must de-animate both. -->
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+				Storyboard.TargetName="LastMessageBorder">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+				Storyboard.TargetName="LastMessageBorder">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+				Storyboard.TargetName="LastMessageTB">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+				Storyboard.TargetName="LastMessageTB">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+		<Storyboard x:Name="ShowHideLastMessageDiscreetStoryboard">
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+				Storyboard.TargetName="LastMessageTB">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+				Storyboard.TargetName="LastMessageTB">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
+				Storyboard.TargetName="LastMessageBorder">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+			<DoubleAnimationUsingKeyFrames 
+				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
+				Storyboard.TargetName="LastMessageBorder">
+				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+	</ctl:ObservablePage.Resources>
 
 	<Grid x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
@@ -40,9 +122,9 @@
 					<VisualState.Setters>
 						<Setter Target="me.IsWideEnough" Value="true"/>
 						<!-- the following works but I did it in code behind so it's all in one place -->
-						<!--<Setter Target="AltitudeColumn.Width" Value="1*"/>
-						--><!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property --><!--
-						<Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/>-->
+						<!--<Setter Target="AltitudeColumn.Width" Value="1*"/> -->
+						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+						<!-- <Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/> -->
 					</VisualState.Setters>
 				</VisualState>
 			</VisualStateGroup>
@@ -64,14 +146,14 @@
 			</TextBlock>
 		</Grid>
 
-		<!-- Map, altitude and their overlays -->
+		<!-- Map, altitude, menu, user info and their overlays -->
 		<Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*"/>
 				<RowDefinition x:Name="UserInfoGridRow" Height="40"/>
 			</Grid.RowDefinitions>
 			<!-- map overlays -->
-			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100" >
+			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
 				<!-- download progress bar -->
 				<Grid Background="{ThemeResource SystemChromeBlackHighColor}"
 					Opacity=".75"
@@ -153,7 +235,7 @@
 						Icon="Pin" Label="Keeping alive"/>
 				</StackPanel>
 			</StackPanel>
-
+			<!-- map and altitude-->
 			<Grid Grid.Row="0" Canvas.ZIndex="0">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="2*"/>
@@ -186,7 +268,6 @@
 					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
 			</Grid>
-
 			<!-- Menu pivot -->
 			<Pivot Grid.Row="0" Canvas.ZIndex="600"
 				   x:Name="MyPivot"
@@ -296,12 +377,12 @@
 					</Grid>
 				</PivotItem>
 			</Pivot>
-
-			<!-- user info -->
+			<!-- last fix message -->
 			<Border Grid.Row="1"
-					Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-					Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"
-                    Tapped="OnLastMessage_Tapped">
+				BorderThickness="0" Canvas.ZIndex="999"
+				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}}"
+                Tapped="OnLastMessage_Tapped">
 				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
@@ -314,11 +395,12 @@
 					<Run Text="{Binding Current.TimePoint}"/>
 				</TextBlock>
 			</Border>
+			<!-- get a fix message -->
 			<Border Grid.Row="0" Grid.RowSpan="2"
 				VerticalAlignment="Bottom"
-				BorderThickness="0" 
+				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"
+				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}}"
                 Tapped="OnLastMessage_Tapped">
 				<TextBlock
 					TextWrapping="Wrap" 
@@ -327,19 +409,26 @@
 					HorizontalAlignment="Left"
 					Text="Get a fix or start tracking to retrieve your location"/>
 			</Border>
-			<Border Grid.Row="0" Grid.RowSpan="2"
+			<!-- last message -->
+			<Border Grid.Row="0" Grid.RowSpan="2" x:Name="LastMessageBorder"
 				VerticalAlignment="Bottom"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding ElementName=me, Path=MainVM.IsLastMessageVisible, Converter={StaticResource BooleanToVisibleConverter}}"
 				Tapped="OnLastMessage_Tapped">
-				<TextBlock
-				   TextWrapping="Wrap"
-				   Margin="{StaticResource Thickness1}"
-				   Style="{StaticResource BaseMessageStyle}" 
-				   HorizontalAlignment="Left"
-				   Foreground="{StaticResource FlashyForeground}"
-				   Text="{Binding LastMessage}">
+				<Border.RenderTransform>
+					<CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
+				</Border.RenderTransform>
+				<TextBlock x:Name="LastMessageTB"
+					TextWrapping="Wrap"
+					Margin="{StaticResource Thickness1}"
+					Style="{StaticResource BaseMessageStyle}" 
+					HorizontalAlignment="Left"
+					Foreground="{StaticResource FlashyForeground}"
+					Text="{Binding LastMessage}"
+					RenderTransformOrigin="0.0, 1.0">
+					<TextBlock.RenderTransform>
+						<CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
+					</TextBlock.RenderTransform>
 				</TextBlock>
 			</Border>
 		</Grid>
@@ -395,7 +484,6 @@
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
-				Click="OnToggleOpenPivot_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Column="5"
@@ -463,7 +551,6 @@
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
-				Click="OnToggleOpenPivot_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Row="5"

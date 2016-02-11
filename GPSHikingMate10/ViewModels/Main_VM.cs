@@ -67,20 +67,6 @@ namespace LolloGPS.Core
 		private bool _isWideEnough = false;
 		public bool IsWideEnough { get { return _isWideEnough; } set { if (_isWideEnough != value) { _isWideEnough = value; RaisePropertyChanged_UI(); } } }
 
-		private readonly object _isMessageVisibleLocker = new object();
-		private bool _isLastMessageVisible = false;
-		public bool IsLastMessageVisible
-		{
-			get
-			{
-				return GetPropertyLocking(ref _isLastMessageVisible, _isMessageVisibleLocker);
-			}
-			set
-			{
-				SetPropertyLocking(ref _isLastMessageVisible, value, _isMessageVisibleLocker);
-			}
-		}
-
 		private readonly object _loadSaveLocker = new object();
 		public bool IsLoading
 		{
