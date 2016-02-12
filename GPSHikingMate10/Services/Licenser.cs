@@ -170,7 +170,7 @@ namespace Utilz
 			}
 		}
 
-		private async static Task<LicenseInformation> GetLicenseInformation()
+		private static async Task<LicenseInformation> GetLicenseInformation()
 		{
 #if DEBUG && TRIALTESTING
 			StorageFolder proxyDataFolder = await Package.Current.InstalledLocation.GetFolderAsync("Assets");
@@ -231,11 +231,8 @@ namespace Utilz
 				//_runtimeData.TrialResidualDays = 0; // idem
 				return true;
 			}
-			else
-			{
-				await (App.Current as App).Quit().ConfigureAwait(false);
-				return false;
-			}
+			await (App.Current as App).Quit().ConfigureAwait(false);
+			return false;
 		}
 		/// <summary>
 		/// Opens the store to buy the app and returns false if the app must quit.
@@ -321,7 +318,7 @@ namespace Utilz
 
 		private class LicenserData
 		{
-			public const int LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT = 0;
+			private const int LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT = 0;
 			public static readonly DateTimeOffset DATE_DEFAULT = default(DateTimeOffset);
 
 			private static int _lastNonNegativeUsageDays = LAST_NON_NEGATIVE_USAGE_DAYS_DEFAULT;

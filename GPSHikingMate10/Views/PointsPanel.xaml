@@ -313,7 +313,7 @@
 		<ContentControl Grid.Row="11" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
-			<AppBarButton Grid.Row="11" Grid.Column="1"
+			<AppBarButton
 				VerticalAlignment="Center"
 				IsEnabled="{Binding ElementName=me, Path=MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
 				Click="OnSetTargetToCurrentPoint_Click" 
@@ -331,7 +331,7 @@
 		<ContentControl Grid.Row="12" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
-			<AppBarToggleButton Grid.Row="8" Grid.Column="1"
+			<AppBarToggleButton
 				VerticalAlignment="Center"
 				IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				IsCompact="True"
@@ -352,7 +352,7 @@
 		<ContentControl Grid.Row="13" Grid.Column="1"
             VerticalAlignment="Center"
 			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
-			<AppBarToggleButton Grid.Row="9" Grid.Column="1"
+			<AppBarToggleButton
 				VerticalAlignment="Center"
 				IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				IsCompact="True"

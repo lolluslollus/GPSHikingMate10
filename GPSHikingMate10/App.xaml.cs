@@ -128,7 +128,7 @@ namespace LolloGPS.Core
 		/// This is also invoked when the app is resumed after being terminated.
 		/// </summary>
 		/// <param name="e">Details about the launch request and process.</param>
-		protected async override void OnLaunched(LaunchActivatedEventArgs e)
+		protected override async void OnLaunched(LaunchActivatedEventArgs e)
 		{
 			Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
 				Logger.AppEventsLogFilename,
@@ -305,7 +305,7 @@ namespace LolloGPS.Core
 					var mainVM = main.MainVM;
 					if (mainVM == null) throw new Exception("OnFileActivated: mainVM is null");
 
-					var whichTables = await mainVM.LoadFileIntoDbAsync(args as FileActivatedEventArgs);
+					var whichTables = await mainVM.LoadFileIntoDbAsync(args);
 					Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 					if (isAppAlreadyRunning)
@@ -385,11 +385,14 @@ namespace LolloGPS.Core
 			if (rootFrame == null)  // Do not repeat app initialization when the Window already has content, just ensure that the window is active
 			{
 				// Create a Frame to act as the navigation context and navigate to the first page
-				rootFrame = new Frame() { UseLayoutRounding = true };
-
-				// Set the default language
-				//rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
-				rootFrame.Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag; // LOLLO NOTE this is important and decides for the whole app
+				rootFrame = new Frame
+				{
+					UseLayoutRounding = true,
+					// Set the default language
+					//rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
+					// LOLLO NOTE this is important and decides for the whole app
+					Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag
+				};
 
 				// Place the frame in the current Window
 				Window.Current.Content = rootFrame;

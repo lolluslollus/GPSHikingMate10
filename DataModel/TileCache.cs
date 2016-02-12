@@ -262,11 +262,6 @@ namespace LolloGPS.Data.TileCache
 
 				where = 2;
 
-				//var tf = new TaskFactory(_queue.CancellationToken);
-
-				//request.GetResponseAsync().Wait(_queue.CancellationToken);
-
-				// LOLLO TODO we need a way to abort requests when cancelling, see if this is right. It does work.
 				cancToken.Register(delegate
 				{
 					try
@@ -293,13 +288,13 @@ namespace LolloGPS.Data.TileCache
 							// read response stream into a new record. 
 							// This extra step is the price to pay if we want to check the stream content
 							var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
-							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength).ConfigureAwait(false);
+							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
 
 							if (cancToken == null || cancToken.IsCancellationRequested) return false;
 							if (IsWebResponseContentOk(newRecord))
 							{
 								// If I am here, the file does not exist. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
-								var newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+								var newFile = await _imageFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
 								using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
 								{
 									//Debug.WriteLine("GetTileUri() found: " + Environment.NewLine
@@ -444,13 +439,13 @@ namespace LolloGPS.Data.TileCache
 		public static event EventHandler<CacheClearedEventArgs> CacheCleared;
 		public sealed class CacheClearedEventArgs : EventArgs
 		{
-			private TileSourceRecord _tileSource = null;
+			private readonly TileSourceRecord _tileSource = null;
 			public TileSourceRecord TileSource { get { return _tileSource; } }
-			private bool _isAlsoRemoveSources = false;
+			private readonly bool _isAlsoRemoveSources = false;
 			public bool IsAlsoRemoveSources { get { return _isAlsoRemoveSources; } }
-			private bool _isCacheCleared = false;
+			private readonly bool _isCacheCleared = false;
 			public bool IsCacheCleared { get { return _isCacheCleared; } }
-			private int _howManyRecordsDeleted = 0;
+			private readonly int _howManyRecordsDeleted = 0;
 			public int HowManyRecordsDeleted { get { return _howManyRecordsDeleted; } }
 
 			public CacheClearedEventArgs(TileSourceRecord tileSource, bool isAlsoRemoveSources, bool isCacheCleared, int howManyRecordsDeleted)
@@ -517,7 +512,7 @@ namespace LolloGPS.Data.TileCache
 				CacheCleared?.Invoke(null, new CacheClearedEventArgs(tileSource, isAlsoRemoveSources, false, tryCancResult.Item2));
 				Debug.WriteLine("ClearCacheAsync() ended with error");
 			}
-			else if (tryCancResult.Item1 == PersistentData.ClearCacheResult.OK)
+			else if (tryCancResult.Item1 == PersistentData.ClearCacheResult.Ok)
 			{
 				await SetIsClearingCacheProps(null, false).ConfigureAwait(false);
 				IsClearingScheduled = false;
@@ -616,7 +611,7 @@ namespace LolloGPS.Data.TileCache
 		#region properties
 		public CancellationToken CancellationToken { get { return CancToken; } }
 
-		private List<string> _fileNames_InProcess = new List<string>();
+		private readonly List<string> _fileNamesInProcess = new List<string>();
 		private Func<Task> _funcAsSoonAsFree = null;
 
 		private static readonly object _instanceLocker = new object();
@@ -638,7 +633,7 @@ namespace LolloGPS.Data.TileCache
 		protected override Task CloseMayOverrideAsync()
 		{
 			_funcAsSoonAsFree = null;
-			_fileNames_InProcess.Clear();
+			_fileNamesInProcess.Clear();
 			return Task.CompletedTask;
 		}
 		#endregion lifecycle
@@ -655,9 +650,9 @@ namespace LolloGPS.Data.TileCache
 		{
 			return RunFunctionIfOpenAsyncB(delegate
 			{
-				if (!string.IsNullOrWhiteSpace(fileName) && !_fileNames_InProcess.Contains(fileName))
+				if (!string.IsNullOrWhiteSpace(fileName) && !_fileNamesInProcess.Contains(fileName))
 				{
-					_fileNames_InProcess.Add(fileName);
+					_fileNamesInProcess.Add(fileName);
 					return true;
 				}
 				return false;
@@ -674,7 +669,7 @@ namespace LolloGPS.Data.TileCache
 			{
 				if (!string.IsNullOrWhiteSpace(fileName))
 				{
-					_fileNames_InProcess.Remove(fileName);
+					_fileNamesInProcess.Remove(fileName);
 					await TryRunFuncAsSoonAsFree().ConfigureAwait(false);
 				}
 			});
@@ -700,7 +695,7 @@ namespace LolloGPS.Data.TileCache
 						{
 							return TryRunFuncAsSoonAsFree(); // will run now if the cache is free, otherwise later
 						}).ConfigureAwait(false);
-					});
+					}, CancToken);
 
 					return true;
 				}
@@ -714,7 +709,7 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		private async Task<bool> TryRunFuncAsSoonAsFree()
 		{
-			if (_fileNames_InProcess.Count == 0 && _funcAsSoonAsFree != null)
+			if (_fileNamesInProcess.Count == 0 && _funcAsSoonAsFree != null)
 			{
 				try
 				{
@@ -791,7 +786,7 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
-		internal async static Task<RandomAccessStreamReference> GetPixelStreamRefFromByteArray(byte[] imgBytes)
+		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromByteArray(byte[] imgBytes)
 		{
 			try
 			{
@@ -805,7 +800,7 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
-		private async static Task<RandomAccessStreamReference> GetPixelStreamRefFromPixelArray(byte[] pixels)
+		private static async Task<RandomAccessStreamReference> GetPixelStreamRefFromPixelArray(byte[] pixels)
 		{
 			if (pixels == null || pixels.Length == 0) return null;
 

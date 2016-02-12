@@ -62,16 +62,11 @@ namespace LolloGPS.Suspension
 			catch (System.Xml.XmlException ex)
 			{
 				errorMessage = "could not restore the settings";
-				// readDataFromDb = true; // try not to lose the series at least
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
-			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last checkpoints. 
-								 // better quit then. But what if it happens again?
-								 // This happened once, on the phone: a funny error message came up, after I opened a hyperlink contained in a location and went back to the app.
-								 // LOLLO TODO try to reproduce it
+			catch (Exception ex)
 			{
 				errorMessage = "could not restore the settings";
-				// readDataFromDb = true; // try not to lose the series at least
 				await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename);
 			}
 
@@ -87,9 +82,7 @@ namespace LolloGPS.Suspension
 					Debug.WriteLine("ended reading data from db");
 				}
 			}
-			catch (Exception ex) // if an error happens here, you will lose the settings, history, last route and last checkpoints. 
-								 // better quit then. But what if it happens again?
-								 // This happened once, with a funny error message, after I opened a hyperlink contained in a location and went back to the app.
+			catch (Exception ex)
 			{
 				if (string.IsNullOrWhiteSpace(errorMessage)) errorMessage = "could not restore the data";
 				else errorMessage += " and could not restore the data";

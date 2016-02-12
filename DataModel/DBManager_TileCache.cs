@@ -74,10 +74,7 @@ namespace LolloGPS.Data.TileCache
 
 		private static Task<TileCacheRecord> ReadRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()
 		{
-			return Task.Run(delegate
-			{
-				return ReadRecord(openFlags, primaryKey);
-			});
+			return Task.Run(() => ReadRecord(openFlags, primaryKey));
 		}
 		private static TileCacheRecord ReadRecord(SQLiteOpenFlags openFlags, TileCacheRecord primaryKey) // where T : new()
 		{
@@ -148,10 +145,7 @@ namespace LolloGPS.Data.TileCache
 		}
 		private static Task<bool> InsertOrIgnoreRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
-			return Task.Run(delegate
-			{
-				return InsertOrIgnoreRecord(openFlags, item);
-			});
+			return Task.Run(() => InsertOrIgnoreRecord(openFlags, item));
 		}
 		private static bool InsertOrIgnoreRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
@@ -195,10 +189,7 @@ namespace LolloGPS.Data.TileCache
 		}
 		private static Task<bool> UpdateRecordAsync(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
-			return Task.Run(delegate
-			{
-				return UpdateRecord(openFlags, item);
-			});
+			return Task.Run(() => UpdateRecord(openFlags, item));
 		}
 		private static bool UpdateRecord(SQLiteOpenFlags openFlags, TileCacheRecord item)
 		{
@@ -252,7 +243,7 @@ namespace LolloGPS.Data.TileCache
 		private sealed class ConnectionEntry : IDisposable
 		{
 			private volatile SQLiteConnectionString _connectionString = null;
-			public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+			private SQLiteConnectionString ConnectionString { get { return _connectionString; } set { _connectionString = value; } }
 			private volatile TileSQLiteConnection _connection = null;
 			public TileSQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
@@ -459,14 +450,16 @@ namespace LolloGPS.Data.TileCache
 						Debug.WriteLine("SQLite found one record");
 					}
 
-					TileCacheRecord obj = new TileCacheRecord();
+					TileCacheRecord obj = new TileCacheRecord
+					{
+						TileSourceTechName = SQLite3.ColumnString(stmt, 0),
+						X = SQLite3.ColumnInt(stmt, 1),
+						Y = SQLite3.ColumnInt(stmt, 2),
+						Z = SQLite3.ColumnInt(stmt, 3),
+						Zoom = SQLite3.ColumnInt(stmt, 4),
+						FileName = SQLite3.ColumnString(stmt, 5)
+					};
 
-					obj.TileSourceTechName = SQLite3.ColumnString(stmt, 0);
-					obj.X = SQLite3.ColumnInt(stmt, 1);
-					obj.Y = SQLite3.ColumnInt(stmt, 2);
-					obj.Z = SQLite3.ColumnInt(stmt, 3);
-					obj.Zoom = SQLite3.ColumnInt(stmt, 4);
-					obj.FileName = SQLite3.ColumnString(stmt, 5);
 					if (_conn.Trace)
 					{
 						Debug.WriteLine("Query returned: " + obj.TileSourceTechName + " " + obj.X + " " + obj.Y + " " + obj.Z + " " + obj.Zoom + " " + obj.FileName); //  + " and readTileSource was " + readTileSource

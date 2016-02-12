@@ -75,7 +75,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Visibility.Collapsed;
+			if (!(value is bool)) return Visibility.Collapsed;
 			bool boo = (bool)value;
 			if (boo) return Visibility.Visible;
 			else return Visibility.Collapsed;
@@ -90,7 +90,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return Visibility.Visible;
+			if (!(value is bool)) return Visibility.Visible;
 			bool boo = (bool)value;
 			if (boo) return Visibility.Collapsed;
 			else return Visibility.Visible;
@@ -105,7 +105,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return true;
+			if (!(value is bool)) return true;
 			bool boo = (bool)value;
 			if (boo) return false;
 			else return true;
@@ -120,7 +120,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Int32)) return Visibility.Visible;
+			if (!(value is int)) return Visibility.Visible;
 			int val = (int)value;
 			if (val > 0) return Visibility.Collapsed;
 			else return Visibility.Visible;
@@ -136,7 +136,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Int32)) return false;
+			if (!(value is int)) return false;
 			int val = (int)value;
 			if (val > 0) return true;
 			else return false;
@@ -152,7 +152,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Int32)) return Visibility.Collapsed;
+			if (!(value is int)) return Visibility.Collapsed;
 			int val = (int)value;
 			if (val > 0) return Visibility.Visible;
 			else return Visibility.Collapsed;
@@ -168,7 +168,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Int32)) return false;
+			if (!(value is int)) return false;
 			int val = (int)value;
 			if (val > 0) return true;
 			else return false;
@@ -184,7 +184,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is int)) return false;
+			if (!(value is int)) return false;
 			int val = (int)value;
 			if (val < PersistentData.MaxRecordsInCheckpoints) return true;
 			else return false;
@@ -200,7 +200,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Int32)) return Visibility.Visible;
+			if (!(value is int)) return Visibility.Visible;
 			int val = (int)value;
 			if (val < PersistentData.MaxRecordsInCheckpoints) return Visibility.Collapsed;
 			else return Visibility.Visible;
@@ -216,7 +216,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PointRecord)) return false;
+			if (!(value is PointRecord)) return false;
 			PointRecord val = (PointRecord)value;
 			if (!val.IsEmpty()) return true;
 			else return false;
@@ -232,7 +232,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PointRecord)) return Visibility.Visible;
+			if (!(value is PointRecord)) return Visibility.Visible;
 			PointRecord val = (PointRecord)value;
 			if (!val.IsEmpty()) return Visibility.Collapsed;
 			else return Visibility.Visible;
@@ -248,7 +248,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PointRecord)) return Visibility.Collapsed;
+			if (!(value is PointRecord)) return Visibility.Collapsed;
 			PointRecord val = (PointRecord)value;
 			if (!val.IsEmpty()) return Visibility.Visible;
 			else return Visibility.Collapsed;
@@ -315,7 +315,7 @@ namespace LolloGPS.Converters
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
 			if (value == null) return Visibility.Collapsed;
-			if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(double).ToString()) || value.ToString().Equals(default(int).ToString())) return Visibility.Collapsed;
+			if (string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().Equals(default(double).ToString(CultureInfo.CurrentUICulture)) || value.ToString().Equals(default(int).ToString())) return Visibility.Collapsed;
 			else return Visibility.Visible;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -620,7 +620,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PersistentData.Tables)) return string.Empty;
+			if (!(value is PersistentData.Tables)) return string.Empty;
 			return PersistentData.GetTextForSeries((PersistentData.Tables)value);
 		}
 
@@ -634,8 +634,8 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PersistentData.Tables) || parameter == null) return Visibility.Collapsed;
-			PersistentData.Tables whichSeries = PersistentData.Tables.nil;
+			if (!(value is PersistentData.Tables) || parameter == null) return Visibility.Collapsed;
+			PersistentData.Tables whichSeries = PersistentData.Tables.Nil;
 			if (!Enum.TryParse<PersistentData.Tables>(parameter.ToString(), out whichSeries)) return Visibility.Collapsed;
 			if (whichSeries == (PersistentData.Tables)value) return Visibility.Visible;
 			else return Visibility.Collapsed;
@@ -651,7 +651,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is TileSourceRecord)) return false;
+			if (!(value is TileSourceRecord)) return false;
 			TileSourceRecord tileSource = (TileSourceRecord)value;
 			if (tileSource.IsDefault) return false;
 			return true;
@@ -667,7 +667,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is TileSourceRecord)) return Visibility.Collapsed;
+			if (!(value is TileSourceRecord)) return Visibility.Collapsed;
 			TileSourceRecord tileSource = (TileSourceRecord)value;
 			if (tileSource.IsDefault) return Visibility.Collapsed;
 			return Visibility.Visible;
@@ -683,14 +683,14 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is PositionAccuracy)) return false;
+			if (!(value is PositionAccuracy)) return false;
 			if ((PositionAccuracy)value == PositionAccuracy.Default) return false;
 			return true;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is bool)) return PositionAccuracy.Default;
+			if (!(value is bool)) return PositionAccuracy.Default;
 			if ((bool)value) return PositionAccuracy.High;
 			return PositionAccuracy.Default;
 		}
@@ -736,7 +736,7 @@ namespace LolloGPS.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is TextAndTag)) return TileSourceRecord.GetDefaultTileSource();
+			if (!(value is TextAndTag)) return TileSourceRecord.GetDefaultTileSource();
 			var tat = (TextAndTag)value;
 			return (TileSourceRecord)(tat.Tag);
 		}
@@ -746,12 +746,12 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is Collection<TileSourceRecord>)) return false;
+			if (!(value is Collection<TileSourceRecord>)) return false;
 			var tileSources = (Collection<TileSourceRecord>)value;
 			Collection<TextAndTag> output = new Collection<TextAndTag>();
-			bool isClearingCache = (parameter != null && parameter.ToString() == "forClearingCache");
-			bool isClearingCustomCache = (parameter != null && parameter.ToString() == "forClearingCustomCache");
-			bool isSelecting = (parameter != null && parameter.ToString() == "forSelecting");
+			bool isClearingCache = (parameter?.ToString() == "forClearingCache");
+			bool isClearingCustomCache = (parameter?.ToString() == "forClearingCustomCache");
+			bool isSelecting = (parameter?.ToString() == "forSelecting");
 			// clear none
 			if (isClearingCache || isClearingCustomCache)
 			{
@@ -800,7 +800,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is TileSourceRecord)) return false;
+			if (!(value is TileSourceRecord)) return false;
 			return (value as TileSourceRecord).DisplayName;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -812,7 +812,7 @@ namespace LolloGPS.Converters
 	public static class AngleConverterHelper
 	{
 		public const int MaxDecimalPlaces = 6;
-		public readonly static int TenPowerMaxDecimalPlaces = (int)Math.Pow(10.0, MaxDecimalPlaces);
+		public static readonly int TenPowerMaxDecimalPlaces = (int)Math.Pow(10.0, MaxDecimalPlaces);
 		public const string FLOAT_LAT_LON_FORMAT = "#0.######";
 
 		public static string LatitudeToString(object value, object parameter)

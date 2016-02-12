@@ -24,9 +24,9 @@ using System.Globalization;
 namespace LolloGPS.Data
 {
 	[DataContract]
-	public sealed class PersistentData : ObservableData, IGPSDataModel //, INotifyDataErrorInfo //does not work
+	public sealed class PersistentData : ObservableData, IGpsDataModel //, INotifyDataErrorInfo //does not work
 	{
-		public enum Tables { History, Route0, Checkpoints, nil }
+		public enum Tables { History, Route0, Checkpoints, Nil }
 		public static string GetTextForSeries(Tables whichSeries)
 		{
 			switch (whichSeries)
@@ -37,7 +37,7 @@ namespace LolloGPS.Data
 					return "Route";
 				case Tables.Checkpoints:
 					return "Checkpoints";
-				case Tables.nil:
+				case Tables.Nil:
 					return "No series";
 				default:
 					return "";
@@ -85,8 +85,7 @@ namespace LolloGPS.Data
 		{
 			lock (_instanceLock)
 			{
-				if (_instance == null) _instance = new PersistentData();
-				return _instance;
+				return _instance ?? (_instance = new PersistentData());
 			}
 		}
 
@@ -200,7 +199,7 @@ namespace LolloGPS.Data
 		/// Only call this from a task, which is not the main one. 
 		/// Otherwise, you will screw up the db open / closed logic.
 		/// </summary>
-		/// <param name="dbAction"></param>
+		/// <param name="action"></param>
 		/// <returns></returns>
 		public static bool RunDbOpInOtherTask(Func<bool> action)
 		{
@@ -209,7 +208,7 @@ namespace LolloGPS.Data
 		/// <summary>
 		/// Waits for current DB operations to terminate and then locks the DB.
 		/// </summary>
-		public async static Task CloseTileCacheAsync()
+		public static async Task CloseTileCacheAsync()
 		{
 			await TileCache.LolloSQLiteConnectionPoolMT.CloseAsync().ConfigureAwait(false);
 		}
@@ -268,7 +267,7 @@ namespace LolloGPS.Data
 		private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
-		private Tables _selectedSeries = Tables.nil;
+		private Tables _selectedSeries = Tables.Nil;
 		[DataMember]
 		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
 		private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
@@ -597,7 +596,7 @@ namespace LolloGPS.Data
 							{
 								Selected = new PointRecord();
 								SelectedIndex_Base1 = DefaultSelectedIndex_Base1;
-								SelectedSeries = Tables.nil;
+								SelectedSeries = Tables.Nil;
 								LastMessage = "Series deleted";
 								return true;
 							}
@@ -750,7 +749,7 @@ namespace LolloGPS.Data
 
 		private bool AddHistoryRecord2(PointRecord dataRecord, bool checkMaxEntries)
 		{
-			if (dataRecord != null && !dataRecord.IsEmpty() == true && _history?.Count < MaxRecordsInHistory)
+			if (dataRecord != null && !dataRecord.IsEmpty() && _history?.Count < MaxRecordsInHistory)
 			{
 				try
 				{
@@ -1034,7 +1033,7 @@ namespace LolloGPS.Data
 		// So we leave it unlocked.
 		public bool IsSelectedRecordFromAnySeriesFirst()
 		{
-			if (_selectedSeries == Tables.nil || _selected == null) return false;
+			if (_selectedSeries == Tables.Nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[0].Equals(_selected);
 			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[0].Equals(_selected);
 			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[0].Equals(_selected);
@@ -1042,7 +1041,7 @@ namespace LolloGPS.Data
 		}
 		public bool IsSelectedRecordFromAnySeriesLast()
 		{
-			if (_selectedSeries == Tables.nil || _selected == null) return false;
+			if (_selectedSeries == Tables.Nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[_history.Count - 1].Equals(_selected);
 			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[_route0.Count - 1].Equals(_selected);
 			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[_checkpoints.Count - 1].Equals(_selected);
@@ -1050,7 +1049,7 @@ namespace LolloGPS.Data
 		}
 		public bool IsSelectedSeriesNonNullAndNonEmpty()
 		{
-			if (_selectedSeries == Tables.nil || _selected == null) return false;
+			if (_selectedSeries == Tables.Nil || _selected == null) return false;
 			else if (_selectedSeries == Tables.History) return _history.Count > 0;
 			else if (_selectedSeries == Tables.Route0) return _route0.Count > 0;
 			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Count > 0;
@@ -1082,17 +1081,17 @@ namespace LolloGPS.Data
 		}
 		public void SelectNeighbourRecordFromAnySeries(int step)
 		{
-			if (_selectedSeries == Tables.nil || Selected == null) return;
+			if (_selectedSeries == Tables.Nil || Selected == null) return;
 			else if (_selectedSeries == Tables.History) SelectNeighbourRecord(_history, Tables.History, step);
 			else if (_selectedSeries == Tables.Route0) SelectNeighbourRecord(_route0, Tables.Route0, step);
 			else if (_selectedSeries == Tables.Checkpoints) SelectNeighbourRecord(_checkpoints, Tables.Checkpoints, step);
 		}
 		public PointRecord GetRecordBeforeSelectedFromAnySeries()
 		{
-			if (_selectedSeries == Tables.nil || Selected == null || SelectedIndex_Base1 - 2 < 0) return null;
-			else if (_selectedSeries == Tables.History) return History[SelectedIndex_Base1 - 2];
-			else if (_selectedSeries == Tables.Route0) return Route0[SelectedIndex_Base1 - 2];
-			else if (_selectedSeries == Tables.Checkpoints) return Checkpoints[SelectedIndex_Base1 - 2];
+			if (_selectedSeries == Tables.Nil || Selected == null || SelectedIndex_Base1 - 2 < 0) return null;
+			if (_selectedSeries == Tables.History) return History[SelectedIndex_Base1 - 2];
+			if (_selectedSeries == Tables.Route0) return Route0[SelectedIndex_Base1 - 2];
+			if (_selectedSeries == Tables.Checkpoints) return Checkpoints[SelectedIndex_Base1 - 2];
 			return null;
 		}
 		private void SelectNeighbourRecord(Collection<PointRecord> series, Tables whichSeries, int step)
@@ -1199,7 +1198,7 @@ namespace LolloGPS.Data
 			catch (Exception ex)
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-				return Tuple.Create(false, string.Format("Error with tile source {0}", _testTileSource.TechName));
+				return Tuple.Create(false, string.Format("Error with tile source {0}", _testTileSource?.TechName ?? string.Empty));
 			}
 			finally
 			{
@@ -1208,7 +1207,7 @@ namespace LolloGPS.Data
 			}
 		}
 
-		public enum ClearCacheResult { OK, Error, Cancelled }
+		public enum ClearCacheResult { Ok, Error, Cancelled }
 
 		public async Task<Tuple<ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
 		{
@@ -1216,7 +1215,7 @@ namespace LolloGPS.Data
 
 			try
 			{
-				await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+				await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
 				IsTileSourcezBusy = true;
 
 				int howManyRecordsDeletedTotal = 0;
@@ -1247,8 +1246,8 @@ namespace LolloGPS.Data
 							if (dbResult.Item1)
 							{
 								// delete the files next.
-								var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask().ConfigureAwait(false);
-								await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask().ConfigureAwait(false);
+								var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
+								await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(cancToken).ConfigureAwait(false);
 								howManyRecordsDeletedTotal += dbResult.Item2;
 
 								// remove tile source from collection last.
@@ -1266,7 +1265,7 @@ namespace LolloGPS.Data
 						catch (Exception ex) { Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename); }
 					}
 				}
-				return Tuple.Create(ClearCacheResult.OK, howManyRecordsDeletedTotal);
+				return Tuple.Create(ClearCacheResult.Ok, howManyRecordsDeletedTotal);
 			}
 			finally
 			{
@@ -1428,27 +1427,24 @@ namespace LolloGPS.Data
 					// last download completed: start a new one with the current tile source
 					if (_lastDownloadSession == null)
 					{
-						if (gbb != null)
+						try
 						{
-							try
-							{
-								var newDownloadSession = new DownloadSession(
-									CurrentTileSource.MinZoom,
-									Math.Min(CurrentTileSource.MaxZoom, _maxDesiredZoomForDownloadingTiles),
-									gbb,
-									CurrentTileSource);
-								// Never write an invalid DownloadSession into the persistent data. 
-								// If it is invalid, it throws in the ctor so I won't get here.
-								_lastDownloadSession = newDownloadSession;
-								DownloadSession sessionClone = null;
-								DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
+							var newDownloadSession = new DownloadSession(
+								CurrentTileSource.MinZoom,
+								Math.Min(CurrentTileSource.MaxZoom, _maxDesiredZoomForDownloadingTiles),
+								gbb,
+								CurrentTileSource);
+							// Never write an invalid DownloadSession into the persistent data. 
+							// If it is invalid, it throws in the ctor so I won't get here.
+							_lastDownloadSession = newDownloadSession;
+							DownloadSession sessionClone = null;
+							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-								var newTileCache = new TileCache.TileCacheReaderWriter(CurrentTileSource, false);
+							var newTileCache = new TileCache.TileCacheReaderWriter(CurrentTileSource, false);
 
-								result = Tuple.Create(newTileCache, sessionClone);
-							}
-							catch (Exception) { }
+							result = Tuple.Create(newTileCache, sessionClone);
 						}
+						catch (Exception) { }
 					}
 					// last download did not complete: start a new one with the old tile source
 					// of course, we don't touch the unfinished download session
@@ -1583,7 +1579,7 @@ namespace LolloGPS.Data
 	}
 
 
-	public interface IGPSDataModel : INotifyPropertyChanged
+	public interface IGpsDataModel : INotifyPropertyChanged
 	{
 		uint DesiredAccuracyInMeters { get; }
 		uint ReportIntervalInMilliSec { get; }

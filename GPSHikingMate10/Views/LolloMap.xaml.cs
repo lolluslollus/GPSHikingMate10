@@ -93,7 +93,7 @@ namespace LolloGPS.Core
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = false,
 		};
-		private RandomAccessStreamReference _checkpointIconStreamReference;
+		private readonly RandomAccessStreamReference _checkpointIconStreamReference;
 		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		// this uses a new "simple" icon with only 4 bits, so it's much faster to draw
 		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint_simple-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -157,7 +157,7 @@ namespace LolloGPS.Core
 			_isRoute0InMap = false;
 			_isFlyoutPointInMap = false;
 
-			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this as IGeoBoundingBoxProvider, MainVM);
+			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this, MainVM);
 			await _lolloMapVM.OpenAsync();
 			RaisePropertyChanged_UI(nameof(LolloMapVM));
 
@@ -208,10 +208,10 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.nil;
+				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.Nil;
 				await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
 
-				if (whichSeriesJustLoaded == PersistentData.Tables.nil)
+				if (whichSeriesJustLoaded == PersistentData.Tables.Nil)
 				{
 					Geopoint gp = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
 					await RunInUiThreadAsync(delegate
@@ -321,7 +321,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (PersistentData != null && PersistentData.Target != null)
+				if (PersistentData?.Target != null)
 				{
 					Geopoint location = new Geopoint(new BasicGeoposition()
 					{
@@ -345,7 +345,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (PersistentData != null && PersistentData.Selected != null)
+				if (PersistentData?.Selected != null)
 				{
 					Geopoint location = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
 					return RunInUiThreadAsync(delegate
@@ -375,11 +375,11 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
-				foreach (var item in PersistentData.History)
-				{
-					basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
-				}
+				//foreach (var item in PersistentData.History)
+				//{
+				//	basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
+				//}
+				List<BasicGeoposition> basicGeoPositions = PersistentData.History.Select(item => new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude}).ToList();
 
 				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
@@ -435,11 +435,7 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				List<BasicGeoposition> basicGeoPositions = new List<BasicGeoposition>();
-				foreach (var item in PersistentData.Route0)
-				{
-					basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
-				}
+				List<BasicGeoposition> basicGeoPositions = PersistentData.Route0.Select(item => new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude}).ToList();
 
 				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
@@ -485,11 +481,7 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				List<Geopoint> geoPoints = new List<Geopoint>();
-				foreach (var item in PersistentData.Checkpoints)
-				{
-					geoPoints.Add(new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }));
-				}
+				List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude})).ToList();
 
 				if (CancToken == null || CancToken.IsCancellationRequested) return;
 
@@ -615,14 +607,14 @@ namespace LolloGPS.Core
 		private const double ABSURD_LON = 999.0;
 		private static void UpdateMinLon(ref double minLon, BasicGeoposition pos)
 		{
-			if (minLon != ABSURD_LON) minLon = Math.Min(pos.Longitude, minLon);
-			else minLon = pos.Longitude;
+			minLon = minLon != ABSURD_LON ? Math.Min(pos.Longitude, minLon) : pos.Longitude;
 		}
+
 		private static void UpdateMaxLon(ref double maxLon, BasicGeoposition pos)
 		{
-			if (maxLon != ABSURD_LON) maxLon = Math.Max(pos.Longitude, maxLon);
-			else maxLon = pos.Longitude;
+			maxLon = maxLon != ABSURD_LON ? Math.Max(pos.Longitude, maxLon) : pos.Longitude;
 		}
+
 		public async Task<GeoboundingBox> GetMinMaxLatLonAsync()
 		{
 			GeoboundingBox output = null;
@@ -715,9 +707,9 @@ namespace LolloGPS.Core
 		public event EventHandler<ShowManyPointDetailsRequestedArgs> ShowManyPointDetailsRequested;
 		public sealed class ShowManyPointDetailsRequestedArgs : EventArgs
 		{
-			private List<PointRecord> _selectedRecords;
+			private readonly List<PointRecord> _selectedRecords;
 			public List<PointRecord> SelectedRecords { get { return _selectedRecords; } }
-			private List<PersistentData.Tables> _selectedSeriess;
+			private readonly List<PersistentData.Tables> _selectedSeriess;
 			public List<PersistentData.Tables> SelectedSeriess { get { return _selectedSeriess; } }
 			public ShowManyPointDetailsRequestedArgs(List<PointRecord> selectedRecords, List<PersistentData.Tables> selectedSeriess)
 			{
@@ -908,7 +900,7 @@ namespace LolloGPS.Core
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
 			// Unless the tracking is on and the autocentre too.
-			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
+			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent /*&& !MainVM.IsPointInfoPanelOpen*/)
 			{
 				Task cen = RunFunctionIfOpenAsyncT(CentreOnCurrentAsync);
 			}
@@ -1065,7 +1057,7 @@ namespace LolloGPS.Core
 					hypotheticalMeasureBarY1 - hypotheticalMeasureBarLength * Math.Cos(ConstantData.PI_HALF - headingRadians));
 				// if(pointE.X > 360.0 || pointW.X > 360.0) { }
 				Geopoint locationW = null;
-				Geopoint locationE = null; // LOLLO TODO PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
+				Geopoint locationE = null; // PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
 				mapControl.GetLocationFromOffset(pointW, out locationW);
 				mapControl.GetLocationFromOffset(pointE, out locationE);
 

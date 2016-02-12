@@ -51,12 +51,12 @@ namespace LolloGPS.Core
 
         private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
-			MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
+			Task sch = MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
         }
 
         private void OnTestClicked(object sender, RoutedEventArgs e)
         {
-            Task uuu = MainVM.StartUserTestingTileSourceAsync();
+            Task uuu = MainVM?.StartUserTestingTileSourceAsync();
         }
     }
 }

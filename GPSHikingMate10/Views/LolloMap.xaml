@@ -125,7 +125,7 @@
 		<!-- tile source -->
 		<Border Canvas.ZIndex="300"
 				HorizontalAlignment="Right" VerticalAlignment="Top"
-				Background="{ThemeResource SystemChromeBlackHighColor}"
+				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				CornerRadius="10,10,0,0"
 				RenderTransformOrigin="1, 1"
 				Visibility="{Binding CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}}"

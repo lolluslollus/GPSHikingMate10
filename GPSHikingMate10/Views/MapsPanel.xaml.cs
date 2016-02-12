@@ -72,7 +72,7 @@ namespace LolloGPS.Core
         }
         private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
-			MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
+			Task sch = MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
         }
 
         private async void OnDownloadMap_Click(object sender, RoutedEventArgs e)
@@ -106,7 +106,7 @@ namespace LolloGPS.Core
         }
         private void OnZoomLevelChooser_ItemSelected(object sender, TextAndTag e)
         {
-            if (e == null || e.Tag == null || !(e.Tag is int)) return;
+            if (!(e?.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
 			Task set = MainVM?.SetTilesDownloadPropsAsync(maxZoom);
         }

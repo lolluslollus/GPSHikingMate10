@@ -15,7 +15,7 @@ namespace LolloGPS.GPSInteraction
 	public sealed class GPSInteractor : OpenableObservableData
 	{
 		#region properties
-		private readonly IGPSDataModel _persistentData = null;
+		private readonly IGpsDataModel _persistentData = null;
 		private volatile Geolocator _geolocator = null;
 
 		private volatile bool _isGpsWorking = false;
@@ -28,7 +28,7 @@ namespace LolloGPS.GPSInteraction
 		#region lifecycle
 		private static GPSInteractor _instance;
 		private static readonly object _instanceLock = new object();
-		public static GPSInteractor GetInstance(IGPSDataModel persistentData)
+		public static GPSInteractor GetInstance(IGpsDataModel persistentData)
 		{
 			lock (_instanceLock)
 			{
@@ -39,7 +39,7 @@ namespace LolloGPS.GPSInteraction
 				return _instance;
 			}
 		}
-		private GPSInteractor(IGPSDataModel persistentData)
+		private GPSInteractor(IGpsDataModel persistentData)
 		{
 			_persistentData = persistentData;
 		}
@@ -159,7 +159,7 @@ namespace LolloGPS.GPSInteraction
 				if (_getlocBkgTask != null)
 				{
 					GetLocBackgroundTaskSemaphoreManager.TryWait();
-					_getlocBkgTask.Completed += new BackgroundTaskCompletedEventHandler(OnGetLocBackgroundTaskCompleted);
+					_getlocBkgTask.Completed += OnGetLocBackgroundTaskCompleted;
 					_isGetLocTaskHandlersActive = true;
 				}
 			}
@@ -178,11 +178,12 @@ namespace LolloGPS.GPSInteraction
 
 		#region foreground tracking
 		private void OnGeolocator_PositionChangedAsync(Geolocator sender, PositionChangedEventArgs e)
-		{
+		{			
 			Task ooo = RunFunctionIfOpenAsyncT(async delegate
 			{
 				try
 				{
+					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					if (e != null)
 					{
 						var newDataRecord = GetNewHistoryRecord(e.Position);
@@ -230,14 +231,9 @@ namespace LolloGPS.GPSInteraction
 		#region background task
 		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
 		{
-			foreach (var cur in BackgroundTaskRegistration.AllTasks)
-			{
-				if (cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME)
-				{
-					return cur.Value;
-				}
-			}
-			return null;
+			return (from cur in BackgroundTaskRegistration.AllTasks
+					where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
+					select cur.Value).FirstOrDefault();
 		}
 
 		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
@@ -307,8 +303,7 @@ namespace LolloGPS.GPSInteraction
 					break;
 				case BackgroundAccessStatus.Denied:
 					RemoveHandlers_GetLocBackgroundTask();
-					if (string.IsNullOrWhiteSpace(errorMsg)) msg = "Cannot run in background, enable it in Settings - Privacy - Background apps";
-					else msg = errorMsg;
+					msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
 					break;
 				default:
 					AddHandlers_GetLocBackgroundTask();
@@ -456,15 +451,18 @@ namespace LolloGPS.GPSInteraction
 			PointRecord newDataRecord = null;
 			if (pos != null)
 			{
-				newDataRecord = new PointRecord();
-				newDataRecord.Latitude = pos.Coordinate.Point.Position.Latitude;
-				newDataRecord.Longitude = pos.Coordinate.Point.Position.Longitude;
-				newDataRecord.Altitude = pos.Coordinate.Point.Position.Altitude;
-				newDataRecord.Accuracy = pos.Coordinate.Accuracy;
-				newDataRecord.AltitudeAccuracy = pos.Coordinate.AltitudeAccuracy.GetValueOrDefault();// == null ? default(double) : pos.Coordinate.AltitudeAccuracy;
-				newDataRecord.PositionSource = pos.Coordinate.PositionSource.ToString();
-				newDataRecord.TimePoint = pos.Coordinate.Timestamp.DateTime;
-				newDataRecord.SpeedInMetreSec = pos.Coordinate.Speed ?? default(double);
+				newDataRecord = new PointRecord
+				{
+					Latitude = pos.Coordinate.Point.Position.Latitude,
+					Longitude = pos.Coordinate.Point.Position.Longitude,
+					Altitude = pos.Coordinate.Point.Position.Altitude,
+					Accuracy = pos.Coordinate.Accuracy,
+					AltitudeAccuracy = pos.Coordinate.AltitudeAccuracy.GetValueOrDefault(),
+					PositionSource = pos.Coordinate.PositionSource.ToString(),
+					TimePoint = pos.Coordinate.Timestamp.DateTime,
+					SpeedInMetreSec = pos.Coordinate.Speed ?? default(double)
+				};
+				// == null ? default(double) : pos.Coordinate.AltitudeAccuracy;
 			}
 			return newDataRecord;
 		}

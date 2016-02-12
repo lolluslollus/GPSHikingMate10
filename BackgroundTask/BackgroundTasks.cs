@@ -43,7 +43,7 @@ namespace BackgroundTasks
 				_deferral = taskInstance.GetDeferral();
 
 				_taskInstance = taskInstance;
-				_taskInstance.Canceled += new BackgroundTaskCanceledEventHandler(OnCanceled);
+				_taskInstance.Canceled += OnCanceled;
 
 				_cts = new SafeCancellationTokenSource();
 				var cancToken = _cts.Token;
@@ -85,10 +85,7 @@ namespace BackgroundTasks
 					var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
 					if (cancToken == null || cancToken.IsCancellationRequested) return;
 
-					bool isSaved = PersistentData.RunDbOpInOtherTask(delegate
-					{
-						return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
-					});
+					bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
 #if DEBUG
 					if (isSaved)
 					{

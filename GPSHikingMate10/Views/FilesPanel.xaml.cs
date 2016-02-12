@@ -45,7 +45,7 @@ namespace LolloGPS.Core
 		private async void OnClearHistory_Click(object sender, RoutedEventArgs e)
 		{
 			//raise confirmation popup
-			var dialog = new Windows.UI.Popups.MessageDialog("This will delete all the data. Are you sure?", "Confirm deletion");
+			var dialog = new MessageDialog("This will delete all the data. Are you sure?", "Confirm deletion");
 			UICommand yesCommand = new UICommand("Yes", (command) => { });
 			UICommand noCommand = new UICommand("No", (command) => { });
 			dialog.Commands.Add(yesCommand);

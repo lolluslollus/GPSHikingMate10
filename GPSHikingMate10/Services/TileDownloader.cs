@@ -207,7 +207,8 @@ namespace LolloGPS.Core
 							if (tileCacheAndSession != null)
 							{
 								// result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
-								result = await Task.Run(delegate { return SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2); }, CancToken).ConfigureAwait(false);
+								result = await Task.Run(
+									() => SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2), CancToken).ConfigureAwait(false);
 							}
 						}
 					}
@@ -429,8 +430,8 @@ namespace LolloGPS.Core
 		// and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
 
 		#region private services
-		private static double toRad = ConstantData.DEG_TO_RAD;
-		private static double toDeg = ConstantData.RAD_TO_DEG;
+		private static readonly double TO_RAD = ConstantData.DEG_TO_RAD;
+		private static readonly double TO_DEG = ConstantData.RAD_TO_DEG;
 		protected static int Lon2TileX(double lonDeg, int z)
 		{
 			//                   N * (lon + 180) / 360
@@ -441,7 +442,7 @@ namespace LolloGPS.Core
 			//                   N *  { 1 - log[ tan ( lat ) + sec ( lat ) ] / Pi } / 2
 			//      sec(x) = 1 / cos(x)
 			//return (int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * Math.PI / 180.0) + 1.0 / Math.Cos(latDeg * Math.PI / 180.0)) / Math.PI) / 2.0 * Math.Pow(2.0, z)));
-			return Math.Max((int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * toRad) + 1.0 / Math.Cos(latDeg * toRad)) / Math.PI) / 2.0 * Math.Pow(2.0, z))), 0);
+			return Math.Max((int)(Math.Floor((1.0 - Math.Log(Math.Tan(latDeg * TO_RAD) + 1.0 / Math.Cos(latDeg * TO_RAD)) / Math.PI) / 2.0 * Math.Pow(2.0, z))), 0);
 		}
 		protected static int MaxTilexX4Zoom(int z)
 		{
@@ -459,7 +460,7 @@ namespace LolloGPS.Core
 		{
 			double n = Math.PI - ConstantData.PI_DOUBLE * y / Math.Pow(2.0, z);
 			//return 180.0 / Math.PI * Math.Atan(0.5 * (Math.Exp(n) - Math.Exp(-n)));
-			return toDeg * Math.Atan(Math.Sinh(n));
+			return TO_DEG * Math.Atan(Math.Sinh(n));
 		}
 		#endregion private services
 	}

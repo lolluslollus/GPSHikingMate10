@@ -122,10 +122,7 @@ namespace LolloGPS.Core
 
 				RemoveHandlers();
 
-				await RunInUiThreadAsync(() =>
-				{
-					EndAllAnimations();
-				});
+				await RunInUiThreadAsync(EndAllAnimations);
 
 				var mainVM = _mainVM;
 				if (mainVM != null)
@@ -327,8 +324,7 @@ namespace LolloGPS.Core
 		{
 			return RunInUiThreadAsync(delegate
 			{
-				if (!PersistentData.IsShowingAltitudeProfiles) AltitudeColumn.MaxWidth = 0;
-				else AltitudeColumn.MaxWidth = double.PositiveInfinity;
+				AltitudeColumn.MaxWidth = !PersistentData.IsShowingAltitudeProfiles ? 0 : double.PositiveInfinity;
 			});
 		}
 		private Task UpdateIsExtraButtonsEnabledAsync()
@@ -342,11 +338,9 @@ namespace LolloGPS.Core
 		{
 			return RunInUiThreadAsync(delegate
 			{
-				if (IsWideEnough) AltitudeColumn.Width = new GridLength(1.0, GridUnitType.Star);
-				else AltitudeColumn.Width = new GridLength(0.0);
+				AltitudeColumn.Width = IsWideEnough ? new GridLength(1.0, GridUnitType.Star) : new GridLength(0.0);
 
-				if (IsWideEnough) Grid.SetColumn(MyAltitudeProfiles, 1);
-				else Grid.SetColumn(MyAltitudeProfiles, 0);
+				Grid.SetColumn(MyAltitudeProfiles, IsWideEnough ? 1 : 0);
 			});
 		}
 		#endregion services

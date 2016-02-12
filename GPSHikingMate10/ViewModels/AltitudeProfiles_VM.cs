@@ -90,13 +90,9 @@ namespace LolloGPS.Core
 				}
 				else
 				{
-					for (int i = 0; i < coll.Count; i++)
+					if (coll.Any(t => t.TimePoint == null || t.TimePoint == default(DateTime) || t.TimePoint.Date == default(DateTime).Date))
 					{
-						if (coll[i].TimePoint == null || coll[i].TimePoint == default(DateTime) || coll[i].TimePoint.Date == default(DateTime).Date)
-						{
-							isDateTimeAlwaysPresent = false;
-							break;
-						}
+						isDateTimeAlwaysPresent = false;
 					}
 				}
 			}
@@ -134,12 +130,12 @@ namespace LolloGPS.Core
 		class RectangularComparer : IComparer
 		{
 			// maintain a reference to the 2-dimensional array being sorted
-			private double[,] myArray;
+			private readonly double[,] _myArray;
 
 			// constructor initializes the sortArray reference
 			public RectangularComparer(double[,] arrayToBeSorted)
 			{
-				myArray = arrayToBeSorted;
+				_myArray = arrayToBeSorted;
 			}
 
 			public int Compare(object one, object two)
@@ -149,7 +145,7 @@ namespace LolloGPS.Core
 				//int iTwo = (int)two;
 
 				// compare the items in the sortArray
-				return myArray[(int)one, 0].CompareTo(myArray[(int)two, 0]);
+				return _myArray[(int)one, 0].CompareTo(_myArray[(int)two, 0]);
 			}
 		}
 	}

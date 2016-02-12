@@ -53,10 +53,12 @@ namespace LolloGPS.Core
 		}
 		protected override Task OnLoadedMayOverrideAsync()
 		{
+			//MainVM.IsPointInfoPanelOpen = true;
 			return OpenAsync();
 		}
 		protected override Task OnUnloadedMayOverrideAsync()
 		{
+			//MainVM.IsPointInfoPanelOpen = false;
 			return CloseAsync();
 		}
 		#endregion lifecycle
@@ -142,7 +144,7 @@ namespace LolloGPS.Core
 			private DispatcherTimer _holdingTimer = null;
 			private int _step = 0;
 			private Action<int> _action = null;
-			private TimeSpan _interval = new TimeSpan(1000000);
+			private readonly TimeSpan _interval = new TimeSpan(1000000);
 
 			public void Dispose()
 			{
@@ -162,7 +164,7 @@ namespace LolloGPS.Core
 			public void Stop()
 			{
 				RemoveHandlers_HoldingTimer();
-				if (_holdingTimer != null) _holdingTimer.Stop();
+				_holdingTimer?.Stop();
 				_holdingTimer = null;
 			}
 
@@ -185,7 +187,7 @@ namespace LolloGPS.Core
 			}
 			private void OnHoldingTimer_Tick(object sender, object e)
 			{
-				if (_action != null) _action.Invoke(_step);
+				_action?.Invoke(_step);
 			}
 		}
 
@@ -200,7 +202,7 @@ namespace LolloGPS.Core
 			}
 			else
 			{
-				if (_holdingTimer != null) { _holdingTimer.Stop(); }
+				_holdingTimer?.Stop();
 			}
 		}
 		private void SkipToRecord(int step)
@@ -244,7 +246,7 @@ namespace LolloGPS.Core
 			double availableWidth = default(double);
 
 			if (Parent is Popup) availableWidth = (Parent as FrameworkElement).ActualWidth;
-			else if (AppView != null && AppView.VisibleBounds != null) availableWidth = AppView.VisibleBounds.Width;
+			else if (AppView?.VisibleBounds != null) availableWidth = AppView.VisibleBounds.Width;
 
 			ChooseSeriesGrid.Width = InfoGrid.Width = availableWidth;
 		}
@@ -254,7 +256,7 @@ namespace LolloGPS.Core
 			double availableHeight = default(double);
 
 			if (Parent is Popup) availableHeight = (Parent as FrameworkElement).ActualHeight;
-			else if (AppView != null && AppView.VisibleBounds != null) availableHeight = AppView.VisibleBounds.Height;
+			else if (AppView?.VisibleBounds != null) availableHeight = AppView.VisibleBounds.Height;
 
 			ChooseSeriesGrid.Height = InfoGrid.Height = availableHeight;
 		}
@@ -263,10 +265,8 @@ namespace LolloGPS.Core
 		#region services
 		public void SetDetails(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
 		{
-			List<PointRecord> selectedRecords = new List<PointRecord>();
-			selectedRecords.Add(selectedRecord);
-			List<PersistentData.Tables> selectedSerieses = new List<PersistentData.Tables>();
-			selectedSerieses.Add(selectedSeries);
+			List<PointRecord> selectedRecords = new List<PointRecord> {selectedRecord};
+			List<PersistentData.Tables> selectedSerieses = new List<PersistentData.Tables> {selectedSeries};
 			SetDetails(selectedRecords, selectedSerieses);
 		}
 		/// <summary>
@@ -284,9 +284,9 @@ namespace LolloGPS.Core
 				_mySelectedRecords = selectedRecords;
 				_mySelectedSeriess = selectedSeriess;
 				// open popup to choose the series
-				if (selectedSeriess.Contains(PersistentData.Tables.History)) ChooseDisplayHistoryButton.Visibility = Visibility.Visible; else ChooseDisplayHistoryButton.Visibility = Visibility.Collapsed;
-				if (selectedSeriess.Contains(PersistentData.Tables.Route0)) ChooseDisplayRoute0Button.Visibility = Visibility.Visible; else ChooseDisplayRoute0Button.Visibility = Visibility.Collapsed;
-				if (selectedSeriess.Contains(PersistentData.Tables.Checkpoints)) ChooseDisplayCheckpointsButton.Visibility = Visibility.Visible; else ChooseDisplayCheckpointsButton.Visibility = Visibility.Collapsed;
+				ChooseDisplayHistoryButton.Visibility = selectedSeriess.Contains(PersistentData.Tables.History) ? Visibility.Visible : Visibility.Collapsed;
+				ChooseDisplayRoute0Button.Visibility = selectedSeriess.Contains(PersistentData.Tables.Route0) ? Visibility.Visible : Visibility.Collapsed;
+				ChooseDisplayCheckpointsButton.Visibility = selectedSeriess.Contains(PersistentData.Tables.Checkpoints) ? Visibility.Visible : Visibility.Collapsed;
 
 				IsSeriesChoicePresented = true;
 			}

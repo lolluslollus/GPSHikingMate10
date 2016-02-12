@@ -57,7 +57,7 @@
 		<!-- info grid -->
 		<ScrollViewer x:Name="InfoGrid"
             Visibility="{Binding ElementName=me, Path=IsSeriesChoicePresented, Converter={StaticResource BooleanToCollapsedConverter}}"
-			ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollMode="Enabled"
+			VerticalScrollBarVisibility="Visible" VerticalScrollMode="Enabled"
 			Background="{StaticResource BackgroundBrush}">
 			<StackPanel Orientation="Vertical">
 				<!-- header -->

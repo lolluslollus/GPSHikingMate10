@@ -84,7 +84,7 @@ namespace LolloGPS.Data
 				return false;
 			}
 		}
-		internal async static Task<List<PointRecord>> GetHistoryAsync()
+		internal static async Task<List<PointRecord>> GetHistoryAsync()
 		{
 			List<PointRecord> history = null;
 			try
@@ -112,7 +112,7 @@ namespace LolloGPS.Data
 			}
 			return history;
 		}
-		internal async static Task<List<PointRecord>> GetRoute0Async()
+		internal static async Task<List<PointRecord>> GetRoute0Async()
 		{
 			List<PointRecord> route0 = null;
 			try
@@ -140,7 +140,7 @@ namespace LolloGPS.Data
 			}
 			return route0;
 		}
-		internal async static Task<List<PointRecord>> GetCheckpointsAsync()
+		internal static async Task<List<PointRecord>> GetCheckpointsAsync()
 		{
 			List<PointRecord> checkpoints = null;
 			try
@@ -217,7 +217,7 @@ namespace LolloGPS.Data
 		{
 			try
 			{
-				await ReplaceAllAsync<PointRecord>(_route0DbPath, _openFlags, dataRecords, checkMaxEntries, _Route0Semaphore).ConfigureAwait(false);
+				await ReplaceAllAsync(_route0DbPath, _openFlags, dataRecords, checkMaxEntries, _Route0Semaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -228,7 +228,7 @@ namespace LolloGPS.Data
 		{
 			try
 			{
-				await ReplaceAllAsync<PointRecord>(_checkpointsDbPath, _openFlags, dataRecords, checkMaxEntries, _CheckpointsSemaphore).ConfigureAwait(false);
+				await ReplaceAllAsync(_checkpointsDbPath, _openFlags, dataRecords, checkMaxEntries, _CheckpointsSemaphore).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -288,15 +288,7 @@ namespace LolloGPS.Data
 					semaphore.WaitOne();
 					if (!LolloSQLiteConnectionPoolMT.IsOpen) return;
 
-					IEnumerable<T> items_mt = null;
-					if (checkMaxEntries)
-					{
-						items_mt = items.Take<T>(GetHowManyEntriesMax(dbPath));
-					}
-					else
-					{
-						items_mt = items;
-					}
+					IEnumerable<T> items_mt = checkMaxEntries ? items.Take(GetHowManyEntriesMax(dbPath)) : items;
 
 					var connectionString = new SQLiteConnectionString(dbPath, _isStoreDateTimeAsTicks);
 
@@ -320,10 +312,7 @@ namespace LolloGPS.Data
 		}
 		private static Task<List<T>> ReadTableAsync<T>(string dbPath, SQLiteOpenFlags openFlags, Semaphore semaphore) where T : new()
 		{
-			return Task.Run(delegate
-			{
-				return ReadTable<T>(dbPath, openFlags, semaphore);
-			});
+			return Task.Run(() => ReadTable<T>(dbPath, openFlags, semaphore));
 		}
 		private static List<T> ReadTable<T>(string dbPath, SQLiteOpenFlags openFlags, Semaphore semaphore) where T : new()
 		{
@@ -341,7 +330,7 @@ namespace LolloGPS.Data
 					var conn = LolloSQLiteConnectionPoolMT.GetConnection(connectionString, openFlags);
 					int aResult = conn.CreateTable(typeof(T));
 					var query = conn.Table<T>();
-					result = query.ToList<T>();
+					result = query.ToList();
 				}
 				finally
 				{
@@ -385,10 +374,7 @@ namespace LolloGPS.Data
 		}
 		private static Task<bool> InsertAsync<T>(string dbPath, SQLiteOpenFlags openFlags, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
 		{
-			return Task.Run(delegate
-			{
-				return Insert<T>(dbPath, openFlags, item, checkMaxEntries, semaphore);
-			});
+			return Task.Run(() => Insert<T>(dbPath, openFlags, item, checkMaxEntries, semaphore));
 		}
 		private static bool Insert<T>(string dbPath, SQLiteOpenFlags openFlags, object item, bool checkMaxEntries, Semaphore semaphore) where T : new()
 		{
@@ -524,7 +510,7 @@ namespace LolloGPS.Data
 		private sealed class ConnectionEntry : IDisposable
 		{
 			private volatile SQLiteConnectionString _connectionString = null;
-			public SQLiteConnectionString ConnectionString { get { return _connectionString; } private set { _connectionString = value; } }
+			private SQLiteConnectionString ConnectionString { get { return _connectionString; } set { _connectionString = value; } }
 			private volatile SQLiteConnection _connection = null;
 			public SQLiteConnection Connection { get { return _connection; } private set { _connection = value; } }
 
@@ -579,12 +565,11 @@ namespace LolloGPS.Data
 		internal static void ResetConnection(string connectionString)
 		{
 			if (connectionString == null) return;
-
-			ConnectionEntry conn = null;
+			
 			try
 			{
 				_connectionsDictSemaphore.WaitOne();
-				
+				ConnectionEntry conn = null;
 				if (_connectionsDict.TryGetValue(connectionString, out conn))
 				{
 					conn.Dispose();

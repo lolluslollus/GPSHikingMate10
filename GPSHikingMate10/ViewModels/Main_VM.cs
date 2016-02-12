@@ -137,8 +137,11 @@ namespace LolloGPS.Core
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
 
-		private PersistentData.Tables _whichSeriesJustLoaded = PersistentData.Tables.nil;
+		private PersistentData.Tables _whichSeriesJustLoaded = PersistentData.Tables.Nil;
 		public PersistentData.Tables WhichSeriesJustLoaded { get { return _whichSeriesJustLoaded; } }
+
+		//private bool _isPointInfoPanelOpen = false;
+		//public bool IsPointInfoPanelOpen { get { return _isPointInfoPanelOpen; } set { _isPointInfoPanelOpen = value; } }
 		#endregion properties
 
 		#region construct and dispose
@@ -155,7 +158,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				_whichSeriesJustLoaded = PersistentData.Tables.nil;
+				_whichSeriesJustLoaded = PersistentData.Tables.Nil;
 
 				await _gpsInteractor.OpenAsync();
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
@@ -178,11 +181,11 @@ namespace LolloGPS.Core
 					var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
 					if (file != null)
 					{
-						PersistentData.Tables whichSeries = PersistentData.Tables.nil;
+						PersistentData.Tables whichSeries = PersistentData.Tables.Nil;
 						if (Enum.TryParse(
 							RegistryAccess.GetValue(ConstantData.REG_LOAD_SERIES_WHICH_SERIES),
 							out whichSeries)
-							&& whichSeries != PersistentData.Tables.nil)
+							&& whichSeries != PersistentData.Tables.Nil)
 						{
 							await ContinueAfterPickLoadSeriesFromFileAsync(file, whichSeries).ConfigureAwait(false);
 						}
@@ -193,11 +196,11 @@ namespace LolloGPS.Core
 					var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
 					if (file != null)
 					{
-						PersistentData.Tables whichSeries = PersistentData.Tables.nil;
+						PersistentData.Tables whichSeries = PersistentData.Tables.Nil;
 						if (Enum.TryParse(
 							RegistryAccess.GetValue(ConstantData.REG_SAVE_SERIES_WHICH_SERIES),
 							out whichSeries)
-							&& whichSeries != PersistentData.Tables.nil)
+							&& whichSeries != PersistentData.Tables.Nil)
 						{
 							DateTime fileCreationDateTime = default(DateTime);
 							if (DateTime.TryParseExact(
@@ -232,10 +235,7 @@ namespace LolloGPS.Core
 			try
 			{
 				RemoveHandlers_DataChanged();
-				await RunInUiThreadAsync(delegate
-				{
-					KeepAlive.StopKeepAlive();
-				}).ConfigureAwait(false);
+				await RunInUiThreadAsync(KeepAlive.StopKeepAlive).ConfigureAwait(false);
 				await _gpsInteractor.CloseAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -340,11 +340,7 @@ namespace LolloGPS.Core
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
 			{
-				Task gt = RunInUiThreadAsync(delegate
-				{
-					UpdateIsLeechingEnabled();
-					//UpdateTestButtonIsEnabled();
-				});
+				Task gt = RunInUiThreadAsync(UpdateIsLeechingEnabled);
 			}
 			else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
 			{
@@ -356,10 +352,7 @@ namespace LolloGPS.Core
 			}
 			else if (e.PropertyName == nameof(PersistentData.TileSourcez))
 			{
-				Task gt = RunInUiThreadAsync(delegate
-				{
-					UpdateIsClearCustomCacheEnabled();
-				});
+				Task gt = RunInUiThreadAsync(UpdateIsClearCustomCacheEnabled);
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
 			{
@@ -465,9 +458,8 @@ namespace LolloGPS.Core
 		}
 		public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
 		{
-			bool isScheduled = await Task.Run(delegate { return _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources); }).ConfigureAwait(false);
-			if (isScheduled) PersistentData.LastMessage = "cache will be cleared asap";
-			else PersistentData.LastMessage = "cache busy";
+			bool isScheduled = await Task.Run(() => _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
+			PersistentData.LastMessage = isScheduled ? "cache will be cleared asap" : "cache busy";
 
 			//PersistentData.IsMapCached = false; // stop caching if you want to delete the cache // no!
 		}
@@ -493,6 +485,7 @@ namespace LolloGPS.Core
 		/// their absolute value must not be too large or too small.
 		/// </summary>
 		/// <param name="dblIn"></param>
+		/// <param name="isImperialUnits"></param>
 		/// <returns></returns>
 		internal static double RoundAndRangeAltitude(double dblIn, bool isImperialUnits)
 		{
@@ -620,7 +613,7 @@ namespace LolloGPS.Core
 		#region save and load with picker
 		internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
 		{
-			if (!TrySetIsSaving(true) || whichSeries == PersistentData.Tables.nil) return;
+			if (!TrySetIsSaving(true) || whichSeries == PersistentData.Tables.Nil) return;
 			SetLastMessage_UI("saving GPX file...");
 
 			SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
@@ -633,10 +626,8 @@ namespace LolloGPS.Core
 				RegistryAccess.TrySetValue(ConstantData.REG_SAVE_SERIES_FILE_CREATION_DATE_TIME, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.CurrentUICulture));
 
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. 
-				await RunFunctionIfOpenAsyncT(delegate
-				{
-					return ContinueAfterPickSaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file);
-				}).ConfigureAwait(false);
+				await RunFunctionIfOpenAsyncT(
+					() => ContinueAfterPickSaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file)).ConfigureAwait(false);
 			}
 			else
 			{
@@ -660,7 +651,7 @@ namespace LolloGPS.Core
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil)
+				if (file != null && whichSeries != PersistentData.Tables.Nil)
 				{
 					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
@@ -677,7 +668,7 @@ namespace LolloGPS.Core
 			{
 				// inform the user about the result
 				if (result != null && result.Item1) SetLastMessage_UI(result.Item2);
-				else if (whichSeries != PersistentData.Tables.nil) SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
+				else if (whichSeries != PersistentData.Tables.Nil) SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
 				else SetLastMessage_UI(string.Format("could not save file"));
 
 				IsSaving = false;
@@ -696,10 +687,7 @@ namespace LolloGPS.Core
 
 				Logger.Add_TPL("Pick open file about to open series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				// LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. 
-				bool isDone = await RunFunctionIfOpenAsyncT(delegate
-				{
-					return ContinueAfterPickLoadSeriesFromFileAsync(file, whichSeries);
-				}).ConfigureAwait(false);
+				bool isDone = await RunFunctionIfOpenAsyncT(() => ContinueAfterPickLoadSeriesFromFileAsync(file, whichSeries)).ConfigureAwait(false);
 				Logger.Add_TPL("Pick open file has opened series = " + isDone.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			}
 			else
@@ -721,7 +709,7 @@ namespace LolloGPS.Core
 			Tuple<bool, string> result = Tuple.Create(false, "");
 			try
 			{
-				if (file != null && whichSeries != PersistentData.Tables.nil)
+				if (file != null && whichSeries != PersistentData.Tables.Nil)
 				{
 					if (CancToken == null || CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
@@ -755,11 +743,11 @@ namespace LolloGPS.Core
 									_whichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
 									await CentreOnCheckpointsAsync().ConfigureAwait(false);
 									break;
-								case PersistentData.Tables.nil:
-									_whichSeriesJustLoaded = PersistentData.Tables.nil;
+								case PersistentData.Tables.Nil:
+									_whichSeriesJustLoaded = PersistentData.Tables.Nil;
 									break;
 								default:
-									_whichSeriesJustLoaded = PersistentData.Tables.nil;
+									_whichSeriesJustLoaded = PersistentData.Tables.Nil;
 									break;
 							}
 						}
@@ -775,7 +763,7 @@ namespace LolloGPS.Core
 					SetLastMessage_UI(result.Item2);
 					PersistentData.IsShowingPivot = false;
 				}
-				else if (whichSeries != PersistentData.Tables.nil) SetLastMessage_UI(string.Format("could not load {0}", PersistentData.GetTextForSeries(whichSeries)));
+				else if (whichSeries != PersistentData.Tables.Nil) SetLastMessage_UI(string.Format("could not load {0}", PersistentData.GetTextForSeries(whichSeries)));
 				else SetLastMessage_UI("could not load file");
 
 				IsLoading = false;

@@ -13,7 +13,7 @@
     d:DesignHeight="600"
     d:DesignWidth="400">
 
-	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="MainGrid">
+	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -36,7 +36,6 @@
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="0" Grid.Column="1"
-            HorizontalAlignment="Left"
             IsChecked="{Binding IsAllowMeteredConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             Style="{StaticResource AppBarToggleButtonRecoloured}"
             IsCompact="True"
@@ -47,7 +46,6 @@
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="1" Grid.Column="1" 
-            HorizontalAlignment="Left"
             Style="{StaticResource AppBarButtonRecoloured}"
             IsCompact="True"
             Click="OnGoto2D_Click"
@@ -57,8 +55,7 @@
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-		<AppBarButton Grid.Row="2" Grid.Column="1" 
-            HorizontalAlignment="Left"
+		<AppBarButton Grid.Row="2" Grid.Column="1"
             Style="{StaticResource AppBarButtonRecoloured}"
             IsCompact="True"
             Click="OnMapStyleButton_Click">
@@ -99,8 +96,7 @@
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-		<AppBarToggleButton Grid.Row="4" Grid.Column="1" 
-            HorizontalAlignment="Left"
+		<AppBarToggleButton Grid.Row="4" Grid.Column="1"
             IsChecked="{Binding IsMapCached, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             IsEnabled="{Binding ElementName=me, Path=MainVM.IsCacheBtnEnabled}"
             Style="{StaticResource AppBarToggleButtonRecoloured}"
@@ -111,8 +107,7 @@
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-		<AppBarButton Grid.Row="5" Grid.Column="1" 
-            HorizontalAlignment="Left"
+		<AppBarButton Grid.Row="5" Grid.Column="1"
             IsEnabled="{Binding ElementName=me, Path=MainVM.IsLeechingEnabled}"
             Style="{StaticResource AppBarButtonRecoloured}"
             IsCompact="True"
@@ -144,7 +139,6 @@
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="7" Grid.Column="1"
-            HorizontalAlignment="Left"
             IsEnabled="{Binding ElementName=me, Path=MainVM.IsClearCacheEnabled}"
             Click="OnClearMapCache_Click"
             Style="{StaticResource AppBarButtonRecoloured}"
@@ -169,7 +163,6 @@
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="8" Grid.Column="1"
-            HorizontalAlignment="Left"
             IsChecked="{Binding IsKeepAlive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             Style="{StaticResource AppBarToggleButtonRecoloured}"
             IsCompact="True"

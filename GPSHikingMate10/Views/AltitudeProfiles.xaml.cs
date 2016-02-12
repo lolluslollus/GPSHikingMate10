@@ -132,9 +132,19 @@ namespace LolloGPS.Core
 		{
 			// I must not run to the current point when starting, I want to stick to the last frame when last suspended instead.
 			// Unless the tracking is on and the autocentre too.
-			if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent && PersistentData.IsShowingAltitudeProfiles)
+			if (PersistentData.IsShowingAltitudeProfiles)
 			{
-				Task cen = RunFunctionIfOpenAsyncT(CentreOnHistoryAsync);
+				Task cur = RunFunctionIfOpenAsyncA(() =>
+				{
+					if (PersistentData?.IsCentreOnCurrent == true && RuntimeData.IsAllowCentreOnCurrent)
+					{
+						Task cen = CentreOnHistoryAsync();
+					}
+					//if (!MainVM.IsPointInfoPanelOpen)
+					//{
+					//	Task cross = RunInUiThreadAsync(delegate { HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.History.Count - 1, PersistentData.Current.Altitude); });
+					//}
+				});
 			}
 		}
 		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -198,7 +208,7 @@ namespace LolloGPS.Core
 							case PersistentData.Tables.Checkpoints:
 								CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 								break;
-							case PersistentData.Tables.nil:
+							case PersistentData.Tables.Nil:
 								break;
 							default:
 								break;
@@ -220,6 +230,7 @@ namespace LolloGPS.Core
 				{
 					case PersistentData.Tables.History:
 						HistoryChart.UncrossPoint(HistoryChart.XY1DataSeries);
+						//HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.History.Count, PersistentData.Current.Altitude);
 						break;
 					case PersistentData.Tables.Route0:
 						Route0Chart.UncrossPoint(Route0Chart.XY1DataSeries);
@@ -227,7 +238,7 @@ namespace LolloGPS.Core
 					case PersistentData.Tables.Checkpoints:
 						CheckpointsChart.UncrossPoint(CheckpointsChart.XY1DataSeries);
 						break;
-					case PersistentData.Tables.nil:
+					case PersistentData.Tables.Nil:
 						break;
 					default:
 						break;
@@ -242,9 +253,9 @@ namespace LolloGPS.Core
 		public event EventHandler<ShowOnePointDetailsRequestedArgs> ShowOnePointDetailsRequested;
 		public sealed class ShowOnePointDetailsRequestedArgs : EventArgs
 		{
-			private PointRecord _selectedRecord;
+			private readonly PointRecord _selectedRecord;
 			public PointRecord SelectedRecord { get { return _selectedRecord; } }
-			private PersistentData.Tables _selectedSeries;
+			private readonly PersistentData.Tables _selectedSeries;
 			public PersistentData.Tables SelectedSeries { get { return _selectedSeries; } }
 			public ShowOnePointDetailsRequestedArgs(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
 			{
@@ -306,7 +317,7 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.nil;
+				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.Nil;
 				// LOLLO NOTE dependency properties must be referenced in the UI thread
 				await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
 
@@ -429,8 +440,7 @@ namespace LolloGPS.Core
 						minAltitude + (maxAltitude - minAltitude) * .25,
 						minAltitude };
 					chart.YPrimaryGridLines = new GridLines(yLabels);
-					if (PersistentData.IsShowImperialUnits) chart.Y1GridLabels = new GridLabels(yLabels, "#0. ft");
-					else chart.Y1GridLabels = new GridLabels(yLabels, "#0. m");
+					chart.Y1GridLabels = PersistentData.IsShowImperialUnits ? new GridLabels(yLabels, "#0. ft") : new GridLabels(yLabels, "#0. m");
 
 					if (CancToken == null || CancToken.IsCancellationRequested) return;
 

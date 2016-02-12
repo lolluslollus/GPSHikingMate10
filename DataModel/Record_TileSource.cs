@@ -233,38 +233,65 @@ namespace LolloGPS.Data
 		}
 		public static List<TileSourceRecord> GetDefaultTileSources()
 		{
-			List<TileSourceRecord> output = new List<TileSourceRecord>();
-			output.Add(new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString, DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false));
+			var output = new List<TileSourceRecord>
+			{
+				new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, DefaultTileSourceUriString,
+					DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false),
+				new TileSourceRecord("ForUMaps", "4UMaps", "http://4umaps.eu/{zoomlevel}/{x}/{y}.png", "http://www.4umaps.eu/", 2,
+					15, 256, false),
+				new TileSourceRecord("OpenTopoMap", "OpenTopoMap", "http://server.opentopomap.org/{zoomlevel}/{x}/{y}.png",
+					"http://opentopomap.org/", 2, 15, 256, false),
+				new TileSourceRecord("OpenStreetMap", "OpenStreetMap", "http://a.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png",
+					"http://www.openstreetmap.org/", 0, 18, 256, false),
+				new TileSourceRecord("OpenStreetMapBW", "OpenStreetMap BW",
+					"http://a.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png", "http://www.openstreetmap.org/", 0, 18, 256,
+					false),
+				new TileSourceRecord("OpenBusMap", "OpenBusMap", "http://tileserver.memomaps.de/tilegen/{zoomlevel}/{x}/{y}.png",
+					"http://openbusmap.org/", 3, 18, 256, false),
+				new TileSourceRecord("OpenSeaMap", "OpenSeaMap", "http://tiles.openseamap.org/seamark/{zoomlevel}/{x}/{y}.png",
+					"http://openseamap.org/?L=1", 9, 18, 256, false),
+				new TileSourceRecord("MapQuestOSM", "MapQuest OSM",
+					"http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoomlevel}/{x}/{y}.png", "http://www.mapquest.com/", 0, 18, 256, false),
+				new TileSourceRecord("HikeBike", "Hike & Bike Map", "http://a.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png",
+					"http://hikebikemap.org/", 0, 16, 256, false),
+				new TileSourceRecord("ThunderforestLandscape", "Thunderforest Landscape",
+					"http://a.tile.thunderforest.com/landscape/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256,
+					false),
+				new TileSourceRecord("ThunderforestCycle", "Thunderforest Cycle",
+					"http://a.tile.thunderforest.com/cycle/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256, false),
+				new TileSourceRecord("ThunderforestOutdoors", "Thunderforest Outdoors",
+					"http://a.tile.thunderforest.com/outdoors/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256,
+					false),
+				new TileSourceRecord("ThunderforestTransport", "Thunderforest Transport",
+					"http://a.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256,
+					false),
+				new TileSourceRecord("StamenToner", "Stamen Toner", "http://tile.stamen.com/toner/{zoomlevel}/{x}/{y}.png",
+					"http://maps.stamen.com/", 2, 18, 256, false),
+				new TileSourceRecord("StamenTerrain", "Stamen Terrain (N America)",
+					"http://tile.stamen.com/terrain/{zoomlevel}/{x}/{y}.jpg", "http://maps.stamen.com/", 5, 18, 256, false),
+				new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)",
+					"http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg", "http://kartat.kapsi.fi/", 2, 17, 256, false),
+				new TileSourceRecord("KartatKapsiFiBackground", "Kartat Kapsi Background (FI)",
+					"http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg", "http://kartat.kapsi.fi/", 2, 17, 256, false),
+				new TileSourceRecord("OrdnanceSurvey", "Ordnance Survey (UK)",
+					"http://a.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png",
+					"http://www.ordnancesurvey.co.uk/opendata/viewer/index.html", 7, 17, 256, false),
+				new TileSourceRecord("UTTopoLight", "UT Topo Light (Norway)",
+					"http://a-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg", "http://ut.no/", 5, 16, 256, false),
+				new TileSourceRecord("FreemapSlovakia", "Freemap Slovakia",
+					"http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png", "http://www.freemap.sk/", 0, 17, 256, false)
+			};
 
-			output.Add(new TileSourceRecord("ForUMaps", "4UMaps", "http://4umaps.eu/{zoomlevel}/{x}/{y}.png", "http://www.4umaps.eu/", 2, 15, 256, false));
 
-			output.Add(new TileSourceRecord("OpenTopoMap", "OpenTopoMap", "http://server.opentopomap.org/{zoomlevel}/{x}/{y}.png", "http://opentopomap.org/", 2, 15, 256, false));
-			output.Add(new TileSourceRecord("OpenStreetMap", "OpenStreetMap", "http://a.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png", "http://www.openstreetmap.org/", 0, 18, 256, false));
-			output.Add(new TileSourceRecord("OpenStreetMapBW", "OpenStreetMap BW", "http://a.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png", "http://www.openstreetmap.org/", 0, 18, 256, false));
-			output.Add(new TileSourceRecord("OpenBusMap", "OpenBusMap", "http://tileserver.memomaps.de/tilegen/{zoomlevel}/{x}/{y}.png", "http://openbusmap.org/", 3, 18, 256, false));
-			output.Add(new TileSourceRecord("OpenSeaMap", "OpenSeaMap", "http://tiles.openseamap.org/seamark/{zoomlevel}/{x}/{y}.png", "http://openseamap.org/?L=1", 9, 18, 256, false));
-			output.Add(new TileSourceRecord("MapQuestOSM", "MapQuest OSM", "http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoomlevel}/{x}/{y}.png", "http://www.mapquest.com/", 0, 18, 256, false));
-			output.Add(new TileSourceRecord("HikeBike", "Hike & Bike Map", "http://a.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png", "http://hikebikemap.org/", 0, 16, 256, false));
 #if NOSTORE
 			output.Add(new TileSourceRecord("ArcGIS", "ArcGIS", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}", DefaultTileSourceProviderUriString, 0, 16, 256, false));
 #endif
-			output.Add(new TileSourceRecord("ThunderforestLandscape", "Thunderforest Landscape", "http://a.tile.thunderforest.com/landscape/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256, false));
-			output.Add(new TileSourceRecord("ThunderforestCycle", "Thunderforest Cycle", "http://a.tile.thunderforest.com/cycle/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256, false));
-			output.Add(new TileSourceRecord("ThunderforestOutdoors", "Thunderforest Outdoors", "http://a.tile.thunderforest.com/outdoors/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256, false));
-			output.Add(new TileSourceRecord("ThunderforestTransport", "Thunderforest Transport", "http://a.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png", "http://www.thunderforest.com/", 2, 18, 256, false));
 
-			output.Add(new TileSourceRecord("StamenToner", "Stamen Toner", "http://tile.stamen.com/toner/{zoomlevel}/{x}/{y}.png", "http://maps.stamen.com/", 2, 18, 256, false));
-			output.Add(new TileSourceRecord("StamenTerrain", "Stamen Terrain (N America)", "http://tile.stamen.com/terrain/{zoomlevel}/{x}/{y}.jpg", "http://maps.stamen.com/", 5, 18, 256, false));
 
-			output.Add(new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)", "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg", "http://kartat.kapsi.fi/", 2, 17, 256, false));
-			output.Add(new TileSourceRecord("KartatKapsiFiBackground", "Kartat Kapsi Background (FI)", "http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg", "http://kartat.kapsi.fi/", 2, 17, 256, false));
 
-			output.Add(new TileSourceRecord("OrdnanceSurvey", "Ordnance Survey (UK)", "http://a.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png", "http://www.ordnancesurvey.co.uk/opendata/viewer/index.html", 7, 17, 256, false));
 #if NOSTORE
 			output.Add(new TileSourceRecord("Swisstopo", "Swisstopo (CH)", "http://mpa3.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg", DefaultTileSourceProviderUriString, 7, 16, 256, false));
 #endif
-			output.Add(new TileSourceRecord("UTTopoLight", "UT Topo Light (Norway)", "http://a-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg", "http://ut.no/", 5, 16, 256, false));
-			output.Add(new TileSourceRecord("FreemapSlovakia", "Freemap Slovakia", "http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png", "http://www.freemap.sk/", 0, 17, 256, false));
 			return output;
 		}
 		public static TileSourceRecord GetDefaultTileSource()

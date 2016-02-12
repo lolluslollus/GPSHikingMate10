@@ -36,7 +36,7 @@ namespace GPX
 			else if (whichTable == PersistentData.Tables.Checkpoints) return await LoadCheckpointsAsync(gpxFile, token).ConfigureAwait(false);
 			else return null;
 		}
-		private async static Task<Tuple<bool, string>> LoadRoute0Async(StorageFile gpxFile, CancellationToken token)
+		private static async Task<Tuple<bool, string>> LoadRoute0Async(StorageFile gpxFile, CancellationToken token)
 		{
 			string outMessage = string.Empty;
 			bool outIsOk = false;
@@ -79,7 +79,7 @@ namespace GPX
 
 			return Tuple.Create(outIsOk, outMessage);
 		}
-		private async static Task<Tuple<bool, string>> LoadCheckpointsAsync(StorageFile gpxFile, CancellationToken token)
+		private static async Task<Tuple<bool, string>> LoadCheckpointsAsync(StorageFile gpxFile, CancellationToken token)
 		{
 			string outMessage = string.Empty;
 			bool outIsOk = false;
@@ -121,7 +121,7 @@ namespace GPX
 
 			return Tuple.Create(outIsOk, outMessage);
 		}
-		private static async Task<List<PointRecord>> LoadDataRecordsAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken token)
+		private static async Task<List<PointRecord>> LoadDataRecordsAsync(StorageFile gpxFile, PersistentData.Tables whichTable, CancellationToken cancToken)
 		{
 			List<PointRecord> newDataRecords = new List<PointRecord>();
 			if (gpxFile == null) return newDataRecords;
@@ -130,11 +130,11 @@ namespace GPX
 			{
 				if (await gpxFile.GetFileSizeAsync().ConfigureAwait(false) > ConstantData.MaxFileSize) return newDataRecords;
 
-				using (IInputStream inStream2 = await gpxFile.OpenSequentialReadAsync().AsTask<IInputStream>().ConfigureAwait(false)) //OpenReadAsync() also works
+				using (IInputStream inStream2 = await gpxFile.OpenSequentialReadAsync().AsTask(cancToken).ConfigureAwait(false)) //OpenReadAsync() also works
 				{
-					token.ThrowIfCancellationRequested();
+					cancToken.ThrowIfCancellationRequested();
 					XElement xmlData = XElement.Load(inStream2.AsStreamForRead());
-					token.ThrowIfCancellationRequested();
+					cancToken.ThrowIfCancellationRequested();
 
 					if (xmlData != null)
 					{
@@ -144,7 +144,7 @@ namespace GPX
 							mapPoints = GetWpts_Checkpoints(xmlData, xn);
 						else
 							mapPoints = GetWpts_Route0(xmlData, xn);
-						token.ThrowIfCancellationRequested();
+						cancToken.ThrowIfCancellationRequested();
 
 						foreach (XElement xe in mapPoints)
 						{
@@ -193,18 +193,15 @@ namespace GPX
 							string hyperLink = null;
 							string hyperLinkText = string.Empty;
 							var link = xe.Descendants(xn + "link").FirstOrDefault();
-							if (link != null)
+							var href = link?.Attribute("href"); // no xn + with attributes
+							if (href != null)
 							{
-								var href = link.Attribute("href"); // no xn + with attributes
-								if (href != null)
+								Uri testUri = null;
+								if (Uri.TryCreate(href.Value, UriKind.RelativeOrAbsolute, out testUri))
 								{
-									Uri testUri = null;
-									if (Uri.TryCreate(href.Value, UriKind.RelativeOrAbsolute, out testUri))
-									{
-										hyperLink = href.Value;
-										var text = link.Descendants(xn + "text").FirstOrDefault();
-										if (text != null) hyperLinkText = text.Value;
-									}
+									hyperLink = href.Value;
+									var text = link.Descendants(xn + "text").FirstOrDefault();
+									if (text != null) hyperLinkText = text.Value;
 								}
 							}
 
@@ -226,7 +223,7 @@ namespace GPX
 								//VerticalDilutionOfPrecision = verticalDilutionOfPrecision,
 								//PositionDilutionOfPrecision = positionDilutionOfPrecision
 							});
-							token.ThrowIfCancellationRequested();
+							cancToken.ThrowIfCancellationRequested();
 						}
 					}
 				}
@@ -244,11 +241,11 @@ namespace GPX
 			var routesAndTracks = (from e in xmlData.DescendantsAndSelf()
 								   select new { RouteElements = e.Descendants(xn + "rte"), TrackElements = e.Descendants(xn + "trk") }).FirstOrDefault();
 			// Create a list of map points from the route <rte> element, otherwise use the track <trk> element.
-			if (routesAndTracks.RouteElements.Count() > 0)
+			if (routesAndTracks.RouteElements.Any())
 			{
 				mapPoints = (from p in routesAndTracks.RouteElements.First().Descendants(xn + "rtept").Take(PersistentData.MaxRecordsInRoute) select p).ToList();
 			}
-			else if (routesAndTracks.TrackElements.Count() > 0)
+			else if (routesAndTracks.TrackElements.Any())
 			{
 				mapPoints = (from p in routesAndTracks.TrackElements.First().Descendants(xn + "trkpt").Take(PersistentData.MaxRecordsInRoute) select p).ToList();
 			}
@@ -270,33 +267,33 @@ namespace GPX
 		/// <param name="coll"></param>
 		/// <param name="fileCreationDateTime"></param>
 		/// <param name="whichTable"></param>
-		/// <param name="token"></param>
+		/// <param name="cancToken"></param>
 		/// <returns></returns>
-		public static async Task<Tuple<bool, string>> SaveAsync(StorageFile gpxFile, Collection<PointRecord> coll, DateTime fileCreationDateTime, PersistentData.Tables whichTable, CancellationToken token)
+		public static async Task<Tuple<bool, string>> SaveAsync(StorageFile gpxFile, Collection<PointRecord> coll, DateTime fileCreationDateTime, PersistentData.Tables whichTable, CancellationToken cancToken)
 		{
 			string outMessage = string.Empty;
 			bool outIsOk = false;
 
 			Logger.Add_TPL("Start writing GPX", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-			if (gpxFile != null && coll != null && whichTable != PersistentData.Tables.nil)
+			if (gpxFile != null && coll != null && whichTable != PersistentData.Tables.Nil)
 			{
 				try
 				{
-					token.ThrowIfCancellationRequested();
+					cancToken.ThrowIfCancellationRequested();
 					XmlDocument gpxDoc = await GetEmptyXml(whichTable).ConfigureAwait(false);
-					token.ThrowIfCancellationRequested();
+					cancToken.ThrowIfCancellationRequested();
 					//await PersistentData.GetInstance().RunFunctionUnderSemaphore(
 					//                   delegate
 					//                   {
-					EditXmlData(coll, gpxDoc, whichTable, token);
+					EditXmlData(coll, gpxDoc, whichTable, cancToken);
 					EditXmlMetadata(coll, gpxDoc, fileCreationDateTime);
 					//},
 					//whichTable).ConfigureAwait(false);
-					token.ThrowIfCancellationRequested();
+					cancToken.ThrowIfCancellationRequested();
 
 					// we don't need this Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync. 
 					// CachedFileManager.DeferUpdates(gpxFile); // http://msdn.microsoft.com/en-us/library/windows/apps/windows.storage.cachedfilemanager(v=win.10).aspx
-					await gpxDoc.SaveToFileAsync(gpxFile).AsTask().ConfigureAwait(false);
+					await gpxDoc.SaveToFileAsync(gpxFile).AsTask(cancToken).ConfigureAwait(false);
 
 					Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					outIsOk = true;

@@ -140,15 +140,15 @@ namespace UnitTestProject1
             }
             public static int Lon2TileX_Test(double lonDeg, int z)
             {
-                return TileDownloader.Lon2TileX(lonDeg, z);
+                return Lon2TileX(lonDeg, z);
             }
             public static int Lat2TileY_Test(double latDeg, int z)
             {
-                return TileDownloader.Lat2TileY(latDeg, z);
+                return Lat2TileY(latDeg, z);
             }
             public static int MaxTilexX4Zoom_Test(int z)
             {
-                return TileDownloader.MaxTilexX4Zoom(z);
+                return MaxTilexX4Zoom(z);
             }
             public List<TileCacheRecord> GetTileData_RespondingToCancelTest()
             {

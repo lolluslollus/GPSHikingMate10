@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
@@ -37,7 +36,7 @@ namespace LolloGPS.Data.Runtime
 				{
 					_isSettingsRead = value;
 					RaisePropertyChanged_UI(nameof(IsSettingsRead));
-					IsCommandsActive = _isSettingsRead && _isDBDataRead;
+					IsCommandsActive = _isSettingsRead && _isDbDataRead;
 				}
 			}
 			finally
@@ -53,18 +52,18 @@ namespace LolloGPS.Data.Runtime
 			Task set = GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
 		}
 
-		private volatile bool _isDBDataRead = false;
-		public bool IsDBDataRead { get { return _isDBDataRead; } }
+		private volatile bool _isDbDataRead = false;
+		public bool IsDbDataRead { get { return _isDbDataRead; } }
 		private async Task Set_IsDBDataRead_Async(bool value)
 		{
 			try
 			{
 				await _settingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
-				if (_isDBDataRead != value)
+				if (_isDbDataRead != value)
 				{
-					_isDBDataRead = value;
-					RaisePropertyChanged_UI(nameof(IsDBDataRead));
-					IsCommandsActive = _isSettingsRead && _isDBDataRead;
+					_isDbDataRead = value;
+					RaisePropertyChanged_UI(nameof(IsDbDataRead));
+					IsCommandsActive = _isSettingsRead && _isDbDataRead;
 				}
 			}
 			finally
@@ -137,7 +136,7 @@ namespace LolloGPS.Data.Runtime
 					{
 						if (_persistentData == null) _persistentData = PersistentData.GetInstance();
 						if (
-							(_persistentData.IsAllowMeteredConnection)
+							_persistentData.IsAllowMeteredConnection
 							||
 							NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
 							)

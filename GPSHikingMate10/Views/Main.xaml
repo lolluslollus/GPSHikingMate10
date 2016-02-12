@@ -155,7 +155,7 @@
 			<!-- map overlays -->
 			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
 				<!-- download progress bar -->
-				<Grid Background="{ThemeResource SystemChromeBlackHighColor}"
+				<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Opacity=".75"
 					Visibility="{Binding IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}}"
 					VerticalAlignment="Top"
@@ -257,6 +257,7 @@
 				<!-- LOLLO NOTE Must never set visibility = Collapsed on a map control or its owner, 
 				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
 				<local:LolloMap Canvas.ZIndex="0"
+					Grid.Column="0"
 					x:Name="MyLolloMap"
 					MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
@@ -383,7 +384,7 @@
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}}"
                 Tapped="OnLastMessage_Tapped">
-				<TextBlock TextWrapping="Wrap" Margin="{StaticResource Thickness1}" Style="{StaticResource BaseTightMessageStyle}">
+				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
 					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
@@ -464,7 +465,7 @@
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
 			<ContentControl Grid.Column="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton Grid.Column="2"
+				<AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
@@ -531,7 +532,7 @@
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
 			<ContentControl Grid.Row="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton Grid.Row="2"
+				<AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
