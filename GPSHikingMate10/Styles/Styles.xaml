@@ -47,27 +47,21 @@
 	<FontFamily x:Key="BlackFontFamily">Segoe WP Black</FontFamily>-->
 
 	<!-- LOLLO get the standard styles in Generic.xaml. To bring it up, press F12 on ApplicationForegroundThemeBrush or other ThemeResource in the code below -->
-    <Style x:Key="SampleHeaderTextStyle" TargetType="TextBlock">
+    <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
 		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="28"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
+		<Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
 
-    <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
+	<Style x:Key="ListItemTextStyle" TargetType="TextBlock">
 		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
-        <Setter Property="FontSize" Value="22"/>
-        <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
-        <Setter Property="TextWrapping" Value="Wrap"/>
-    </Style>
+		<Setter Property="FontSize" Value="22"/>
+		<Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
+		<Setter Property="TextWrapping" Value="Wrap"/>
+	</Style>
 
-    <Style x:Key="ScenarioHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
-        <Setter Property="FontSize" Value="28"/>
-        <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
-        <Setter Property="Margin" Value="0,20,0,0"/>
-    </Style>
-
-    <Style x:Key="HugeTextStyle" TargetType="TextBlock">
+	<Style x:Key="HugeTextStyle" TargetType="TextBlock">
 		<Setter Property="FontFamily" Value="{StaticResource BlackFontFamily}"/>
         <Setter Property="FontSize" Value="50"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>

@@ -34,10 +34,12 @@ namespace LolloGPS.Core
 		#endregion events
 
 
+		#region lifecycle
 		public PointsPanel()
 		{
 			InitializeComponent();
 		}
+		#endregion lifecycle
 
 
 		#region event handlers

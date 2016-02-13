@@ -8,12 +8,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:chart="using:LolloChartMobile"
-    UseLayoutRounding="True"
+	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400">
 
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="LayoutRoot">
 		<ScrollViewer VerticalScrollBarVisibility="Auto" 
 			HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
             BringIntoViewOnFocusChange="True" 
@@ -37,7 +37,8 @@
 					<TextBlock x:Name="TBNoData"
 						Text="No altitude data available"
 						TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center"
-						Style="{StaticResource ScenarioHeaderTextStyle}"/>
+						Style="{StaticResource HeaderTextStyle}"
+						Margin="0,20,0,0"/>
 				</Grid>
 
 				<chart:LolloChart Grid.Row="0" Grid.Column="1" x:Name="HistoryChart" 
@@ -46,21 +47,21 @@
 					TitleStyle="{StaticResource BaseMessageStyle}"
 					RightColumnWidth="10"
                     Foreground="{StaticResource HistoryBrushOpaque}"
-					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
+					MaxHeight="{Binding ElementName=LayoutRoot, Path=ActualHeight}"/>
                 <chart:LolloChart Grid.Row="1" Grid.Column="1" x:Name="Route0Chart" 
 					ChartTapped="OnRoute0ChartTapped"
 					Title="Route"
 					TitleStyle="{StaticResource BaseMessageStyle}"
 					RightColumnWidth="10"
                     Foreground="{StaticResource Route0BrushOpaque}"
-					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
+					MaxHeight="{Binding ElementName=LayoutRoot, Path=ActualHeight}"/>
                 <chart:LolloChart Grid.Row="2" Grid.Column="1" x:Name="CheckpointsChart"
 					ChartTapped="OnCheckpointsChartTapped"
 					Title="Checkpoints"
 					TitleStyle="{StaticResource BaseMessageStyle}"
 					RightColumnWidth="10"
                     Foreground="{StaticResource CheckpointBrushOpaque}"
-					MaxHeight="{Binding ElementName=RootGrid, Path=ActualHeight}"/>
+					MaxHeight="{Binding ElementName=LayoutRoot, Path=ActualHeight}"/>
             </Grid>
         </ScrollViewer>
     </Grid>

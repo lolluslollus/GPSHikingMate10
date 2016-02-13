@@ -1,6 +1,7 @@
 ﻿using LolloGPS.Data;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -79,7 +80,7 @@ namespace LolloGPS.Core
 			if (isDateTimeAlwaysPresent && sortIfRespectingDatesAndTimes && points.GetUpperBound(0) > 0) outPoints = Sort(points);
 			else outPoints = points;
 		}
-		private static bool GetDatesAndTimesAlwaysPresentAndDifferent(Collection<PointRecord> coll, bool respectDatesAndTimes)
+		private static bool GetDatesAndTimesAlwaysPresentAndDifferent(IReadOnlyCollection<PointRecord> coll, bool respectDatesAndTimes)
 		{
 			bool isDateTimeAlwaysPresent = true;
 			if (respectDatesAndTimes)
@@ -90,7 +91,7 @@ namespace LolloGPS.Core
 				}
 				else
 				{
-					if (coll.Any(t => t.TimePoint == null || t.TimePoint == default(DateTime) || t.TimePoint.Date == default(DateTime).Date))
+					if (coll.Any(t => t.TimePoint == default(DateTime) || t.TimePoint.Date == default(DateTime).Date))
 					{
 						isDateTimeAlwaysPresent = false;
 					}
@@ -127,7 +128,7 @@ namespace LolloGPS.Core
 
 			return sortedPoints;
 		}
-		class RectangularComparer : IComparer
+		private class RectangularComparer : IComparer
 		{
 			// maintain a reference to the 2-dimensional array being sorted
 			private readonly double[,] _myArray;

@@ -131,8 +131,8 @@ namespace UnitTestProject1
 
 		public class TileDownloaderMock : TileDownloader
 		{
-            int MinZoom;
-            int MaxZoom;
+            private readonly int MinZoom;
+			private readonly int MaxZoom;
             public TileDownloaderMock(double nwAlt, double nwLat, double nwLon, double seAlt, double seLat, double seLon, int minZoom, int maxZoom) : base(new GbbProvider(nwAlt, nwLat, nwLon, seAlt, seLat, seLon))
             {
                 MinZoom = minZoom;
@@ -162,8 +162,8 @@ namespace UnitTestProject1
 
         public class GbbProvider : IGeoBoundingBoxProvider
         {
-            BasicGeoposition nw = default(BasicGeoposition);
-            BasicGeoposition se = default(BasicGeoposition);
+            private BasicGeoposition nw = default(BasicGeoposition);
+			private BasicGeoposition se = default(BasicGeoposition);
 
             public GbbProvider(double nwAlt, double nwLat, double nwLon, double seAlt, double seLat, double seLon)
             {

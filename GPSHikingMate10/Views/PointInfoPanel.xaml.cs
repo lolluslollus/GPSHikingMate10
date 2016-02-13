@@ -18,6 +18,7 @@ namespace LolloGPS.Core
 		public event EventHandler PointChanged;
 
 		#region properties
+		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public MainVM MainVM
 		{
 			get { return (MainVM)GetValue(MainVMProperty); }
@@ -27,8 +28,10 @@ namespace LolloGPS.Core
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointInfoPanel), new PropertyMetadata(null, OnMainVM_Changed));
 		private static void OnMainVM_Changed(DependencyObject obj, DependencyPropertyChangedEventArgs args)
 		{
-			var instance = obj as BackOrientOpenObservControl;
-			instance.BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+			if (args.NewValue != args.OldValue)
+			{
+				(obj as BackOrientOpenObservControl).BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+			}
 		}
 
 
@@ -191,7 +194,7 @@ namespace LolloGPS.Core
 			}
 		}
 
-		HoldingTimer _holdingTimer = null;
+		private HoldingTimer _holdingTimer = null;
 		private void SkipWhenHolding(int step, Windows.UI.Xaml.Input.HoldingRoutedEventArgs e)
 		{
 			//Debug.WriteLine("HoldingState is " + e.HoldingState.ToString());

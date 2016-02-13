@@ -13,15 +13,14 @@ namespace LolloGPS.Core
 {
     public sealed partial class AboutPanel : UserControl
     {
-        public string AppName { get { return ConstantData.AppName; } }
-        public string AppVersion { get { return ConstantData.Version; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public string AppName => ConstantData.AppName; // LOLLO NOTE these are "expression bodies", apparently equivalent to a getter.
+	    public string AppVersion => ConstantData.Version;
+	    public RuntimeData RuntimeData => App.RuntimeData;
 
 
-        public AboutPanel()
+	    public AboutPanel()
         {
             InitializeComponent();
-            DataContext = RuntimeData;
         }
         private async void OnBuy_Click(object sender, RoutedEventArgs e)
         {

@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.UI.Core;
 using Utilz;
 using Windows.UI.Xaml;
 
@@ -42,7 +43,6 @@ namespace LolloGPS.Core
 		public AltitudeProfiles()
 		{
 			InitializeComponent();
-			DataContext = PersistentData;
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
@@ -196,16 +196,18 @@ namespace LolloGPS.Core
 				{
 					if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
 					{
-						Task centre = CentreOnSeriesAsync(PersistentData.SelectedSeries);
 						switch (PersistentData.SelectedSeries)
 						{
 							case PersistentData.Tables.History:
+								CentreOnHistoryAsync();
 								HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 								break;
 							case PersistentData.Tables.Route0:
+								CentreOnRoute0Async();
 								Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 								break;
 							case PersistentData.Tables.Checkpoints:
+								CentreOnCheckpointsAsync();
 								CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
 								break;
 							case PersistentData.Tables.Nil:
@@ -333,15 +335,15 @@ namespace LolloGPS.Core
 			}
 		}
 
-		private async Task<bool> GetIsVisibleAsync()
-		{
-			bool isVisible = false;
-			await RunInUiThreadAsync(delegate
-			{
-				isVisible = (Visibility == Visibility.Visible);
-			}).ConfigureAwait(false);
-			return isVisible;
-		}
+		//private async Task<bool> GetIsVisibleAsync()
+		//{
+		//	bool isVisible = false;
+		//	await RunInUiThreadAsync(delegate
+		//	{
+		//		isVisible = (Visibility == Visibility.Visible);
+		//	}).ConfigureAwait(false);
+		//	return isVisible;
+		//}
 		private async Task DrawHistoryAsync()
 		{
 			try
@@ -487,7 +489,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				return RunInUiThreadAsync(delegate
+				return RunInUiThreadIdleAsync(delegate
 				{
 					if (PersistentData?.IsShowingAltitudeProfiles == true && HistoryChart.Visibility == Visibility.Visible)
 					{
@@ -499,14 +501,14 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.CompletedTask; // to respect the form of the output
+			return Task.CompletedTask;
 		}
 
 		public Task CentreOnRoute0Async()
 		{
 			try
 			{
-				return RunInUiThreadAsync(delegate
+				return RunInUiThreadIdleAsync(delegate
 				{
 					if (PersistentData?.IsShowingAltitudeProfiles == true && Route0Chart.Visibility == Visibility.Visible)
 					{
@@ -519,14 +521,14 @@ namespace LolloGPS.Core
 			{
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
-			return Task.CompletedTask; // to respect the form of the output
+			return Task.CompletedTask;
 		}
 
 		public Task CentreOnCheckpointsAsync()
 		{
 			try
 			{
-				return RunInUiThreadAsync(delegate
+				return RunInUiThreadIdleAsync(delegate
 				{
 					if (PersistentData?.IsShowingAltitudeProfiles == true && CheckpointsChart.Visibility == Visibility.Visible)
 					{
@@ -543,14 +545,6 @@ namespace LolloGPS.Core
 			return Task.CompletedTask;
 		}
 
-		public Task CentreOnSeriesAsync(PersistentData.Tables series)
-		{
-			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
-			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
-			else return Task.CompletedTask;
-		}
-
 		public Task CentreOnTargetAsync()
 		{
 			return Task.CompletedTask; // altitude profiles has no target
@@ -565,7 +559,10 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
+				return RunInUiThreadIdleAsync(delegate
+				{
+					MyScrollViewer.ChangeView(0.0, 0.0, 1, false);
+				});
 			}
 			catch { }
 			return Task.CompletedTask;

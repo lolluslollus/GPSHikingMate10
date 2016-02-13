@@ -284,7 +284,7 @@ namespace LolloGPS.Core
 						if (cancToken != null && !cancToken.IsCancellationRequested)
 						{
 							// we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
-							Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, (tile) =>
+							Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, tile =>
 							{
 								bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom, cancToken).Result;
 								if (isOk) currentOkCnt++;
@@ -361,7 +361,7 @@ namespace LolloGPS.Core
 				cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
 				var cancToken = cancTokenSourceLinked.Token;
 
-				if (cancToken != null && !cancToken.IsCancellationRequested
+				if (!cancToken.IsCancellationRequested
 					&& session != null
 					&& (session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
 				{

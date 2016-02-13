@@ -114,63 +114,62 @@ namespace LolloGPS.Data
 		}
 		private static void CloneNonDbProperties_internal(PersistentData source, ref PersistentData target)
 		{
-			if (source != null && target != null)
+			if (source == null || target == null) return;
+
+			PointRecord.Clone(source.Selected, ref target._selected);
+			target.RaisePropertyChanged(nameof(Selected));
+
+			if (!source.Target.IsEmpty()) PointRecord.Clone(source.Target, ref target._target);
+			target.RaisePropertyChanged(nameof(Target));
+
+			target.SelectedSeries = source.SelectedSeries;
+			target.BackgroundUpdatePeriodInMinutes = source.BackgroundUpdatePeriodInMinutes;
+			target.DesiredAccuracyInMeters = source.DesiredAccuracyInMeters;
+			target.ReportIntervalInMilliSec = source.ReportIntervalInMilliSec;
+			// target.LastMessage = source.LastMessage; // we don't want to repeat the last message whenever one starts the app
+			target.IsTracking = source.IsTracking;
+			target.IsBackgroundEnabled = source.IsBackgroundEnabled;
+			target.IsCentreOnCurrent = source.IsCentreOnCurrent;
+			target.IsShowAim = source.IsShowAim;
+			target.IsShowAimOnce = source.IsShowAimOnce;
+			target.IsShowSpeed = source.IsShowSpeed;
+			target.MapStyle = source.MapStyle;
+			target.MapLastLat = source.MapLastLat;
+			target.MapLastLon = source.MapLastLon;
+			target.MapLastHeading = source.MapLastHeading;
+			target.MapLastPitch = source.MapLastPitch;
+			target.MapLastZoom = source.MapLastZoom;
+			target.IsMapCached = source.IsMapCached;
+			target.IsTilesDownloadDesired = source.IsTilesDownloadDesired;
+			target.MaxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
+			target.TapTolerance = source.TapTolerance;
+			target.IsShowDegrees = source.IsShowDegrees;
+			target.IsKeepAlive = source.IsKeepAlive;
+			target.IsShowingAltitudeProfiles = source.IsShowingAltitudeProfiles;
+			target.SelectedPivotIndex = source.SelectedPivotIndex;
+			target.IsShowingPivot = source.IsShowingPivot;
+			target.IsBackButtonEnabled = source.IsBackButtonEnabled;
+			target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
+			target.AltLastVScroll = source.AltLastVScroll;
+			target.IsShowImperialUnits = source.IsShowImperialUnits;
+
+			TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
+			target.RaisePropertyChanged(nameof(TestTileSource));
+
+			TileSourceRecord.Clone(source.CurrentTileSource, ref target._currentTileSource);
+			target.RaisePropertyChanged(nameof(CurrentTileSource));
+
+			if (source.TileSourcez != null && source.TileSourcez.Count > 0) // start with the default values
 			{
-				PointRecord.Clone(source.Selected, ref target._selected);
-				target.RaisePropertyChanged(nameof(Selected));
-
-				if (!source.Target.IsEmpty()) PointRecord.Clone(source.Target, ref target._target);
-				target.RaisePropertyChanged(nameof(Target));
-
-				target.SelectedSeries = source.SelectedSeries;
-				target.BackgroundUpdatePeriodInMinutes = source.BackgroundUpdatePeriodInMinutes;
-				target.DesiredAccuracyInMeters = source.DesiredAccuracyInMeters;
-				target.ReportIntervalInMilliSec = source.ReportIntervalInMilliSec;
-				// target.LastMessage = source.LastMessage; // we don't want to repeat the last message whenever one starts the app
-				target.IsTracking = source.IsTracking;
-				target.IsBackgroundEnabled = source.IsBackgroundEnabled;
-				target.IsCentreOnCurrent = source.IsCentreOnCurrent;
-				target.IsShowAim = source.IsShowAim;
-				target.IsShowAimOnce = source.IsShowAimOnce;
-				target.IsShowSpeed = source.IsShowSpeed;
-				target.MapStyle = source.MapStyle;
-				target.MapLastLat = source.MapLastLat;
-				target.MapLastLon = source.MapLastLon;
-				target.MapLastHeading = source.MapLastHeading;
-				target.MapLastPitch = source.MapLastPitch;
-				target.MapLastZoom = source.MapLastZoom;
-				target.IsMapCached = source.IsMapCached;
-				target.IsTilesDownloadDesired = source.IsTilesDownloadDesired;
-				target.MaxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
-				target.TapTolerance = source.TapTolerance;
-				target.IsShowDegrees = source.IsShowDegrees;
-				target.IsKeepAlive = source.IsKeepAlive;
-				target.IsShowingAltitudeProfiles = source.IsShowingAltitudeProfiles;
-				target.SelectedPivotIndex = source.SelectedPivotIndex;
-				target.IsShowingPivot = source.IsShowingPivot;
-				target.IsBackButtonEnabled = source.IsBackButtonEnabled;
-				target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
-				target.AltLastVScroll = source.AltLastVScroll;
-				target.IsShowImperialUnits = source.IsShowImperialUnits;
-
-				TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
-				target.RaisePropertyChanged(nameof(TestTileSource));
-
-				TileSourceRecord.Clone(source.CurrentTileSource, ref target._currentTileSource);
-				target.RaisePropertyChanged(nameof(CurrentTileSource));
-
-				if (source.TileSourcez != null && source.TileSourcez.Count > 0) // start with the default values
+				foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
 				{
-					foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
-					{
-						target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
-					}
+					target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
 				}
-				target.RaisePropertyChanged(nameof(TileSourcez));
-
-				DownloadSession.Clone(source._lastDownloadSession, ref target._lastDownloadSession);
-				target.RaisePropertyChanged(nameof(LastDownloadSession));
 			}
+			target.RaisePropertyChanged(nameof(TileSourcez));
+
+			DownloadSession.Clone(source._lastDownloadSession, ref target._lastDownloadSession);
+			target.RaisePropertyChanged(nameof(LastDownloadSession));
 		}
 		static PersistentData()
 		{
@@ -493,13 +492,14 @@ namespace LolloGPS.Data
 					return _lastDownloadSession;
 				}
 			}
-			private set
+			private set // this lockless setter is only used by the serialiser
 			{
 				_lastDownloadSession = value;
 			}
 		}
 
 		private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
+		// this setter is only used by the serialiser
 		[DataMember]
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
@@ -785,25 +785,24 @@ namespace LolloGPS.Data
 		}
 		public static bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
 		{
-			if (dataRecord != null && !dataRecord.IsEmpty())
+			if (dataRecord == null || dataRecord.IsEmpty()) return false;
+
+			try
 			{
-				try
-				{
-					return DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
-				}
-				catch (IndexOutOfRangeException ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
-				catch (OutOfMemoryException ex)
-				{
-					var howMuchMemoryLeft = GC.GetTotalMemory(true);
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
-				catch (Exception ex)
-				{
-					Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				}
+				return DBManager.InsertIntoHistory(dataRecord, checkMaxEntries);
+			}
+			catch (IndexOutOfRangeException ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			catch (OutOfMemoryException ex)
+			{
+				var howMuchMemoryLeft = GC.GetTotalMemory(true);
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 			return false;
 		}
@@ -1094,7 +1093,7 @@ namespace LolloGPS.Data
 			if (_selectedSeries == Tables.Checkpoints) return Checkpoints[SelectedIndex_Base1 - 2];
 			return null;
 		}
-		private void SelectNeighbourRecord(Collection<PointRecord> series, Tables whichSeries, int step)
+		private void SelectNeighbourRecord(IList<PointRecord> series, Tables whichSeries, int step)
 		{
 			int newIndex = series.IndexOf(Selected) + step;
 			if (newIndex < 0) newIndex = 0;
@@ -1221,7 +1220,7 @@ namespace LolloGPS.Data
 				int howManyRecordsDeletedTotal = 0;
 				List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
 
-				if (folderNamesToBeDeleted?.Count > 0)
+				if (folderNamesToBeDeleted?.Any() == true)
 				{
 					var localFolder = ApplicationData.Current.LocalFolder;
 
@@ -1511,16 +1510,16 @@ namespace LolloGPS.Data
 		#endregion download session methods
 
 		#region otherMethods
-		private SemaphoreSlimSafeRelease GetSemaphoreForSeries(Tables whichSeries)
-		{
-			switch (whichSeries)
-			{
-				case Tables.History: return _historySemaphore;
-				case Tables.Route0: return _route0Semaphore;
-				case Tables.Checkpoints: return _checkpointsSemaphore;
-				default: return null;
-			}
-		}
+		//private SemaphoreSlimSafeRelease GetSemaphoreForSeries(Tables whichSeries)
+		//{
+		//	switch (whichSeries)
+		//	{
+		//		case Tables.History: return _historySemaphore;
+		//		case Tables.Route0: return _route0Semaphore;
+		//		case Tables.Checkpoints: return _checkpointsSemaphore;
+		//		default: return null;
+		//	}
+		//}
 		public SwitchableObservableCollection<PointRecord> GetSeries(Tables whichSeries)
 		{
 			if (whichSeries == Tables.History) return _history;

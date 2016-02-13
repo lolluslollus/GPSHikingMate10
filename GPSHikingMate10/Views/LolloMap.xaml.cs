@@ -256,7 +256,7 @@ namespace LolloGPS.Core
 			}
 			return Task.CompletedTask;
 		}
-		private Task CentreAsync(Collection<PointRecord> coll)
+		private Task CentreAsync(IReadOnlyList<PointRecord> coll)
 		{
 			try
 			{
@@ -1021,7 +1021,7 @@ namespace LolloGPS.Core
 		// LOLLO the mercator formulas are at http://wiki.openstreetmap.org/wiki/Mercator
 		// and http://wiki.openstreetmap.org/wiki/EPSG:3857
 		// and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
-		private enum DistanceUnits { Metres, Kilometres, Feet, Miles }
+		//private enum DistanceUnits { Metres, Kilometres, Feet, Miles }
 		private static void Calc(MapControl mapControl)
 		{
 			if (mapControl != null)

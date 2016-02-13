@@ -57,7 +57,7 @@ namespace LolloGPS.Core
 #endif
 		}
 
-		public enum YesNoError { Yes, No, Error };
+		public enum YesNoError { Yes, No, Error }
 		/// <summary>
 		/// This method must run in the UI thread
 		/// </summary>
@@ -156,14 +156,13 @@ namespace LolloGPS.Core
 		private volatile bool _isDataChangedHandlerActive = false;
 		private void AddHandlers()
 		{
-			if (!_isDataChangedHandlerActive)
-			{
-				_isDataChangedHandlerActive = true;
-				if (PersistentData != null) PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-				if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-				var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
-				if (naviManager != null) naviManager.BackRequested += OnTabletSoftwareButton_BackPressed;
-			}
+			if (_isDataChangedHandlerActive) return;
+
+			_isDataChangedHandlerActive = true;
+			if (PersistentData != null) PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
+			if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
+			var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
+			if (naviManager != null) naviManager.BackRequested += OnTabletSoftwareButton_BackPressed;
 		}
 
 		private void RemoveHandlers()
@@ -270,7 +269,7 @@ namespace LolloGPS.Core
 
 		private async void OnLogButton_Click(object sender, RoutedEventArgs e)
 		{
-			string cnt = (sender as Button).Content.ToString();
+			string cnt = (sender as Button)?.Content?.ToString();
 			if (cnt == "FileError")
 			{
 				_mainVM.LogText = await Logger.ReadAsync(Logger.FileErrorLogFilename);

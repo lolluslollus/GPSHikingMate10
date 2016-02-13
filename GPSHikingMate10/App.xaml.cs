@@ -270,6 +270,7 @@ namespace LolloGPS.Core
 				Logger.AppEventsLogFilename,
 				Logger.Severity.Info,
 				false);
+			Func<Task> centre = null;
 			try
 			{
 				await _resumingActivatingSemaphore.WaitAsync();
@@ -329,13 +330,21 @@ namespace LolloGPS.Core
 					// centre view on the file data
 					if (whichTables?.Count > 0)
 					{
-						if (whichTables[0] == PersistentData.Tables.Checkpoints)
+						if (whichTables[0] == PersistentData.Tables.Route0)
 						{
-							Task centreView = Task.Run(mainVM.CentreOnCheckpointsAsync);
+							centre = () => Task.Run(async delegate
+							{
+								await Task.Delay(1).ConfigureAwait(false);
+								await mainVM.CentreOnRoute0Async().ConfigureAwait(false);
+							});
 						}
-						else if (whichTables[0] == PersistentData.Tables.Route0)
+						else if (whichTables[0] == PersistentData.Tables.Checkpoints)
 						{
-							Task centreView = Task.Run(mainVM.CentreOnRoute0Async);
+							centre = () => Task.Run(async delegate
+							{
+								await Task.Delay(1).ConfigureAwait(false);
+								await mainVM.CentreOnCheckpointsAsync().ConfigureAwait(false);
+							});
 						}
 					}
 
@@ -353,6 +362,8 @@ namespace LolloGPS.Core
 				RuntimeData.SetIsDBDataRead_UI(true);
 
 				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+				centre?.Invoke();
 
 				IsFileActivating = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);

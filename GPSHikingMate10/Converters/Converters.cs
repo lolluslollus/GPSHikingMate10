@@ -729,7 +729,7 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null || !(value is TileSourceRecord)) return false;
+			if (!(value is TileSourceRecord)) return false;
 			var tileSource = (TileSourceRecord)value;
 			return new TextAndTag(tileSource.DisplayName, tileSource);
 		}

@@ -32,11 +32,7 @@ namespace LolloGPS.GPSInteraction
 		{
 			lock (_instanceLock)
 			{
-				if (_instance == null)
-				{
-					_instance = new GPSInteractor(persistentData);
-				}
-				return _instance;
+				return _instance ?? (_instance = new GPSInteractor(persistentData));
 			}
 		}
 		private GPSInteractor(IGpsDataModel persistentData)
@@ -154,25 +150,18 @@ namespace LolloGPS.GPSInteraction
 
 		private void AddHandlers_GetLocBackgroundTask()
 		{
-			if (!_isGetLocTaskHandlersActive)
-			{
-				if (_getlocBkgTask != null)
-				{
-					_isGetLocTaskHandlersActive = true;
-					GetLocBackgroundTaskSemaphoreManager.TryWait();
-					_getlocBkgTask.Completed += OnGetLocBackgroundTaskCompleted;
-				}
-			}
+			if (_isGetLocTaskHandlersActive || _getlocBkgTask == null) return;
+
+			_isGetLocTaskHandlersActive = true;
+			GetLocBackgroundTaskSemaphoreManager.TryWait();
+			_getlocBkgTask.Completed += OnGetLocBackgroundTaskCompleted;
 		}
 
 		private void RemoveHandlers_GetLocBackgroundTask()
 		{
-			if (_getlocBkgTask != null)
-			{
-				_getlocBkgTask.Completed -= OnGetLocBackgroundTaskCompleted;
-				_isGetLocTaskHandlersActive = false;
-			}
-			GetLocBackgroundTaskSemaphoreManager.Release();
+			if (_isGetLocTaskHandlersActive) GetLocBackgroundTaskSemaphoreManager.Release();
+			if (_getlocBkgTask != null) _getlocBkgTask.Completed -= OnGetLocBackgroundTaskCompleted;
+			_isGetLocTaskHandlersActive = false;
 		}
 		#endregion event handling
 
@@ -376,7 +365,7 @@ namespace LolloGPS.GPSInteraction
 			{
 				Tuple<bool, string> result = await TryOpenGetLocBackgroundTaskAsync().ConfigureAwait(false);
 				// in case of failure (eg the user revoked background permissions when the app was suspended or off), reset the variables
-				if (!result.Item1)
+				if (result?.Item1 == false)
 				{
 					CloseGetLocBackgroundTask_All();
 					// notify the user
@@ -385,9 +374,9 @@ namespace LolloGPS.GPSInteraction
 					// the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
 					// it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
 					// In any case, this change must take place on the UI thread, so no issue really.
-					IAsyncAction qqq = CoreApplication.MainView.CoreWindow.Dispatcher.RunIdleAsync((a) => _persistentData.IsBackgroundEnabled = false);
+					IAsyncAction qqq = CoreApplication.MainView.CoreWindow.Dispatcher.RunIdleAsync(a => _persistentData.IsBackgroundEnabled = false);
 				}
-				return result.Item1;
+				return result?.Item1 == true;
 			}
 			else
 			{

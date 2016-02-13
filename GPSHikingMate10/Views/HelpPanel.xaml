@@ -7,7 +7,7 @@
     xmlns:local="using:LolloGPS.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
+    DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="300"
@@ -38,7 +38,7 @@
             Margin="{StaticResource Thickness0404}"/>
 
 		<TextBlock Text="Basic operation"
-            Style="{StaticResource SampleHeaderTextStyle}"
+            Style="{StaticResource HeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
 		<TextBlock Text="Tap 'go to last' to centre the map on the last acquired point. Use the settings menu to centre the map automatically, whenever the app acquires your location."
             TextWrapping="Wrap"
@@ -73,7 +73,7 @@
             Foreground="{StaticResource CheckpointBrushOpaque}"/>
 
 		<TextBlock Text="Maps"
-            Style="{StaticResource SampleHeaderTextStyle}"
+            Style="{StaticResource HeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
 		<TextBlock Text="You can choose your own map tiles. Maps are made of tiles that are essentially 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
             TextWrapping="Wrap"
@@ -89,7 +89,7 @@
             Margin="{StaticResource Thickness0404}"/>
 
 		<TextBlock Text="Tracking"
-            Style="{StaticResource SampleHeaderTextStyle}"
+            Style="{StaticResource HeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
 		<TextBlock Text="Wherever you go, you can turn on the foreground tracking if you can afford draining your battery and want more frequent updates, or the background tracking to get fewer fixes and save the battery. The app remembers the tracking points and the points where you explicitly asked it to get a fix."
             TextWrapping="Wrap"
@@ -97,7 +97,7 @@
             Margin="{StaticResource Thickness0404}"/>
 
 		<TextBlock Text="Points"
-            Style="{StaticResource SampleHeaderTextStyle}"
+            Style="{StaticResource HeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
 		<TextBlock Text="Use the points panel to do geocaching or to set checkpoints before setting off on a trip. If you want to set several points, the aim tool will save you time. Press and hold it to get rid of it."
             TextWrapping="Wrap"
@@ -105,7 +105,7 @@
             Margin="{StaticResource Thickness0404}"/>
 
 		<TextBlock Text="Files"
-            Style="{StaticResource SampleHeaderTextStyle}"
+            Style="{StaticResource HeaderTextStyle}"
             Margin="{StaticResource Thickness0404}"/>
 		<TextBlock Text="Use the files panel to load or save stuff. To do so, the app uses the GPX format in two flavours: one for routes (used for tracking history and routes) and one for unsorted collections of points (used for checkpoints). Outside the app, you can go online and share those files, or load someone else's and open them with the app. Note that many web sites do not understand GPX but only its mother format XML, so the app cannot open those files right away. As a solution, save them locally and rename them so they end with '.gpx'."
             TextWrapping="Wrap"

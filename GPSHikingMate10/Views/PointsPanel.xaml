@@ -6,12 +6,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ctl="using:Utilz.Controlz"
-    UseLayoutRounding="True"
+	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
     mc:Ignorable="d"
     d:DesignHeight="800"
     d:DesignWidth="400">
 
-	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
+	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>

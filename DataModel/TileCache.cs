@@ -370,8 +370,7 @@ namespace LolloGPS.Data.TileCache
 					Debug.WriteLine("Exception in UpdateFileNameAsync(): " + ex.Message + ex.StackTrace);
 				}
 			}
-			if (output) Debug.WriteLine("The error was fixed");
-			else Debug.WriteLine("The error was not fixed");
+			Debug.WriteLine(output ? "The error was fixed" : "The error was not fixed");
 			return output;
 		}
 
@@ -464,8 +463,7 @@ namespace LolloGPS.Data.TileCache
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null) _instance = new TileCacheClearer();
-				return _instance;
+				return _instance ?? (_instance = new TileCacheClearer());
 			}
 		}
 
@@ -550,10 +548,7 @@ namespace LolloGPS.Data.TileCache
 			if (tileSource != null && !tileSource.IsNone && !tileSource.IsDefault)
 			{
 				if (writeAwayTheProps) await SetIsClearingCacheProps(tileSource, isAlsoRemoveSources).ConfigureAwait(false);
-				IsClearingScheduled = await _queue.TryScheduleTaskAsync(delegate
-				{
-					return ClearCacheAsync(tileSource, isAlsoRemoveSources);
-				}).ConfigureAwait(false);
+				IsClearingScheduled = await _queue.TryScheduleTaskAsync(() => ClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
 				return IsClearingScheduled;
 			}
 			return false;
@@ -620,8 +615,7 @@ namespace LolloGPS.Data.TileCache
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null) _instance = new TileCacheProcessingQueue();
-				return _instance;
+				return _instance ?? (_instance = new TileCacheProcessingQueue());
 			}
 		}
 
@@ -691,10 +685,7 @@ namespace LolloGPS.Data.TileCache
 					Task runFunc = Task.Run(async delegate // use separate thread to avoid deadlock
 					{
 						// the following will run after the current method is over because it queues before the semaphore.
-						await RunFunctionIfOpenAsyncT(delegate
-						{
-							return TryRunFuncAsSoonAsFree(); // will run now if the cache is free, otherwise later
-						}).ConfigureAwait(false);
+						await RunFunctionIfOpenAsyncT(TryRunFuncAsSoonAsFree).ConfigureAwait(false);
 					}, CancToken);
 
 					return true;

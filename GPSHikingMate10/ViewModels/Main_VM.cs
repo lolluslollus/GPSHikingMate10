@@ -19,6 +19,7 @@ using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace LolloGPS.Core
 {
@@ -475,9 +476,9 @@ namespace LolloGPS.Core
 					TestTileSourceErrorMsg = string.Empty; // ok
 					PersistentData.IsShowingPivot = false;
 				}
-				else TestTileSourceErrorMsg = result.Item2; // error
+				else TestTileSourceErrorMsg = result?.Item2; // error
 
-				SetLastMessage_UI(result.Item2);
+				SetLastMessage_UI(result?.Item2);
 			});
 		}
 		/// <summary>
@@ -550,10 +551,7 @@ namespace LolloGPS.Core
 		}
 		public Task SetCurrentTileSourceAsync(TileSourceRecord tileSource)
 		{
-			return RunFunctionIfOpenAsyncT(delegate
-			{
-				return PersistentData.SetCurrentTileSourceAsync(tileSource);
-			});
+			return RunFunctionIfOpenAsyncT(() => PersistentData.SetCurrentTileSourceAsync(tileSource));
 		}
 		#endregion services
 
@@ -579,13 +577,6 @@ namespace LolloGPS.Core
 			Task alt = _altitudeProfiles?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
 			Task map = _lolloMap?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
-		}
-		public Task CentreOnSeriesAsync(PersistentData.Tables series)
-		{
-			if (series == PersistentData.Tables.History) return CentreOnHistoryAsync();
-			else if (series == PersistentData.Tables.Route0) return CentreOnRoute0Async();
-			else if (series == PersistentData.Tables.Checkpoints) return CentreOnCheckpointsAsync();
-			else return Task.CompletedTask;
 		}
 		public Task CentreOnTargetAsync()
 		{
@@ -644,7 +635,7 @@ namespace LolloGPS.Core
 		/// <param name="fileCreationDateTime"></param>
 		/// <param name="file"></param>
 		/// <returns></returns>
-		private async Task ContinueAfterPickSaveSeriesToFileAsync(SwitchableObservableCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
+		private async Task ContinueAfterPickSaveSeriesToFileAsync(IReadOnlyCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file)
 		{
 			Logger.Add_TPL("ContinueAfterPickSaveSeriesToFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
@@ -669,7 +660,7 @@ namespace LolloGPS.Core
 				// inform the user about the result
 				if (result != null && result.Item1) SetLastMessage_UI(result.Item2);
 				else if (whichSeries != PersistentData.Tables.Nil) SetLastMessage_UI(string.Format("could not save {0}", PersistentData.GetTextForSeries(whichSeries)));
-				else SetLastMessage_UI(string.Format("could not save file"));
+				else SetLastMessage_UI("could not save file");
 
 				IsSaving = false;
 			}
@@ -707,6 +698,8 @@ namespace LolloGPS.Core
 			Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			Tuple<bool, string> result = Tuple.Create(false, "");
+			Func<Task> centre = null;
+
 			try
 			{
 				if (file != null && whichSeries != PersistentData.Tables.Nil)
@@ -735,13 +728,21 @@ namespace LolloGPS.Core
 									int cntR = await PersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntR + " route0 points into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									_whichSeriesJustLoaded = PersistentData.Tables.Route0;
-									await CentreOnRoute0Async().ConfigureAwait(false);
+									centre = () => Task.Run(async delegate
+									{
+										await Task.Delay(1).ConfigureAwait(false);
+										await CentreOnRoute0Async().ConfigureAwait(false);
+									});
 									break;
 								case PersistentData.Tables.Checkpoints:
 									int cntC = await PersistentData.LoadCheckpointsFromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntC + " checkpoints into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									_whichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
-									await CentreOnCheckpointsAsync().ConfigureAwait(false);
+									centre = () => Task.Run(async delegate
+									{
+										await Task.Delay(1).ConfigureAwait(false);
+										await CentreOnCheckpointsAsync().ConfigureAwait(false);
+									});
 									break;
 								case PersistentData.Tables.Nil:
 									_whichSeriesJustLoaded = PersistentData.Tables.Nil;
@@ -767,6 +768,8 @@ namespace LolloGPS.Core
 				else SetLastMessage_UI("could not load file");
 
 				IsLoading = false;
+
+				centre?.Invoke();
 			}
 			Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
@@ -831,7 +834,6 @@ namespace LolloGPS.Core
 		Task CentreOnHistoryAsync();
 		Task CentreOnCheckpointsAsync();
 		Task CentreOnRoute0Async();
-		Task CentreOnSeriesAsync(PersistentData.Tables series);
 		Task CentreOnTargetAsync();
 		Task CentreOnCurrentAsync();
 		Task Goto2DAsync();

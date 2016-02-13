@@ -9,7 +9,7 @@
 	xmlns:customTriggers="using:Utilz"
 	xmlns:ctl="using:Utilz.Controlz"
 	mc:Ignorable="d"
-	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}}"
+	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
 	<ctl:ObservablePage.Resources>
@@ -209,7 +209,7 @@
 				</Grid>
 				<!-- icons for battery consuming functions -->
 				<StackPanel Margin="0" Padding="0" Orientation="Horizontal">
-					<AppBarButton Grid.Column="0"
+					<AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -217,7 +217,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
-					<AppBarButton Grid.Column="1"
+					<AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -225,7 +225,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>
-					<AppBarButton Grid.Column="2"
+					<AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -250,7 +250,6 @@
 					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
 						MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
-						DataContext="{Binding}"
 						PointChanged="OnInfoPanelPointChanged"/>
 				</Popup>
 				<!-- Map  -->
@@ -281,7 +280,8 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" 
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">

@@ -14,24 +14,24 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(SettingsPanel), new PropertyMetadata(null, OnVMChanged));
-		private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			if (args.NewValue != args.OldValue) (obj as SettingsPanel).UpdateDataContext();
-		}
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(SettingsPanel), new PropertyMetadata(null/*, OnVMChanged*/));
+		//private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		//{
+		//	if (args.NewValue != args.OldValue) (obj as SettingsPanel).UpdateDataContext();
+		//}
 
 
 		public SettingsPanel()
 		{
 			InitializeComponent();
-			UpdateDataContext();
+			//UpdateDataContext();
 		}
-		private void UpdateDataContext()
-		{
-			Task upd = RunInUiThreadAsync(delegate
-			{
-				LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
-			});
-		}
+		//private void UpdateDataContext()
+		//{
+		//	Task upd = RunInUiThreadAsync(delegate
+		//	{
+		//		LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
+		//	});
+		//}
 	}
 }

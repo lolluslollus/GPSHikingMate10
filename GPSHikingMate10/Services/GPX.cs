@@ -139,11 +139,7 @@ namespace GPX
 					if (xmlData != null)
 					{
 						XNamespace xn = xmlData.GetDefaultNamespace();
-						List<XElement> mapPoints = null;
-						if (whichTable == PersistentData.Tables.Checkpoints)
-							mapPoints = GetWpts_Checkpoints(xmlData, xn);
-						else
-							mapPoints = GetWpts_Route0(xmlData, xn);
+						List<XElement> mapPoints = whichTable == PersistentData.Tables.Checkpoints ? GetWpts_Checkpoints(xmlData, xn) : GetWpts_Route0(xmlData, xn);
 						cancToken.ThrowIfCancellationRequested();
 
 						foreach (XElement xe in mapPoints)
@@ -170,7 +166,7 @@ namespace GPX
 							var time = xe.Descendants(xn + "time").FirstOrDefault(); // Creation/modification timestamp for element. 
 							if (time != null) DateTime.TryParse(time.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timePoint);                     //Fractional seconds are allowed for millisecond timing in tracklogs. 
 
-							uint howManySatellites = default(UInt32);
+							uint howManySatellites = default(uint);
 							var sat = xe.Descendants(xn + "sat").FirstOrDefault();
 							if (sat != null) uint.TryParse(sat.Value, out howManySatellites);
 
@@ -269,7 +265,7 @@ namespace GPX
 		/// <param name="whichTable"></param>
 		/// <param name="cancToken"></param>
 		/// <returns></returns>
-		public static async Task<Tuple<bool, string>> SaveAsync(StorageFile gpxFile, Collection<PointRecord> coll, DateTime fileCreationDateTime, PersistentData.Tables whichTable, CancellationToken cancToken)
+		public static async Task<Tuple<bool, string>> SaveAsync(StorageFile gpxFile, IReadOnlyCollection<PointRecord> coll, DateTime fileCreationDateTime, PersistentData.Tables whichTable, CancellationToken cancToken)
 		{
 			string outMessage = string.Empty;
 			bool outIsOk = false;
@@ -328,14 +324,14 @@ namespace GPX
 			return Tuple.Create(outIsOk, outMessage);
 		}
 
-		private static void EditXmlData(Collection<PointRecord> coll, XmlDocument gpxDoc, PersistentData.Tables whichSeries, CancellationToken token)
+		private static void EditXmlData(IReadOnlyCollection<PointRecord> coll, XmlDocument gpxDoc, PersistentData.Tables whichSeries, CancellationToken token)
 		{
 			if (whichSeries == PersistentData.Tables.History || whichSeries == PersistentData.Tables.Route0)
 				EditXmlData_trk_trkseg_trkpt(coll, gpxDoc, token);
 			else
 				EditXmlData_wpt(coll, gpxDoc, token);
 		}
-		private static void EditXmlData_trk_trkseg_trkpt(Collection<PointRecord> coll, XmlDocument gpxDoc, CancellationToken token)
+		private static void EditXmlData_trk_trkseg_trkpt(IReadOnlyCollection<PointRecord> coll, XmlDocument gpxDoc, CancellationToken token)
 		{
 			var nodeTrkseg = gpxDoc.GetElementsByTagName("trkseg")[0];
 			object nameSpaceUri = gpxDoc.DocumentElement.GetAttribute("xmlns"); // we must use this and CreateElementNS, otherwise MS adds xmlns=\"\" and breaks the xml.
@@ -349,7 +345,7 @@ namespace GPX
 				token.ThrowIfCancellationRequested();
 			}
 		}
-		private static void EditXmlData_wpt(Collection<PointRecord> coll, XmlDocument gpxDoc, CancellationToken token)
+		private static void EditXmlData_wpt(IReadOnlyCollection<PointRecord> coll, XmlDocument gpxDoc, CancellationToken token)
 		{
 			var nodeGpx = gpxDoc.GetElementsByTagName("gpx")[0];
 			object nameSpaceUri = gpxDoc.DocumentElement.GetAttribute("xmlns"); // we must use this and CreateElementNS, otherwise MS adds xmlns=\"\" and breaks the xml.
@@ -428,7 +424,7 @@ namespace GPX
 			}
 		}
 
-		private static void EditXmlMetadata(Collection<PointRecord> coll, XmlDocument gpxDoc, DateTime fileCreationDateTime)
+		private static void EditXmlMetadata(IReadOnlyCollection<PointRecord> coll, XmlDocument gpxDoc, DateTime fileCreationDateTime)
 		{
 			if (coll != null && gpxDoc != null)
 			{

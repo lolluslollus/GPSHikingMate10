@@ -22,8 +22,7 @@ namespace Utilz
 		{
 			lock (_instanceLocker)
 			{
-				if (_instance == null) _instance = new Licenser();
-				return _instance;
+				return _instance ?? (_instance = new Licenser());
 			}
 		}
 		private Licenser() { }
@@ -191,8 +190,7 @@ namespace Utilz
 			var assetsFolder = await installLocationFolder.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
 			DateTimeOffset folderCreateDate = assetsFolder.DateCreated;
 
-			if (Package.Current.InstalledDate.IsBefore(folderCreateDate)) return Package.Current.InstalledDate;
-			else return folderCreateDate;
+			return Package.Current.InstalledDate.IsBefore(folderCreateDate) ? Package.Current.InstalledDate : folderCreateDate;
 		}
 		private static DateTimeOffset GetExpiryDate(LicenseInformation licenseInformation, DateTimeOffset installDate)
 		{

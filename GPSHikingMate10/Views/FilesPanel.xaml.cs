@@ -11,32 +11,38 @@ namespace LolloGPS.Core
 {
 	public sealed partial class FilesPanel : ObservableControl
 	{
+		#region properties
 		public MainVM MainVM
 		{
 			get { return (MainVM)GetValue(MainVMProperty); }
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null, OnVMChanged));
-		private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		{
-			if (args.NewValue != args.OldValue) (obj as FilesPanel).UpdateDataContext();
-		}
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null/*, OnVMChanged*/));
+		//private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
+		//{
+		//	if (args.NewValue != args.OldValue) (obj as FilesPanel).UpdateDataContext();
+		//}
+		#endregion properties
 
 
+		#region lifecycle
 		public FilesPanel()
 		{
 			InitializeComponent();
-			UpdateDataContext();
+			//UpdateDataContext();
 		}
-		private void UpdateDataContext()
-		{
-			Task upd = RunInUiThreadAsync(delegate
-			{
-				LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
-			});
-		}
+		//private void UpdateDataContext()
+		//{
+		//	Task upd = RunInUiThreadAsync(delegate
+		//	{
+		//		LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
+		//	});
+		//}
+		#endregion lifecycle
 
+
+		#region event handlers
 		private void OnCenterHistory_Click(object sender, RoutedEventArgs e)
 		{
 			Task ch = MainVM?.CentreOnHistoryAsync();
@@ -46,8 +52,8 @@ namespace LolloGPS.Core
 		{
 			//raise confirmation popup
 			var dialog = new MessageDialog("This will delete all the data. Are you sure?", "Confirm deletion");
-			UICommand yesCommand = new UICommand("Yes", (command) => { });
-			UICommand noCommand = new UICommand("No", (command) => { });
+			UICommand yesCommand = new UICommand("Yes", command => { });
+			UICommand noCommand = new UICommand("No", command => { });
 			dialog.Commands.Add(yesCommand);
 			dialog.Commands.Add(noCommand);
 			// Set the command that will be invoked by default
@@ -101,5 +107,6 @@ namespace LolloGPS.Core
 		{
 			Task sl = MainVM?.PickSaveSeriesToFileAsync(PersistentData.Tables.Checkpoints, "_" + ConstantData.APPNAME_ALL_IN_ONE + "_Checkpoints");
 		}
+		#endregion event handlers
 	}
 }

@@ -52,53 +52,52 @@ namespace BackgroundTasks
 				// only in the background task and only if called before GetDeferral and only if awaited
 				Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
 
-				if (!GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) // if app is not listening to this task. Otherwise, skip, the app will have to take care of it.
-				{
-					_taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
+				if (GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) return; // the app is running, it will catch the background task running: do nothing
 
-					// I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
-					//SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
+				_taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 
-					////step by step process
-					//Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
-					//Geoposition pos = null;
-					//if (geolocator != null)
-					//{
-					//	pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
-					//}
-					//PointRecord newDataRecord = null;
-					//if (pos != null)
-					//{
-					//	newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
-					//}
-					//bool isSaved = false;
-					//if (newDataRecord != null)
-					//{
-					//	isSaved = PersistentData.RunDbOpInOtherTask(delegate
-					//	{
-					//		return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
-					//	});
-					//}
+				// I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
+				//SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
 
-					// memory saving process
-					var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
-					var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
-					if (cancToken.IsCancellationRequested) return;
+				////step by step process
+				//Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
+				//Geoposition pos = null;
+				//if (geolocator != null)
+				//{
+				//	pos = await geolocator.GetGeopositionAsync().AsTask(token).ConfigureAwait(false);
+				//}
+				//PointRecord newDataRecord = null;
+				//if (pos != null)
+				//{
+				//	newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
+				//}
+				//bool isSaved = false;
+				//if (newDataRecord != null)
+				//{
+				//	isSaved = PersistentData.RunDbOpInOtherTask(delegate
+				//	{
+				//		return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
+				//	});
+				//}
 
-					bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
+				// memory saving process
+				var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
+				var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
+				if (cancToken.IsCancellationRequested) return;
+
+				bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
 #if DEBUG
-					if (isSaved)
-					{
-						Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
-						//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					}
-					else
-					{
-						Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
-						//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-					}
-#endif
+				if (isSaved)
+				{
+					Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
+					//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
 				}
+				else
+				{
+					Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
+					//    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
+				}
+#endif
 			}
 			catch (ObjectDisposedException) // comes from the cts
 			{
@@ -128,7 +127,7 @@ namespace BackgroundTasks
 			await Logger.AddAsync("Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = " + reason /*+ "; _isCancellationAllowedNow = " + _isCancellationAllowedNow*/, Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
 		}
 
-		private Task<Geoposition> GetGeopositionAsync(CancellationToken token)
+		private static Task<Geoposition> GetGeopositionAsync(CancellationToken token)
 		{
 			Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
 
