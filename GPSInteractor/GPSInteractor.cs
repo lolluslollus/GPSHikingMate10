@@ -158,9 +158,9 @@ namespace LolloGPS.GPSInteraction
 			{
 				if (_getlocBkgTask != null)
 				{
+					_isGetLocTaskHandlersActive = true;
 					GetLocBackgroundTaskSemaphoreManager.TryWait();
 					_getlocBkgTask.Completed += OnGetLocBackgroundTaskCompleted;
-					_isGetLocTaskHandlersActive = true;
 				}
 			}
 		}
@@ -183,7 +183,7 @@ namespace LolloGPS.GPSInteraction
 			{
 				try
 				{
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 					if (e != null)
 					{
 						var newDataRecord = GetNewHistoryRecord(e.Position);
@@ -231,9 +231,17 @@ namespace LolloGPS.GPSInteraction
 		#region background task
 		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
 		{
-			return (from cur in BackgroundTaskRegistration.AllTasks
-					where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
-					select cur.Value).FirstOrDefault();
+			//return (from cur in BackgroundTaskRegistration.AllTasks
+			//		where cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME
+			//		select cur.Value).FirstOrDefault();
+			foreach (var cur in BackgroundTaskRegistration.AllTasks)
+			{
+				if (cur.Value.Name == ConstantData.GET_LOCATION_BACKGROUND_TASK_NAME)
+				{
+					return cur.Value;
+				}
+			}
+			return null;
 		}
 
 		private async Task<Tuple<bool, string>> TryOpenGetLocBackgroundTaskAsync()
@@ -405,12 +413,12 @@ namespace LolloGPS.GPSInteraction
 
 				try
 				{
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 					if (_geolocator != null)
 					{
 						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
 						var newDataRecord = GetNewHistoryRecord(pos);
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested) return;
 						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
 						{
 							result = newDataRecord;

@@ -127,7 +127,7 @@ namespace LolloGPS.Data.TileCache
 
 		public async Task<Uri> GetTileUri(int x, int y, int z, int zoom, CancellationToken cancToken)
 		{
-			if (cancToken == null || cancToken.IsCancellationRequested) return null;
+			if (cancToken.IsCancellationRequested) return null;
 
 			// out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
 			// To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
@@ -200,7 +200,7 @@ namespace LolloGPS.Data.TileCache
 
 		public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
 		{
-			if (cancToken == null || cancToken.IsCancellationRequested) return false;
+			if (cancToken.IsCancellationRequested) return false;
 
 			// get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
 			string fileName = GetFileNameFromKey(x, y, z, zoom);
@@ -250,7 +250,7 @@ namespace LolloGPS.Data.TileCache
 
 		private async Task<bool> TrySaveTile2Async(string sWebUri, int x, int y, int z, int zoom, string fileName, CancellationToken cancToken)
 		{
-			if (cancToken == null || cancToken.IsCancellationRequested) return false;
+			if (cancToken.IsCancellationRequested) return false;
 			bool result = false;
 			int where = 0;
 
@@ -278,7 +278,7 @@ namespace LolloGPS.Data.TileCache
 
 				using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 				{
-					if (cancToken == null || cancToken.IsCancellationRequested) return false;
+					if (cancToken.IsCancellationRequested) return false;
 					if (IsWebResponseHeaderOk(response))
 					{
 						where = 3;
@@ -290,7 +290,7 @@ namespace LolloGPS.Data.TileCache
 							var newRecord = new TileCacheRecord(_tileSource.TechName, x, y, z, zoom) { FileName = fileName, Img = new byte[response.ContentLength] };
 							await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
 
-							if (cancToken == null || cancToken.IsCancellationRequested) return false;
+							if (cancToken.IsCancellationRequested) return false;
 							if (IsWebResponseContentOk(newRecord))
 							{
 								// If I am here, the file does not exist. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.

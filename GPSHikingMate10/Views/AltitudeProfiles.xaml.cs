@@ -400,12 +400,12 @@ namespace LolloGPS.Core
 			double maxAltitude = default(double), minAltitude = default(double), maxTime = default(double), minTime = default(double);
 			double[,] points = null;
 
-			if (CancToken == null || CancToken.IsCancellationRequested) return;
+			if (CancToken.IsCancellationRequested) return;
 
 			_altitudeProfilesVM.InitialiseChartData(coll, respectDatesAndTimes, sortIfRespectingDatesAndTimes,
 				ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref points);
 
-			if (CancToken == null || CancToken.IsCancellationRequested) return;
+			if (CancToken.IsCancellationRequested) return;
 
 			await RunInUiThreadAsync(delegate
 			{
@@ -424,7 +424,7 @@ namespace LolloGPS.Core
 #if DEBUG
 					Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
 					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
@@ -442,7 +442,7 @@ namespace LolloGPS.Core
 					chart.YPrimaryGridLines = new GridLines(yLabels);
 					chart.Y1GridLabels = PersistentData.IsShowImperialUnits ? new GridLabels(yLabels, "#0. ft") : new GridLabels(yLabels, "#0. m");
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					chart.Draw();
 

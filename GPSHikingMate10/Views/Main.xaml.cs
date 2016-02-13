@@ -71,12 +71,14 @@ namespace LolloGPS.Core
 				Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				if (_isOpen) return YesNoError.No;
 
+				var openMainVmMessage = PersistentData.LastMessage;
+
 				_mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles);
 				await _mainVM.OpenAsync();
 				RaisePropertyChanged_UI(nameof(MainVM));
 				await Task.Delay(1); // just in case
 
-				var openMainVmMessage = PersistentData.LastMessage;
+				openMainVmMessage = PersistentData.LastMessage.Equals(openMainVmMessage) ? string.Empty: PersistentData.LastMessage;
 
 				Task alt0 = UpdateAltitudeColumnWidthAsync();
 				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();

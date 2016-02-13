@@ -381,7 +381,7 @@ namespace LolloGPS.Core
 				//}
 				List<BasicGeoposition> basicGeoPositions = PersistentData.History.Select(item => new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude}).ToList();
 
-				if (CancToken == null || CancToken.IsCancellationRequested) return;
+				if (CancToken.IsCancellationRequested) return;
 
 				await RunInUiThreadAsync(delegate
 				{
@@ -406,7 +406,7 @@ namespace LolloGPS.Core
 						_iconEndHistory.Location = new Geopoint(lastGeoposition);
 					}
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					if (!_isHistoryInMap)
 					{
@@ -437,7 +437,7 @@ namespace LolloGPS.Core
 
 				List<BasicGeoposition> basicGeoPositions = PersistentData.Route0.Select(item => new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude}).ToList();
 
-				if (CancToken == null || CancToken.IsCancellationRequested) return;
+				if (CancToken.IsCancellationRequested) return;
 
 				await RunInUiThreadAsync(delegate
 				{
@@ -453,7 +453,7 @@ namespace LolloGPS.Core
 						_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
 					}
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					if (!_isRoute0InMap)
 					{
@@ -483,13 +483,13 @@ namespace LolloGPS.Core
 
 				List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() {Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude})).ToList();
 
-				if (CancToken == null || CancToken.IsCancellationRequested) return;
+				if (CancToken.IsCancellationRequested) return;
 
 				await RunInUiThreadAsync(delegate
 				{
 					InitCheckpoints();
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 #if DEBUG
 					Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -503,13 +503,17 @@ namespace LolloGPS.Core
 							j++; // MapElement is not a checkpoint: skip to the next element
 						}
 
-						(MyMap.MapElements[j] as MapIcon).Location = geoPoints[i];
-						//(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
-						MyMap.MapElements[j].Visible = true; // set it last, in the attempt of getting a little more speed
+						var mapIcon = MyMap.MapElements[j] as MapIcon;
+						if (mapIcon != null)
+						{
+							mapIcon.Location = geoPoints[i];
+							//(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+							mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed
+						}
 						j++;
 					}
 
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 
 					for (int i = geoPoints.Count; i < PersistentData.MaxRecordsInCheckpoints; i++)
 					{

@@ -653,10 +653,10 @@ namespace LolloGPS.Core
 			{
 				if (file != null && whichSeries != PersistentData.Tables.Nil)
 				{
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
 					{
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested) return;
 						SetLastMessage_UI("saving GPX file...");
 
 						result = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, CancToken).ConfigureAwait(false);
@@ -711,16 +711,16 @@ namespace LolloGPS.Core
 			{
 				if (file != null && whichSeries != PersistentData.Tables.Nil)
 				{
-					if (CancToken == null || CancToken.IsCancellationRequested) return;
+					if (CancToken.IsCancellationRequested) return;
 					await Task.Run(async delegate
 					{
 						SetLastMessage_UI("reading GPX file...");
 
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested) return;
 
 						// load the file
 						result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
-						if (CancToken == null || CancToken.IsCancellationRequested) return;
+						if (CancToken.IsCancellationRequested) return;
 						Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded series into db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 						// update the UI with the file data
@@ -790,14 +790,14 @@ namespace LolloGPS.Core
 
 				try
 				{
-					if (CancToken == null || CancToken.IsCancellationRequested) return result;
+					if (CancToken.IsCancellationRequested) return result;
 					SetLastMessage_UI("reading GPX file...");
 					// load the file, attempting to read checkpoints and route. GPX files can contain both.
-					StorageFile file_mt = args.Files[0] as StorageFile;
-					if (CancToken == null || CancToken.IsCancellationRequested) return result;
-					checkpointsResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Checkpoints, CancToken).ConfigureAwait(false);
-					if (CancToken == null || CancToken.IsCancellationRequested) return result;
-					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file_mt, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
+					StorageFile file = args.Files[0] as StorageFile;
+					if (CancToken.IsCancellationRequested) return result;
+					checkpointsResult = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Checkpoints, CancToken).ConfigureAwait(false);
+					if (CancToken.IsCancellationRequested) return result;
+					route0Result = await ReaderWriter.LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Route0, CancToken).ConfigureAwait(false);
 				}
 				catch (Exception) { }
 				finally

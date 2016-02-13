@@ -1229,7 +1229,7 @@ namespace LolloGPS.Data
 					{
 						try
 						{
-							if (cancToken == null || cancToken.IsCancellationRequested)
+							if (cancToken.IsCancellationRequested)
 								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							/*	Delete db entries first.
@@ -1240,7 +1240,7 @@ namespace LolloGPS.Data
 							 */
 							var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
-							if (cancToken == null || cancToken.IsCancellationRequested)
+							if (cancToken.IsCancellationRequested)
 								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
 							if (dbResult.Item1)

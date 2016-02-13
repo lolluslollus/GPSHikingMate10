@@ -383,7 +383,7 @@ namespace LolloGPS.Core
 							{
 								output.Add(new TileCacheRecord(session.TileSourceTechName, x, y, 0, zoom));
 								totalCnt++;
-								if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken == null || cancToken.IsCancellationRequested)
+								if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested)
 								{
 									exit = true;
 									break;
@@ -407,7 +407,7 @@ namespace LolloGPS.Core
 								}
 							}
 						}
-						if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken == null || cancToken.IsCancellationRequested) break;
+						if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested) break;
 					}
 				}
 			}
