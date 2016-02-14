@@ -23,7 +23,7 @@ using System.Collections.ObjectModel;
 
 namespace LolloGPS.Core
 {
-	public sealed class MainVM : OpenableObservableData, IBackPressedRaiser, IMapApController //, IFileActivatable
+	public sealed class MainVM : OpenableObservableData, IBackPressedRaiser
 	{
 		#region IBackPressedRaiser
 		public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
@@ -36,9 +36,9 @@ namespace LolloGPS.Core
 		//private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
-		private readonly IMapApController _lolloMap = null;
+		private readonly IMapAltProfCentrer _lolloMap = null;
 
-		private readonly IMapApController _altitudeProfiles = null;
+		private readonly IMapAltProfCentrer _altitudeProfiles = null;
 
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -138,15 +138,33 @@ namespace LolloGPS.Core
 		private string _logText;
 		public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
 
+		private readonly object _whichSeriesLocker = new object();
 		private PersistentData.Tables _whichSeriesJustLoaded = PersistentData.Tables.Nil;
-		public PersistentData.Tables WhichSeriesJustLoaded { get { return _whichSeriesJustLoaded; } }
+
+		public PersistentData.Tables WhichSeriesJustLoaded
+		{
+			get
+			{
+				lock (_whichSeriesLocker)
+				{
+					return _whichSeriesJustLoaded;
+				}
+			}
+			private set
+			{
+				lock (_whichSeriesLocker)
+				{
+					_whichSeriesJustLoaded = value;
+				}
+			}
+		}
 
 		//private bool _isPointInfoPanelOpen = false;
 		//public bool IsPointInfoPanelOpen { get { return _isPointInfoPanelOpen; } set { _isPointInfoPanelOpen = value; } }
 		#endregion properties
 
 		#region construct and dispose
-		public MainVM(bool isWideEnough, IMapApController lolloMap, IMapApController altitudeProfiles)
+		public MainVM(bool isWideEnough, IMapAltProfCentrer lolloMap, IMapAltProfCentrer altitudeProfiles)
 		{
 			_gpsInteractor = GPSInteractor.GetInstance(PersistentData);
 			_tileCacheClearer = TileCacheClearer.GetInstance();
@@ -159,7 +177,7 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				_whichSeriesJustLoaded = PersistentData.Tables.Nil;
+				WhichSeriesJustLoaded = PersistentData.Tables.Nil;
 
 				await _gpsInteractor.OpenAsync();
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
@@ -556,7 +574,7 @@ namespace LolloGPS.Core
 		#endregion services
 
 
-		#region IMapApController
+		#region IMapAltProfCentrer
 		public Task CentreOnRoute0Async()
 		{
 			PersistentData.IsShowingPivot = false;
@@ -578,6 +596,34 @@ namespace LolloGPS.Core
 			Task map = _lolloMap?.CentreOnCheckpointsAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
+		/// <summary>
+		/// This method calls a CenterOnSeries() with a delay, 
+		/// so that it happens after the controls have certainly read the data.
+		/// </summary>
+		/// <param name="series"></param>
+		public void CentreOnSeriesDelayed(PersistentData.Tables? series)
+		{
+			if (series == null) return;
+
+			Func<Task> centre = null;
+			if (series == PersistentData.Tables.Route0)
+			{
+				centre = () => Task.Run(async delegate
+				{
+					await Task.Delay(1).ConfigureAwait(false);
+					await CentreOnRoute0Async().ConfigureAwait(false);
+				});
+			}
+			else if (series == PersistentData.Tables.Checkpoints)
+			{
+				centre = () => Task.Run(async delegate
+				{
+					await Task.Delay(1).ConfigureAwait(false);
+					await CentreOnCheckpointsAsync().ConfigureAwait(false);
+				});
+			}
+			Task cc = centre?.Invoke();
+		}
 		public Task CentreOnTargetAsync()
 		{
 			PersistentData.IsShowingPivot = false;
@@ -598,7 +644,7 @@ namespace LolloGPS.Core
 			Task map = _lolloMap?.Goto2DAsync() ?? Task.CompletedTask;
 			return Task.WhenAll(alt, map);
 		}
-		#endregion IMapApController
+		#endregion IMapAltProfCentrer
 
 
 		#region save and load with picker
@@ -628,7 +674,8 @@ namespace LolloGPS.Core
 		}
 
 		/// <summary>
-		/// This method is called in a separate task on low-memory phones
+		/// This method is called in a separate task on low-memory phones.
+		/// It always runs under _isOpenSEmaphore.
 		/// </summary>
 		/// <param name="series"></param>
 		/// <param name="whichSeries"></param>
@@ -693,12 +740,18 @@ namespace LolloGPS.Core
 		// and AnalyticsVersionInfo.DeviceFamily
 		// for picker details
 
+		/// <summary>
+		/// This method is called in a separate task on low-memory phones.
+		/// It always runs under _isOpenSEmaphore.
+		/// </summary>
+		/// <param name="file"></param>
+		/// <param name="whichSeries"></param>
+		/// <returns></returns>
 		private async Task ContinueAfterPickLoadSeriesFromFileAsync(StorageFile file, PersistentData.Tables whichSeries)
 		{
 			Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
 			Tuple<bool, string> result = Tuple.Create(false, "");
-			Func<Task> centre = null;
 
 			try
 			{
@@ -721,34 +774,20 @@ namespace LolloGPS.Core
 						{
 							switch (whichSeries)
 							{
-								case PersistentData.Tables.History:
-									_whichSeriesJustLoaded = PersistentData.Tables.History;
-									break;
 								case PersistentData.Tables.Route0:
+									WhichSeriesJustLoaded = PersistentData.Tables.Route0;
 									int cntR = await PersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntR + " route0 points into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-									_whichSeriesJustLoaded = PersistentData.Tables.Route0;
-									centre = () => Task.Run(async delegate
-									{
-										await Task.Delay(1).ConfigureAwait(false);
-										await CentreOnRoute0Async().ConfigureAwait(false);
-									});
+									CentreOnSeriesDelayed(PersistentData.Tables.Route0);
 									break;
 								case PersistentData.Tables.Checkpoints:
+									WhichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
 									int cntC = await PersistentData.LoadCheckpointsFromDbAsync(false).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntC + " checkpoints into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-									_whichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
-									centre = () => Task.Run(async delegate
-									{
-										await Task.Delay(1).ConfigureAwait(false);
-										await CentreOnCheckpointsAsync().ConfigureAwait(false);
-									});
-									break;
-								case PersistentData.Tables.Nil:
-									_whichSeriesJustLoaded = PersistentData.Tables.Nil;
+									CentreOnSeriesDelayed(PersistentData.Tables.Checkpoints);
 									break;
 								default:
-									_whichSeriesJustLoaded = PersistentData.Tables.Nil;
+									WhichSeriesJustLoaded = PersistentData.Tables.Nil;
 									break;
 							}
 						}
@@ -768,8 +807,6 @@ namespace LolloGPS.Core
 				else SetLastMessage_UI("could not load file");
 
 				IsLoading = false;
-
-				centre?.Invoke();
 			}
 			Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 		}
@@ -829,7 +866,7 @@ namespace LolloGPS.Core
 		#endregion open app through file
 	}
 
-	public interface IMapApController
+	public interface IMapAltProfCentrer
 	{
 		Task CentreOnHistoryAsync();
 		Task CentreOnCheckpointsAsync();

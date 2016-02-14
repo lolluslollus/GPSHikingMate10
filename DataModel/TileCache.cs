@@ -700,7 +700,7 @@ namespace LolloGPS.Data.TileCache
 		/// <returns></returns>
 		private async Task<bool> TryRunFuncAsSoonAsFree()
 		{
-			if (_fileNamesInProcess.Count == 0 && _funcAsSoonAsFree != null)
+			if (!_fileNamesInProcess.Any() && _funcAsSoonAsFree != null)
 			{
 				try
 				{

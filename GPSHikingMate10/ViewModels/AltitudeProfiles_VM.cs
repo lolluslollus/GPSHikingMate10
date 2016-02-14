@@ -26,7 +26,7 @@ namespace LolloGPS.Core
 		internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes,
 			ref double maxAltitude, ref double minAltitude, ref double maxTime, ref double minTime, ref double[,] outPoints)
 		{
-			if (coll == null || coll.Count == 0) return;
+			if (coll == null || !coll.Any()) return;
 
 			Stopwatch sw0 = new Stopwatch(); sw0.Start();
 			bool isImperialUnits = PersistentData.GetInstance().IsShowImperialUnits;

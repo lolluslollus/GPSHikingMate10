@@ -159,7 +159,7 @@ namespace LolloGPS.Data
 			TileSourceRecord.Clone(source.CurrentTileSource, ref target._currentTileSource);
 			target.RaisePropertyChanged(nameof(CurrentTileSource));
 
-			if (source.TileSourcez != null && source.TileSourcez.Count > 0) // start with the default values
+			if (source.TileSourcez != null && source.TileSourcez.Any()) // start with the default values
 			{
 				foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
 				{
@@ -592,7 +592,7 @@ namespace LolloGPS.Data
 							else if (_selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
 
 							// if I have removed the last record from the series
-							if (series.Count == 0)
+							if (!series.Any())
 							{
 								Selected = new PointRecord();
 								SelectedIndex_Base1 = DefaultSelectedIndex_Base1;
@@ -809,9 +809,9 @@ namespace LolloGPS.Data
 
 		private void SetCurrentToLast()
 		{
-			if (History != null && History.Count > 0)
+			if (History != null && History.Any())
 			{
-				PointRecord newCurrent = History[History.Count - 1];
+				PointRecord newCurrent = History.LastOrDefault();
 				Current = newCurrent;
 			}
 		}
@@ -1033,25 +1033,25 @@ namespace LolloGPS.Data
 		public bool IsSelectedRecordFromAnySeriesFirst()
 		{
 			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[0].Equals(_selected);
-			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[0].Equals(_selected);
-			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[0].Equals(_selected);
+			else if (_selectedSeries == Tables.History && _history.Any()) return _history[0].Equals(_selected);
+			else if (_selectedSeries == Tables.Route0 && _route0.Any()) return _route0[0].Equals(_selected);
+			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints[0].Equals(_selected);
 			else return false;
 		}
 		public bool IsSelectedRecordFromAnySeriesLast()
 		{
 			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History && _history.Count > 0) return _history[_history.Count - 1].Equals(_selected);
-			else if (_selectedSeries == Tables.Route0 && _route0.Count > 0) return _route0[_route0.Count - 1].Equals(_selected);
-			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Count > 0) return _checkpoints[_checkpoints.Count - 1].Equals(_selected);
+			else if (_selectedSeries == Tables.History && _history.Any()) return _history.LastOrDefault()?.Equals(_selected) == true;
+			else if (_selectedSeries == Tables.Route0 && _route0.Any()) return _route0.LastOrDefault()?.Equals(_selected) == true;
+			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints.LastOrDefault()?.Equals(_selected) == true;
 			else return false;
 		}
 		public bool IsSelectedSeriesNonNullAndNonEmpty()
 		{
 			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History) return _history.Count > 0;
-			else if (_selectedSeries == Tables.Route0) return _route0.Count > 0;
-			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Count > 0;
+			else if (_selectedSeries == Tables.History) return _history.Any();
+			else if (_selectedSeries == Tables.Route0) return _route0.Any();
+			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Any();
 			else return false;
 		}
 		public void SelectRecordFromSeries(PointRecord dataRecord, Tables whichTable, int index = -1)
@@ -1548,7 +1548,7 @@ namespace LolloGPS.Data
 		//private static int GetIndexCheckingDateAscending(PointRecord dataRecord, PersistentData myData)
 		//{
 		//    int index = 0;
-		//    if (myData.History.Count > 0)
+		//    if (myData.History.Any())
 		//    {
 		//        try
 		//        {

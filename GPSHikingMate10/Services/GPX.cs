@@ -49,17 +49,18 @@ namespace GPX
 					token.ThrowIfCancellationRequested();
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Route0, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
-					if (newDataRecords == null || newDataRecords.Count < 1)
-					{
-						outMessage = "invalid route";
-						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-					}
-					else
+
+					if (newDataRecords?.Any() == true)
 					{
 						await PersistentData.SetRoute0InDBAsync(newDataRecords).ConfigureAwait(false);
 						Logger.Add_TPL("Route0 has been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " route points loaded";
+					}
+					else
+					{
+						outMessage = "invalid route";
+						Logger.Add_TPL("New route is empty, Route0 has not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					}
 				}
 				catch (Exception exc) // OutOfMemoryException
@@ -92,17 +93,18 @@ namespace GPX
 					token.ThrowIfCancellationRequested();
 					List<PointRecord> newDataRecords = await LoadDataRecordsAsync(gpxFile, PersistentData.Tables.Checkpoints, token).ConfigureAwait(false);
 					token.ThrowIfCancellationRequested();
-					if (newDataRecords == null || newDataRecords.Count < 1)
-					{
-						outMessage = "invalid checkpoints";
-						Logger.Add_TPL("New checkpoints are empty, checkpoints have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-					}
-					else
+
+					if (newDataRecords?.Any() == true)
 					{
 						await PersistentData.SetCheckpointsInDBAsync(newDataRecords).ConfigureAwait(false);
 						Logger.Add_TPL("Checkpoints have been set in DB", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 						outIsOk = true;
 						outMessage = newDataRecords.Count + " checkpoints loaded";
+					}
+					else
+					{
+						outMessage = "invalid checkpoints";
+						Logger.Add_TPL("New checkpoints are empty, checkpoints have not changed", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 					}
 				}
 				catch (Exception exc) // OutOfMemoryException
@@ -436,7 +438,7 @@ namespace GPX
 					nodeTime.FirstChild.NodeValue = fileCreationDateTime.ToUniversalTime().ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
 
 					XmlElement nodeBounds = nodeMetadata.GetElementsByTagName("bounds")[0] as XmlElement;
-					if (coll.Count > 0)
+					if (coll.Any())
 					{
 						nodeBounds.SetAttribute("minlat", coll.Min(a => a.Latitude).ToString(CultureInfo.InvariantCulture));
 						nodeBounds.SetAttribute("maxlat", coll.Max(a => a.Latitude).ToString(CultureInfo.InvariantCulture));

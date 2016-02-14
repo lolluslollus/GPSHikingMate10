@@ -29,11 +29,6 @@ namespace LolloGPS.Core
 		#endregion properties
 
 
-		#region events       
-		public event EventHandler CentreOnTargetRequested;
-		#endregion events
-
-
 		#region lifecycle
 		public PointsPanel()
 		{
@@ -179,7 +174,7 @@ namespace LolloGPS.Core
 
 		private void OnGotoTarget_Click(object sender, RoutedEventArgs e)
 		{
-			CentreOnTargetRequested?.Invoke(this, EventArgs.Empty);
+			Task cen = MainVM?.CentreOnTargetAsync();
 		}
 
 		private void OnSetTargetToCurrentPoint_Click(object sender, RoutedEventArgs e)

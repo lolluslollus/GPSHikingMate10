@@ -78,7 +78,7 @@ namespace LolloGPS.Core
 				RaisePropertyChanged_UI(nameof(MainVM));
 				await Task.Delay(1); // just in case
 
-				openMainVmMessage = PersistentData.LastMessage.Equals(openMainVmMessage) ? string.Empty: PersistentData.LastMessage;
+				openMainVmMessage = PersistentData.LastMessage.Equals(openMainVmMessage) ? string.Empty : PersistentData.LastMessage;
 
 				Task alt0 = UpdateAltitudeColumnWidthAsync();
 				Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
@@ -242,15 +242,6 @@ namespace LolloGPS.Core
 			Task go = _mainVM.CentreOnCurrentAsync();
 		}
 
-		private void OnPointsPanel_CentreOnTargetRequested(object sender, EventArgs e)
-		{
-			Task ct = _mainVM.CentreOnTargetAsync();
-		}
-		private void OnMapsGoto2DRequested(object sender, EventArgs e)
-		{
-			Task gt = _mainVM.Goto2DAsync();
-		}
-
 		private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
 		{
 			_mainVM.SetLastMessage_UI("Cancelling download");
@@ -350,15 +341,12 @@ namespace LolloGPS.Core
 		#region point info panel
 		public void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
-			if (PersistentData.IsShowingAltitudeProfiles) MyAltitudeProfiles.OnInfoPanelPointChanged(sender, e);
+			MyAltitudeProfiles.OnInfoPanelPointChanged(sender, e);
 			MyLolloMap.OnInfoPanelPointChanged(sender, e);
 
 			try
 			{
-				if (!PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
-				{
-					SelectedPointPopup.IsOpen = false;
-				}
+				if (PersistentData?.IsSelectedSeriesNonNullAndNonEmpty() == false) SelectedPointPopup.IsOpen = false;
 			}
 			catch (Exception ex)
 			{
@@ -376,7 +364,9 @@ namespace LolloGPS.Core
 		{
 			if (IsWideEnough || !PersistentData.IsShowingAltitudeProfiles)
 			{
-				Task centre = MyLolloMap.CentreOnSeriesAsync(e.SelectedSeries);
+				if (e.SelectedSeries == PersistentData.Tables.History) MyLolloMap.CentreOnHistoryAsync();
+				if (e.SelectedSeries == PersistentData.Tables.Route0) MyLolloMap.CentreOnRoute0Async();
+				if (e.SelectedSeries == PersistentData.Tables.Checkpoints) MyLolloMap.CentreOnCheckpointsAsync();
 			}
 			MyPointInfoPanel.SetDetails(e.SelectedRecord, e.SelectedSeries);
 			SelectedPointPopup.IsOpen = true;

@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Utilz;
 using Utilz.Data;
 using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
 {
-	public sealed class LolloMapVM : OpenableObservableData //, IMapApController
+	public sealed class LolloMapVM : OpenableObservableData
 	{
 		// http://josm.openstreetmap.de/wiki/Maps
 
@@ -167,7 +166,6 @@ namespace LolloGPS.Core
 				_isDataChangedHandlerActive = false;
 			}
 		}
-		//private TileSourceRecord _lastTileSource = TileSourceRecord.GetDefaultTileSource();
 
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{

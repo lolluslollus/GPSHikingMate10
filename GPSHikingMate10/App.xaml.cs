@@ -4,6 +4,7 @@ using LolloGPS.Suspension;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel;
@@ -270,7 +271,7 @@ namespace LolloGPS.Core
 				Logger.AppEventsLogFilename,
 				Logger.Severity.Info,
 				false);
-			Func<Task> centre = null;
+
 			try
 			{
 				await _resumingActivatingSemaphore.WaitAsync();
@@ -288,7 +289,7 @@ namespace LolloGPS.Core
 
 				if (args?.Files?[0]?.Path?.Length > 4 && args.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
 				{
-					Frame rootFrame = GetCreateRootFrame(args);
+					var rootFrame = GetCreateRootFrame(args);
 					if (!isAppAlreadyRunning)
 					{
 						NavigateToRootFrameContent(rootFrame);
@@ -328,25 +329,7 @@ namespace LolloGPS.Core
 					}
 
 					// centre view on the file data
-					if (whichTables?.Count > 0)
-					{
-						if (whichTables[0] == PersistentData.Tables.Route0)
-						{
-							centre = () => Task.Run(async delegate
-							{
-								await Task.Delay(1).ConfigureAwait(false);
-								await mainVM.CentreOnRoute0Async().ConfigureAwait(false);
-							});
-						}
-						else if (whichTables[0] == PersistentData.Tables.Checkpoints)
-						{
-							centre = () => Task.Run(async delegate
-							{
-								await Task.Delay(1).ConfigureAwait(false);
-								await mainVM.CentreOnCheckpointsAsync().ConfigureAwait(false);
-							});
-						}
-					}
+					mainVM.CentreOnSeriesDelayed(whichTables?.FirstOrDefault());
 
 					Logger.Add_TPL("OnFileActivated() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 				}
@@ -362,8 +345,6 @@ namespace LolloGPS.Core
 				RuntimeData.SetIsDBDataRead_UI(true);
 
 				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-				centre?.Invoke();
 
 				IsFileActivating = false;
 				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
@@ -460,14 +441,4 @@ namespace LolloGPS.Core
 		}
 		#endregion services
 	}
-
-	//interface IFileActivatable
-	//{
-	//	/// <summary>
-	//	/// This method is invoked when the app is opened via a file association
-	//	/// files
-	//	/// </summary>
-	//	/// <param name="args">Activated event args object that contains returned files from file open </param>
-	//	Task<List<PersistentData.Tables>> LoadFileIntoDbAsync(FileActivatedEventArgs args);
-	//}
 }

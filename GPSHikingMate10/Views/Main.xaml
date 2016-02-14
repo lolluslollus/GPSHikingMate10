@@ -280,7 +280,7 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel CentreOnTargetRequested="OnPointsPanel_CentreOnTargetRequested" 
+						<local:PointsPanel 
 							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
@@ -289,7 +289,8 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:FilesPanel MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+						<local:FilesPanel 
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
@@ -298,7 +299,6 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
 						<local:MapsPanel x:Name="MyMapsPanel"
-							Goto2DRequested="OnMapsGoto2DRequested" 
 							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
@@ -316,7 +316,8 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:SettingsPanel MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+						<local:SettingsPanel 
+							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
@@ -324,7 +325,7 @@
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:HelpPanel x:Name="MyHelpPanel"
+						<local:HelpPanel 
 							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>

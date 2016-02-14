@@ -18,7 +18,8 @@ namespace LolloGPS.Core
 		public event EventHandler PointChanged;
 
 		#region properties
-		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public PersistentData PersistentData => App.PersistentData;
+		// 		public PersistentData PersistentData { get { return App.PersistentData; } } // LOLLO NOTE replaced with an expression body
 		public MainVM MainVM
 		{
 			get { return (MainVM)GetValue(MainVMProperty); }
@@ -70,17 +71,13 @@ namespace LolloGPS.Core
 		#region user event handlers
 		private async void OnDeletePoint_Click(object sender, RoutedEventArgs e)
 		{
-			await PersistentData.GetInstance().DeleteSelectedPointFromSeriesAsync();
+			await PersistentData.DeleteSelectedPointFromSeriesAsync();
 			SetPointProperties();
 		}
 		private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			string currentText = (sender as TextBox).Text;
-			var persistentData = PersistentData.GetInstance();
-			if (persistentData != null)
-			{
-				Task upd = persistentData.Selected?.UpdateHumanDescriptionAsync(currentText, persistentData.SelectedSeries);
-			}
+			Task upd = PersistentData?.Selected?.UpdateHumanDescriptionAsync(currentText, PersistentData.SelectedSeries);
 		}
 
 		// horrid BODGE because TextBox with IsTabStop=False won't acquire focus (and won't show the keyboard, making it as dumb as a TextBlock)
@@ -94,26 +91,18 @@ namespace LolloGPS.Core
 		private void OnHyperlinkTextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			string currentText = (sender as TextBox).Text;
-			var persistentData = PersistentData.GetInstance();
-			if (persistentData != null)
-			{
-				Task upd = persistentData.Selected?.UpdateHyperlinkAsync(currentText, persistentData.SelectedSeries);
-			}
+			Task upd = PersistentData?.Selected?.UpdateHyperlinkAsync(currentText, PersistentData.SelectedSeries);
 		}
 
 		private void OnHyperlinkTextTextBox_LostFocus(object sender, RoutedEventArgs e)
 		{
 			string currentText = (sender as TextBox).Text;
-			var persistentData = PersistentData.GetInstance();
-			if (persistentData != null)
-			{
-				Task upd = persistentData.Selected?.UpdateHyperlinkTextAsync(currentText, persistentData.SelectedSeries);
-			}
+			Task upd = PersistentData?.Selected?.UpdateHyperlinkTextAsync(currentText, PersistentData.SelectedSeries);
 		}
 
 		private void OnHyperlink_Click(object sender, RoutedEventArgs e)
 		{
-			MainVM?.NavigateToUri(PersistentData.GetInstance()?.Selected?.HyperLink);
+			MainVM?.NavigateToUri(PersistentData?.Selected?.HyperLink);
 		}
 
 		private void OnGotoPrevious_Click(object sender, RoutedEventArgs e)
@@ -210,7 +199,7 @@ namespace LolloGPS.Core
 		}
 		private void SkipToRecord(int step)
 		{
-			PersistentData.GetInstance().SelectNeighbourRecordFromAnySeries(step);
+			PersistentData?.SelectNeighbourRecordFromAnySeries(step);
 			SetPointProperties();
 		}
 		#endregion user event handlers
@@ -224,8 +213,8 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync()
 		{
-			PersistentData.GetInstance().IsShowingPivot = false;
-			PersistentData.GetInstance().IsBackButtonEnabled = true;
+			PersistentData.IsShowingPivot = false;
+			PersistentData.IsBackButtonEnabled = true;
 			RuntimeData.GetInstance().IsAllowCentreOnCurrent = false;
 			UpdateWidth();
 			UpdateHeight();
@@ -237,7 +226,7 @@ namespace LolloGPS.Core
 			_holdingTimer?.Dispose();
 			_holdingTimer = null;
 
-			PersistentData.GetInstance().IsBackButtonEnabled = false;
+			PersistentData.IsBackButtonEnabled = false;
 			RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 
 			return base.CloseMayOverrideAsync();
@@ -268,8 +257,8 @@ namespace LolloGPS.Core
 		#region services
 		public void SetDetails(PointRecord selectedRecord, PersistentData.Tables selectedSeries)
 		{
-			List<PointRecord> selectedRecords = new List<PointRecord> {selectedRecord};
-			List<PersistentData.Tables> selectedSerieses = new List<PersistentData.Tables> {selectedSeries};
+			List<PointRecord> selectedRecords = new List<PointRecord> { selectedRecord };
+			List<PersistentData.Tables> selectedSerieses = new List<PersistentData.Tables> { selectedSeries };
 			SetDetails(selectedRecords, selectedSerieses);
 		}
 		/// <summary>
@@ -329,22 +318,20 @@ namespace LolloGPS.Core
 
 		private void SelectPoint(PointRecord dataRecord, PersistentData.Tables whichTable)
 		{
-			PersistentData myDataModel = PersistentData.GetInstance();
-			myDataModel.SelectRecordFromSeries(dataRecord, whichTable);
+			PersistentData?.SelectRecordFromSeries(dataRecord, whichTable);
 			SetPointProperties();
 		}
 
 		private void SetPointProperties()
 		{
-			PersistentData myDataModel = PersistentData.GetInstance();
-			if (myDataModel.IsSelectedSeriesNonNullAndNonEmpty())
+			if (PersistentData?.IsSelectedSeriesNonNullAndNonEmpty() == true)
 			{
-				IsGotoPreviousEnabled = !myDataModel.IsSelectedRecordFromAnySeriesFirst();
-				IsGotoNextEnabled = !myDataModel.IsSelectedRecordFromAnySeriesLast();
+				IsGotoPreviousEnabled = PersistentData?.IsSelectedRecordFromAnySeriesFirst() == false;
+				IsGotoNextEnabled = PersistentData.IsSelectedRecordFromAnySeriesLast() == false;
 				if (IsGotoPreviousEnabled)
 				{
-					var prev = myDataModel.GetRecordBeforeSelectedFromAnySeries();
-					var curr = myDataModel.Selected;
+					var prev = PersistentData?.GetRecordBeforeSelectedFromAnySeries();
+					var curr = PersistentData?.Selected;
 					if (prev != null && curr != null) DistanceMFromPrevious = DistanceMBetweenLocations.Calc(prev.Latitude, prev.Longitude, curr.Latitude, curr.Longitude); //.ToString("#0.###", CultureInfo.CurrentUICulture);
 				}
 			}

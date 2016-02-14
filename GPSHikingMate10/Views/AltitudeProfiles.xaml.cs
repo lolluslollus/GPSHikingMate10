@@ -4,7 +4,9 @@ using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 using Utilz;
@@ -18,7 +20,7 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class AltitudeProfiles : OpenableObservableControl, IMapApController, IInfoPanelEventReceiver
+	public sealed partial class AltitudeProfiles : OpenableObservableControl, IMapAltProfCentrer, IInfoPanelEventReceiver
 	{
 		#region properties
 		public MainVM MainVM
@@ -56,24 +58,28 @@ namespace LolloGPS.Core
 
 			AddHandlers();
 
-			//bool isVisible = await GetIsVisibleAsync();
-			if (!App.IsFileActivating)
-			{
-				if (PersistentData?.IsShowingAltitudeProfiles == true)
-				{
-					Task drawH = Task.Run(DrawHistoryAsync);
-				}
-				if (PersistentData?.IsShowingAltitudeProfiles == true && (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0))
-				{
-					Task drawR = Task.Run(DrawRoute0Async);
-				}
-				if (PersistentData?.IsShowingAltitudeProfiles == true && (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints))
-				{
-					Task drawC = Task.Run(DrawCheckpointsAsync);
-				}
+			// if the app is file activating, ignore the series that are already present; 
+			// the newly read series will draw automatically once they are pushed in and the chosen one will be centred with an external command.
+			if (App.IsFileActivating) return Task.CompletedTask;
 
-				Task restore = Task.Run(RestoreViewAsync);
+			// this panel may be hidden: if so, do not draw anything
+			if (!PersistentData.IsShowingAltitudeProfiles) return Task.CompletedTask;
+
+			Task drawH = Task.Run(DrawHistoryAsync);
+			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+			{
+				Task drawR = Task.Run(DrawRoute0Async);
 			}
+			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+			{
+				Task drawC = Task.Run(DrawCheckpointsAsync);
+			}
+			if (!App.IsResuming)
+			{
+				var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later
+				Task restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
+			}
+
 			return Task.CompletedTask;
 		}
 
@@ -140,46 +146,42 @@ namespace LolloGPS.Core
 					{
 						Task cen = CentreOnHistoryAsync();
 					}
-					//if (!MainVM.IsPointInfoPanelOpen)
-					//{
-					//	Task cross = RunInUiThreadAsync(delegate { HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.History.Count - 1, PersistentData.Current.Altitude); });
-					//}
 				});
 			}
 		}
-		private void OnHistory_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnHistory_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.History?.Count == 0)
+			if ((e.Action != NotifyCollectionChangedAction.Reset || !PersistentData.History.Any())
 				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawHistoryAsync().ConfigureAwait(false);
-					if (e.NewItems?.Count > 1) await CentreOnHistoryAsync().ConfigureAwait(false);
+					// if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnHistoryAsync().ConfigureAwait(false);
 				});
 			}
 		}
-		private void OnRoute0_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnRoute0_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Route0?.Count == 0)
+			if ((e.Action != NotifyCollectionChangedAction.Reset || !PersistentData.Route0.Any())
 				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawRoute0Async().ConfigureAwait(false);
-					if (e.NewItems?.Count > 1) await CentreOnRoute0Async().ConfigureAwait(false);
+					// if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnRoute0Async().ConfigureAwait(false);
 				});
 			}
 		}
-		private void OnCheckpoints_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void OnCheckpoints_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if ((e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Reset || PersistentData.Checkpoints?.Count == 0)
+			if ((e.Action != NotifyCollectionChangedAction.Reset || !PersistentData.Checkpoints.Any())
 				&& PersistentData.IsShowingAltitudeProfiles)
 			{
 				Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
 				{
 					await DrawCheckpointsAsync().ConfigureAwait(false);
-					if (e.NewItems?.Count > 1) await CentreOnCheckpointsAsync().ConfigureAwait(false);
+					// if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 				});
 			}
 		}
@@ -191,30 +193,40 @@ namespace LolloGPS.Core
 		{
 			Task cen = RunFunctionIfOpenAsyncA(delegate
 			{
-				if (!PersistentData.IsShowingAltitudeProfiles) return;
 				try
 				{
-					if (PersistentData.IsSelectedSeriesNonNullAndNonEmpty())
+					// leave if there is no selected point
+					if (!PersistentData.IsSelectedSeriesNonNullAndNonEmpty()) return;
+					// draw the selected point
+					switch (PersistentData.SelectedSeries)
 					{
-						switch (PersistentData.SelectedSeries)
-						{
-							case PersistentData.Tables.History:
-								CentreOnHistoryAsync();
-								HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-								break;
-							case PersistentData.Tables.Route0:
-								CentreOnRoute0Async();
-								Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-								break;
-							case PersistentData.Tables.Checkpoints:
-								CentreOnCheckpointsAsync();
-								CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
-								break;
-							case PersistentData.Tables.Nil:
-								break;
-							default:
-								break;
-						}
+						case PersistentData.Tables.History:
+							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							break;
+						case PersistentData.Tables.Route0:
+							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							break;
+						case PersistentData.Tables.Checkpoints:
+							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							break;
+						default:
+							break;
+					}
+					// if this panel is being displayed, centre it
+					if (!PersistentData.IsShowingAltitudeProfiles) return;
+					switch (PersistentData.SelectedSeries)
+					{
+						case PersistentData.Tables.History:
+							CentreOnHistoryAsync();
+							break;
+						case PersistentData.Tables.Route0:
+							CentreOnRoute0Async();
+							break;
+						case PersistentData.Tables.Checkpoints:
+							CentreOnCheckpointsAsync();
+							break;
+						default:
+							break;
 					}
 				}
 				catch (Exception ex)
@@ -232,15 +244,12 @@ namespace LolloGPS.Core
 				{
 					case PersistentData.Tables.History:
 						HistoryChart.UncrossPoint(HistoryChart.XY1DataSeries);
-						//HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.History.Count, PersistentData.Current.Altitude);
 						break;
 					case PersistentData.Tables.Route0:
 						Route0Chart.UncrossPoint(Route0Chart.XY1DataSeries);
 						break;
 					case PersistentData.Tables.Checkpoints:
 						CheckpointsChart.UncrossPoint(CheckpointsChart.XY1DataSeries);
-						break;
-					case PersistentData.Tables.Nil:
 						break;
 					default:
 						break;
@@ -313,20 +322,20 @@ namespace LolloGPS.Core
 
 
 		#region services
-		private async Task RestoreViewAsync()
+		private async Task RestoreViewCenteringAsync(PersistentData.Tables whichSeriesJustLoaded)
 		{
 			try
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				PersistentData.Tables whichSeriesJustLoaded = PersistentData.Tables.Nil;
-				// LOLLO NOTE dependency properties must be referenced in the UI thread
-				await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
+				//var whichSeriesJustLoaded = PersistentData.Tables.Nil;
+				//// LOLLO NOTE dependency properties (MainVM here) must be referenced in the UI thread
+				//await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
 
-				if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
-				else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);
-				else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnCheckpointsAsync().ConfigureAwait(false);
-				else await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true); }).ConfigureAwait(false);
+				if (whichSeriesJustLoaded == PersistentData.Tables.Nil) await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true); }).ConfigureAwait(false);
+				//else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
+				//else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);
+				//else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnCheckpointsAsync().ConfigureAwait(false);
 			}
 			catch { }
 			finally
@@ -484,7 +493,7 @@ namespace LolloGPS.Core
 		#endregion services
 
 
-		#region IMapApController
+		#region IMapAltProfCentrer
 		public Task CentreOnHistoryAsync()
 		{
 			try
@@ -567,6 +576,6 @@ namespace LolloGPS.Core
 			catch { }
 			return Task.CompletedTask;
 		}
-		#endregion IMapApController
+		#endregion IMapAltProfCentrer
 	}
 }
