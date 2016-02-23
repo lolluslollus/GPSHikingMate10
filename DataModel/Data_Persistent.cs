@@ -106,12 +106,12 @@ namespace LolloGPS.Data
 				return Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename);
 			}
 		}
-		public PersistentData CloneNonDbProperties()
-		{
-			PersistentData output = new PersistentData();
-			CloneNonDbProperties_internal(this, ref output);
-			return output;
-		}
+		//public PersistentData CloneNonDbProperties()
+		//{
+		//	PersistentData output = new PersistentData();
+		//	CloneNonDbProperties_internal(this, ref output);
+		//	return output;
+		//}
 		private static void CloneNonDbProperties_internal(PersistentData source, ref PersistentData target)
 		{
 			if (source == null || target == null) return;

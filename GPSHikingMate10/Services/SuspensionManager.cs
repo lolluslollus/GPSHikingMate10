@@ -95,7 +95,7 @@ namespace LolloGPS.Suspension
 
 		public static async Task SaveSettingsAsync(PersistentData allDataOriginal)
 		{
-			PersistentData allDataClone = allDataOriginal.CloneNonDbProperties();
+			//PersistentData allDataClone = allDataOriginal.CloneNonDbProperties();
 			//for (int i = 0; i < 100000000; i++) //wait a few seconds, for testing
 			//{
 			//    string aaa = i.ToString();
@@ -109,7 +109,7 @@ namespace LolloGPS.Suspension
 					// DataContractSerializer serializer = new DataContractSerializer(typeof(PersistentData), new DataContractSerializerSettings() { SerializeReadOnlyTypes = true });
 					// DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(PersistentData), _knownTypes);
 					// DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(PersistentData), new DataContractSerializerSettings() { KnownTypes = _knownTypes, SerializeReadOnlyTypes = true, PreserveObjectReferences = true });
-					sessionDataSerializer.WriteObject(memoryStream, allDataClone);
+					sessionDataSerializer.WriteObject(memoryStream, /*allDataClone*/ allDataOriginal);
 
 					StorageFile sessionDataFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
 						SessionDataFilename, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
