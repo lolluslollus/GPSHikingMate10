@@ -39,7 +39,7 @@ namespace LolloGPS.GPSInteraction
 		{
 			_persistentData = persistentData;
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await Task.Run(async delegate
 			{

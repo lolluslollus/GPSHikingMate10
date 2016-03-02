@@ -173,7 +173,7 @@ namespace LolloGPS.Core
 			_altitudeProfiles = altitudeProfiles;
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			try
 			{

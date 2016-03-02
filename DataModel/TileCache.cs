@@ -475,7 +475,7 @@ namespace LolloGPS.Data.TileCache
 
 
 		#region lifecycle
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			// open the queue so you can use it
 			await _queue.OpenAsync().ConfigureAwait(false);

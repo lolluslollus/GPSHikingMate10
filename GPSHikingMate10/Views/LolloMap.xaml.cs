@@ -150,7 +150,7 @@ namespace LolloGPS.Core
 																		//MyMap.MapElements.Clear(); // no!
 			_checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			Logger.Add_TPL("LolloMap started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			_isHistoryInMap = false;

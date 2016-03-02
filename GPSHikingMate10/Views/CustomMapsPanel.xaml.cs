@@ -28,7 +28,7 @@ namespace LolloGPS.Core
             InitializeComponent();
         }
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await ClearCustomCacheChooser.OpenAsync().ConfigureAwait(false);
 			await base.OpenMayOverrideAsync().ConfigureAwait(false);

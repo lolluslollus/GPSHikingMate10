@@ -128,7 +128,7 @@ namespace LolloGPS.Core
 		{
 			_gbbProvider = gbbProvider;
 		}
-		protected override Task OpenMayOverrideAsync()
+		protected override Task OpenMayOverrideAsync(object args = null)
 		{
 			App.ResumingStatic += OnResuming;
 			App.SuspendingStatic += OnSuspending;

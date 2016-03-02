@@ -37,7 +37,7 @@ namespace LolloGPS.Core
 			_mapTileSources = mapTileSources;
 			_tileDownloader = new TileDownloader(gbbProvider);
 		}
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();

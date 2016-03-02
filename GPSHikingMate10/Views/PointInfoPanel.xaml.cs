@@ -211,7 +211,7 @@ namespace LolloGPS.Core
 			UpdateWidth();
 			UpdateHeight();
 		}
-		protected override Task OpenMayOverrideAsync()
+		protected override Task OpenMayOverrideAsync(object args = null)
 		{
 			PersistentData.IsShowingPivot = false;
 			PersistentData.IsBackButtonEnabled = true;

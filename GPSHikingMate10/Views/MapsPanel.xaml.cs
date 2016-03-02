@@ -38,7 +38,7 @@ namespace LolloGPS.Core
 			InitializeComponent();
 		}
 
-		protected override async Task OpenMayOverrideAsync()
+		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
 			await MapSourceChooser.OpenAsync().ConfigureAwait(false);
 			await ZoomLevelChooser.OpenAsync().ConfigureAwait(false);

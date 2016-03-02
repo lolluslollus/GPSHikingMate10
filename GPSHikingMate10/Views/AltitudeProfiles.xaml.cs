@@ -46,7 +46,7 @@ namespace LolloGPS.Core
 		{
 			InitializeComponent();
 		}
-		protected override Task OpenMayOverrideAsync()
+		protected override Task OpenMayOverrideAsync(object args = null)
 		{
 			Logger.Add_TPL("AltitudeProfiles started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 			_altitudeProfilesVM = new AltitudeProfilesVM(MainVM);
