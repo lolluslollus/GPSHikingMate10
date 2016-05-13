@@ -161,6 +161,8 @@ namespace LolloGPS.Core
 			await _lolloMapVM.OpenAsync();
 			RaisePropertyChanged_UI(nameof(LolloMapVM));
 
+			await CompassControl.OpenAsync();
+
 			AddHandlers();
 
 			// if the app is file activating, ignore the series that are already present; 
@@ -200,6 +202,7 @@ namespace LolloGPS.Core
 				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
 			}
 
+			await CompassControl.CloseAsync();
 			await _lolloMapVM.CloseAsync().ConfigureAwait(false);
 		}
 		#endregion lifecycle

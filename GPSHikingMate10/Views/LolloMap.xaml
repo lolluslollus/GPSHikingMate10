@@ -5,6 +5,7 @@
 	xmlns:uctl="using:Utilz.Controlz"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:LolloGPS.Core"
+	xmlns:views="using:GPSHikingMate10.Views"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
@@ -46,6 +47,7 @@
 		<Canvas Canvas.ZIndex="200"
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				VerticalAlignment="Top" HorizontalAlignment="Left">
+			<views:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
 			<Image Canvas.Top="120" Canvas.Left="30"
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">

@@ -279,7 +279,9 @@ namespace LolloGPS.Data
 				new TileSourceRecord("UTTopoLight", "UT Topo Light (Norway)",
 					"http://a-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg", "http://ut.no/", 5, 16, 256, false),
 				new TileSourceRecord("FreemapSlovakia", "Freemap Slovakia",
-					"http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png", "http://www.freemap.sk/", 0, 17, 256, false)
+					"http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png", "http://www.freemap.sk/", 0, 17, 256, false),
+				new TileSourceRecord("UmpPoland", "Ump Poland",
+					"http://3.tiles.ump.waw.pl/ump_tiles/{zoomlevel}/{x}/{y}.png", "http://ump.waw.pl/", 1, 17, 256, false)
 			};
 
 

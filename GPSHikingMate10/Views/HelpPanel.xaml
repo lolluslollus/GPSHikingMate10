@@ -111,5 +111,13 @@
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             Margin="{StaticResource Thickness0404}"/>
+
+		<TextBlock Text="Compass"
+            Style="{StaticResource HeaderTextStyle}"
+            Margin="{StaticResource Thickness0404}"/>
+		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is unreliable, the compass will be opaque. Otherwise, it won't appear at all."
+            TextWrapping="Wrap"
+            Style="{StaticResource BaseMessageStyle}"
+            Margin="{StaticResource Thickness0404}"/>
 	</StackPanel>
 </UserControl>

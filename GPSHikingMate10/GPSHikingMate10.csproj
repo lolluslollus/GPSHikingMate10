@@ -99,6 +99,7 @@
     </Content>
     <Content Include="Assets\aimOnce-36.png" />
     <Content Include="Assets\compass-200.png" />
+    <Content Include="Assets\compass-outer-90.png" />
     <Content Include="Assets\Empty_trk_trkseg_trkpt.gpx" />
     <Content Include="Assets\Empty_wpt.gpx">
       <SubType>Designer</SubType>
@@ -125,6 +126,9 @@
     <Compile Include="ViewModels\Main_VM.cs" />
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AltitudeProfiles.xaml.cs" />
+    <Compile Include="Views\CompassControl.xaml.cs">
+      <DependentUpon>CompassControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CustomMapsPanel.xaml.cs" />
     <Compile Include="Views\FilesPanel.xaml.cs">
       <DependentUpon>FilesPanel.xaml</DependentUpon>
@@ -233,6 +237,10 @@
     <Page Include="Views\AltitudeProfiles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\CompassControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\CustomMapsPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
