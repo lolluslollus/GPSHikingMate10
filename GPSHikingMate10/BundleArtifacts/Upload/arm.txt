@@ -1,4 +1,4 @@
-MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.22.0_ARM.appx
+MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.23.0_ARM.appx
 ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\_scale-100.appx
 ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\_scale-125.appx
 ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\_scale-150.appx

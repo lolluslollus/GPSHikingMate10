@@ -1,1 +1,1 @@
-MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\x86\Release\Upload\GPSHikingMate10_1.1.22.0_x86.appx
+MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\x86\Release\Upload\GPSHikingMate10_1.1.23.0_x86.appx
