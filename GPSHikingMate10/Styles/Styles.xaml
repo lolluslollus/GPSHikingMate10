@@ -14,7 +14,9 @@
     
 	<x:Double x:Key="HistoryThickness">8</x:Double>
     <x:Double x:Key="Route0Thickness">10</x:Double>
-    
+	<x:Double x:Key="HistoryThickness_LargeScreen">16</x:Double>
+	<x:Double x:Key="Route0Thickness_LargeScreen">20</x:Double>
+
 	<Thickness x:Key="Thickness0">0, 0, 0, 0</Thickness>
 	<Thickness x:Key="Thickness2">2</Thickness>
 	<Thickness x:Key="Thickness1">1</Thickness>

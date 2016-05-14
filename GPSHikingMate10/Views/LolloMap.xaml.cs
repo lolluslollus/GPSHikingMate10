@@ -55,8 +55,7 @@ namespace LolloGPS.Core
 
 		private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
 		{
-			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["Route0Brush"])).Color,
-			StrokeThickness = (double)(Application.Current.Resources["Route0Thickness"]),
+			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["Route0Brush"])).Color,			
 			MapTabIndex = ROUTE0_TAB_INDEX,
 		};
 
@@ -72,7 +71,7 @@ namespace LolloGPS.Core
 		private readonly MapIcon _iconStartHistory = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)),
+			//Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)),
 			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
@@ -80,7 +79,7 @@ namespace LolloGPS.Core
 		private readonly MapIcon _iconEndHistory = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)),
+			//Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)),
 			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = true,
@@ -88,7 +87,7 @@ namespace LolloGPS.Core
 		private readonly MapIcon _iconFlyoutPoint = new MapIcon()
 		{
 			CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-			Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)),
+			//Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)),
 			MapTabIndex = START_STOP_TAB_INDEX,
 			NormalizedAnchorPoint = new Point(0.5, 0.625),
 			Visible = false,
@@ -136,6 +135,15 @@ namespace LolloGPS.Core
 		{
 			InitializeComponent();
 
+			bool isSmallScreen= GetIsSmallScreen();
+			_mapPolylineRoute0.StrokeThickness = isSmallScreen ? (double)(Application.Current.Resources["Route0Thickness"]) : (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
+			_mapPolylineHistory.StrokeThickness = isSmallScreen ? (double)(Application.Current.Resources["HistoryThickness"]) : (double)(Application.Current.Resources["HistoryThickness_LargeScreen"]);
+
+			_iconStartHistory.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
+			_iconEndHistory.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-72.png", UriKind.Absolute));
+			_iconFlyoutPoint.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-72.png", UriKind.Absolute));
+			_checkpointIconStreamReference = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png", UriKind.Absolute));
+
 			_myMapInstance = new WeakReference(MyMap);
 
 			MyMap.Style = PersistentData.MapStyle;
@@ -147,8 +155,17 @@ namespace LolloGPS.Core
 			MyMap.PedestrianFeaturesVisible = true;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
 			MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly; // .GestureAndControl;
-																		//MyMap.MapElements.Clear(); // no!
-			_checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
+																		//MyMap.MapElements.Clear(); // no!			
+		}
+		private bool GetIsSmallScreen()
+		{
+			double rawPixelsPerViewPixel = 1.0;
+			try
+			{
+				rawPixelsPerViewPixel = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().RawPixelsPerViewPixel;
+			}
+			catch { }
+			return rawPixelsPerViewPixel < 2.0;
 		}
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
