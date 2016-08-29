@@ -101,7 +101,7 @@ namespace LolloGPS.Core
 		//private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 		//private static List<Image> _checkpointImages = new List<Image>();
 
-		private readonly Point CHECKPOINTS_ANCHOR_POINT = new Point(0.5, 0.5);
+		private readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
 
 		public PersistentData PersistentData => App.PersistentData;
 		public RuntimeData RuntimeData => App.RuntimeData;
@@ -135,14 +135,14 @@ namespace LolloGPS.Core
 		{
 			InitializeComponent();
 
-			bool isSmallScreen= GetIsSmallScreen();
+			bool isSmallScreen = GetIsSmallScreen();
 			_mapPolylineRoute0.StrokeThickness = isSmallScreen ? (double)(Application.Current.Resources["Route0Thickness"]) : (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
 			_mapPolylineHistory.StrokeThickness = isSmallScreen ? (double)(Application.Current.Resources["HistoryThickness"]) : (double)(Application.Current.Resources["HistoryThickness_LargeScreen"]);
 
 			_iconStartHistory.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
 			_iconEndHistory.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-72.png", UriKind.Absolute));
 			_iconFlyoutPoint.Image = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-72.png", UriKind.Absolute));
-			_checkpointIconStreamReference = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png", UriKind.Absolute));
+			_checkpointIconStreamReference = isSmallScreen ? RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)) : RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-60.png", UriKind.Absolute));
 
 			_myMapInstance = new WeakReference(MyMap);
 
@@ -544,7 +544,7 @@ namespace LolloGPS.Core
 						Image = _checkpointIconStreamReference,
 						// Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)),
 						MapTabIndex = CHECKPOINT_TAB_INDEX,
-						NormalizedAnchorPoint = CHECKPOINTS_ANCHOR_POINT, // new Point(0.5, 0.5),
+						NormalizedAnchorPoint = _checkpointsAnchorPoint, // new Point(0.5, 0.5),
 						Visible = false
 					};
 

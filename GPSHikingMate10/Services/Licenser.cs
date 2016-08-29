@@ -38,12 +38,12 @@ namespace Utilz
 #if NOSTORE && !TRIALTESTING
 				return true;
 #endif
-				// if (Package.Current.IsDevelopmentMode) return true; // only available with win10
+				if (Package.Current.IsDevelopmentMode) return true; // only available with win10
 
 				// if (Package.Current.IsBundle) return true; // don't use it https://msdn.microsoft.com/library/windows/apps/hh975357(v=vs.120).aspx#Appx
 				//await LoadAppListingUriProxyFileAsync();
 				LicenseInformation licenseInformation = await GetLicenseInformation();
-				if (licenseInformation.IsActive)
+				if (licenseInformation?.IsActive == true)
 				{
 					if (licenseInformation.IsTrial)
 					{

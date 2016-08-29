@@ -1,16 +1,16 @@
 ﻿<ctl:ObservableControl
-    x:Class="LolloGPS.Core.SettingsPanel"
+	x:Class="LolloGPS.Core.SettingsPanel"
 	x:Name="me"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:LolloGPS.Core"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ctl="using:Utilz.Controlz"
 	DataContext="{Binding MainVM, RelativeSource={RelativeSource Self}, Mode=OneWay}"
-    mc:Ignorable="d"
-    d:DesignHeight="300"
-    d:DesignWidth="400">
+	mc:Ignorable="d"
+	d:DesignHeight="300"
+	d:DesignWidth="400">
 
 	<Grid x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
@@ -46,18 +46,24 @@
 								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
 								Margin="{StaticResource Thickness0404}"
 								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="0" Grid.Column="2"
-								  VerticalAlignment="Center"
-								  IsEnabled="{Binding GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
-								  IsOn="{Binding PersistentData.IsTracking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-		<Slider Grid.Row="1" Grid.Column="1" Margin="{StaticResource Thickness2}" 
-								Value="{Binding PersistentData.ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}" 
-								IsThumbToolTipEnabled="False"
-								Minimum="{Binding PersistentData.MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
-								Maximum="{Binding PersistentData.MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
-								SmallChange="1" LargeChange="3"
-								VerticalAlignment="Center"
-								IsEnabled="{Binding GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"/>
+		<ToggleSwitch Grid.Row="0" Grid.Column="2" 
+					IsEnabled="{Binding GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+					VerticalAlignment="Center"
+					IsOn="{Binding PersistentData.IsTracking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+		<ContentControl Grid.Row="1" Grid.Column="1"
+						IsEnabled="{Binding GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
+			<Slider Grid.Row="1" Grid.Column="1"
+					Margin="{StaticResource Thickness2}"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Stretch"
+					Value="{Binding PersistentData.ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}" 
+					IsThumbToolTipEnabled="False"
+					IsEnabled="{Binding PersistentData.IsTracking, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+					Minimum="{Binding PersistentData.MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
+					Maximum="{Binding PersistentData.MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}}" 
+					SmallChange="1" LargeChange="3"/>
+		</ContentControl>
 		<TextBlock Grid.Row="1" Grid.Column="2"
 								Text="{Binding PersistentData.ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}"
 								VerticalAlignment="Center"
@@ -71,15 +77,16 @@
 								VerticalAlignment="Center"/>
 		<ToggleSwitch Grid.Row="3" Grid.Column="2"
 								VerticalAlignment="Center"
-								IsOn="{Binding PersistentData.IsBackgroundEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+								IsOn="{Binding PersistentData.IsBackgroundEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 		<Slider Grid.Row="4" Grid.Column="1" 
-								Margin="{StaticResource Thickness2}"
-								Value="{Binding PersistentData.BackgroundUpdatePeriodInMinutes, Mode=TwoWay}"
-								Minimum="{Binding PersistentData.MinBackgroundUpdatePeriodInMinutesProp}" 
-								Maximum="{Binding PersistentData.MaxBackgroundUpdatePeriodInMinutesProp}" 
-								LargeChange="5"
-								IsThumbToolTipEnabled="False"
-								VerticalAlignment="Center"/>
+				Margin="{StaticResource Thickness2}"
+				Value="{Binding PersistentData.BackgroundUpdatePeriodInMinutes, Mode=TwoWay}"
+				Minimum="{Binding PersistentData.MinBackgroundUpdatePeriodInMinutesProp}" 
+				Maximum="{Binding PersistentData.MaxBackgroundUpdatePeriodInMinutesProp}" 
+				LargeChange="5"
+				IsThumbToolTipEnabled="False"
+				VerticalAlignment="Center"
+				IsEnabled="{Binding PersistentData.IsBackgroundEnabled, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
 		<TextBlock Grid.Row="4" Grid.Column="2"
 								Text="{Binding PersistentData.BackgroundUpdatePeriodInMinutes}"
 								VerticalAlignment="Center"

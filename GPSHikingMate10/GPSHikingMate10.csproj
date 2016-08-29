@@ -17,10 +17,10 @@
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <PackageCertificateKeyFile>GPSHikingMate10_StoreKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>GPSHikingMate10_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>B6D16CB7D97BB12E5CFD40C5F567B227876EF6F9</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>EFE264060703A0EDD342D56060D38DDFC49DE7FF</PackageCertificateThumbprint>
     <AppxBundle>Always</AppxBundle>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
@@ -164,6 +164,7 @@
     <Content Include="Assets\Icon.targetsize-256.png" />
     <Content Include="Assets\Icon.targetsize-48.png" />
     <Content Include="Assets\pointer_base-36.png" />
+    <Content Include="Assets\pointer_checkpoint-60.png" />
     <Content Include="Assets\pointer_checkpoint-40.png" />
     <Content Include="Assets\pointer_current-72.png" />
     <Content Include="Assets\pointer_current-36.png" />
