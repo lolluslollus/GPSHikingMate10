@@ -16,6 +16,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
+// LOLLO NOTE new app lifecycle https://msdn.microsoft.com/windows/uwp/launch-resume/app-lifecycle
+
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 // decent get started tutorial: http://msdn.microsoft.com/en-us/library/windows/apps/Hh986968.aspx
 // to request map token https://msdn.microsoft.com/en-us/library/windows/apps/xaml/mt219694.aspx
@@ -137,7 +139,8 @@ namespace LolloGPS.Core
 				false);
 
 			await OpenDataAsync();
-			if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
+			e.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
+			e.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
 
 			try
 			{
@@ -166,6 +169,17 @@ namespace LolloGPS.Core
 			RuntimeData.SetIsDBDataRead_UI(true);
 
 			Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+		}
+
+		/// <summary>
+		/// Let the app launch, then check if the license is OK. Otherwise, there will be trouble with the cert kit and light slowdowns on launch.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="args"></param>
+		private async void OnSplashScreen_Dismissed(SplashScreen sender, object args)
+		{
+			sender.Dismissed -= OnSplashScreen_Dismissed;
+			if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) await Quit();
 		}
 
 		/// <summary>

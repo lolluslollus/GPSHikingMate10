@@ -1159,7 +1159,6 @@ namespace LolloGPS.Data
 
 					await RunInUiThreadAsync(delegate
 					{
-						string successMessage = string.Format("Source {0} added", _testTileSource.DisplayName);
 						var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName);
 						if (recordsWithSameName != null)
 						{
@@ -1170,10 +1169,12 @@ namespace LolloGPS.Data
 							else if (recordsWithSameName.Count() == 1)
 							{
 								var recordWithSameName = recordsWithSameName.First();
-								if (recordWithSameName.IsDeletable)
+								if (recordWithSameName?.IsDeletable == true)
 								{
 									_tileSourcez.Remove(recordWithSameName);
-									successMessage = string.Format("Source {0} changed", _testTileSource.DisplayName);
+									Logger.Add_TPL(recordWithSameName.ToString() + " removed from _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
+									Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
+									result = Tuple.Create(true, string.Format("Source {0} changed", _testTileSource.DisplayName));
 								}
 								else
 								{
@@ -1181,16 +1182,18 @@ namespace LolloGPS.Data
 								}
 							}
 						}
-						if (result == null)
+						if (result == null || result.Item1)
 						{
 							TileSourceRecord newRecord = null;
 							TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
 							_tileSourcez.Add(newRecord);
 							Debug.WriteLine("_tileSourcez.Add(newRecord);");
+							Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
+							Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
 							RaisePropertyChanged(nameof(TileSourcez));
 							CurrentTileSource = newRecord;
 
-							result = Tuple.Create(true, successMessage);
+							if (result == null) result = Tuple.Create(true, string.Format("Source {0} added", _testTileSource.DisplayName));
 						}
 					}).ConfigureAwait(false);
 
