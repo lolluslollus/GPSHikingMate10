@@ -1101,8 +1101,14 @@ namespace LolloGPS.Core
 		private static double GetDistRounded(double distMetres)
 		{
 			string distMetres_String = Math.Truncate(distMetres).ToString(CultureInfo.InvariantCulture);
+
+			int howManyZeroesToBeAdded = distMetres_String.Length - 1;
+
 			string distStrRounded = distMetres_String.Substring(0, 1);
-			for (int i = 0; i < distMetres_String.Length - 1; i++)
+			if (distStrRounded == "3" || distStrRounded == "4") distStrRounded = "2";
+			else if (distStrRounded == "6" || distStrRounded == "7" || distStrRounded == "8" || distStrRounded == "9") distStrRounded = "5";
+
+			for (int i = 0; i < howManyZeroesToBeAdded; i++)
 			{
 				distStrRounded += "0";
 			}
@@ -1110,7 +1116,7 @@ namespace LolloGPS.Core
 			double.TryParse(distStrRounded, out distRounded);
 			return distRounded;
 		}
-
+		
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{
 			throw new Exception("should never get here");
