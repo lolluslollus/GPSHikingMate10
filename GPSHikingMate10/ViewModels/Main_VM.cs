@@ -502,6 +502,7 @@ namespace LolloGPS.Core
 		/// <summary>
 		/// Makes sure the numbers make sense:
 		/// their absolute value must not be too large or too small.
+		/// Numbers larger than the limit are set to 0.0. LOLLO TODO check this
 		/// </summary>
 		/// <param name="dblIn"></param>
 		/// <param name="isImperialUnits"></param>
@@ -516,14 +517,14 @@ namespace LolloGPS.Core
 			{
 				if (isImperialUnits)
 				{
-					if (dblIn > MAX_ALTITUDE_M_ABS) return MAX_ALTITUDE_FT_ABS;
-					if (dblIn < -MAX_ALTITUDE_M_ABS) return -MAX_ALTITUDE_FT_ABS;
+					if (dblIn > MAX_ALTITUDE_M_ABS) return 0.0; // MAX_ALTITUDE_FT_ABS;
+					if (dblIn < -MAX_ALTITUDE_M_ABS) return 0.0; // -MAX_ALTITUDE_FT_ABS;
 					return dblIn * ConstantData.M_TO_FOOT;
 				}
 				else
 				{
-					if (dblIn > MAX_ALTITUDE_M_ABS) return MAX_ALTITUDE_M_ABS;
-					if (dblIn < -MAX_ALTITUDE_M_ABS) return -MAX_ALTITUDE_M_ABS;
+					if (dblIn > MAX_ALTITUDE_M_ABS) return 0.0; // MAX_ALTITUDE_M_ABS;
+					if (dblIn < -MAX_ALTITUDE_M_ABS) return 0.0; // -MAX_ALTITUDE_M_ABS;
 					return dblIn;
 				}
 			}
