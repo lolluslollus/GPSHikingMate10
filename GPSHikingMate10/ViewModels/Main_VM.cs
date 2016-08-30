@@ -34,7 +34,7 @@ namespace LolloGPS.Core
 		private const double MIN_ALTITUDE_M_ABS = .1;
 		private const double MAX_ALTITUDE_M_ABS = 10000.0;
 		//private static readonly double MIN_ALTITUDE_FT_ABS = MIN_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
-		private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
+		//private static readonly double MAX_ALTITUDE_FT_ABS = MAX_ALTITUDE_M_ABS * ConstantData.M_TO_FOOT;
 
 		private readonly IMapAltProfCentrer _lolloMap = null;
 
