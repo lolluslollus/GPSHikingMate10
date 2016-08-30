@@ -1133,6 +1133,8 @@ namespace LolloGPS.Data
 		/// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
 		/// </summary>
 		/// <returns></returns>
+		// LOLLO TODO add a custom tile source, then use it and download a few tiles. Repeat. 
+		// The custom tile source will appear multiple times in the maps - available sources list: this is wrong.
 		public async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcezAsync()
 		{
 			try
@@ -1184,6 +1186,7 @@ namespace LolloGPS.Data
 							TileSourceRecord newRecord = null;
 							TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
 							_tileSourcez.Add(newRecord);
+							Debug.WriteLine("_tileSourcez.Add(newRecord);");
 							RaisePropertyChanged(nameof(TileSourcez));
 							CurrentTileSource = newRecord;
 
