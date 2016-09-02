@@ -250,8 +250,8 @@ namespace LolloGPS.Data
 					"http://openbusmap.org/", 3, 18, 256, false),
 				new TileSourceRecord("OpenSeaMap", "OpenSeaMap", "http://tiles.openseamap.org/seamark/{zoomlevel}/{x}/{y}.png",
 					"http://openseamap.org/?L=1", 9, 18, 256, false),
-				new TileSourceRecord("MapQuestOSM", "MapQuest OSM",
-					"http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoomlevel}/{x}/{y}.png", "http://www.mapquest.com/", 0, 18, 256, false),
+				//new TileSourceRecord("MapQuestOSM", "MapQuest OSM", // no more provided since mid 2016
+				//	"http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoomlevel}/{x}/{y}.png", "http://www.mapquest.com/", 0, 18, 256, false),
 				new TileSourceRecord("HikeBike", "Hike & Bike Map", "http://a.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png",
 					"http://hikebikemap.org/", 0, 16, 256, false),
 				new TileSourceRecord("ThunderforestLandscape", "Thunderforest Landscape",

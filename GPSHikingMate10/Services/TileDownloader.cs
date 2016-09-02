@@ -466,16 +466,16 @@ namespace LolloGPS.Core
 	}
 
 	/*
-     * Reproject the coordinates to the Mercator projection (from EPSG:4326 to EPSG:3857): 
-        x = lon
-        y = arsinh(tan(lat)) = log[tan(lat) + sec(lat)]
-        (lat and lon are in radians)
-     * Transform range of x and y to 0 – 1 and shift origin to top left corner: 
-        x = [1 + (x / π)] / 2
-        y = [1 − (y / π)] / 2
+	 * Reproject the coordinates to the Mercator projection (from EPSG:4326 to EPSG:3857): 
+		x = lon
+		y = arsinh(tan(lat)) = log[tan(lat) + sec(lat)]
+		(lat and lon are in radians)
+	 * Transform range of x and y to 0 – 1 and shift origin to top left corner: 
+		x = [1 + (x / π)] / 2
+		y = [1 − (y / π)] / 2
 
-     * Calculate the number of tiles across the map, n, using 2zoom
-     * Multiply x and y by n. Round results down to give tilex and tiley.
+	 * Calculate the number of tiles across the map, n, using 2zoom
+	 * Multiply x and y by n. Round results down to give tilex and tiley.
 */
 	// some more notes
 

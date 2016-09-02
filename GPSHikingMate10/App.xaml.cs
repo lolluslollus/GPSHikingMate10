@@ -244,7 +244,7 @@ namespace LolloGPS.Core
 					var main = (Window.Current.Content as Frame).Content as Main;
 					// Settings and data are already in.
 					// However, reread the history coz the background task may have changed it while I was suspended.
-					await PersistentData.LoadHistoryFromDbAsync(false);
+					await PersistentData.LoadHistoryFromDbAsync(false, false);
 					Logger.Add_TPL("OnResuming() has read history from db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 					// In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
 					// but I deregister them when suspending to make sure long running tasks are really stopped.
@@ -331,7 +331,7 @@ namespace LolloGPS.Core
 							// get file data from DB into UI
 							foreach (var series in whichTables)
 							{
-								await PersistentData.LoadSeriesFromDbAsync(series, false);
+								await PersistentData.LoadSeriesFromDbAsync(series, false, false);
 								Logger.Add_TPL("OnFileActivated() got series " + series.ToString() + " into PersistentData", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 							}
 						}

@@ -384,7 +384,7 @@
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}}"
-                Tapped="OnLastMessage_Tapped">
+				Tapped="OnLastMessage_Tapped">
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
@@ -403,7 +403,7 @@
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}}"
-                Tapped="OnLastMessage_Tapped">
+				Tapped="OnLastMessage_Tapped">
 				<TextBlock
 					TextWrapping="Wrap" 
 					Margin="{StaticResource Thickness1}" 
@@ -489,14 +489,14 @@
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Column="5"
-                HorizontalAlignment="Center"
+				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
 				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
 				Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
-                        Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+						Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
 				</AppBarButton.Icon>
 			</AppBarButton>
 		</Grid>
@@ -556,14 +556,14 @@
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Row="5"
-                HorizontalAlignment="Center"
+				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
 				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
-                Style="{StaticResource AppBarButtonRecoloured}">
+				Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
-                        Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+						Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
 				</AppBarButton.Icon>
 			</AppBarButton>
 		</Grid>

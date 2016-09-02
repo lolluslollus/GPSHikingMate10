@@ -152,6 +152,12 @@ namespace LolloGPS.Data
 			target.IsAllowMeteredConnection = source.IsAllowMeteredConnection;
 			target.AltLastVScroll = source.AltLastVScroll;
 			target.IsShowImperialUnits = source.IsShowImperialUnits;
+			target.HistoryAltitudeI0 = source.HistoryAltitudeI0;
+			target.HistoryAltitudeI1 = source.HistoryAltitudeI1;
+			target.Route0AltitudeI0 = source.Route0AltitudeI0;
+			target.Route0AltitudeI1 = source.Route0AltitudeI1;
+			target.CheckpointsAltitudeI0 = source.CheckpointsAltitudeI0;
+			target.CheckpointsAltitudeI1 = source.CheckpointsAltitudeI1;
 
 			TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
 			target.RaisePropertyChanged(nameof(TestTileSource));
@@ -527,19 +533,42 @@ namespace LolloGPS.Data
 		private bool _isShowImperialUnits = false;
 		[DataMember]
 		public bool IsShowImperialUnits { get { return _isShowImperialUnits; } set { if (_isShowImperialUnits != value) { _isShowImperialUnits = value; RaisePropertyChanged_UI(); RaisePropertyChanged_UI(nameof(Current)); } } }
+
+		private const int SeriesAltitudeI0Default = 0;
+		private const int SeriesAltitudeI1Default = int.MaxValue;
+		private int _historyAltitudeI0 = SeriesAltitudeI0Default;
+		[DataMember]
+		public int HistoryAltitudeI0 { get { return _historyAltitudeI0; } set { if (_historyAltitudeI0 != value && value > -1) { _historyAltitudeI0 = value; } } }
+		private int _historyAltitudeI1 = SeriesAltitudeI1Default;
+		[DataMember]
+		public int HistoryAltitudeI1 { get { return _historyAltitudeI1; } set { if (_historyAltitudeI1 != value && value > 0) { _historyAltitudeI1 = value; } } }
+
+		private int _route0AltitudeI0 = SeriesAltitudeI0Default;
+		[DataMember]
+		public int Route0AltitudeI0 { get { return _route0AltitudeI0; } set { if (_route0AltitudeI0 != value && value > -1) { _route0AltitudeI0 = value; } } }
+		private int _route0AltitudeI1 = SeriesAltitudeI1Default;
+		[DataMember]
+		public int Route0AltitudeI1 { get { return _route0AltitudeI1; } set { if (_route0AltitudeI1 != value && value > 0) { _route0AltitudeI1 = value; } } }
+
+		private int _checkpointsAltitudeI0 = SeriesAltitudeI0Default;
+		[DataMember]
+		public int CheckpointsAltitudeI0 { get { return _checkpointsAltitudeI0; } set { if (_checkpointsAltitudeI0 != value && value > -1) { _checkpointsAltitudeI0 = value; } } }
+		private int _checkpointsAltitudeI1 = SeriesAltitudeI1Default;
+		[DataMember]
+		public int CheckpointsAltitudeI1 { get { return _checkpointsAltitudeI1; } set { if (_checkpointsAltitudeI1 != value && value > 0) { _checkpointsAltitudeI1 = value; } } }
 		#endregion properties
 
 		#region all series methods
-		public Task LoadSeriesFromDbAsync(Tables whichTable, bool isShowMessageEvenIfSuccess)
+		public Task LoadSeriesFromDbAsync(Tables whichTable, bool isShowMessageEvenIfSuccess, bool isResetAltitideI0I1)
 		{
 			switch (whichTable)
 			{
 				case Tables.History:
-					return LoadHistoryFromDbAsync(isShowMessageEvenIfSuccess);
+					return LoadHistoryFromDbAsync(isShowMessageEvenIfSuccess, isResetAltitideI0I1);
 				case Tables.Route0:
-					return LoadRoute0FromDbAsync(isShowMessageEvenIfSuccess);
+					return LoadRoute0FromDbAsync(isShowMessageEvenIfSuccess, isResetAltitideI0I1);
 				case Tables.Checkpoints:
-					return LoadCheckpointsFromDbAsync(isShowMessageEvenIfSuccess);
+					return LoadCheckpointsFromDbAsync(isShowMessageEvenIfSuccess, isResetAltitideI0I1);
 				default:
 					return Task.CompletedTask;
 			}
@@ -663,10 +692,30 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(semaphore);
 			}
 		}
+		private void ResetSeriesAltitudeI0I1(Tables whichTable)
+		{
+			switch (whichTable)
+			{
+				case Tables.History:
+					HistoryAltitudeI0 = SeriesAltitudeI0Default;
+					HistoryAltitudeI1 = SeriesAltitudeI1Default;
+					return;
+				case Tables.Route0:
+					Route0AltitudeI0 = SeriesAltitudeI0Default;
+					Route0AltitudeI1 = SeriesAltitudeI1Default;
+					return;
+				case Tables.Checkpoints:
+					CheckpointsAltitudeI0 = SeriesAltitudeI0Default;
+					CheckpointsAltitudeI1 = SeriesAltitudeI1Default;
+					return;
+				default:
+					return;
+			}
+		}
 		#endregion all series methods
 
 		#region historyMethods
-		public async Task<int> LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadHistoryFromDbAsync(bool isShowMessageEvenIfSuccess, bool isResetAltitideI0I1)
 		{
 			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
@@ -674,7 +723,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _historySemaphore.WaitAsync().ConfigureAwait(false);
-
+				if (isResetAltitideI0I1) ResetSeriesAltitudeI0I1(Tables.History);
 				await RunInUiThreadAsync(delegate
 				{
 					try
@@ -715,6 +764,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _historySemaphore.WaitAsync();
+				ResetSeriesAltitudeI0I1(Tables.History);
 				await RunInUiThreadAsync(delegate
 				{
 					_history.Clear();
@@ -818,7 +868,7 @@ namespace LolloGPS.Data
 		#endregion historyMethods
 
 		#region route0Methods
-		public async Task<int> LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadRoute0FromDbAsync(bool isShowMessageEvenIfSuccess, bool isResetAltitideI0I1)
 		{
 			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetRoute0Async().ConfigureAwait(false);
@@ -826,7 +876,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _route0Semaphore.WaitAsync().ConfigureAwait(false);
-
+				if (isResetAltitideI0I1) ResetSeriesAltitudeI0I1(Tables.Route0);
 				await RunInUiThreadAsync(delegate
 				{
 					try
@@ -870,6 +920,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _route0Semaphore.WaitAsync();
+				ResetSeriesAltitudeI0I1(Tables.Route0);
 				await RunInUiThreadAsync(delegate
 				{
 					_route0.Clear();
@@ -885,7 +936,7 @@ namespace LolloGPS.Data
 		#endregion route0Methods
 
 		#region checkpointsMethods
-		public async Task<int> LoadCheckpointsFromDbAsync(bool isShowMessageEvenIfSuccess)
+		public async Task<int> LoadCheckpointsFromDbAsync(bool isShowMessageEvenIfSuccess, bool isResetAltitideI0I1)
 		{
 			int result = -1;
 			List<PointRecord> dataRecords = await DBManager.GetCheckpointsAsync().ConfigureAwait(false);
@@ -893,7 +944,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _checkpointsSemaphore.WaitAsync().ConfigureAwait(false);
-
+				if (isResetAltitideI0I1) ResetSeriesAltitudeI0I1(Tables.Checkpoints);
 				await RunInUiThreadAsync(delegate
 				{
 					try
@@ -933,6 +984,7 @@ namespace LolloGPS.Data
 			try
 			{
 				await _checkpointsSemaphore.WaitAsync();
+				ResetSeriesAltitudeI0I1(Tables.Checkpoints);
 				await RunInUiThreadAsync(delegate
 				{
 					_checkpoints.Clear();
@@ -1134,7 +1186,7 @@ namespace LolloGPS.Data
 		/// </summary>
 		/// <returns></returns>
 		// LOLLO TODO add a custom tile source, then use it and download a few tiles. Repeat. 
-		// The custom tile source will appear multiple times in the maps - available sources list: this is wrong.
+		// The custom tile source will appear multiple times in the maps - available sources list: this is wrong. Very difficult to reproduce!
 		public async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcezAsync()
 		{
 			try

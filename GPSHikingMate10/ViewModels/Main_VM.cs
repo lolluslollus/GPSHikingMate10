@@ -502,7 +502,7 @@ namespace LolloGPS.Core
 		/// <summary>
 		/// Makes sure the numbers make sense:
 		/// their absolute value must not be too large or too small.
-		/// Numbers larger than the limit are set to 0.0. LOLLO TODO check this
+		/// Numbers larger than the limit are set to 0.0.
 		/// </summary>
 		/// <param name="dblIn"></param>
 		/// <param name="isImperialUnits"></param>
@@ -777,13 +777,13 @@ namespace LolloGPS.Core
 							{
 								case PersistentData.Tables.Route0:
 									WhichSeriesJustLoaded = PersistentData.Tables.Route0;
-									int cntR = await PersistentData.LoadRoute0FromDbAsync(false).ConfigureAwait(false);
+									int cntR = await PersistentData.LoadRoute0FromDbAsync(false, true).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntR + " route0 points into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									CentreOnSeriesDelayed(PersistentData.Tables.Route0);
 									break;
 								case PersistentData.Tables.Checkpoints:
 									WhichSeriesJustLoaded = PersistentData.Tables.Checkpoints;
-									int cntC = await PersistentData.LoadCheckpointsFromDbAsync(false).ConfigureAwait(false);
+									int cntC = await PersistentData.LoadCheckpointsFromDbAsync(false, true).ConfigureAwait(false);
 									Logger.Add_TPL("ContinueAfterPickLoadSeriesFromFileAsync() loaded " + cntC + " checkpoints into UI", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 									CentreOnSeriesDelayed(PersistentData.Tables.Checkpoints);
 									break;

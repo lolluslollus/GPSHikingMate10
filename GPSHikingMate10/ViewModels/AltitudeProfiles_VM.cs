@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Utilz;
@@ -23,12 +24,27 @@ namespace LolloGPS.Core
 			MyMainVM = mainVM;
 		}
 
-		internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes,
-			ref double maxAltitude, ref double minAltitude, ref double maxTime, ref double minTime, ref double[,] outPoints)
+		internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes, int firstIndex, int lastIndex,
+			ref double maxAltitude, ref double minAltitude, ref double maxTime, ref double minTime, ref string maxTimeString, ref string minTimeString, ref double[,] boundPoints)
+		{
+			if (coll == null || !coll.Any()) return;
+#if DEBUG
+			Stopwatch sw0 = new Stopwatch(); sw0.Start();
+#endif
+			var collSubset = coll.Where((pointRecord, index) => { return index >= firstIndex && index <= lastIndex; }).ToList();
+			InitialiseChartDataWithinBounds(collSubset, respectDatesAndTimes, sortIfRespectingDatesAndTimes, firstIndex, lastIndex,
+				ref maxAltitude, ref minAltitude, ref maxTime, ref minTime, ref maxTimeString, ref minTimeString, ref boundPoints);
+#if DEBUG
+			sw0.Stop();
+			Debug.WriteLine(string.Format("Initialising chart data (including sorting) took {0} msec", sw0.ElapsedMilliseconds));
+#endif
+		}
+
+		private void InitialiseChartDataWithinBounds(IList<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes, int firstIndex, int lastIndex,
+			ref double maxAltitude, ref double minAltitude, ref double maxTime, ref double minTime, ref string maxTimeString, ref string minTimeString, ref double[,] outPoints)
 		{
 			if (coll == null || !coll.Any()) return;
 
-			Stopwatch sw0 = new Stopwatch(); sw0.Start();
 			bool isImperialUnits = PersistentData.GetInstance().IsShowImperialUnits;
 			double[,] points = new double[coll.Count, 2];
 
@@ -68,19 +84,32 @@ namespace LolloGPS.Core
 				}
 				if (minTime > maxTime) LolloMath.Swap(ref minTime, ref maxTime);
 			}
+			if (isDateTimeAlwaysPresent)
+			{
+				maxTimeString = DateTime.FromBinary(Convert.ToInt64(maxTime)).ToString(CultureInfo.CurrentUICulture);
+				minTimeString = DateTime.FromBinary(Convert.ToInt64(minTime)).ToString(CultureInfo.CurrentUICulture);
+			}
+			else
+			{
+				maxTimeString = lastIndex.ToString(CultureInfo.CurrentUICulture);
+				minTimeString = firstIndex.ToString(CultureInfo.CurrentUICulture);
+			}
 			if (minAltitude == maxAltitude)
 			{
 				minAltitude -= ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL;
 				maxAltitude += ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL;
 			}
-
-			sw0.Stop();
-			Debug.WriteLine(string.Format("Initialising chart data (excluding sorting) took {0} msec", sw0.ElapsedMilliseconds));
-
+#if DEBUG
+			Stopwatch sw0 = new Stopwatch(); sw0.Start();
+#endif
 			if (isDateTimeAlwaysPresent && sortIfRespectingDatesAndTimes && points.GetUpperBound(0) > 0) outPoints = Sort(points);
 			else outPoints = points;
+#if DEBUG
+			sw0.Stop();
+			Debug.WriteLine(string.Format("Sorting chart data took {0} msec", sw0.ElapsedMilliseconds));
+#endif
 		}
-		private static bool GetDatesAndTimesAlwaysPresentAndDifferent(IReadOnlyCollection<PointRecord> coll, bool respectDatesAndTimes)
+		private static bool GetDatesAndTimesAlwaysPresentAndDifferent(IList<PointRecord> coll, bool respectDatesAndTimes)
 		{
 			bool isDateTimeAlwaysPresent = true;
 			if (respectDatesAndTimes)
