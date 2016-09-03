@@ -10,6 +10,7 @@ using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
+using Windows.Devices.Input;
 using Windows.Phone.Devices.Notification;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -40,6 +41,8 @@ namespace LolloGPS.Core
 		public static RuntimeData RuntimeData { get { return _runtimeData; } }
 
 		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+		private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
+		public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
 		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
 		private static volatile bool _isResuming = false;
