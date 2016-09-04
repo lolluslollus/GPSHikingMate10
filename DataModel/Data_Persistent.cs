@@ -235,11 +235,11 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsBackButtonEnabled { get { return _isBackButtonEnabled; } set { _isBackButtonEnabled = value; RaisePropertyChanged_UI(); } }
 
-		private int _selectedPivotIndex = -1;
+		private volatile int _selectedPivotIndex = 1;
 		[DataMember]
 		public int SelectedPivotIndex { get { return _selectedPivotIndex; } set { if (_selectedPivotIndex != value) { _selectedPivotIndex = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isShowingAltitudeProfiles = false;
+		private volatile bool _isShowingAltitudeProfiles = false;
 		[DataMember]
 		public bool IsShowingAltitudeProfiles { get { return _isShowingAltitudeProfiles; } set { if (_isShowingAltitudeProfiles != value) { _isShowingAltitudeProfiles = value; RaisePropertyChanged_UI(); } } }
 
@@ -269,13 +269,13 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsShowAimOnce { get { return _isShowAimOnce; } set { if (_isShowAimOnce != value) { _isShowAimOnce = value; RaisePropertyChanged_UI(); } } }
 
-		private PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
+		private volatile PointRecord _selected = new PointRecord(); // { PositionSource = DefaultPositionSource };
 		[DataMember]
 		public PointRecord Selected { get { return _selected; } private set { _selected = value; RaisePropertyChanged(); } }
-		private Tables _selectedSeries = Tables.Nil;
+		private volatile Tables _selectedSeries = Tables.Nil;
 		[DataMember]
 		public Tables SelectedSeries { get { return _selectedSeries; } private set { _selectedSeries = value; RaisePropertyChanged(); } }
-		private int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
+		private volatile int _selectedIndex_Base1 = DefaultSelectedIndex_Base1;
 		[DataMember]
 		public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 
@@ -465,7 +465,7 @@ namespace LolloGPS.Data
 					return _isTilesDownloadDesired;
 				}
 			}
-			private set
+			private set // this lockless setter is only used by the serialiser
 			{
 				if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
 			}
@@ -481,7 +481,7 @@ namespace LolloGPS.Data
 					return _maxDesiredZoomForDownloadingTiles;
 				}
 			}
-			private set
+			private set // this lockless setter is only used by the serialiser
 			{
 				if (_maxDesiredZoomForDownloadingTiles != value) { _maxDesiredZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
 			}
@@ -510,19 +510,19 @@ namespace LolloGPS.Data
 		public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
 
 		// I cannot make this property readonly coz I need a setter for the deserializer
-		private SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
+		private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
 		[DataMember]
-		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } set { _tileSourcez = value; RaisePropertyChanged(); } }
+		public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } private set { _tileSourcez = value; RaisePropertyChanged(); } }
 
-		private TileSourceRecord _testTileSource = TileSourceRecord.GetSampleTileSource();
+		private volatile TileSourceRecord _testTileSource = TileSourceRecord.GetSampleTileSource();
 		[DataMember]
-		public TileSourceRecord TestTileSource { get { return _testTileSource; } set { _testTileSource = value; RaisePropertyChanged(); } }
+		public TileSourceRecord TestTileSource { get { return _testTileSource; } private set { _testTileSource = value; RaisePropertyChanged_UI(); } }
 
 		private volatile TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
 		[DataMember]
-		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged(); } } }
+		public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } private set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged_UI(); } } }
 
-		private bool _isTileSourcezBusy = false;
+		private volatile bool _isTileSourcezBusy = false;
 		[IgnoreDataMember]
 		public bool IsTileSourcezBusy { get { return _isTileSourcezBusy; } private set { if (_isTileSourcezBusy != value) { _isTileSourcezBusy = value; RaisePropertyChanged_UI(); } } }
 
@@ -530,32 +530,33 @@ namespace LolloGPS.Data
 		[DataMember]
 		public double AltLastVScroll { get { return _altLastScroll; } set { _altLastScroll = value; RaisePropertyChanged(); } }
 
-		private bool _isShowImperialUnits = false;
+		private volatile bool _isShowImperialUnits = false;
 		[DataMember]
 		public bool IsShowImperialUnits { get { return _isShowImperialUnits; } set { if (_isShowImperialUnits != value) { _isShowImperialUnits = value; RaisePropertyChanged_UI(); RaisePropertyChanged_UI(nameof(Current)); } } }
 
+		private static readonly object _seriesAltitudeI0I1Locker = new object();
 		private const int SeriesAltitudeI0Default = 0;
 		private const int SeriesAltitudeI1Default = int.MaxValue;
-		private int _historyAltitudeI0 = SeriesAltitudeI0Default;
+		private volatile int _historyAltitudeI0 = SeriesAltitudeI0Default;
 		[DataMember]
-		public int HistoryAltitudeI0 { get { return _historyAltitudeI0; } set { if (_historyAltitudeI0 != value && value > -1) { _historyAltitudeI0 = value; } } }
-		private int _historyAltitudeI1 = SeriesAltitudeI1Default;
+		public int HistoryAltitudeI0 { get { return _historyAltitudeI0; } private set { if (_historyAltitudeI0 != value && value > -1) { _historyAltitudeI0 = value; } } }
+		private volatile int _historyAltitudeI1 = SeriesAltitudeI1Default;
 		[DataMember]
-		public int HistoryAltitudeI1 { get { return _historyAltitudeI1; } set { if (_historyAltitudeI1 != value && value > 0) { _historyAltitudeI1 = value; } } }
+		public int HistoryAltitudeI1 { get { return _historyAltitudeI1; } private set { if (_historyAltitudeI1 != value && value > 0) { _historyAltitudeI1 = value; } } }
 
-		private int _route0AltitudeI0 = SeriesAltitudeI0Default;
+		private volatile int _route0AltitudeI0 = SeriesAltitudeI0Default;
 		[DataMember]
-		public int Route0AltitudeI0 { get { return _route0AltitudeI0; } set { if (_route0AltitudeI0 != value && value > -1) { _route0AltitudeI0 = value; } } }
-		private int _route0AltitudeI1 = SeriesAltitudeI1Default;
+		public int Route0AltitudeI0 { get { return _route0AltitudeI0; } private set { if (_route0AltitudeI0 != value && value > -1) { _route0AltitudeI0 = value; } } }
+		private volatile int _route0AltitudeI1 = SeriesAltitudeI1Default;
 		[DataMember]
-		public int Route0AltitudeI1 { get { return _route0AltitudeI1; } set { if (_route0AltitudeI1 != value && value > 0) { _route0AltitudeI1 = value; } } }
+		public int Route0AltitudeI1 { get { return _route0AltitudeI1; } private set { if (_route0AltitudeI1 != value && value > 0) { _route0AltitudeI1 = value; } } }
 
-		private int _checkpointsAltitudeI0 = SeriesAltitudeI0Default;
+		private volatile int _checkpointsAltitudeI0 = SeriesAltitudeI0Default;
 		[DataMember]
-		public int CheckpointsAltitudeI0 { get { return _checkpointsAltitudeI0; } set { if (_checkpointsAltitudeI0 != value && value > -1) { _checkpointsAltitudeI0 = value; } } }
-		private int _checkpointsAltitudeI1 = SeriesAltitudeI1Default;
+		public int CheckpointsAltitudeI0 { get { return _checkpointsAltitudeI0; } private set { if (_checkpointsAltitudeI0 != value && value > -1) { _checkpointsAltitudeI0 = value; } } }
+		private volatile int _checkpointsAltitudeI1 = SeriesAltitudeI1Default;
 		[DataMember]
-		public int CheckpointsAltitudeI1 { get { return _checkpointsAltitudeI1; } set { if (_checkpointsAltitudeI1 != value && value > 0) { _checkpointsAltitudeI1 = value; } } }
+		public int CheckpointsAltitudeI1 { get { return _checkpointsAltitudeI1; } private set { if (_checkpointsAltitudeI1 != value && value > 0) { _checkpointsAltitudeI1 = value; } } }
 		#endregion properties
 
 		#region all series methods
@@ -581,19 +582,20 @@ namespace LolloGPS.Data
 		{
 			SwitchableObservableCollection<PointRecord> series = null;
 			SemaphoreSlimSafeRelease seriesSemaphore = null;
-			if (Selected != null)
+			var selectedSeries = _selectedSeries;
+			if (_selected != null)
 			{
-				if (_selectedSeries == Tables.History)
+				if (selectedSeries == Tables.History)
 				{
 					series = History;
 					seriesSemaphore = _historySemaphore;
 				}
-				else if (_selectedSeries == Tables.Route0)
+				else if (selectedSeries == Tables.Route0)
 				{
 					series = Route0;
 					seriesSemaphore = _route0Semaphore;
 				}
-				else if (_selectedSeries == Tables.Checkpoints)
+				else if (selectedSeries == Tables.Checkpoints)
 				{
 					series = Checkpoints;
 					seriesSemaphore = _checkpointsSemaphore;
@@ -616,9 +618,9 @@ namespace LolloGPS.Data
 						if (series.Remove(matchingPointInSeries))
 						{
 							Task delete = null;
-							if (_selectedSeries == Tables.History) delete = DBManager.DeleteFromHistoryAsync(matchingPointInSeries);
-							else if (_selectedSeries == Tables.Route0) delete = DBManager.DeleteFromRoute0Async(matchingPointInSeries);
-							else if (_selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
+							if (selectedSeries == Tables.History) delete = DBManager.DeleteFromHistoryAsync(matchingPointInSeries);
+							else if (selectedSeries == Tables.Route0) delete = DBManager.DeleteFromRoute0Async(matchingPointInSeries);
+							else if (selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
 
 							// if I have removed the last record from the series
 							if (!series.Any())
@@ -694,22 +696,48 @@ namespace LolloGPS.Data
 		}
 		private void ResetSeriesAltitudeI0I1(Tables whichTable)
 		{
-			switch (whichTable)
+			lock (_seriesAltitudeI0I1Locker)
 			{
-				case Tables.History:
-					HistoryAltitudeI0 = SeriesAltitudeI0Default;
-					HistoryAltitudeI1 = SeriesAltitudeI1Default;
-					return;
-				case Tables.Route0:
-					Route0AltitudeI0 = SeriesAltitudeI0Default;
-					Route0AltitudeI1 = SeriesAltitudeI1Default;
-					return;
-				case Tables.Checkpoints:
-					CheckpointsAltitudeI0 = SeriesAltitudeI0Default;
-					CheckpointsAltitudeI1 = SeriesAltitudeI1Default;
-					return;
-				default:
-					return;
+				switch (whichTable)
+				{
+					case Tables.History:
+						HistoryAltitudeI0 = SeriesAltitudeI0Default;
+						HistoryAltitudeI1 = SeriesAltitudeI1Default;
+						return;
+					case Tables.Route0:
+						Route0AltitudeI0 = SeriesAltitudeI0Default;
+						Route0AltitudeI1 = SeriesAltitudeI1Default;
+						return;
+					case Tables.Checkpoints:
+						CheckpointsAltitudeI0 = SeriesAltitudeI0Default;
+						CheckpointsAltitudeI1 = SeriesAltitudeI1Default;
+						return;
+					default:
+						return;
+				}
+			}
+		}
+		public void SetSeriesAltitudeI0I1(Tables whichTable, int i0, int i1)
+		{
+			lock (_seriesAltitudeI0I1Locker)
+			{
+				switch (whichTable)
+				{
+					case Tables.History:
+						HistoryAltitudeI0 = i0;
+						HistoryAltitudeI1 = i1;
+						return;
+					case Tables.Route0:
+						Route0AltitudeI0 = i0;
+						Route0AltitudeI1 = i1;
+						return;
+					case Tables.Checkpoints:
+						CheckpointsAltitudeI0 = i0;
+						CheckpointsAltitudeI1 = i1;
+						return;
+					default:
+						return;
+				}
 			}
 		}
 		#endregion all series methods
@@ -1084,26 +1112,32 @@ namespace LolloGPS.Data
 		// So we leave it unlocked.
 		public bool IsSelectedRecordFromAnySeriesFirst()
 		{
-			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History && _history.Any()) return _history[0].Equals(_selected);
-			else if (_selectedSeries == Tables.Route0 && _route0.Any()) return _route0[0].Equals(_selected);
-			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints[0].Equals(_selected);
+			var selectedSeries = _selectedSeries;
+			var selectedRecord = _selected;
+			if (selectedSeries == Tables.Nil || selectedRecord == null) return false;
+			else if (selectedSeries == Tables.History && _history.Any()) return _history[0].Equals(selectedRecord);
+			else if (selectedSeries == Tables.Route0 && _route0.Any()) return _route0[0].Equals(selectedRecord);
+			else if (selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints[0].Equals(selectedRecord);
 			else return false;
 		}
 		public bool IsSelectedRecordFromAnySeriesLast()
 		{
-			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History && _history.Any()) return _history.LastOrDefault()?.Equals(_selected) == true;
-			else if (_selectedSeries == Tables.Route0 && _route0.Any()) return _route0.LastOrDefault()?.Equals(_selected) == true;
-			else if (_selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints.LastOrDefault()?.Equals(_selected) == true;
+			var selectedSeries = _selectedSeries;
+			var selectedRecord = _selected;
+			if (selectedSeries == Tables.Nil || selectedRecord == null) return false;
+			else if (selectedSeries == Tables.History && _history.Any()) return _history.LastOrDefault()?.Equals(selectedRecord) == true;
+			else if (selectedSeries == Tables.Route0 && _route0.Any()) return _route0.LastOrDefault()?.Equals(selectedRecord) == true;
+			else if (selectedSeries == Tables.Checkpoints && _checkpoints.Any()) return _checkpoints.LastOrDefault()?.Equals(selectedRecord) == true;
 			else return false;
 		}
 		public bool IsSelectedSeriesNonNullAndNonEmpty()
 		{
-			if (_selectedSeries == Tables.Nil || _selected == null) return false;
-			else if (_selectedSeries == Tables.History) return _history.Any();
-			else if (_selectedSeries == Tables.Route0) return _route0.Any();
-			else if (_selectedSeries == Tables.Checkpoints) return _checkpoints.Any();
+			var selectedSeries = _selectedSeries;
+			var selectedRecord = _selected;
+			if (selectedSeries == Tables.Nil || selectedRecord == null) return false;
+			else if (selectedSeries == Tables.History) return _history.Any();
+			else if (selectedSeries == Tables.Route0) return _route0.Any();
+			else if (selectedSeries == Tables.Checkpoints) return _checkpoints.Any();
 			else return false;
 		}
 		public void SelectRecordFromSeries(PointRecord dataRecord, Tables whichTable, int index = -1)
@@ -1132,22 +1166,25 @@ namespace LolloGPS.Data
 		}
 		public void SelectNeighbourRecordFromAnySeries(int step)
 		{
-			if (_selectedSeries == Tables.Nil || Selected == null) return;
-			else if (_selectedSeries == Tables.History) SelectNeighbourRecord(_history, Tables.History, step);
-			else if (_selectedSeries == Tables.Route0) SelectNeighbourRecord(_route0, Tables.Route0, step);
-			else if (_selectedSeries == Tables.Checkpoints) SelectNeighbourRecord(_checkpoints, Tables.Checkpoints, step);
+			var selectedSeries = _selectedSeries;
+			if (selectedSeries == Tables.Nil || _selected == null) return;
+			else if (selectedSeries == Tables.History) SelectNeighbourRecord(_history, Tables.History, step);
+			else if (selectedSeries == Tables.Route0) SelectNeighbourRecord(_route0, Tables.Route0, step);
+			else if (selectedSeries == Tables.Checkpoints) SelectNeighbourRecord(_checkpoints, Tables.Checkpoints, step);
 		}
 		public PointRecord GetRecordBeforeSelectedFromAnySeries()
 		{
-			if (_selectedSeries == Tables.Nil || Selected == null || SelectedIndex_Base1 - 2 < 0) return null;
-			if (_selectedSeries == Tables.History) return History[SelectedIndex_Base1 - 2];
-			if (_selectedSeries == Tables.Route0) return Route0[SelectedIndex_Base1 - 2];
-			if (_selectedSeries == Tables.Checkpoints) return Checkpoints[SelectedIndex_Base1 - 2];
+			var selectedSeries = _selectedSeries;
+			var selectedIndex_Base1 = _selectedIndex_Base1;
+			if (selectedSeries == Tables.Nil || _selected == null || selectedIndex_Base1 - 2 < 0) return null;
+			if (selectedSeries == Tables.History) return History[selectedIndex_Base1 - 2];
+			if (selectedSeries == Tables.Route0) return Route0[selectedIndex_Base1 - 2];
+			if (selectedSeries == Tables.Checkpoints) return Checkpoints[selectedIndex_Base1 - 2];
 			return null;
 		}
 		private void SelectNeighbourRecord(IList<PointRecord> series, Tables whichSeries, int step)
 		{
-			int newIndex = series.IndexOf(Selected) + step;
+			int newIndex = series.IndexOf(_selected) + step;
 			if (newIndex < 0) newIndex = 0;
 			if (newIndex >= series.Count) newIndex = series.Count - 1;
 			if (series.Count > newIndex && newIndex >= 0) SelectRecordFromSeries(series[newIndex], whichSeries, newIndex);
@@ -1199,58 +1236,11 @@ namespace LolloGPS.Data
 				// set non-screen properties
 				_testTileSource.DisplayName = _testTileSource.TechName; // we always set it automatically
 				_testTileSource.IsDeletable = true;
-				string errorMsg = _testTileSource.Check();
+				string errorMsg = _testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
 
-				if (!string.IsNullOrEmpty(errorMsg))
-				{
-					return Tuple.Create(false, errorMsg);
-				}
-				else
-				{
-					Tuple<bool, string> result = null;
-
-					await RunInUiThreadAsync(delegate
-					{
-						var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName);
-						if (recordsWithSameName != null)
-						{
-							if (recordsWithSameName.Count() > 1)
-							{
-								result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
-							}
-							else if (recordsWithSameName.Count() == 1)
-							{
-								var recordWithSameName = recordsWithSameName.First();
-								if (recordWithSameName?.IsDeletable == true)
-								{
-									_tileSourcez.Remove(recordWithSameName);
-									Logger.Add_TPL(recordWithSameName.ToString() + " removed from _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
-									Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
-									result = Tuple.Create(true, string.Format("Source {0} changed", _testTileSource.DisplayName));
-								}
-								else
-								{
-									result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
-								}
-							}
-						}
-						if (result == null || result.Item1)
-						{
-							TileSourceRecord newRecord = null;
-							TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
-							_tileSourcez.Add(newRecord);
-							Debug.WriteLine("_tileSourcez.Add(newRecord);");
-							Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
-							Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
-							RaisePropertyChanged(nameof(TileSourcez));
-							CurrentTileSource = newRecord;
-
-							if (result == null) result = Tuple.Create(true, string.Format("Source {0} added", _testTileSource.DisplayName));
-						}
-					}).ConfigureAwait(false);
-
-					return result;
-				}
+				Tuple<bool, string> result = null;
+				await RunInUiThreadAsync(() => TryInsertTestTileSourceIntoTileSourcezUIAsync(ref result)).ConfigureAwait(false);
+				return result;
 			}
 			catch (Exception ex)
 			{
@@ -1264,6 +1254,42 @@ namespace LolloGPS.Data
 			}
 		}
 
+		private void TryInsertTestTileSourceIntoTileSourcezUIAsync(ref Tuple<bool, string> result)
+		{
+			var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName);
+			if (recordsWithSameName?.Count() == 1)
+			{
+				var recordWithSameName = recordsWithSameName.First();
+				if (recordWithSameName?.IsDeletable == true)
+				{
+					_tileSourcez.Remove(recordWithSameName); // LOLLO TODO check this
+					Logger.Add_TPL(recordWithSameName.ToString() + " removed from _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
+					result = Tuple.Create(true, string.Format("Source {0} changed", _testTileSource.DisplayName));
+				}
+				else
+				{
+					result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+				}
+			}
+			else if (recordsWithSameName?.Count() > 1)
+			{
+				result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+			}
+			if (result == null || result.Item1)
+			{
+				TileSourceRecord newRecord = null;
+				TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
+				_tileSourcez.Add(newRecord);
+
+				Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
+				Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
+
+				RaisePropertyChanged(nameof(TileSourcez));
+				CurrentTileSource = newRecord;
+				if (result == null) result = Tuple.Create(true, string.Format("Source {0} added", _testTileSource.DisplayName));
+			}
+		}
 		public enum ClearCacheResult { Ok, Error, Cancelled }
 
 		public async Task<Tuple<ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)

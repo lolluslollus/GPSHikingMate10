@@ -1,53 +1,54 @@
 ﻿<Application
-    x:Class="LolloGPS.Core.App"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:LolloGPS.Core"
-    xmlns:conv="using:LolloGPS.Converters"
-    RequestedTheme="Dark">
+	x:Class="LolloGPS.Core.App"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:conv="using:LolloGPS.Converters"
+	RequestedTheme="Dark">
 
-    <Application.Resources>
-        <!-- Application-specific resources -->
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
+	<Application.Resources>
+		<!-- Application-specific resources -->
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
 
-                <!-- 
-                    Styles that define common aspects of the platform look and feel
-                    Required by Visual Studio project and item templates
-                 -->
-                <ResourceDictionary Source="Styles/Styles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-            <conv:LogToLinearConverter x:Key="LogToLinearConverter"/>
-            <conv:MsecToSecConverter x:Key="MsecToSecConverter"/>
-            <conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
-            <conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
-            <conv:IntIsNullToVisibleConverter x:Key="IntIsNullToVisibleConverter"/>
-            <conv:IntIsNullToCollapsedConverter x:Key="IntIsNullToCollapsedConverter"/>
+				<!-- 
+					Styles that define common aspects of the platform look and feel
+					Required by Visual Studio project and item templates
+				 -->
+				<ResourceDictionary Source="Styles/Styles.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
+			<conv:LogToLinearConverter x:Key="LogToLinearConverter"/>
+			<conv:MsecToSecConverter x:Key="MsecToSecConverter"/>
+			<conv:BooleanToVisibleConverter x:Key="BooleanToVisibleConverter"/>
+			<conv:BooleanToCollapsedConverter x:Key="BooleanToCollapsedConverter"/>
+			<conv:BoolToNullableBoolConverter x:Key="BoolToNullableBoolConverter"/>
+			<conv:IntIsNullToVisibleConverter x:Key="IntIsNullToVisibleConverter"/>
+			<conv:IntIsNullToCollapsedConverter x:Key="IntIsNullToCollapsedConverter"/>
 			<conv:IntIsNullToFalseConverter x:Key="IntIsNullToFalseConverter"/>
 			<conv:SeriesCountGreaterThanZeroToBooleanConverter x:Key="SeriesCountGreaterThanZeroToBooleanConverter"/>
-            <conv:CheckpointCountLowerThanMaxToTrueConverter x:Key="CheckpointCountLowerThanMaxToTrueConverter"/>
-            <conv:CheckpointCountEqualMaxToVisibleConverter x:Key="CheckpointCountEqualMaxToVisibleConverter"/>
-            <conv:PointRecordEmptyToFalseConverter x:Key="PointRecordEmptyToFalseConverter"/>
-            <conv:PointRecordEmptyToVisibleConverter x:Key="PointRecordEmptyToVisibleConverter"/>
+			<conv:CheckpointCountLowerThanMaxToTrueConverter x:Key="CheckpointCountLowerThanMaxToTrueConverter"/>
+			<conv:CheckpointCountEqualMaxToVisibleConverter x:Key="CheckpointCountEqualMaxToVisibleConverter"/>
+			<conv:PointRecordEmptyToFalseConverter x:Key="PointRecordEmptyToFalseConverter"/>
+			<conv:PointRecordEmptyToVisibleConverter x:Key="PointRecordEmptyToVisibleConverter"/>
 			<conv:PointRecordEmptyToCollapsedConverter x:Key="PointRecordEmptyToCollapsedConverter"/>
 			<conv:MetreSecToKmHConverter x:Key="MetreSecToKmHConverter"/>
-            <conv:StringNotEmptyToVisibleConverter x:Key="StringNotEmptyToVisibleConverter"/>
+			<conv:StringNotEmptyToVisibleConverter x:Key="StringNotEmptyToVisibleConverter"/>
 			<conv:StringNotEmptyToTrueConverter x:Key="StringNotEmptyToTrueConverter"/>
 			<conv:FloatNotNullToVisibleConverter x:Key="FloatNotNullToVisibleConverter"/>
-            <conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>
-            <conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
-            <conv:MapSourceToItsDescriptionConverter x:Key="MapSourceToItsDescriptionConverter"/>
-            <conv:TileSourceToTextAndTagConverter x:Key="TileSourceToTextAndTagConverter"/>
-            <conv:TileSourcezToTextAndTagsConverter x:Key="TileSourcezToTextAndTagsConverter"/>
-            <conv:MapCacheIsEnabledConverter x:Key="MapCacheIsEnabledConverter"/>
-            <conv:MapStyleToGlyphConverter x:Key="MapStyleToGlyphConverter"/>
-            <conv:TileSourceToVisibleConverter x:Key="TileSourceToVisibleConverter"/>
-            <conv:HiPositionAccuracyToBooleanConverter x:Key="HiPositionAccuracyToBooleanConverter"/>
-            <conv:AngleConverterDeg_Abs x:Key="AngleConverterDeg_Abs"/>
-            <conv:AngleConverterMin x:Key="AngleConverterMin"/>
-            <conv:AngleConverterSec x:Key="AngleConverterSec"/>
-            <conv:AngleConverterDec x:Key="AngleConverterDec"/>
-            <conv:FloatConverter8DecimalsAbs x:Key="FloatConverter8DecimalsAbs"/>
+			<conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>
+			<conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
+			<conv:MapSourceToItsDescriptionConverter x:Key="MapSourceToItsDescriptionConverter"/>
+			<conv:TileSourceToTextAndTagConverter x:Key="TileSourceToTextAndTagConverter"/>
+			<conv:TileSourcezToTextAndTagsConverter x:Key="TileSourcezToTextAndTagsConverter"/>
+			<conv:MapCacheIsEnabledConverter x:Key="MapCacheIsEnabledConverter"/>
+			<conv:MapStyleToGlyphConverter x:Key="MapStyleToGlyphConverter"/>
+			<conv:TileSourceToVisibleConverter x:Key="TileSourceToVisibleConverter"/>
+			<conv:HiPositionAccuracyToBooleanConverter x:Key="HiPositionAccuracyToBooleanConverter"/>
+			<conv:AngleConverterDeg_Abs x:Key="AngleConverterDeg_Abs"/>
+			<conv:AngleConverterMin x:Key="AngleConverterMin"/>
+			<conv:AngleConverterSec x:Key="AngleConverterSec"/>
+			<conv:AngleConverterDec x:Key="AngleConverterDec"/>
+			<conv:FloatConverter8DecimalsAbs x:Key="FloatConverter8DecimalsAbs"/>
 			<conv:FloatConverter1Decimals x:Key="FloatConverter1Decimals"/>
 			<conv:FloatConverterNoDecimals x:Key="FloatConverterNoDecimals"/>
 			<conv:FloatToSignConverter x:Key="FloatToSignConverter"/>
@@ -55,10 +56,13 @@
 			<conv:FloatLongitudeToEWConverter x:Key="FloatLongitudeToEWConverter"/>
 			<conv:AngleConverterLat x:Key="AngleConverterLat"/>
 			<conv:AngleConverterLon x:Key="AngleConverterLon"/>
-            <conv:SeriesTextConverter x:Key="SeriesTextConverter"/>
-            <conv:SeriesToVisibilityConverter x:Key="SeriesToVisibilityConverter"/>
-            <conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
-        </ResourceDictionary>
+			<conv:SeriesTextConverter x:Key="SeriesTextConverter"/>
+			<conv:SeriesToVisibilityConverter x:Key="SeriesToVisibilityConverter"/>
+			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
+			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
+			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
+			<conv:StringToStringConverter x:Key="StringToStringConverter"/>
+		</ResourceDictionary>
 
-    </Application.Resources>
+	</Application.Resources>
 </Application>

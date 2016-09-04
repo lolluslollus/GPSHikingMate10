@@ -18,11 +18,7 @@ namespace LolloGPS.Core
 			set { SetValue(MainVMProperty, value); }
 		}
 		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null/*, OnVMChanged*/));
-		//private static void OnVMChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
-		//{
-		//	if (args.NewValue != args.OldValue) (obj as FilesPanel).UpdateDataContext();
-		//}
+			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(FilesPanel), new PropertyMetadata(null));
 		#endregion properties
 
 
@@ -30,15 +26,7 @@ namespace LolloGPS.Core
 		public FilesPanel()
 		{
 			InitializeComponent();
-			//UpdateDataContext();
 		}
-		//private void UpdateDataContext()
-		//{
-		//	Task upd = RunInUiThreadAsync(delegate
-		//	{
-		//		LayoutRoot.DataContext = MainVM; // LOLLO NOTE never set DataContent on self in a UserControl
-		//	});
-		//}
 		#endregion lifecycle
 
 

@@ -12,35 +12,11 @@
 	xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps" 
 	UseLayoutRounding="True"
 	d:DesignHeight="400"
-	d:DesignWidth="500"
-	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}">
+	d:DesignWidth="500">
 	<UserControl.Resources>
 		<local:HeadingConverter x:Key="HeadingConverter"/>
 		<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
 		<x:Double x:Key="LeftMargin4Scale">20</x:Double>
-		<!--<CollectionViewSource x:Name="LocationList"/>-->
-		<!--<DataTemplate x:Key="CheckpointsTemplate">
-			--><!-- LOLLO NOTE NormalizedAnchorPoint does not work, neither so, nor with the binding -->
-			<!--Maps:MapControl.NormalizedAnchorPoint=".5,.5"-->
-			<!--<Image Source="ms-appx:///Assets/pointer_checkpoint-20.png"
-				   Stretch="None"
-				   Maps:MapControl.Location="{Binding}"
-				   Maps:MapControl.NormalizedAnchorPoint="{Binding ElementName=me, Path=CheckpointsNormalisedIconPoint}"
-				   IsTapEnabled="False" IsHoldingEnabled="False" 
-				IsHitTestVisible="False" 
-				IsDoubleTapEnabled="False" IsRightTapEnabled="False"
-				AutomationProperties.AccessibilityView="Raw"/>--><!--
-			<Path Width="20" Height="20" 
-				Stretch="None" 
-				Stroke="{StaticResource CheckpointBrushOpaque}"
-				StrokeThickness="2"
-				Data="M -10,-10 L 10,10 M 10,-10 L -10,10"
-				Maps:MapControl.Location="{Binding}"
-				IsTapEnabled="False" IsHoldingEnabled="False" 
-				IsHitTestVisible="False" 
-				IsDoubleTapEnabled="False" IsRightTapEnabled="False"
-				AutomationProperties.AccessibilityView="Raw"/>
-		</DataTemplate>-->
 	</UserControl.Resources>
 	<Grid x:Name="LayoutRoot">
 		<!--compass-->
@@ -52,7 +28,7 @@
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
 				<Image.RenderTransform>
-					<CompositeTransform Rotation="{Binding ElementName=MyMap, Path=Heading, Converter={StaticResource HeadingConverter}}"/>
+					<CompositeTransform Rotation="{x:Bind MyMap.Heading, Converter={StaticResource HeadingConverter}, Mode=OneWay}"/>
 				</Image.RenderTransform>
 			</Image>
 		</Canvas>
@@ -62,8 +38,8 @@
 				VerticalAlignment="Top" HorizontalAlignment="Right">
 			<StackPanel Orientation="Horizontal" Canvas.Left="-230" Canvas.Top="150" 
 				HorizontalAlignment="Left"
-				Visibility="{Binding IsShowSpeed, Converter={StaticResource BooleanToVisibleConverter}}">
-				<TextBlock Text="{Binding Current.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}}"
+				Visibility="{x:Bind PersistentData.IsShowSpeed, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+				<TextBlock Text="{x:Bind PersistentData.Current.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}, Mode=OneWay}"
 					Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
 					Style="{StaticResource HugeTextStyle}"/>
 			</StackPanel>
@@ -90,8 +66,8 @@
 			<!-- right distance -->
 			<Grid Grid.Row="1" Grid.Column="1"
 				HorizontalAlignment="Left"
-				Width="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX}">
-				<TextBlock Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded}"
+				Width="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX, Mode=OneWay}">
+				<TextBlock Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded, Mode=OneWay}"
 				   HorizontalAlignment="Right"
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" Padding="0"
@@ -100,7 +76,7 @@
 			<!-- internal zoom level -->
 			<TextBlock Grid.Row="0" Grid.Column="1"
 				HorizontalAlignment="Left"
-				Text="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom}"
+				Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom, Mode=OneWay}"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
@@ -111,7 +87,7 @@
 				Stretch="None"
 				RenderTransformOrigin="0.0,0.0" >
 				<Image.RenderTransform>
-					<CompositeTransform ScaleX="{Binding ElementName=MyMap, Path=ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform}"/>
+					<CompositeTransform ScaleX="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform, Mode=OneWay}"/>
 				</Image.RenderTransform>
 			</Image>
 		</Grid>
@@ -120,7 +96,7 @@
 			Source="ms-appx:///Assets/aim-120.png"
 			Stretch="None"
 			VerticalAlignment="Center" HorizontalAlignment="Center"
-			Visibility="{Binding IsShowAim, Converter={StaticResource BooleanToVisibleConverter}}"
+			Visibility="{x:Bind PersistentData.IsShowAim, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 			Tapped="OnAim_Tapped"
 			Holding="OnAim_Holding"
 			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
@@ -130,7 +106,7 @@
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				CornerRadius="10,10,0,0"
 				RenderTransformOrigin="1, 1"
-				Visibility="{Binding CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}}"
+				Visibility="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnProvider_Tapped">
 			<Border.RenderTransform>
 				<RotateTransform Angle="-90"/>
@@ -140,24 +116,18 @@
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>
-				<TextBlock Text="{Binding CurrentTileSource, Converter={StaticResource MapSourceToItsDescriptionConverter}}"
+				<TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsDescriptionConverter}, Mode=OneWay}"
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>
 			</StackPanel>
 		</Border>
-		<!--MapControl-->
-		<!--CenterChanged="OnMyMap_CenterChanged" HeadingChanged="OnMyMap_HeadingChanged" PitchChanged="OnMyMap_PitchChanged" ZoomLevelChanged="OnMyMap_ZoomLevelChanged"-->
-		<!--MapHolding="OnMap_Holding"-->
 		<Maps:MapControl Canvas.ZIndex="100"
 			x:Name="MyMap"
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
 			MapTapped="OnMap_Tapped"
 			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False">
-			<!--<Maps:MapItemsControl x:Name="CheckpointsMIC"
-				ItemTemplate="{StaticResource CheckpointsTemplate}"
-				ItemsSource="{Binding ElementName=me, Path=CheckpointLocations}"/>-->
 		</Maps:MapControl>
 	</Grid>
 </uctl:OpenableObservableControl>

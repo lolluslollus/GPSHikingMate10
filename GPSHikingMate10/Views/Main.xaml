@@ -9,7 +9,6 @@
 	xmlns:customTriggers="using:Utilz"
 	xmlns:ctl="using:Utilz.Controlz"
 	mc:Ignorable="d"
-	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
 	<ctl:ObservablePage.Resources>
@@ -157,7 +156,7 @@
 				<!-- download progress bar -->
 				<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Opacity=".75"
-					Visibility="{Binding IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}}"
+					Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					VerticalAlignment="Top"
 					IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
 					<Grid.ColumnDefinitions>
@@ -170,7 +169,7 @@
 						 Maximum="1"
 						 Foreground="{StaticResource FlashyForeground}"
 						 VerticalAlignment="Bottom"
-						 Value="{Binding ElementName=me, Path=RuntimeData.DownloadProgressValue}"/>
+						 Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"/>
 					<TextBlock Grid.Column="0"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
@@ -179,7 +178,7 @@
 						Style="{StaticResource BaseMessageStyle}"
 						Margin="10"
 						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-						Visibility="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToVisibleConverter}}"/>
+						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
 					<TextBlock Grid.Column="0"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
@@ -189,7 +188,7 @@
 						Style="{StaticResource BaseMessageStyle}"
 						Margin="10"
 						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-						Visibility="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 					<Button Grid.Column="1"
 						BorderBrush="{StaticResource FlashyForeground}"
 						HorizontalAlignment="Center"
@@ -213,7 +212,7 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
-						Visibility="{Binding IsTracking, Converter={StaticResource BooleanToVisibleConverter}}"
+						Visibility="{x:Bind PersistentData.IsTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
@@ -221,7 +220,7 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
-						Visibility="{Binding IsBackgroundEnabled, Converter={StaticResource BooleanToVisibleConverter}}"
+						Visibility="{x:Bind PersistentData.IsBackgroundEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>
@@ -229,7 +228,7 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
-						Visibility="{Binding IsKeepAlive, Converter={StaticResource BooleanToVisibleConverter}}"
+						Visibility="{x:Bind PersistentData.IsKeepAlive, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Pin" Label="Keeping alive"/>
@@ -249,7 +248,7 @@
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
 					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
 					<local:PointInfoPanel x:Name="MyPointInfoPanel"
-						MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
+						MainVM="{x:Bind MainVM, Mode=OneWay}"
 						PointChanged="OnInfoPanelPointChanged"/>
 				</Popup>
 				<!-- Map  -->
@@ -258,30 +257,30 @@
 				<local:LolloMap Canvas.ZIndex="0"
 					Grid.Column="0"
 					x:Name="MyLolloMap"
-					MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
+					MainVM="{x:Bind MainVM, Mode=OneWay}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
 				<!-- Altitude profiles -->
 				<local:AltitudeProfiles Canvas.ZIndex="200"
 					Grid.Column="0"
 					x:Name="MyAltitudeProfiles"
-					MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"
-					Visibility="{Binding IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}}"
+					MainVM="{x:Bind MainVM, Mode=OneWay}"
+					Visibility="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
 			</Grid>
 			<!-- Menu pivot -->
 			<Pivot Grid.Row="0" Canvas.ZIndex="600"
 				   x:Name="MyPivot"
-				   Visibility="{Binding IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}}"
+				   Visibility="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				   Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				   Margin="{StaticResource Thickness0}"
-				   SelectedIndex="{Binding SelectedPivotIndex, Mode=TwoWay}">
+				   SelectedIndex="{Binding ElementName=me, Path=PersistentData.SelectedPivotIndex, Converter={StaticResource SelectedPivotIndexConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
 				<PivotItem Header="Points" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
 						<local:PointsPanel 
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
@@ -290,7 +289,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
 						<local:FilesPanel 
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
@@ -299,7 +298,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
 						<local:MapsPanel x:Name="MyMapsPanel"
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
@@ -308,7 +307,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
 						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -317,7 +316,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
 						<local:SettingsPanel 
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
@@ -326,7 +325,7 @@
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
 						<local:HelpPanel 
-							MainVM="{Binding ElementName=me, Path=MainVM, Mode=OneWay}"/>
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">
@@ -373,7 +372,7 @@
 							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 							Margin="{StaticResource Thickness0}">
 							<TextBlock TextWrapping="Wrap"
-								Text="{Binding ElementName=me, Path=MainVM.LogText}"
+								Text="{x:Bind MainVM.LogText, Mode=OneWay}"
 								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
 						</ScrollViewer>
 					</Grid>
@@ -383,18 +382,18 @@
 			<Border Grid.Row="1"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}}"
+				Visibility="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}, Mode=OneWay}"
 				Tapped="OnLastMessage_Tapped">
 				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
-					<Run Text="{Binding Current.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="{x:Bind PersistentData.Current.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0, Mode=OneWay}"/>
 					<Run Text="Lon"/>
-					<Run Text="{Binding Current.Longitude, Converter={StaticResource AngleConverterLon}, ConverterParameter=0, UpdateSourceTrigger=Default}"/>
+					<Run Text="{x:Bind PersistentData.Current.Longitude, Converter={StaticResource AngleConverterLon}, ConverterParameter=0, Mode=OneWay}"/>
 					<Run Text="Alt"/>
-					<Run Text="{Binding Current.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter='M'}"/>
+					<Run Text="{x:Bind PersistentData.Current.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter='M', Mode=OneWay}"/>
 					<Run Text="@"/>
-					<Run Text="{Binding Current.TimePoint}"/>
+					<Run Text="{x:Bind PersistentData.Current.TimePoint, Mode=OneWay}"/>
 				</TextBlock>
 			</Border>
 			<!-- get a fix message -->
@@ -402,7 +401,7 @@
 				VerticalAlignment="Bottom"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-				Visibility="{Binding Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}}"
+				Visibility="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnLastMessage_Tapped">
 				<TextBlock
 					TextWrapping="Wrap" 
@@ -426,7 +425,7 @@
 					Style="{StaticResource BaseMessageStyle}" 
 					HorizontalAlignment="Left"
 					Foreground="{StaticResource FlashyForeground}"
-					Text="{Binding LastMessage}"
+					Text="{x:Bind PersistentData.LastMessage, Mode=OneWay}"
 					RenderTransformOrigin="0.0, 1.0">
 					<TextBlock.RenderTransform>
 						<CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
@@ -454,22 +453,22 @@
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{Binding IsBackButtonEnabled}"
-						  Visibility="{Binding ElementName=me, Path=RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
+						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 			<!-- get a fix -->
 			<AppBarButton Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{Binding ElementName=me, Path=MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
-			<ContentControl Grid.Column="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
+			<ContentControl Grid.Column="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
 				<AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
-					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
+					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -478,25 +477,25 @@
 			<AppBarToggleButton Grid.Column="3"
 				VerticalAlignment="Center"
 				Label="Altitude" Icon="List"
-				IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
 			<AppBarToggleButton Grid.Column="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
-				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Column="5"
 				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
-				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}"
 				Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
-						Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
 				</AppBarButton.Icon>
 			</AppBarButton>
 		</Grid>
@@ -521,22 +520,22 @@
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{Binding IsBackButtonEnabled}"
-						  Visibility="{Binding ElementName=me, Path=RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
+						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
 			<!-- get a fix -->
 			<AppBarButton Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{Binding ElementName=me, Path=MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
 			<!-- go to last -->
-			<ContentControl Grid.Row="2" IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}">
+			<ContentControl Grid.Row="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
 				<AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
-					IsEnabled="{Binding Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, UpdateSourceTrigger=PropertyChanged}"
+					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
@@ -545,25 +544,25 @@
 			<AppBarToggleButton Grid.Row="3"
 				HorizontalAlignment="Center" 
 				Label="Altitude" Icon="List"
-				IsChecked="{Binding IsShowingAltitudeProfiles, Mode=TwoWay}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- open menu pivot -->
 			<AppBarToggleButton Grid.Row="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
-				IsChecked="{Binding IsShowingPivot, Mode=TwoWay}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
 			<AppBarButton Grid.Row="5"
 				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
-				IsEnabled="{Binding ElementName=me, Path=IsExtraButtonsEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}"
 				Style="{StaticResource AppBarButtonRecoloured}">
 				<AppBarButton.Icon>
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
-						Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
 				</AppBarButton.Icon>
 			</AppBarButton>
 		</Grid>

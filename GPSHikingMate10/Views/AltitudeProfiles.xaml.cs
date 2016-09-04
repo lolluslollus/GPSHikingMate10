@@ -316,20 +316,17 @@ namespace LolloGPS.Core
 		}
 		private void OnHistoryChart_BoundsChanged(object sender, LolloChart.Bounds e)
 		{
-			PersistentData.HistoryAltitudeI0 = e.I0;
-			PersistentData.HistoryAltitudeI1 = e.I1;
+			PersistentData.SetSeriesAltitudeI0I1(PersistentData.Tables.History, e.I0, e.I1);
 		}
 
 		private void OnRoute0Chart_BoundsChanged(object sender, LolloChart.Bounds e)
 		{
-			PersistentData.Route0AltitudeI0 = e.I0;
-			PersistentData.Route0AltitudeI1 = e.I1;
+			PersistentData.SetSeriesAltitudeI0I1(PersistentData.Tables.Route0, e.I0, e.I1);
 		}
 
 		private void OnCheckpointsChart_BoundsChanged(object sender, LolloChart.Bounds e)
 		{
-			PersistentData.CheckpointsAltitudeI0 = e.I0;
-			PersistentData.CheckpointsAltitudeI1 = e.I1;
+			PersistentData.SetSeriesAltitudeI0I1(PersistentData.Tables.Checkpoints, e.I0, e.I1);
 		}
 
 		#endregion user event handlers

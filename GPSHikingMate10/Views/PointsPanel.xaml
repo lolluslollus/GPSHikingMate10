@@ -1,15 +1,14 @@
 ﻿<ctl:ObservableControl
-    x:Class="LolloGPS.Core.PointsPanel"
-    x:Name="me"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Class="LolloGPS.Core.PointsPanel"
+	x:Name="me"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ctl="using:Utilz.Controlz"
-	DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
-    mc:Ignorable="d"
-    d:DesignHeight="800"
-    d:DesignWidth="400">
+	mc:Ignorable="d"
+	d:DesignHeight="800"
+	d:DesignWidth="400">
 
 	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
 		<Grid.RowDefinitions>
@@ -36,12 +35,12 @@
 		<!--target float-->
 		<StackPanel Grid.Row="0" Grid.Column="0"
 			Orientation="Vertical"
-            Visibility="{Binding IsShowDegrees, Converter={StaticResource BooleanToCollapsedConverter}}" >
+			Visibility="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}" >
 			<!-- lat float -->
 			<TextBlock
-                Text="Latitude" 
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center" />
+				Text="Latitude" 
+				Style="{StaticResource BaseMessageStyle}"
+				VerticalAlignment="Center" />
 			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<Button Tapped="OnLatSign_Tapped"
 					VerticalAlignment="Center">
@@ -49,21 +48,21 @@
 						VerticalAlignment="Center"
 						Style="{StaticResource BaseMessageStyle}"
 						TextAlignment="Center"
-						Text="{Binding Target.Latitude, Converter={StaticResource FloatToSignConverter}}"/>
+						Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource FloatToSignConverter}, Mode=OneWay}"/>
 				</Button>
 				<TextBox
 					x:Name="LatFloat"
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
-					Text="{Binding Target.Latitude, Converter={StaticResource FloatConverter8DecimalsAbs}}" 
+					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource FloatConverter8DecimalsAbs}, Mode=OneWay}" 
 					InputScope="NumberFullWidth" 
 					LostFocus="OnLatFloat_LostFocus"/>
 			</ctl:UniversalWrapPanel>
 			<!-- lon float -->
 			<TextBlock
-                Text="Longitude" 
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center" />
+				Text="Longitude" 
+				Style="{StaticResource BaseMessageStyle}"
+				VerticalAlignment="Center" />
 			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<Button Tapped="OnLonSign_Tapped"
 					VerticalAlignment="Center">
@@ -71,13 +70,13 @@
 						VerticalAlignment="Center"
 						Style="{StaticResource BaseMessageStyle}"
 						TextAlignment="Center"
-						Text="{Binding Target.Longitude, Converter={StaticResource FloatToSignConverter}}"/>
+						Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource FloatToSignConverter}, Mode=OneWay}"/>
 				</Button>
 				<TextBox
 					x:Name="LonFloat"
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
-					Text="{Binding Target.Longitude, Converter={StaticResource FloatConverter8DecimalsAbs}}" 
+					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource FloatConverter8DecimalsAbs}, Mode=OneWay}" 
 					InputScope="NumberFullWidth"
 					LostFocus="OnLonFloat_LostFocus"/>
 			</ctl:UniversalWrapPanel>
@@ -85,17 +84,17 @@
 		<!--target in degrees min sec dec-->
 		<StackPanel Grid.Row="1" Grid.Column="0"
 			Orientation="Vertical"
-            Visibility="{Binding IsShowDegrees, Converter={StaticResource BooleanToVisibleConverter}}">
+			Visibility="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 			<!--target lat in deg min sec dec-->
 			<TextBlock Text="Latitude"
-                VerticalAlignment="Center"
-                Style="{StaticResource BaseMessageStyle}" />
+				VerticalAlignment="Center"
+				Style="{StaticResource BaseMessageStyle}" />
 			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LatDeg"
 					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDeg_Abs}}"
+					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterDeg_Abs}, Mode=OneWay}"
 					LostFocus="OnLatDeg_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="4"/>
@@ -106,7 +105,7 @@
 					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterMin}}"
+					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterMin}, Mode=OneWay}"
 					LostFocus="OnLatMin_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="2"/>
@@ -117,7 +116,7 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterSec}}"
+					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterSec}, Mode=OneWay}"
 					LostFocus="OnLatSec_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="2"/>
@@ -128,7 +127,7 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Latitude, Converter={StaticResource AngleConverterDec}}" 
+					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterDec}, Mode=OneWay}" 
 					MaxLength="3"
 					LostFocus="OnLatDec_LostFocus"
 					GotFocus="OnLatLon_GotFocus"/>
@@ -141,19 +140,19 @@
 						VerticalAlignment="Center"
 						Style="{StaticResource BaseMessageStyle}"
 						TextAlignment="Center"
-						Text="{Binding Target.Latitude, Converter={StaticResource FloatLatitudeToNSConverter}}"/>
+						Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource FloatLatitudeToNSConverter}, Mode=OneWay}"/>
 				</Button>
 			</ctl:UniversalWrapPanel>
 			<!--target lon in deg min sec dec-->
 			<TextBlock Text="Longitude"
-                VerticalAlignment="Center"
-                Style="{StaticResource BaseMessageStyle}" />
+				VerticalAlignment="Center"
+				Style="{StaticResource BaseMessageStyle}" />
 			<ctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LonDeg"
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDeg_Abs}}"
+					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterDeg_Abs}, Mode=OneWay}"
 					LostFocus="OnLonDeg_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="4"/>
@@ -164,7 +163,7 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterMin}}"
+					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterMin}, Mode=OneWay}"
 					LostFocus="OnLonMin_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="2"/>
@@ -175,7 +174,7 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterSec}}"
+					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterSec}, Mode=OneWay}"
 					LostFocus="OnLonSec_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="2"/>
@@ -186,7 +185,7 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
-					Text="{Binding Target.Longitude, Converter={StaticResource AngleConverterDec}}" 
+					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterDec}, Mode=OneWay}" 
 					LostFocus="OnLonDec_LostFocus"
 					GotFocus="OnLatLon_GotFocus"
 					MaxLength="3"/>
@@ -199,123 +198,123 @@
 						VerticalAlignment="Center"
 						Style="{StaticResource BaseMessageStyle}"
 						TextAlignment="Center"
-						Text="{Binding Target.Longitude, Converter={StaticResource FloatLongitudeToEWConverter}}"/>
+						Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource FloatLongitudeToEWConverter}, Mode=OneWay}"/>
 				</Button>
 			</ctl:UniversalWrapPanel>
 		</StackPanel>
 		<!-- human description -->
 		<TextBlock Grid.Row="2" Grid.Column="0"
-            Text="Description"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center" />
+			Text="Description"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center" />
 		<TextBox Grid.Row="3" Grid.Column="0"
-            HorizontalAlignment="Stretch" 
-            VerticalAlignment="Center"
-            Style="{StaticResource BaseTextBoxStyle}" 
-            MaxLength="{StaticResource MaxHumanDescriptionLength}"
-            TextWrapping="Wrap" 
-            AcceptsReturn="True"
-            Text="{Binding Target.HumanDescription, Mode=TwoWay}"
-            PlaceholderText="you can type a note here" 
-            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			HorizontalAlignment="Stretch" 
+			VerticalAlignment="Center"
+			Style="{StaticResource BaseTextBoxStyle}" 
+			MaxLength="{StaticResource MaxHumanDescriptionLength}"
+			TextWrapping="Wrap" 
+			AcceptsReturn="True"
+			Text="{Binding ElementName=me, Path=PersistentData.Target.HumanDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+			PlaceholderText="you can type a note here" 
+			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- hyperlink -->
 		<TextBlock Grid.Row="4" Grid.Column="0"
-            Text="Hyperlink"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center" />
+			Text="Hyperlink"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center" />
 		<TextBox Grid.Row="5" Grid.Column="0"
-            HorizontalAlignment="Stretch" 
-            VerticalAlignment="Center"
-            Style="{StaticResource BaseTextBoxStyle}" 
-            MaxLength="{StaticResource MaxHyperLinkLength}"
-            TextWrapping="Wrap" 
-            AcceptsReturn="True"
-            Text="{Binding Target.HyperLink, Mode=TwoWay}"
-            PlaceholderText="you can type a link here" 
-            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			HorizontalAlignment="Stretch" 
+			VerticalAlignment="Center"
+			Style="{StaticResource BaseTextBoxStyle}" 
+			MaxLength="{StaticResource MaxHyperLinkLength}"
+			TextWrapping="Wrap" 
+			AcceptsReturn="True"
+			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLink, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+			PlaceholderText="you can type a link here" 
+			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- hyperlink name -->
 		<TextBlock Grid.Row="6" Grid.Column="0"
-			Visibility="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
-            Text="Hyperlink name"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center" />
+			Visibility="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"
+			Text="Hyperlink name"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center" />
 		<TextBox Grid.Row="7" Grid.Column="0"
-			Visibility="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}}"
-            HorizontalAlignment="Stretch" 
-            VerticalAlignment="Center"
-            Style="{StaticResource BaseTextBoxStyle}" 
-            MaxLength="{StaticResource MaxHumanDescriptionLength}"
-            TextWrapping="Wrap" 
-            AcceptsReturn="True"
-            Text="{Binding Target.HyperLinkText, Mode=TwoWay}"
-            PlaceholderText="you can name your link here" 
-            PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			Visibility="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"
+			HorizontalAlignment="Stretch" 
+			VerticalAlignment="Center"
+			Style="{StaticResource BaseTextBoxStyle}" 
+			MaxLength="{StaticResource MaxHumanDescriptionLength}"
+			TextWrapping="Wrap" 
+			AcceptsReturn="True"
+			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLinkText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+			PlaceholderText="you can name your link here" 
+			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- lat lon commands -->
 		<Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
-            VerticalAlignment="Center">
+			VerticalAlignment="Center">
 			<Grid.RowDefinitions>
 				<RowDefinition/>
 				<RowDefinition/>
 			</Grid.RowDefinitions>
 			<!--Label="Show degrees"-->
 			<AppBarToggleButton Grid.Row="0"
-                IsChecked="{Binding IsShowDegrees, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                IsCompact="True"
-                Style="{StaticResource AppBarToggleButtonRecoloured}"
-                Icon="Clock"
-                TabIndex="2"/>
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowDegrees, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsCompact="True"
+				Style="{StaticResource AppBarToggleButtonRecoloured}"
+				Icon="Clock"
+				TabIndex="2"/>
 			<!--Label="Go to target"-->
 			<AppBarButton Grid.Row="1"
-                Click="OnGotoTarget_Click" 
-                IsCompact="True"
-                Style="{StaticResource AppBarButtonRecoloured}"
-                Icon="View"
-                TabIndex="1"/>
+				Click="OnGotoTarget_Click" 
+				IsCompact="True"
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Icon="View"
+				TabIndex="1"/>
 		</Grid>
 
 		<!-- hyperlink commands -->
 		<AppBarButton Grid.Row="4" Grid.Column="1" Grid.RowSpan="4"
-			IsEnabled="{Binding Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}}"
-            VerticalAlignment="Center"
-            Click="OnHyperlink_Click"
-            IsCompact="True"
-            Style="{StaticResource AppBarButtonRecoloured}"
-            Icon="View"/>
+			IsEnabled="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}, Mode=OneWay}"
+			VerticalAlignment="Center"
+			Click="OnHyperlink_Click"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Icon="View"/>
 
 		<!--target commands-->
 		<TextBlock Grid.Row="9" Grid.Column="0"
-            VerticalAlignment="Center"
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Text="Add / merge this point into your checkpoints"/>
+			VerticalAlignment="Center"
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Text="Add / merge this point into your checkpoints"/>
 		<AppBarButton Grid.Row="9" Grid.Column="1"
-            VerticalAlignment="Center"
-            Click="OnAddTargetToCheckpoints_Click"
-            IsCompact="True"
-            Foreground="{StaticResource CheckpointBrushOpaque}"
-            Style="{StaticResource AppBarButtonRecoloured}"
-            Icon="Add"/>
+			VerticalAlignment="Center"
+			Click="OnAddTargetToCheckpoints_Click"
+			IsCompact="True"
+			Foreground="{StaticResource CheckpointBrushOpaque}"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Icon="Add"/>
 
 		<!-- too many checkpoints notice-->
 		<TextBlock Grid.Row="10" Grid.Column="0"
-            VerticalAlignment="Center" 
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}" 
-            Text="{Binding MaxRecordsInCheckpointsProp, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Max {0} checkpoints!'}"
-            Foreground="{StaticResource FlashyForeground}"
-            Visibility="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountEqualMaxToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			VerticalAlignment="Center" 
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}" 
+			Text="{x:Bind PersistentData.MaxRecordsInCheckpointsProp, Converter={StaticResource StringFormatterConverter}, ConverterParameter='Max {0} checkpoints!', Mode=OneWay}"
+			Foreground="{StaticResource FlashyForeground}"
+			Visibility="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountEqualMaxToVisibleConverter}, Mode=OneWay}"/>
 
 		<TextBlock Grid.Row="11" Grid.Column="0"
-            VerticalAlignment="Center"
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Text="Add the current location to your checkpoints"/>
+			VerticalAlignment="Center"
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Text="Add the current location to your checkpoints"/>
 		<ContentControl Grid.Row="11" Grid.Column="1"
-            VerticalAlignment="Center"
-			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
+			VerticalAlignment="Center"
+			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<AppBarButton
 				VerticalAlignment="Center"
-				IsEnabled="{Binding ElementName=me, Path=MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}}"
+				IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 				Click="OnSetTargetToCurrentPoint_Click" 
 				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
@@ -324,16 +323,16 @@
 		</ContentControl>
 
 		<TextBlock Grid.Row="12" Grid.Column="0"
-            VerticalAlignment="Center" 
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Text="Move around the map and tap the aim to add a checkpoint. Hold the aim to hide it."/>
+			VerticalAlignment="Center" 
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Text="Move around the map and tap the aim to add a checkpoint. Hold the aim to hide it."/>
 		<ContentControl Grid.Row="12" Grid.Column="1"
-            VerticalAlignment="Center"
-			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
+			VerticalAlignment="Center"
+			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<AppBarToggleButton
 				VerticalAlignment="Center"
-				IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"
@@ -345,16 +344,16 @@
 		</ContentControl>
 
 		<TextBlock Grid.Row="13" Grid.Column="0"
-            VerticalAlignment="Center" 
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Text="Move around the map and tap the aim to add one checkpoint"/>
+			VerticalAlignment="Center" 
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Text="Move around the map and tap the aim to add one checkpoint"/>
 		<ContentControl Grid.Row="13" Grid.Column="1"
-            VerticalAlignment="Center"
-			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, UpdateSourceTrigger=PropertyChanged}">
+			VerticalAlignment="Center"
+			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<AppBarToggleButton
 				VerticalAlignment="Center"
-				IsChecked="{Binding IsShowAim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"
@@ -366,10 +365,10 @@
 		</ContentControl>
 
 		<TextBlock Grid.Row="14" Grid.Column="0"
-            VerticalAlignment="Center" 
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Text="Clear checkpoints"/>
+			VerticalAlignment="Center" 
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Text="Clear checkpoints"/>
 		<AppBarButton Grid.Row="14" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsCompact="True"
@@ -377,7 +376,7 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnClearCheckpoints_Click" 
 			Icon="Delete"
-			IsEnabled="{Binding Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 
 	</Grid>
 </ctl:ObservableControl>

@@ -12,13 +12,72 @@ using Utilz.Controlz;
 
 namespace LolloGPS.Converters
 {
+	public class StringToStringConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is string)) return string.Empty;
+			return value.ToString();
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is string)) return string.Empty;
+			return value.ToString();
+		}
+	}
+	public class SelectedPivotIndexConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is int)) return 0;
+			return Math.Max((int)value, 0);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is int)) return 0;
+			return Math.Max((int)value, 0);
+		}
+	}
+	/// <summary>
+	/// useful for checkboxes, toggle buttons and similar and x:Bind
+	/// </summary>
+	public class BoolToNullableBoolConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return false;
+			return (bool)value;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null) return false;
+			return (bool)value;
+		}
+	}
+	public class UintToDoubleConverter : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is uint)) return default(double);
+			return System.Convert.ToDouble((uint)value);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, string language)
+		{
+			if (value == null || !(value is double)) return default(uint);
+			return System.Convert.ToUInt32((double)value);
+		}
+	}
 	public class LogToLinearConverter : IValueConverter
 	{
 		private const double Power = 10.0;
 		private const double ScaleFactor = 20.0;
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null) return 0;
+			if (value == null) return 0.0;
 			uint logarithm = 0;
 			try
 			{
@@ -26,9 +85,9 @@ namespace LolloGPS.Converters
 			}
 			catch (Exception)
 			{
-				return 0;
+				return 0.0;
 			}
-			return logarithm;
+			return System.Convert.ToDouble(logarithm);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -52,7 +111,7 @@ namespace LolloGPS.Converters
 		private const double Factor = 1000.0;
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (value == null) return 0;
+			if (value == null) return "0";
 			uint sec = 0;
 			try
 			{
@@ -60,9 +119,9 @@ namespace LolloGPS.Converters
 			}
 			catch (Exception)
 			{
-				return 0;
+				return "0";
 			}
-			return sec;
+			return sec.ToString(CultureInfo.CurrentUICulture);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, string language)

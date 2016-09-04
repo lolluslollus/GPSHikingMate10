@@ -3,16 +3,17 @@ using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
+using Windows.UI.Core;
 
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-    public sealed partial class CustomMapsPanel : OpenableObservableControl
+	public sealed partial class CustomMapsPanel : OpenableObservableControl
 	{
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+		public PersistentData PersistentData { get { return App.PersistentData; } }
+		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		public MainVM MainVM
 		{
@@ -24,9 +25,9 @@ namespace LolloGPS.Core
 
 
 		public CustomMapsPanel()
-        {
-            InitializeComponent();
-        }
+		{
+			InitializeComponent();
+		}
 
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
@@ -41,22 +42,22 @@ namespace LolloGPS.Core
 		}
 
 		private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
-        {
-            if (MainVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
-            {
-                ClearCustomCacheChooser.IsPopupOpen = true;
-            }
-            else PersistentData.LastMessage = "Cache busy";
-        }
+		{
+			if (MainVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
+			{
+				ClearCustomCacheChooser.IsPopupOpen = true;
+			}
+			else PersistentData.LastMessage = "Cache busy";
+		}
 
-        private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
-        {
+		private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
+		{
 			Task sch = MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
-        }
+		}
 
-        private void OnTestClicked(object sender, RoutedEventArgs e)
-        {
-            Task uuu = MainVM?.StartUserTestingTileSourceAsync();
-        }
-    }
+		private void OnTestClicked(object sender, RoutedEventArgs e)
+		{
+			Task uuu = MainVM?.StartUserTestingTileSourceAsync();
+		}
+	}
 }

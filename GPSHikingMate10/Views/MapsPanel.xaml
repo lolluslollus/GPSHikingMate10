@@ -1,17 +1,16 @@
 ﻿<uctl:OpenableObservableControl
-    x:Class="LolloGPS.Core.MapsPanel"
-    x:Name="me"
-    xmlns:uctl="using:Utilz.Controlz"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:LolloGPS.Core"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    DataContext="{Binding PersistentData, RelativeSource={RelativeSource Self}, Mode=OneWay}"
-    mc:Ignorable="d"
-    d:DesignHeight="600"
-    d:DesignWidth="400">
-
+	x:Class="LolloGPS.Core.MapsPanel"
+	x:Name="me"
+	xmlns:uctl="using:Utilz.Controlz"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:LolloGPS.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	d:DesignHeight="600"
+	d:DesignWidth="400">
+	
 	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
@@ -30,37 +29,37 @@
 		</Grid.ColumnDefinitions>
 
 		<TextBlock Grid.Row="0" Grid.Column="0"
-            Text="Allow download on metered connections"
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Allow download on metered connections"
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="0" Grid.Column="1"
-            IsChecked="{Binding IsAllowMeteredConnection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Style="{StaticResource AppBarToggleButtonRecoloured}"
-            IsCompact="True"
-            Icon="Permissions" TabIndex="1"/>
+			IsChecked="{Binding ElementName=me, Path=PersistentData.IsAllowMeteredConnection, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			Style="{StaticResource AppBarToggleButtonRecoloured}"
+			IsCompact="True"
+			Icon="Permissions" TabIndex="1"/>
 		<TextBlock Grid.Row="1" Grid.Column="0" 
-            Text="Restore 2D view and point north"
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Restore 2D view and point north"
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="1" Grid.Column="1" 
-            Style="{StaticResource AppBarButtonRecoloured}"
-            IsCompact="True"
-            Click="OnGoto2D_Click"
-            Icon="Undo"/>
+			Style="{StaticResource AppBarButtonRecoloured}"
+			IsCompact="True"
+			Click="OnGoto2D_Click"
+			Icon="Undo"/>
 		<TextBlock Grid.Row="2" Grid.Column="0" 
-            Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Change the style of the built-in map. Use this when you have chosen a different map and it flickers."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="2" Grid.Column="1"
-            Style="{StaticResource AppBarButtonRecoloured}"
-            IsCompact="True"
-            Click="OnMapStyleButton_Click">
+			Style="{StaticResource AppBarButtonRecoloured}"
+			IsCompact="True"
+			Click="OnMapStyleButton_Click">
 			<AppBarButton.Icon>
 				<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
-                    Glyph="{Binding MapStyle, Converter={StaticResource MapStyleToGlyphConverter}}"/>
+					Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
 			</AppBarButton.Icon>
 		</AppBarButton>
 
@@ -70,104 +69,104 @@
 				<ColumnDefinition Width="2*"/>
 			</Grid.ColumnDefinitions>
 			<TextBlock
-                Text="Map source "
-                Style="{StaticResource BaseMessageStyle}"
-                VerticalAlignment="Center"/>
+				Text="Map source "
+				Style="{StaticResource BaseMessageStyle}"
+				VerticalAlignment="Center"/>
 			<uctl:LolloListChooser Grid.Column="1"
 				x:Name="MapSourceChooser"
-                PlaceholderText="Select a source for map tiles"
-                ListHeaderText="Select a source for map tiles"
+				PlaceholderText="Select a source for map tiles"
+				ListHeaderText="Select a source for map tiles"
 				ListHeaderStyle="{StaticResource HeaderTextStyle}"
-                PopupContainer="{Binding ElementName=me}"
-                BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
-                VerticalAlignment="Center"
-                Margin="{StaticResource Thickness2}"
-                TextBlockStyle="{StaticResource BaseMessageStyle}"
-                AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-                TextItemStyle="{StaticResource ListItemTextStyle}"
-                ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting}"
-                IsEnabled="{Binding ElementName=me, Path=MainVM.IsChangeTileSourceEnabled}"
-				SelectedItem="{Binding CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
+				PopupContainer="{x:Bind me, Mode=OneWay}"
+				BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
+				VerticalAlignment="Center"
+				Margin="{StaticResource Thickness2}"
+				TextBlockStyle="{StaticResource BaseMessageStyle}"
+				AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
+				TextItemStyle="{StaticResource ListItemTextStyle}"
+				ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting, Mode=OneWay}"
+				IsEnabled="{x:Bind MainVM.IsChangeTileSourceEnabled, Mode=OneWay}"
+				SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"
 				ItemSelected="OnMapSourceChooser_ItemSelected"/>
 		</Grid>
 
 		<TextBlock Grid.Row="4" Grid.Column="0" 
-            Text="As you visit a part of a map, cache it for offline use"
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="As you visit a part of a map, cache it for offline use"
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="4" Grid.Column="1"
-            IsChecked="{Binding IsMapCached, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            IsEnabled="{Binding ElementName=me, Path=MainVM.IsCacheBtnEnabled}"
-            Style="{StaticResource AppBarToggleButtonRecoloured}"
-            IsCompact="True"
-            Icon="Camera"/>
+			IsChecked="{Binding ElementName=me, Path=PersistentData.IsMapCached, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			IsEnabled="{x:Bind MainVM.IsCacheBtnEnabled, Mode=OneWay}"
+			Style="{StaticResource AppBarToggleButtonRecoloured}"
+			IsCompact="True"
+			Icon="Camera"/>
 		<TextBlock Grid.Row="5" Grid.Column="0" 
-            Text="Download all map tiles in the frame for offline use"
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Download all map tiles in the frame for offline use"
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="5" Grid.Column="1"
-            IsEnabled="{Binding ElementName=me, Path=MainVM.IsLeechingEnabled}"
-            Style="{StaticResource AppBarButtonRecoloured}"
-            IsCompact="True"
-            Click="OnDownloadMap_Click"
-            Icon="Download"/>
+			IsEnabled="{x:Bind MainVM.IsLeechingEnabled, Mode=OneWay}"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			IsCompact="True"
+			Click="OnDownloadMap_Click"
+			Icon="Download"/>
 		<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
-            VerticalAlignment="Center"
-            HorizontalAlignment="Right"
-            Style="{StaticResource BaseMessageStyle}"
-            TextWrapping="WrapWholeWords"
-            Foreground="{StaticResource FlashyForeground}"
-            Visibility="{Binding ElementName=me, Path=RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}}"
-            Text="No connection"/>
+			VerticalAlignment="Center"
+			HorizontalAlignment="Right"
+			Style="{StaticResource BaseMessageStyle}"
+			TextWrapping="WrapWholeWords"
+			Foreground="{StaticResource FlashyForeground}"
+			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
+			Text="No connection"/>
 		<uctl:LolloListChooser Grid.Row="6" Grid.Column="0"
-            SelectorVisibility="Collapsed"
-            x:Name="ZoomLevelChooser"
-            PlaceholderText="Select max zoom level to download"
-            ListHeaderText="Select max zoom level to download"
+			SelectorVisibility="Collapsed"
+			x:Name="ZoomLevelChooser"
+			PlaceholderText="Select max zoom level to download"
+			ListHeaderText="Select max zoom level to download"
 			ListHeaderStyle="{StaticResource HeaderTextStyle}"
-            PopupContainer="{Binding ElementName=me}"
-            BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
-            VerticalAlignment="Center"
-            TextBlockStyle="{StaticResource BaseMessageStyle}"
-            AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-            TextItemStyle="{StaticResource ListItemTextStyle}"                                      
-            ItemSelected="OnZoomLevelChooser_ItemSelected"/>
+			PopupContainer="{x:Bind me, Mode=OneWay}"
+			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
+			VerticalAlignment="Center"
+			TextBlockStyle="{StaticResource BaseMessageStyle}"
+			AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
+			TextItemStyle="{StaticResource ListItemTextStyle}"                                      
+			ItemSelected="OnZoomLevelChooser_ItemSelected"/>
 		<TextBlock Grid.Row="7" Grid.Column="0" 
-            Text="Clear the cache"
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Clear the cache"
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarButton Grid.Row="7" Grid.Column="1"
-            IsEnabled="{Binding ElementName=me, Path=MainVM.IsClearCacheEnabled}"
-            Click="OnClearMapCache_Click"
-            Style="{StaticResource AppBarButtonRecoloured}"
-            IsCompact="True"
-            Icon="Delete"/>
+			IsEnabled="{x:Bind MainVM.IsClearCacheEnabled, Mode=OneWay}"
+			Click="OnClearMapCache_Click"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			IsCompact="True"
+			Icon="Delete"/>
 		<uctl:LolloListChooser Grid.Row="7" Grid.Column="0"
-            SelectorVisibility="Collapsed"
-            x:Name="ClearCacheChooser"
-            PlaceholderText="Which cache do you want to clear?"
-            ListHeaderText="Which cache do you want to clear?"
+			SelectorVisibility="Collapsed"
+			x:Name="ClearCacheChooser"
+			PlaceholderText="Which cache do you want to clear?"
+			ListHeaderText="Which cache do you want to clear?"
 			ListHeaderStyle="{StaticResource HeaderTextStyle}"
-            PopupContainer="{Binding ElementName=me}"
-            BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
-            VerticalAlignment="Center"
-            TextBlockStyle="{StaticResource BaseMessageStyle}"
-            AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-            TextItemStyle="{StaticResource ListItemTextStyle}"
-            ItemsSource="{Binding TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache}"
-            ItemSelected="OnClearCacheChooser_ItemSelected"/>
+			PopupContainer="{x:Bind me, Mode=OneWay}"
+			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
+			VerticalAlignment="Center"
+			TextBlockStyle="{StaticResource BaseMessageStyle}"
+			AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
+			TextItemStyle="{StaticResource ListItemTextStyle}"
+			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
+			ItemSelected="OnClearCacheChooser_ItemSelected"/>
 		<TextBlock Grid.Row="8" Grid.Column="0" 
-            Text="Keep the app alive, never mind the lock screen settings. Useful for a long download."
-            TextWrapping="Wrap"
-            Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"/>
+			Text="Keep the app alive, never mind the lock screen settings. Useful for a long download."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="8" Grid.Column="1"
-            IsChecked="{Binding IsKeepAlive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Style="{StaticResource AppBarToggleButtonRecoloured}"
-            IsCompact="True"
-            Icon="Pin"/>
+			IsChecked="{Binding ElementName=me, Path=PersistentData.IsKeepAlive, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			Style="{StaticResource AppBarToggleButtonRecoloured}"
+			IsCompact="True"
+			Icon="Pin"/>
 	</Grid>
 </uctl:OpenableObservableControl>

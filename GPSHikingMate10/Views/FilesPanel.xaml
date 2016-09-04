@@ -7,7 +7,6 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ctl="using:Utilz.Controlz"
-	DataContext="{Binding MainVM, RelativeSource={RelativeSource Self}, Mode=OneWay}"
 	mc:Ignorable="d"
 	d:DesignHeight="300"
 	d:DesignWidth="400">
@@ -47,36 +46,36 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterHistory_Click"                                    
 			Icon="View"
-			IsEnabled="{Binding PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<AppBarButton Grid.Row="1" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnClearHistory_Click"
 			Icon="Delete"
-			IsEnabled="{Binding PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="1" Grid.Column="4"
-			IsEnabled="{Binding IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<AppBarButton
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Click="OnSaveTrackingHistory_Click"                                        
 				Icon="Save"
-				IsEnabled="{Binding PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+				IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		</ContentControl>
 		<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="The tracking history is empty, get a fix or start tracking to populate it."
-			Visibility="{Binding PersistentData.History.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource IntIsNullToVisibleConverter}, Mode=OneWay}"/>
 		<TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="You can export your tracks and import them again later as a route."
-			Visibility="{Binding PersistentData.History.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, Mode=OneWay}"/>
 		
 		<!--Route0-->
 		<Border Grid.Row="3" Grid.Column="0" Grid.RowSpan="3"
@@ -93,16 +92,16 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterRoute_Click" 
 			Icon="View"
-			IsEnabled="{Binding PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<AppBarButton Grid.Row="4" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnClearRoute0_Click" 
 			Icon="Delete"
-			IsEnabled="{Binding PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="4" Grid.Column="3"
-			IsEnabled="{Binding ElementName=me, Path=MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<AppBarButton
 				HorizontalAlignment="Center"
 				IsCompact="True"
@@ -111,21 +110,21 @@
 				Icon="OpenFile"/>
 		</ContentControl>
 		<ContentControl Grid.Row="4" Grid.Column="4"
-			IsEnabled="{Binding ElementName=me, Path=MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<AppBarButton
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Click="OnSaveRoute0_Click"                                        
 				Icon="Save"
-				IsEnabled="{Binding PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+				IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		</ContentControl>
 		<TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="No route. You can import one from a route GPX file."
-			Visibility="{Binding PersistentData.Route0.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource IntIsNullToVisibleConverter}, Mode=OneWay}"/>
 
 		<!-- Checkpoints -->
 		<Border Grid.Row="6" Grid.Column="0" Grid.RowSpan="3"
@@ -142,16 +141,16 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterCheckpoints_Click" 
 			Icon="View"
-			IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<AppBarButton Grid.Row="7" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnClearCheckpoints_Click" 
 			Icon="Delete"
-			IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="7" Grid.Column="3"
-			IsEnabled="{Binding ElementName=me, Path=MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<AppBarButton
 				HorizontalAlignment="Center"
 				IsCompact="True"
@@ -160,26 +159,26 @@
 				Icon="OpenFile" />
 		</ContentControl>
 		<ContentControl Grid.Row="7" Grid.Column="4"
-			IsEnabled="{Binding ElementName=me, Path=MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}}">
+			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<AppBarButton
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"                                  
 				Click="OnSaveCheckpoints_Click" 
 				Icon="Save"
-				IsEnabled="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+				IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		</ContentControl>
 		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="No checkpoints. Create some in the 'Points' panel or import some here, from a waypoint GPX file."
-			Visibility="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToVisibleConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToVisibleConverter}, Mode=OneWay}"/>
 		<TextBlock Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="4"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
 			Text="Add or update checkpoints in the 'Points' panel. You can export them and import them again later."
-			Visibility="{Binding PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, UpdateSourceTrigger=PropertyChanged}"/>
+			Visibility="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, Mode=OneWay}"/>
 	</Grid>
 </ctl:ObservableControl>

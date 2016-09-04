@@ -204,19 +204,18 @@ namespace LolloGPS.Data
 		}
 		public static void Clone(TileSourceRecord source, ref TileSourceRecord target)
 		{
-			if (source != null)
-			{
-				if (target == null) target = GetDefaultTileSource();
+			if (source == null) return;
 
-				target.TechName = source._techName;
-				target.DisplayName = source._displayName;
-				target.UriString = source._uriString;
-				target.ProviderUriString = source._providerUriString;
-				target.MinZoom = source._minZoom;
-				target.MaxZoom = source._maxZoom;
-				target.TilePixelSize = source._tilePixelSize;
-				target.IsDeletable = source._isDeletable;
-			}
+			if (target == null) target = GetDefaultTileSource();
+
+			target.TechName = source._techName;
+			target.DisplayName = source._displayName;
+			target.UriString = source._uriString;
+			target.ProviderUriString = source._providerUriString;
+			target.MinZoom = source._minZoom;
+			target.MaxZoom = source._maxZoom;
+			target.TilePixelSize = source._tilePixelSize;
+			target.IsDeletable = source._isDeletable;
 		}
 		public bool IsEqualTo(TileSourceRecord comp)
 		{
