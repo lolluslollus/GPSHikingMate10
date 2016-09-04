@@ -61,7 +61,6 @@
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
 			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
-			<conv:StringToStringConverter x:Key="StringToStringConverter"/>
 		</ResourceDictionary>
 
 	</Application.Resources>

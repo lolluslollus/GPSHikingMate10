@@ -34,7 +34,7 @@
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="0" Grid.Column="1"
-			IsChecked="{Binding ElementName=me, Path=PersistentData.IsAllowMeteredConnection, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			IsChecked="{x:Bind PersistentData.IsAllowMeteredConnection, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
 			Icon="Permissions" TabIndex="1"/>
@@ -96,7 +96,7 @@
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="4" Grid.Column="1"
-			IsChecked="{Binding ElementName=me, Path=PersistentData.IsMapCached, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			IsChecked="{x:Bind PersistentData.IsMapCached, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			IsEnabled="{x:Bind MainVM.IsCacheBtnEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
@@ -164,7 +164,7 @@
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
 		<AppBarToggleButton Grid.Row="8" Grid.Column="1"
-			IsChecked="{Binding ElementName=me, Path=PersistentData.IsKeepAlive, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
+			IsChecked="{x:Bind PersistentData.IsKeepAlive, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
 			Icon="Pin"/>

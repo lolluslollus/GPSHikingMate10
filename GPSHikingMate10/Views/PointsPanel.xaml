@@ -258,7 +258,7 @@
 			</Grid.RowDefinitions>
 			<!--Label="Show degrees"-->
 			<AppBarToggleButton Grid.Row="0"
-				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowDegrees, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsChecked="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				IsCompact="True"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"
 				Icon="Clock"
@@ -332,7 +332,7 @@
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<AppBarToggleButton
 				VerticalAlignment="Center"
-				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsChecked="{x:Bind PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"
@@ -353,7 +353,7 @@
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<AppBarToggleButton
 				VerticalAlignment="Center"
-				IsChecked="{Binding ElementName=me, Path=PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				IsChecked="{x:Bind PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"
