@@ -7,18 +7,19 @@ using Windows.ApplicationModel;
 
 namespace LolloGPS.Data
 {
-    public static class ConstantData
-    {
-        public const string GPX_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
+	public static class ConstantData
+	{
+		public const string GPX_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:ssZ";
 		public const string GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS = "yyyyMMddTHHmmssZ";
 		public const string MYMAIL = "lollus@hotmail.co.uk";
-        public const string APPNAME = "GPS Hiking Mate for Windows 10";
-        public const string APPNAME_ALL_IN_ONE = "GPSHikingMate";
-        public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
-        public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
-        public const string GPX_EXTENSION = ".gpx";
-        public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
-        public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
+		public const string APPNAME = "GPS Hiking Mate for Windows 10";
+		public const string APPNAME_ALL_IN_ONE = "GPSHikingMate";
+		public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
+		public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
+		public const string GPX_EXTENSION = ".gpx";
+		public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
+		public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
+		public const string PRIVACY_POLICY_URL = "https://1drv.ms/w/s!AidtRscM9dFkhtYdY4GpJVOLVXyI5Q";
 		public const string REG_CLEARING_CACHE_TILE_SOURCE = "IsClearingCache_TileSource";
 		public const string REG_CLEARING_CACHE_IS_REMOVE_SOURCES = "IsClearingCache_IsAlsoRemoveSources";
 		public const string REG_LOAD_SERIES_IS_LOADING = "LoadSeries_IsLoading";
@@ -46,14 +47,14 @@ namespace LolloGPS.Data
 		public const int TRIAL_LENGTH_DAYS = 7;
 
 		public static string AppName { get { return APPNAME; } }
-        private static readonly string _version = Package.Current.Id.Version.Major.ToString()
-            + "."
-            + Package.Current.Id.Version.Minor.ToString()
-            + "."
-            + Package.Current.Id.Version.Build.ToString()
-            + "."
-            + Package.Current.Id.Version.Revision.ToString();
-        public static string Version { get { return "Version " + _version; } }
+		private static readonly string _version = Package.Current.Id.Version.Major.ToString()
+			+ "."
+			+ Package.Current.Id.Version.Minor.ToString()
+			+ "."
+			+ Package.Current.Id.Version.Build.ToString()
+			+ "."
+			+ Package.Current.Id.Version.Revision.ToString();
+		public static string Version { get { return "Version " + _version; } }
 
-    }
+	}
 }

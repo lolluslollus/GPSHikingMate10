@@ -32,6 +32,11 @@ namespace LolloGPS.Core
 		{
 			await Licenser.GetInstance().RateAsync();
 		}
+		private async void OnGotoPrivacyPolicy_Click(object sender, RoutedEventArgs e)
+		{
+			await Launcher.LaunchUriAsync(new Uri(ConstantData.PRIVACY_POLICY_URL));
+		}
+
 		private async void OnSendMail_Click(object sender, RoutedEventArgs e)
 		{
 			try

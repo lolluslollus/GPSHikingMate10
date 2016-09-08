@@ -1,1 +1,1 @@
-D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\AppPackages\GPSHikingMate10_1.1.24.0\GPSHikingMate10_1.1.24.0_x86_x64_arm.appxbundle
+D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\AppPackages\GPSHikingMate10_1.1.25.0\GPSHikingMate10_1.1.25.0_x86_x64_arm.appxbundle

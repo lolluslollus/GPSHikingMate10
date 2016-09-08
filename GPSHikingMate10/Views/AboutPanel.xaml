@@ -22,6 +22,8 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="{StaticResource GridSize4Placeholder_Medium}"/>
+			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
 		<TextBlock Grid.Row="0"
@@ -46,6 +48,17 @@
 			VerticalAlignment="Center"/>
 
 		<HyperlinkButton Grid.Row="4"
+			Click="OnGotoPrivacyPolicy_Click">
+			<TextBlock
+				Text="Privacy policy"
+				Foreground="{StaticResource EmailForeground}"
+				TextWrapping="Wrap" 
+				Style="{StaticResource TextParagraphStyle}"
+				Margin="{StaticResource Thickness0404}"
+				VerticalAlignment="Center"/>
+		</HyperlinkButton>
+
+		<HyperlinkButton Grid.Row="6"
 			Click="OnSendMail_Click">
 			<TextBlock
 				Text="Email feedback"
@@ -56,7 +69,7 @@
 				VerticalAlignment="Center"/>
 		</HyperlinkButton>
 
-		<Grid Grid.Row="6">
+		<Grid Grid.Row="8">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -88,7 +101,7 @@
 			</Button>
 		</Grid>
 
-		<Button Grid.Row="8"
+		<Button Grid.Row="10"
 			Click="OnRate_Click">
 			<TextBlock HorizontalAlignment="Left"
 				Text="Rate"
@@ -98,7 +111,7 @@
 				VerticalAlignment="Center"/>
 		</Button>
 
-		<HyperlinkButton Grid.Row="10"
+		<HyperlinkButton Grid.Row="12"
 			Click="OnSendMailWithLog_Click">
 			<TextBlock
 				Text="Send email with app logs"
