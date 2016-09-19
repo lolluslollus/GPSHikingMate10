@@ -310,6 +310,7 @@ namespace LolloGPS.Data
 					"http://www.lpi.nsw.gov.au/", 4, 16, 256, false)
 			};
 
+			// LOLLO NOTE check http://www.opentopo.nl/ and http://www.arcgis.com/home/webmap/viewer.html?webmap=0698b71eb7cf47898086d072e574ac32 for new maps
 
 #if NOSTORE
 			output.Add(new TileSourceRecord("ArcGIS", "ArcGIS", "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}", DefaultTileSourceProviderUriString, 0, 16, 256, false));
