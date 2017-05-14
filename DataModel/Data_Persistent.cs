@@ -1615,18 +1615,12 @@ namespace LolloGPS.Data
 		{
 			switch (MapStyle)
 			{
-				case MapStyle.Aerial:
-					MapStyle = MapStyle.None; break;
-				case MapStyle.AerialWithRoads:
-					MapStyle = MapStyle.None; break;
 				case MapStyle.None:
 					MapStyle = MapStyle.Terrain; break;
-				case MapStyle.Road:
-					MapStyle = MapStyle.Aerial; break;
 				case MapStyle.Terrain:
-					MapStyle = MapStyle.Aerial; break;
+					MapStyle = MapStyle.None; break;
 				default:
-					break;
+					MapStyle = MapStyle.None; break;
 			}
 		}
 		//private static int GetIndexCheckingDateAscending(PointRecord dataRecord, PersistentData myData)

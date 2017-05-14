@@ -750,18 +750,12 @@ namespace LolloGPS.Converters
 
 			switch (mapStyle)
 			{
-				case MapStyle.Aerial:
-					return "A";
-				case MapStyle.AerialWithRoads:
-					return "AR";
 				case MapStyle.None:
 					return "N";
-				case MapStyle.Road:
-					return "R";
 				case MapStyle.Terrain:
 					return "T";
 				default:
-					return "Dunno";
+					return "N";
 			}
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
