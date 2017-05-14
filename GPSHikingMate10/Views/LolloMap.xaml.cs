@@ -62,7 +62,6 @@ namespace LolloGPS.Core
 		private readonly MapPolyline _mapPolylineHistory = new MapPolyline()
 		{
 			StrokeColor = ((SolidColorBrush)(Application.Current.Resources["HistoryBrush"])).Color,
-			StrokeThickness = (double)(Application.Current.Resources["HistoryThickness"]),
 			MapTabIndex = HISTORY_TAB_INDEX,
 		};
 		//private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
@@ -149,16 +148,16 @@ namespace LolloGPS.Core
 			MyMap.Style = PersistentData.MapStyle;
 			MyMap.DesiredPitch = 0.0;
 			MyMap.Heading = 0;
-			MyMap.TrafficFlowVisible = false;
-			MyMap.LandmarksVisible = true;
+			//MyMap.TrafficFlowVisible = false;
+			//MyMap.LandmarksVisible = false; // important
 			MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
-			MyMap.PedestrianFeaturesVisible = true;
+			//MyMap.PedestrianFeaturesVisible = false;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
 			if (App.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
 			else MyMap.ZoomInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
 			if (App.IsTouchDevicePresent) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
 			else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
-
+			MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
 			//MyMap.MapElements.Clear(); // no!			
 		}
 		private bool GetIsSmallScreen()
@@ -364,36 +363,23 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				//foreach (var item in PersistentData.History)
-				//{
-				//	basicGeoPositions.Add(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude });
-				//}
-				List<BasicGeoposition> basicGeoPositions = PersistentData.History.Select(item => new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }).ToList();
+				List<BasicGeoposition> basicGeoPositions = PersistentData.History.Select(item => new BasicGeoposition() { Altitude = 0.0, Latitude = item.Latitude, Longitude = item.Longitude }).ToList();
+				if (!basicGeoPositions.Any())
+				{
+					basicGeoPositions.Add(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude });
+				}
 
 				if (CancToken.IsCancellationRequested) return;
 
 				await RunInUiThreadAsync(delegate
 				{
-					if (basicGeoPositions.Any())
-					{
-						_mapPolylineHistory.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
-																				   // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-																				   //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-																				   //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
-						_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
-						_iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
-					}
+					_mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Unspecified); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
+																											  // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+																											  //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+																											  //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+					_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
+					_iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
 					//Better even: use binding; sadly, it is broken for the moment
-					else
-					{
-						BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
-						basicGeoPositions.Add(lastGeoposition);
-						_mapPolylineHistory.Path = new Geopath(basicGeoPositions);
-						//MapControl.SetLocation(_imageStartHistory, new Geopoint(lastGeoposition));
-						//MapControl.SetLocation(_imageEndHistory, new Geopoint(lastGeoposition));
-						_iconStartHistory.Location = new Geopoint(lastGeoposition);
-						_iconEndHistory.Location = new Geopoint(lastGeoposition);
-					}
 
 					if (CancToken.IsCancellationRequested) return;
 
@@ -424,23 +410,17 @@ namespace LolloGPS.Core
 			{
 				await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-				List<BasicGeoposition> basicGeoPositions = PersistentData.Route0.Select(item => new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }).ToList();
+				List<BasicGeoposition> basicGeoPositions = PersistentData.Route0.Select(item => new BasicGeoposition() { Altitude = 0.0, Latitude = item.Latitude, Longitude = item.Longitude }).ToList();
+				if (!basicGeoPositions.Any())
+				{
+					basicGeoPositions.Add(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude });
+				}
 
 				if (CancToken.IsCancellationRequested) return;
 
 				await RunInUiThreadAsync(delegate
 				{
-					if (basicGeoPositions.Any())
-					{
-						_mapPolylineRoute0.Path = new Geopath(basicGeoPositions); // instead of destroying and redoing, it would be nice to just add the latest point; 
-					}                                                             // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-																				  //Better even: use binding; sadly, it is broken for the moment
-					else
-					{
-						BasicGeoposition lastGeoposition = new BasicGeoposition() { Altitude = PersistentData.Current.Altitude, Latitude = PersistentData.Current.Latitude, Longitude = PersistentData.Current.Longitude };
-						basicGeoPositions.Add(lastGeoposition);
-						_mapPolylineRoute0.Path = new Geopath(basicGeoPositions);
-					}
+					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Unspecified); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface instead of destroying and redoing, it would be nice to just add the latest point; 
 
 					if (CancToken.IsCancellationRequested) return;
 

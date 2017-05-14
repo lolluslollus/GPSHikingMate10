@@ -745,7 +745,10 @@ namespace LolloGPS.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (!(value is MapStyle)) return "N";
+			if (!(value is MapStyle))
+			{
+				return "N";
+			}
 			MapStyle mapStyle = (MapStyle)value;
 
 			switch (mapStyle)
@@ -755,7 +758,7 @@ namespace LolloGPS.Converters
 				case MapStyle.Terrain:
 					return "T";
 				default:
-					return "N";
+					return "?";
 			}
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)

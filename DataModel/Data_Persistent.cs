@@ -1617,8 +1617,6 @@ namespace LolloGPS.Data
 			{
 				case MapStyle.None:
 					MapStyle = MapStyle.Terrain; break;
-				case MapStyle.Terrain:
-					MapStyle = MapStyle.None; break;
 				default:
 					MapStyle = MapStyle.None; break;
 			}

@@ -17,7 +17,7 @@ namespace LolloGPS.GPSInteraction
 		#region properties
 		private readonly IGpsDataModel _persistentData = null;
 		private volatile Geolocator _geolocator = null;
-
+		private volatile bool _isGeolocatorAllowed = false;
 		private volatile bool _isGpsWorking = false;
 		public bool IsGPSWorking { get { return _isGpsWorking; } private set { _isGpsWorking = value; RaisePropertyChanged_UI(); } }
 
@@ -167,7 +167,7 @@ namespace LolloGPS.GPSInteraction
 
 		#region foreground tracking
 		private void OnGeolocator_PositionChangedAsync(Geolocator sender, PositionChangedEventArgs e)
-		{			
+		{
 			Task ooo = RunFunctionIfOpenAsyncT(async delegate
 			{
 				try
@@ -215,7 +215,6 @@ namespace LolloGPS.GPSInteraction
 			}
 		}
 		#endregion foreground tracking
-
 
 		#region background task
 		private static IBackgroundTaskRegistration GetTaskIfAlreadyRegistered()
@@ -386,7 +385,6 @@ namespace LolloGPS.GPSInteraction
 		}
 		#endregion background task
 
-
 		#region services
 		/// <summary>
 		/// Gets the current geolocation and appends the results to History
@@ -405,12 +403,20 @@ namespace LolloGPS.GPSInteraction
 					if (CancToken.IsCancellationRequested) return;
 					if (_geolocator != null)
 					{
-						var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
-						var newDataRecord = GetNewHistoryRecord(pos);
-						if (CancToken.IsCancellationRequested) return;
-						if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
+						_isGeolocatorAllowed = _isGeolocatorAllowed || await GetIsGeolocatorAllowed().ConfigureAwait(false);
+						if (_isGeolocatorAllowed)
 						{
-							result = newDataRecord;
+							var pos = await _geolocator.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
+							var newDataRecord = GetNewHistoryRecord(pos);
+							if (CancToken.IsCancellationRequested) return;
+							if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
+							{
+								result = newDataRecord;
+							}
+						}
+						else
+						{
+							SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
 						}
 					}
 				}
@@ -467,6 +473,13 @@ namespace LolloGPS.GPSInteraction
 		private void SetLastMessage_UI(string message)
 		{
 			if (_persistentData != null) _persistentData.LastMessage = message;
+		}
+		private async Task<bool> GetIsGeolocatorAllowed()
+		{
+			if (_isGeolocatorAllowed) return true;
+			Task<GeolocationAccessStatus> isGeolocatorAllowed = null;
+			await RunInUiThreadAsync(delegate { isGeolocatorAllowed = Geolocator.RequestAccessAsync().AsTask(CancToken); }).ConfigureAwait(false);
+			return await isGeolocatorAllowed.ConfigureAwait(false) == GeolocationAccessStatus.Allowed;
 		}
 		#endregion services
 	}
