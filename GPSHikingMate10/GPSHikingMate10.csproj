@@ -11,8 +11,8 @@
     <AssemblyName>GPSHikingMate10</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.14393.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.15063.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10586.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
@@ -22,6 +22,7 @@
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
     <PackageCertificateThumbprint>D73B74A16C4C6330A584E06899D2881718EF6520</PackageCertificateThumbprint>
     <AppxBundle>Always</AppxBundle>
+    <RuntimeIdentifiers>win10-arm;win10-arm-aot;win10-x86;win10-x86-aot;win10-x64;win10-x64-aot</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -108,7 +109,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="GPSHikingMate10_StoreKey.pfx" />
-    <None Include="project.json" />
     <PRIResource Include="Strings\en-US\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
@@ -285,14 +285,9 @@
       <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
       <Name>Utilz</Name>
     </ProjectReference>
-    <ProjectReference Include="..\BackgroundTask\GPSHikingMate10BackgroundTasks.csproj">
-      <Project>{fccfa2fc-f84a-47ea-b42a-8d90d5545551}</Project>
-      <Name>GPSHikingMate10BackgroundTasks</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DataModel\DataModel.csproj">
       <Project>{116cb644-bdca-462f-81a2-8aaeb46ede92}</Project>
       <Name>DataModel</Name>
-      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\GPSInteractor\GPSInteractor.csproj">
       <Project>{a23cd15a-9d3a-4ff6-95bd-eb0a2ddfc68e}</Project>
@@ -300,11 +295,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <SDKReference Include="WindowsMobile, Version=10.0.14393.0">
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.PersistenceChannel">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsApps">
+      <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
+      <Version>5.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <SDKReference Include="WindowsMobile, Version=10.0.15063.0">
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Lollus")]
 [assembly: AssemblyProduct("GPSHikingMate10")]
-[assembly: AssemblyCopyright("Copyright © Lollus 2015")]
+[assembly: AssemblyCopyright("Copyright © Lollus 2015, 2016, 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
