@@ -145,13 +145,14 @@ namespace LolloGPS.Core
 
 			_myMapInstance = new WeakReference(MyMap);
 
+			MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = 0.0, Longitude = 0.0 });
 			MyMap.Style = PersistentData.MapStyle;
-			MyMap.DesiredPitch = 0.0;
-			MyMap.Heading = 0;
+			//MyMap.DesiredPitch = 0.0;
+			//MyMap.Heading = 0;
 			//MyMap.TrafficFlowVisible = false;
 			//MyMap.LandmarksVisible = false; // important
 			MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
-			//MyMap.PedestrianFeaturesVisible = false;
+																																					//MyMap.PedestrianFeaturesVisible = false;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
 			if (App.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
 			else MyMap.ZoomInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
@@ -373,10 +374,12 @@ namespace LolloGPS.Core
 
 				await RunInUiThreadAsync(delegate
 				{
-					_mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Unspecified); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
-																											  // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-																											  //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-																											  //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+					// LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
+					// and they still move about a bit.
+					_mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
+																													// stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+																													//MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+																													//MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
 					_iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
 					_iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
 					//Better even: use binding; sadly, it is broken for the moment
@@ -420,7 +423,9 @@ namespace LolloGPS.Core
 
 				await RunInUiThreadAsync(delegate
 				{
-					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Unspecified); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface instead of destroying and redoing, it would be nice to just add the latest point; 
+					// LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
+					// and they still move about a bit.
+					_mapPolylineRoute0.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface instead of destroying and redoing, it would be nice to just add the latest point; 
 
 					if (CancToken.IsCancellationRequested) return;
 
