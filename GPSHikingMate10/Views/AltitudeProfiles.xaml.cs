@@ -193,17 +193,19 @@ namespace LolloGPS.Core
 				{
 					// leave if there is no selected point
 					if (!PersistentData.IsSelectedSeriesNonNullAndNonEmpty()) return;
+					// LOLLO TODO scroll forward if selected point is outside current bounds
+
 					// draw the selected point
 					switch (PersistentData.SelectedSeries)
 					{
 						case PersistentData.Tables.History:
-							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.HistoryAltitudeI0, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.Route0:
-							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.Route0AltitudeI0, PersistentData.Selected.Altitude);
 							break;
 						case PersistentData.Tables.Checkpoints:
-							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1, PersistentData.Selected.Altitude);
+							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.CheckpointsAltitudeI0, PersistentData.Selected.Altitude);
 							break;
 						default:
 							break;
@@ -276,10 +278,10 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.XMax * PersistentData.History.Count > 0)
-				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.History[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.History.Count))], PersistentData.Tables.History));
-				}
+				var index = Convert.ToInt32(PersistentData.HistoryAltitudeI0 + e.X / e.XMax * (PersistentData.HistoryAltitudeI1 - PersistentData.HistoryAltitudeI0));
+				index = Math.Max(index, 0);
+				index = Math.Min(index, PersistentData.History.Count - 1);
+				ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.History[index], PersistentData.Tables.History));
 			}
 			catch (Exception ex)
 			{
@@ -290,10 +292,10 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.X / e.XMax * PersistentData.Route0.Count > 0)
-				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Route0[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Route0.Count))], PersistentData.Tables.Route0));
-				}
+				var index = Convert.ToInt32(PersistentData.Route0AltitudeI0 + e.X / e.XMax * (PersistentData.Route0AltitudeI1 - PersistentData.Route0AltitudeI0));
+				index = Math.Max(index, 0);
+				index = Math.Min(index, PersistentData.Route0.Count - 1);
+				ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Route0[index], PersistentData.Tables.Route0));
 			}
 			catch (Exception ex)
 			{
@@ -304,10 +306,10 @@ namespace LolloGPS.Core
 		{
 			try
 			{
-				if (e.X / e.XMax * PersistentData.Checkpoints.Count > 0)
-				{
-					ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Checkpoints[Convert.ToInt32(Math.Floor(e.X / e.XMax * PersistentData.Checkpoints.Count))], PersistentData.Tables.Checkpoints));
-				}
+				var index = Convert.ToInt32(PersistentData.CheckpointsAltitudeI0 + e.X / e.XMax * (PersistentData.CheckpointsAltitudeI1 - PersistentData.CheckpointsAltitudeI0));
+				index = Math.Max(index, 0);
+				index = Math.Min(index, PersistentData.Checkpoints.Count - 1);
+				ShowOnePointDetailsRequested?.Invoke(this, new ShowOnePointDetailsRequestedArgs(PersistentData.Checkpoints[index], PersistentData.Tables.Checkpoints));
 			}
 			catch (Exception ex)
 			{
