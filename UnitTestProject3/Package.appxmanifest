@@ -5,18 +5,18 @@
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   IgnorableNamespaces="uap mp">
 
-  <Identity Name="2b465ddb-4436-4c23-a8a1-0653c1328bda"
+  <Identity Name="b9f2c068-ce2a-4bec-8e0b-bffe17151ac1"
             Publisher="CN=lollu"
             Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="2b465ddb-4436-4c23-a8a1-0653c1328bda" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="b9f2c068-ce2a-4bec-8e0b-bffe17151ac1" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>UnitTestProject1</DisplayName>
+    <DisplayName>UnitTestProject3</DisplayName>
     <PublisherDisplayName>lollu</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
-  
+
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
   </Dependencies>
@@ -25,14 +25,14 @@
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
-    <Application Id="vstest.executionengine.universal.App" 
+    <Application Id="vstest.executionengine.universal.App"
         Executable="$targetnametoken$.exe"
-        EntryPoint="UnitTestProject1.App">
+        EntryPoint="UnitTestProject3.App">
       <uap:VisualElements
-        DisplayName="UnitTestProject1"
+        DisplayName="UnitTestProject3"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="UnitTestProject1"
+        Description="UnitTestProject3"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
@@ -40,6 +40,6 @@
     </Application>
   </Applications>
   <Capabilities>
-    <Capability Name="internetClient" />
-  </Capabilities> 
+    <Capability Name="internetClientServer" />
+  </Capabilities>
 </Package>
