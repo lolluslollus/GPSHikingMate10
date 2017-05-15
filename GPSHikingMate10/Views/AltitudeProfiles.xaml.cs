@@ -185,43 +185,75 @@ namespace LolloGPS.Core
 
 
 		#region user event handlers
+		private int GetSelectedSeriesI0()
+		{
+			switch (PersistentData.SelectedSeries)
+			{
+				case PersistentData.Tables.History:
+					return PersistentData.HistoryAltitudeI0;
+				case PersistentData.Tables.Route0:
+					return PersistentData.Route0AltitudeI0;
+				case PersistentData.Tables.Checkpoints:
+					return PersistentData.CheckpointsAltitudeI0;
+				default:
+					return 0;
+			}
+		}
 		public void OnInfoPanelPointChanged(object sender, EventArgs e)
 		{
-			Task cen = RunFunctionIfOpenAsyncA(delegate
+			Task cen = RunFunctionIfOpenAsyncT(async delegate
 			{
 				try
 				{
 					// leave if there is no selected point
 					if (!PersistentData.IsSelectedSeriesNonNullAndNonEmpty()) return;
-					// LOLLO TODO scroll forward if selected point is outside current bounds
+					if (!PersistentData.IsShowingAltitudeProfiles) return;
 
-					// draw the selected point
+					// draw the selected point; if it is outside the current bounds, pan backward or forward to centre it.
+					LolloChart.WhichBoundCrossed whichBoundCrossed = LolloChart.WhichBoundCrossed.None;
+					LolloChart chart = null;
 					switch (PersistentData.SelectedSeries)
 					{
 						case PersistentData.Tables.History:
-							HistoryChart.CrossPoint(HistoryChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.HistoryAltitudeI0, PersistentData.Selected.Altitude);
+							chart = HistoryChart;
 							break;
 						case PersistentData.Tables.Route0:
-							Route0Chart.CrossPoint(Route0Chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.Route0AltitudeI0, PersistentData.Selected.Altitude);
+							chart = Route0Chart;
 							break;
 						case PersistentData.Tables.Checkpoints:
-							CheckpointsChart.CrossPoint(CheckpointsChart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - PersistentData.CheckpointsAltitudeI0, PersistentData.Selected.Altitude);
+							chart = CheckpointsChart;
 							break;
 						default:
 							break;
 					}
+					if (chart != null)
+					{
+						int i0 = GetSelectedSeriesI0();
+						whichBoundCrossed = chart.CrossPoint(chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - 1 - i0, PersistentData.Selected.Altitude);
+						if (whichBoundCrossed == LolloChart.WhichBoundCrossed.Left)
+						{
+							await chart.PanBackAsync(true);
+							i0 = GetSelectedSeriesI0(); // must reread it, it may have changed
+							chart.CrossPoint(chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - i0 - 1, PersistentData.Selected.Altitude); //cross the point into the panned chart
+						}
+						else if (whichBoundCrossed == LolloChart.WhichBoundCrossed.Right)
+						{
+							await chart.PanForwardAsync(true);
+							i0 = GetSelectedSeriesI0(); // must reread it, it may have changed
+							chart.CrossPoint(chart.XY1DataSeries, PersistentData.SelectedIndex_Base1 - i0 - 1, PersistentData.Selected.Altitude); //cross the point into the panned chart
+						}
+					}
 					// if this panel is being displayed, centre it
-					if (!PersistentData.IsShowingAltitudeProfiles) return;
 					switch (PersistentData.SelectedSeries)
 					{
 						case PersistentData.Tables.History:
-							CentreOnHistoryAsync();
+							await CentreOnHistoryAsync();
 							break;
 						case PersistentData.Tables.Route0:
-							CentreOnRoute0Async();
+							await CentreOnRoute0Async();
 							break;
 						case PersistentData.Tables.Checkpoints:
-							CentreOnCheckpointsAsync();
+							await CentreOnCheckpointsAsync();
 							break;
 						default:
 							break;

@@ -724,16 +724,16 @@ namespace LolloGPS.Data
 				switch (whichTable)
 				{
 					case Tables.History:
-						HistoryAltitudeI0 = i0;
-						HistoryAltitudeI1 = i1;
+						HistoryAltitudeI0 = Math.Max(i0, 0);
+						HistoryAltitudeI1 = Math.Min(i1, History.Count - 1);
 						return;
 					case Tables.Route0:
-						Route0AltitudeI0 = i0;
-						Route0AltitudeI1 = i1;
+						Route0AltitudeI0 = Math.Max(i0, 0);
+						Route0AltitudeI1 = Math.Min(i1, Route0.Count - 1);
 						return;
 					case Tables.Checkpoints:
-						CheckpointsAltitudeI0 = i0;
-						CheckpointsAltitudeI1 = i1;
+						CheckpointsAltitudeI0 = Math.Max(i0, 0);
+						CheckpointsAltitudeI1 = Math.Min(i1, Checkpoints.Count - 1);
 						return;
 					default:
 						return;
