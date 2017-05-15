@@ -484,6 +484,7 @@ namespace LolloGPS.Core
 						{
 							mapIcon.Location = geoPoints[i];
 							//(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+							//mapIcon.Title = "LOLLO TODO"; // style the titles
 							mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed
 						}
 						j++;
