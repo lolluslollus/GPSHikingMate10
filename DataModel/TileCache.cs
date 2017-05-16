@@ -135,20 +135,40 @@ namespace LolloGPS.Data.TileCache
 		{
 			var uri = await GetTileUriAsync(x, y, z, zoom, cancToken).ConfigureAwait(false);
 			if (uri == null) return null;
+			if (cancToken.IsCancellationRequested) return null;
+
 			if (uri.Scheme == "file")
 			{
-				int howManySegments = uri.Segments.Count();
-				if (howManySegments <= 0) return null;
-				return await TileCacheRecord.GetPixelStreamRefFromImgFolder(_imageFolder, uri.Segments[howManySegments - 1]).ConfigureAwait(false);
+				if (!uri.Segments.Any()) return null;
+				return await TileCacheRecord.GetPixelStreamRefFromImgFolder(_imageFolder, uri.Segments.Last()).ConfigureAwait(false);
 			}
-			if (uri.Scheme == "ms-appx"){
-				return null; // LOLLO TODO output something, these are the zoom in / zoom out icons
+			if (uri.Scheme == "ms-appx")
+			{
+				if (!uri.Segments.Any()) return null;
+				var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
+				return await TileCacheRecord.GetPixelStreamRefFromImgFolder(assetsFolder, uri.Segments.Last()).ConfigureAwait(false);
 			}
+			// it's a proper web request
 			var request = WebRequest.CreateHttp(uri);
 			//request.Accept = MimeTypeImageAny;
 			request.AllowReadStreamBuffering = true;
 			request.ContinueTimeout = WebRequestTimeoutMsec;
 			int where = 1;
+
+			cancToken.Register(delegate
+			{
+				try
+				{
+					request?.Abort();
+					Debug.WriteLine("web request aborted");
+				}
+				catch
+				{
+					Debug.WriteLine("web request aborted with error");
+				}
+			}, false);
+
+			where = 2;
 			using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 			{
 				if (cancToken.IsCancellationRequested) return null;
@@ -170,7 +190,7 @@ namespace LolloGPS.Data.TileCache
 				}
 			}
 
-			return null;			
+			return null;
 
 			int pixelHeight = 256;
 			int pixelWidth = 256;
