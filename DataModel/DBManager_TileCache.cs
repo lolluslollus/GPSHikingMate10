@@ -13,7 +13,7 @@ namespace LolloGPS.Data.TileCache
 {
 	internal static class DBManager
 	{
-		internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "TileCache.db");
+		internal static readonly string _tileCacheDbPath = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, "TileCache.db");
 		internal static readonly bool _isStoreDateTimeAsTicks = true;
 		internal static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
 		internal static readonly SemaphoreSlimSafeRelease _writingSemaphore = new SemaphoreSlimSafeRelease(1, 1);

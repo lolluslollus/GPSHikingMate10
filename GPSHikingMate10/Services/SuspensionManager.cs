@@ -33,7 +33,7 @@ namespace LolloGPS.Suspension
 			{
 				if (readSettingsFromDb)
 				{
-					StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(SessionDataFilename, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+					StorageFile file = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(SessionDataFilename, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
 					//string ssss = null; //this is useful when you debug and want to see the file as a string
 					//using (IInputStream inStream = await file.OpenSequentialReadAsync())
@@ -111,7 +111,7 @@ namespace LolloGPS.Suspension
 					// DataContractSerializer sessionDataSerializer = new DataContractSerializer(typeof(PersistentData), new DataContractSerializerSettings() { KnownTypes = _knownTypes, SerializeReadOnlyTypes = true, PreserveObjectReferences = true });
 					sessionDataSerializer.WriteObject(memoryStream, /*allDataClone*/ allDataOriginal);
 
-					StorageFile sessionDataFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(
+					StorageFile sessionDataFile = await ApplicationData.Current.LocalCacheFolder.CreateFileAsync(
 						SessionDataFilename, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
 					using (Stream fileStream = await sessionDataFile.OpenStreamForWriteAsync().ConfigureAwait(false))
 					{

@@ -15,9 +15,9 @@ namespace LolloGPS.Data
 {
 	internal static class DBManager
 	{
-		private static readonly string _historyDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "History.db");
-		private static readonly string _route0DbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Route0.db");
-		private static readonly string _checkpointsDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Checkpoints.db");
+		private static readonly string _historyDbPath = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, "History.db");
+		private static readonly string _route0DbPath = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, "Route0.db");
+		private static readonly string _checkpointsDbPath = Path.Combine(ApplicationData.Current.LocalCacheFolder.Path, "Checkpoints.db");
 		private static readonly bool _isStoreDateTimeAsTicks = true;
 		private static readonly SQLiteOpenFlags _openFlags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex | SQLiteOpenFlags.ProtectionNone;
 		internal static readonly Semaphore _HistorySemaphore = new Semaphore(1, 1, "GPSHikingMate10_HistorySemaphore");

@@ -1306,7 +1306,7 @@ namespace LolloGPS.Data
 
 				if (folderNamesToBeDeleted?.Any() == true)
 				{
-					var localFolder = ApplicationData.Current.LocalFolder;
+					var localFolder = ApplicationData.Current.LocalCacheFolder;
 
 					foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
 					{
@@ -1329,12 +1329,15 @@ namespace LolloGPS.Data
 							if (dbResult.Item1)
 							{
 								// delete the files next.
-								var imageFolder = await localFolder.GetFolderAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
-								await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(cancToken).ConfigureAwait(false);
-								howManyRecordsDeletedTotal += dbResult.Item2;
+								var imageFolder = await localFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
+								if (imageFolder != null)
+								{
+									await imageFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(cancToken).ConfigureAwait(false);
+									howManyRecordsDeletedTotal += dbResult.Item2;
 
-								// remove tile source from collection last.
-								if (isAlsoRemoveSources) await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+									// remove tile source from collection last.
+									if (isAlsoRemoveSources) await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+								}
 							}
 							else
 							{

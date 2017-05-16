@@ -250,7 +250,7 @@ namespace LolloGPS.Core
 
 		private async void OnTestFiles_Click(object sender, RoutedEventArgs e)
 		{
-			string txt = await FileDirectoryExtensions.GetAllFilesInLocalFolderAsync().ConfigureAwait(false);
+			string txt = await FileDirectoryExtensions.GetAllFilesInLocalCacheFolderAsync().ConfigureAwait(false);
 
 			await RunInUiThreadAsync(delegate
 			{
