@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -855,6 +856,7 @@ namespace LolloGPS.Data.TileCache
 	}
 	internal static class PixelHelper
 	{
+		private static readonly BitmapTransform _bitmapTransform = new BitmapTransform() { InterpolationMode = BitmapInterpolationMode.Linear };
 		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName)
 		{
 			try
@@ -913,25 +915,25 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
-		internal static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
+		private static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
 		{
 			var sw = new Stopwatch(); sw.Start();
 			try
 			{
-				var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(source).AsTask().ConfigureAwait(false);
-				//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(Windows.Graphics.Imaging.BitmapDecoder.PngDecoderId, source).AsTask().ConfigureAwait(false);
-				//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(jpegDecoder.CodecId, dbStream).AsTask().ConfigureAwait(false);
+				var decoder = await BitmapDecoder.CreateAsync(source).AsTask().ConfigureAwait(false);
+				//var decoder = await BitmapDecoder.CreateAsync(BitmapDecoder.PngDecoderId, source).AsTask().ConfigureAwait(false);
+				//var decoder = await BitmapDecoder.CreateAsync(jpegDecoder.CodecId, dbStream).AsTask().ConfigureAwait(false);
 				// LOLLO TODO the image can easily be 250K when the source only takes 10K. We need some compression! I am trying PNG decoder right now.
 				// I can also try with the settings below - it actually seems not! I think the freaking output is always 262144 bytes coz it's really all the pixels.
 
 				var pixelProvider = await decoder.GetPixelDataAsync(
-					Windows.Graphics.Imaging.BitmapPixelFormat.Rgba8,
-					Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
-					//Windows.Graphics.Imaging.BitmapAlphaMode.Ignore, // faster?
-					new Windows.Graphics.Imaging.BitmapTransform(), // { ScaledHeight = 256, ScaledWidth = 256, InterpolationMode = Windows.Graphics.Imaging.BitmapInterpolationMode.NearestNeighbor }, // { InterpolationMode = ??? }
-					Windows.Graphics.Imaging.ExifOrientationMode.RespectExifOrientation,
-				//Windows.Graphics.Imaging.ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
-				Windows.Graphics.Imaging.ColorManagementMode.DoNotColorManage).AsTask().ConfigureAwait(false);
+					BitmapPixelFormat.Rgba8,
+					//BitmapAlphaMode.Straight,
+					BitmapAlphaMode.Ignore, // faster
+					_bitmapTransform,
+					ExifOrientationMode.RespectExifOrientation,
+				//ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
+				ColorManagementMode.DoNotColorManage).AsTask().ConfigureAwait(false);
 
 				return pixelProvider.DetachPixelData();
 			}
@@ -943,10 +945,10 @@ namespace LolloGPS.Data.TileCache
 			finally
 			{
 				sw.Stop();
-				Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedMilliseconds + " msec");
+				Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedTicks + " ticks");
 			}
 		}
-		internal static async Task<RandomAccessStreamReference> GetStreamRefFromArray(byte[] array)
+		private static async Task<RandomAccessStreamReference> GetStreamRefFromArray(byte[] array)
 		{
 			if (array == null || array.Length == 0) return null;
 
