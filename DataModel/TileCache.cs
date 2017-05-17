@@ -133,6 +133,7 @@ namespace LolloGPS.Data.TileCache
 
 		public async Task<IRandomAccessStreamReference> GetTileStreamRefAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
 		{
+			if (cancToken.IsCancellationRequested) return null;
 			var uri = await GetTileUriAsync(x, y, z, zoom, cancToken).ConfigureAwait(false);
 			if (uri == null) return null;
 			if (cancToken.IsCancellationRequested) return null;
@@ -140,20 +141,19 @@ namespace LolloGPS.Data.TileCache
 			if (uri.Scheme == "file")
 			{
 				if (!uri.Segments.Any()) return null;
-				return await TileCacheRecord.GetPixelStreamRefFromImgFolder(_imageFolder, uri.Segments.Last()).ConfigureAwait(false);
+				return await PixelHelper.GetPixelStreamRefFromFile(_imageFolder, uri.Segments.Last()).ConfigureAwait(false);
 			}
 			if (uri.Scheme == "ms-appx")
 			{
 				if (!uri.Segments.Any()) return null;
 				var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
-				return await TileCacheRecord.GetPixelStreamRefFromImgFolder(assetsFolder, uri.Segments.Last()).ConfigureAwait(false);
+				return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last()).ConfigureAwait(false);
 			}
-			// it's a proper web request
+			// it's a proper web request: do it
 			var request = WebRequest.CreateHttp(uri);
 			//request.Accept = MimeTypeImageAny;
 			request.AllowReadStreamBuffering = true;
 			request.ContinueTimeout = WebRequestTimeoutMsec;
-			int where = 1;
 
 			cancToken.Register(delegate
 			{
@@ -168,68 +168,32 @@ namespace LolloGPS.Data.TileCache
 				}
 			}, false);
 
-			where = 2;
 			using (var response = await request.GetResponseAsync().ConfigureAwait(false))
 			{
 				if (cancToken.IsCancellationRequested) return null;
 				if (IsWebResponseHeaderOk(response))
 				{
-					where = 3;
-					//return RandomAccessStreamReference.CreateFromStream(response.GetResponseStream().AsRandomAccessStream());
-
-
 					using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
 					{
-						where = 4;
-
-						var pixels = await TileCacheRecord.GetPixelArrayFromRandomAccessStream(responseStream.AsRandomAccessStream()).ConfigureAwait(false);
+						/*
+						// this works, too, but it is slower, unintuitively:
+						var pixels = await PixelHelper.GetPixelArrayFromRandomAccessStream(responseStream.AsRandomAccessStream()).ConfigureAwait(false);
 						if (cancToken.IsCancellationRequested) return null;
-						return await TileCacheRecord.GetPixelStreamRefFromPixelArray(pixels).ConfigureAwait(false);
+						return await PixelHelper.GetStreamRefFromArray(pixels).ConfigureAwait(false);
+						*/
 
-						// this works, too:
 						var img = new byte[response.ContentLength];
 						await responseStream.ReadAsync(img, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
 
 						if (cancToken.IsCancellationRequested) return null;
 						if (IsWebResponseContentOk(img))
 						{
-							return await TileCacheRecord.GetPixelStreamRefFromByteArray(img).ConfigureAwait(false);
+							return await PixelHelper.GetPixelStreamRefFromByteArray(img).ConfigureAwait(false);
 						}
 					}
 				}
 			}
-
 			return null;
-
-			int pixelHeight = 256;
-			int pixelWidth = 256;
-			int bpp = 4;
-
-			byte[] bytes = new byte[pixelHeight * pixelWidth * bpp];
-
-			for (int yy = 0; yy < pixelHeight; yy++)
-			{
-				for (int xx = 0; xx < pixelWidth; xx++)
-				{
-					int pixelIndex = yy * pixelWidth + xx;
-					int byteIndex = pixelIndex * bpp;
-
-					// Set the current pixel bytes.
-					bytes[byteIndex] = 0xff;        // Red
-					bytes[byteIndex + 1] = 0x00;    // Green
-					bytes[byteIndex + 2] = 0x00;    // Blue
-					bytes[byteIndex + 3] = 0x80;    // Alpha (0xff = fully opaque)
-				}
-			}
-
-			// Create RandomAccessStream from byte array.
-			InMemoryRandomAccessStream randomAccessStream = new InMemoryRandomAccessStream();
-			IOutputStream outputStream = randomAccessStream.GetOutputStreamAt(0);
-			DataWriter writer = new DataWriter(outputStream);
-			writer.WriteBytes(bytes);
-			await writer.StoreAsync();
-			await writer.FlushAsync();
-			return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
 		}
 
 		public async Task<Uri> GetTileUriAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
@@ -888,16 +852,20 @@ namespace LolloGPS.Data.TileCache
 			}
 			return null;
 		}
-		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromImgFolder(StorageFolder imageFolder, string fileName)
+	}
+	internal static class PixelHelper
+	{
+		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName)
 		{
 			try
 			{
 				byte[] pixels = null;
 				using (var readStream = await imageFolder.OpenStreamForReadAsync(fileName).ConfigureAwait(false))
 				{
-					pixels = await GetPixelArrayFromByteStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
+					//pixels = await GetPixelArrayFromByteStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
+					pixels = await GetPixelArrayFromRandomAccessStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
 				}
-				return await GetPixelStreamRefFromPixelArray(pixels).ConfigureAwait(false);
+				return await GetStreamRefFromArray(pixels).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -910,7 +878,7 @@ namespace LolloGPS.Data.TileCache
 			try
 			{
 				byte[] pixels = await GetPixelArrayFromByteArray(imgBytes).ConfigureAwait(false);
-				return await GetPixelStreamRefFromPixelArray(pixels).ConfigureAwait(false);
+				return await GetStreamRefFromArray(pixels).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -919,62 +887,25 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
-		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromPixelArray(byte[] pixels) // was private
-		{
-			if (pixels == null || pixels.Length == 0) return null;
-
-			// write pixels into a stream and return a reference to it
-			// no Dispose() in the following!
-			InMemoryRandomAccessStream inMemoryRandomAccessStream = new InMemoryRandomAccessStream();
-			using (IOutputStream outputStream = inMemoryRandomAccessStream.GetOutputStreamAt(0)) // this seems to make it a little more stable
-			{
-				using (DataWriter writer = new DataWriter(outputStream))
-				{
-					writer.WriteBytes(pixels);
-					await writer.StoreAsync().AsTask().ConfigureAwait(false);
-					await writer.FlushAsync().AsTask().ConfigureAwait(false);
-					writer.DetachStream(); // otherwise Dispose() will murder the stream
-				}
-				return RandomAccessStreamReference.CreateFromStream(inMemoryRandomAccessStream);
-			}
-		}
-
-		private static async Task<byte[]> GetPixelArrayFromByteArray(byte[] source)
+		private static async Task<byte[]> GetPixelArrayFromByteArray(byte[] bytes)
 		{
 			try
 			{
-				byte[] pixels = null;
 				using (InMemoryRandomAccessStream dbStream = new InMemoryRandomAccessStream())
 				{
 					using (IOutputStream dbOutputStream = dbStream.GetOutputStreamAt(0)) // this seems to make it a little more stable
 					{
 						using (DataWriter dbStreamWriter = new DataWriter(dbOutputStream))
 						{
-							dbStreamWriter.WriteBytes(source);
+							dbStreamWriter.WriteBytes(bytes);
 							await dbStreamWriter.StoreAsync().AsTask().ConfigureAwait(false);
 							await dbStreamWriter.FlushAsync().AsTask().ConfigureAwait(false);
 							dbStreamWriter.DetachStream(); // otherwise Dispose() will murder the stream
 						}
 
-
-						var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(dbStream).AsTask().ConfigureAwait(false);
-						//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(Windows.Graphics.Imaging.BitmapDecoder.PngDecoderId, dbStream).AsTask().ConfigureAwait(false);
-						//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(jpegDecoder.CodecId, dbStream).AsTask().ConfigureAwait(false);
-						//LOLLO the image can easily be 250K when the source only takes 10K. We need some compression! I am trying PNG decoder right now.
-						// I can also try with the settings below - it actually seems not! I think the freaking output is always 262144 bytes coz it's really all the pixels.
-
-						var pixelProvider = await decoder.GetPixelDataAsync(
-							Windows.Graphics.Imaging.BitmapPixelFormat.Rgba8,
-							Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
-							new Windows.Graphics.Imaging.BitmapTransform(), // { ScaledHeight = 256, ScaledWidth = 256, InterpolationMode = Windows.Graphics.Imaging.BitmapInterpolationMode.NearestNeighbor }, // { InterpolationMode = ??? }
-							Windows.Graphics.Imaging.ExifOrientationMode.RespectExifOrientation,
-						//Windows.Graphics.Imaging.ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
-						Windows.Graphics.Imaging.ColorManagementMode.DoNotColorManage).AsTask().ConfigureAwait(false);
-
-						pixels = pixelProvider.DetachPixelData();
+						return await GetPixelArrayFromRandomAccessStream(dbStream).ConfigureAwait(false);
 					}
 				}
-				return pixels;
 			}
 			catch (Exception ex)
 			{
@@ -982,7 +913,6 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
-
 		internal static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
 		{
 			var sw = new Stopwatch(); sw.Start();
@@ -996,8 +926,8 @@ namespace LolloGPS.Data.TileCache
 
 				var pixelProvider = await decoder.GetPixelDataAsync(
 					Windows.Graphics.Imaging.BitmapPixelFormat.Rgba8,
-					//Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
-					Windows.Graphics.Imaging.BitmapAlphaMode.Ignore, // faster?
+					Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
+					//Windows.Graphics.Imaging.BitmapAlphaMode.Ignore, // faster?
 					new Windows.Graphics.Imaging.BitmapTransform(), // { ScaledHeight = 256, ScaledWidth = 256, InterpolationMode = Windows.Graphics.Imaging.BitmapInterpolationMode.NearestNeighbor }, // { InterpolationMode = ??? }
 					Windows.Graphics.Imaging.ExifOrientationMode.RespectExifOrientation,
 				//Windows.Graphics.Imaging.ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
@@ -1016,30 +946,56 @@ namespace LolloGPS.Data.TileCache
 				Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedMilliseconds + " msec");
 			}
 		}
-
-		private static async Task<byte[]> GetPixelArrayFromByteStream(IRandomAccessStream source)
+		internal static async Task<RandomAccessStreamReference> GetStreamRefFromArray(byte[] array)
 		{
-			try
-			{
-				byte[] pixels = null;
-				var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(source).AsTask().ConfigureAwait(false);
+			if (array == null || array.Length == 0) return null;
 
-				var pixelProvider = await decoder.GetPixelDataAsync(
-					Windows.Graphics.Imaging.BitmapPixelFormat.Rgba8,
-					Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
-					new Windows.Graphics.Imaging.BitmapTransform(), // { InterpolationMode = ??? }
-					Windows.Graphics.Imaging.ExifOrientationMode.RespectExifOrientation,
-					//Windows.Graphics.Imaging.ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
-					Windows.Graphics.Imaging.ColorManagementMode.DoNotColorManage).AsTask().ConfigureAwait(false);
-
-				pixels = pixelProvider.DetachPixelData();
-				return pixels;
-			}
-			catch (Exception ex)
+			// write pixels into a stream and return a reference to it
+			// no Dispose() in the following!
+			InMemoryRandomAccessStream inMemoryRandomAccessStream = new InMemoryRandomAccessStream();
+			using (IOutputStream outputStream = inMemoryRandomAccessStream.GetOutputStreamAt(0)) // this seems to make it a little more stable
 			{
-				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-				return null;
+				using (DataWriter writer = new DataWriter(outputStream))
+				{
+					writer.WriteBytes(array);
+					await writer.StoreAsync().AsTask().ConfigureAwait(false);
+					await writer.FlushAsync().AsTask().ConfigureAwait(false);
+					writer.DetachStream(); // otherwise Dispose() will murder the stream
+				}
+				return RandomAccessStreamReference.CreateFromStream(inMemoryRandomAccessStream);
 			}
+		}
+		public static async Task<IRandomAccessStreamReference> GetRedTileStreamRefAsync()
+		{ // this is sample code from MS
+			int pixelHeight = 256;
+			int pixelWidth = 256;
+			int bpp = 4;
+
+			byte[] bytes = new byte[pixelHeight * pixelWidth * bpp];
+
+			for (int yy = 0; yy < pixelHeight; yy++)
+			{
+				for (int xx = 0; xx < pixelWidth; xx++)
+				{
+					int pixelIndex = yy * pixelWidth + xx;
+					int byteIndex = pixelIndex * bpp;
+
+					// Set the current pixel bytes.
+					bytes[byteIndex] = 0xff;        // Red
+					bytes[byteIndex + 1] = 0x00;    // Green
+					bytes[byteIndex + 2] = 0x00;    // Blue
+					bytes[byteIndex + 3] = 0x80;    // Alpha (0xff = fully opaque)
+				}
+			}
+
+			// Create RandomAccessStream from byte array.
+			InMemoryRandomAccessStream randomAccessStream = new InMemoryRandomAccessStream();
+			IOutputStream outputStream = randomAccessStream.GetOutputStreamAt(0);
+			DataWriter writer = new DataWriter(outputStream);
+			writer.WriteBytes(bytes);
+			await writer.StoreAsync();
+			await writer.FlushAsync();
+			return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
 		}
 	}
 }
