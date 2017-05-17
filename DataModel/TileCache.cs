@@ -175,9 +175,18 @@ namespace LolloGPS.Data.TileCache
 				if (IsWebResponseHeaderOk(response))
 				{
 					where = 3;
+					//return RandomAccessStreamReference.CreateFromStream(response.GetResponseStream().AsRandomAccessStream());
+
+
 					using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
 					{
 						where = 4;
+
+						var pixels = await TileCacheRecord.GetPixelArrayFromRandomAccessStream(responseStream.AsRandomAccessStream()).ConfigureAwait(false);
+						if (cancToken.IsCancellationRequested) return null;
+						return await TileCacheRecord.GetPixelStreamRefFromPixelArray(pixels).ConfigureAwait(false);
+
+						// this works, too:
 						var img = new byte[response.ContentLength];
 						await responseStream.ReadAsync(img, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
 
@@ -910,7 +919,7 @@ namespace LolloGPS.Data.TileCache
 			}
 		}
 
-		private static async Task<RandomAccessStreamReference> GetPixelStreamRefFromPixelArray(byte[] pixels)
+		internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromPixelArray(byte[] pixels) // was private
 		{
 			if (pixels == null || pixels.Length == 0) return null;
 
@@ -973,6 +982,41 @@ namespace LolloGPS.Data.TileCache
 				return null;
 			}
 		}
+
+		internal static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
+		{
+			var sw = new Stopwatch(); sw.Start();
+			try
+			{
+				var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(source).AsTask().ConfigureAwait(false);
+				//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(Windows.Graphics.Imaging.BitmapDecoder.PngDecoderId, source).AsTask().ConfigureAwait(false);
+				//var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(jpegDecoder.CodecId, dbStream).AsTask().ConfigureAwait(false);
+				// LOLLO TODO the image can easily be 250K when the source only takes 10K. We need some compression! I am trying PNG decoder right now.
+				// I can also try with the settings below - it actually seems not! I think the freaking output is always 262144 bytes coz it's really all the pixels.
+
+				var pixelProvider = await decoder.GetPixelDataAsync(
+					Windows.Graphics.Imaging.BitmapPixelFormat.Rgba8,
+					//Windows.Graphics.Imaging.BitmapAlphaMode.Straight,
+					Windows.Graphics.Imaging.BitmapAlphaMode.Ignore, // faster?
+					new Windows.Graphics.Imaging.BitmapTransform(), // { ScaledHeight = 256, ScaledWidth = 256, InterpolationMode = Windows.Graphics.Imaging.BitmapInterpolationMode.NearestNeighbor }, // { InterpolationMode = ??? }
+					Windows.Graphics.Imaging.ExifOrientationMode.RespectExifOrientation,
+				//Windows.Graphics.Imaging.ColorManagementMode.ColorManageToSRgb).AsTask().ConfigureAwait(false);
+				Windows.Graphics.Imaging.ColorManagementMode.DoNotColorManage).AsTask().ConfigureAwait(false);
+
+				return pixelProvider.DetachPixelData();
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+				return null;
+			}
+			finally
+			{
+				sw.Stop();
+				Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedMilliseconds + " msec");
+			}
+		}
+
 		private static async Task<byte[]> GetPixelArrayFromByteStream(IRandomAccessStream source)
 		{
 			try
