@@ -207,18 +207,22 @@ namespace LolloGPS.Core
 		private async void OnSuspending(object sender, SuspendingEventArgs e)
 		{
 			var deferral = e.SuspendingOperation.GetDeferral();
+			try
+			{
+				Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+					Logger.AppEventsLogFilename,
+					Logger.Severity.Info,
+					false);
 
-			Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
-				Logger.AppEventsLogFilename,
-				Logger.Severity.Info,
-				false);
+				SuspendingStatic?.Invoke(this, e);
 
-			SuspendingStatic?.Invoke(this, e);
-
-			await CloseAllAsync().ConfigureAwait(false);
-			Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-			deferral.Complete();
+				await CloseAllAsync().ConfigureAwait(false);
+				Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+			}
+			finally
+			{
+				deferral.Complete();
+			}
 		}
 
 		/// <summary>

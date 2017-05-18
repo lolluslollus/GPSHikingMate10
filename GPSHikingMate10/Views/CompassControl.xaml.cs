@@ -61,31 +61,38 @@ namespace GPSHikingMate10.Views
 
 		private void DisplayCurrentReading()
 		{
-			CompassReading reading = _compass.GetCurrentReading();
+			var compass = _compass;
+			if (compass == null) return;
 
-			if (reading?.HeadingTrueNorth == null)
-				SetHeadingNone();
-			else
+			try
 			{
-				switch (reading.HeadingAccuracy)
+				var reading = compass.GetCurrentReading();
+
+				if (reading.HeadingTrueNorth == null)
+					SetHeadingNone();
+				else
 				{
-					case MagnetometerAccuracy.Unknown:
-						SetHeadingNone();
-						break;
-					case MagnetometerAccuracy.Unreliable:
-						SetHeadingNone();
-						break;
-					case MagnetometerAccuracy.Approximate:
-						SetHeading((double)reading.HeadingTrueNorth, true);
-						break;
-					case MagnetometerAccuracy.High:
-						SetHeading((double)reading.HeadingTrueNorth, false);
-						break;
-					default:
-						SetHeadingNone();
-						break;
+					switch (reading.HeadingAccuracy)
+					{
+						case MagnetometerAccuracy.Unknown:
+							SetHeadingNone();
+							break;
+						case MagnetometerAccuracy.Unreliable:
+							SetHeadingNone();
+							break;
+						case MagnetometerAccuracy.Approximate:
+							SetHeading((double)reading.HeadingTrueNorth, true);
+							break;
+						case MagnetometerAccuracy.High:
+							SetHeading((double)reading.HeadingTrueNorth, false);
+							break;
+						default:
+							SetHeadingNone();
+							break;
+					}
 				}
 			}
+			catch { }
 		}
 		private async void SetHeadingNone()
 		{

@@ -1307,7 +1307,6 @@ namespace LolloGPS.Data
 				if (folderNamesToBeDeleted?.Any() == true)
 				{
 					var localFolder = ApplicationData.Current.LocalCacheFolder;
-
 					foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
 					{
 						try
@@ -1361,25 +1360,23 @@ namespace LolloGPS.Data
 		}
 		private List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
 		{
-			var folderNamesToBeDeleted = new List<string>();
-			if (tileSource != null)
+			var result = new List<string>();
+			if (tileSource == null) return result;
+			if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
 			{
-				if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
+				result.Add(tileSource.TechName);
+			}
+			else if (tileSource.IsAll)
+			{
+				foreach (var item in _tileSourcez)
 				{
-					folderNamesToBeDeleted.Add(tileSource.TechName);
-				}
-				else if (tileSource.IsAll)
-				{
-					foreach (var item in _tileSourcez)
+					if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
 					{
-						if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
-						{
-							folderNamesToBeDeleted.Add(item.TechName);
-						}
+						result.Add(item.TechName);
 					}
 				}
 			}
-			return folderNamesToBeDeleted;
+			return result;
 		}
 		private async Task RemoveTileSourceAsync(string tileSourceTechName)
 		{

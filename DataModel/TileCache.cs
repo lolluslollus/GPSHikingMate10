@@ -29,7 +29,7 @@ namespace LolloGPS.Data.TileCache
 																								 /// <summary>
 																								 /// The tile source will give its name to the file folder
 																								 /// </summary>
-		public TileSourceRecord TileSource { get { return _tileSource; } }
+		//public TileSourceRecord TileSource { get { return _tileSource; } }
 
 		private readonly StorageFolder _imageFolder = null;
 
@@ -431,7 +431,10 @@ namespace LolloGPS.Data.TileCache
 			catch (OperationCanceledException) { return null; }
 			catch (Exception ex)
 			{
-				Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
+				if (!ex.Message.Contains("404"))
+				{
+					Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
+				}
 			}
 			return result;
 		}
@@ -917,7 +920,9 @@ namespace LolloGPS.Data.TileCache
 		}
 		private static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
 		{
+#if DEBUG
 			var sw = new Stopwatch(); sw.Start();
+#endif
 			try
 			{
 				var decoder = await BitmapDecoder.CreateAsync(source).AsTask().ConfigureAwait(false);
@@ -942,11 +947,13 @@ namespace LolloGPS.Data.TileCache
 				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
 				return null;
 			}
+#if DEBUG
 			finally
 			{
 				sw.Stop();
 				Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedTicks + " ticks");
 			}
+#endif
 		}
 		private static async Task<RandomAccessStreamReference> GetStreamRefFromArray(byte[] array)
 		{

@@ -29,8 +29,6 @@ namespace LolloGPS.Core
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
 		private readonly IGeoBoundingBoxProvider _gbbProvider = null;
-		//private MapTileSource _mapTileSource = null;
-		//private CustomMapTileDataSource _tileDataSource_custom = null;
 		private readonly IList<MapTileSource> _mapTileSources = null;
 		private readonly TileDownloader _tileDownloader = null;
 		private TileCacheReaderWriter _tileCache = null;
@@ -51,8 +49,8 @@ namespace LolloGPS.Core
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-			//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
-			await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+			await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+			//await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
 		}
 		private async Task OpenAlternativeMap_Http_Async()
 		{
@@ -63,6 +61,7 @@ namespace LolloGPS.Core
 
 			await RunInUiThreadAsync(delegate
 			{
+				CloseAlternativeMap_Http();
 				_httpMapTileDataSource = new HttpMapTileDataSource()
 				{
 					// UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
@@ -84,28 +83,25 @@ namespace LolloGPS.Core
 					//ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
 					IsRetryEnabled = true,
 					TilePixelSize = tileCache.GetTilePixelSize(),
-					IsFadingEnabled = false, //true,
+					IsFadingEnabled = false,
 					IsTransparencyEnabled = false,
 					ZIndex = 999,
 				};
 
 				_mapTileSources.Add(mapTileSource);
 				_httpMapTileDataSource.UriRequested += OnHttpDataSource_UriRequested;
-				if (_mapTileSources.Count > 1) Logger.Add_TPL("There are multiple map tile sources!", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			}).ConfigureAwait(false);
-			// Logger.Add_TPL("OpenAlternativeMap_Http ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			//_myMap.Opacity = .1; // show the Nokia map when the alternative source is not available
-			//_myMap.Style = MapStyle.None; //so our map will cover the original completely
 		}
 		private async Task OpenAlternativeMap_Custom_Async()
 		{
 			var tileSource = await PersistentData.GetCurrentTileSourceClone().ConfigureAwait(false);
 			if (tileSource == null || tileSource.IsDefault) return;
-
+			
 			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
 
 			await RunInUiThreadAsync(delegate
 			{
+				CloseAlternativeMap_Custom();
 				_customMapTileDataSource = new CustomMapTileDataSource();
 
 				var mapTileSource = new MapTileSource(
@@ -114,69 +110,44 @@ namespace LolloGPS.Core
 					// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
 					new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
 				{
-					Layer = MapTileLayer.BackgroundReplacement,
+					Layer = MapTileLayer.BackgroundOverlay,
 					// Layer = MapTileLayer.BackgroundReplacement,
 					// Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
 					AllowOverstretch = true,
 					//ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
 					IsRetryEnabled = true,
 					TilePixelSize = tileCache.GetTilePixelSize(),
-					IsFadingEnabled = true,
+					IsFadingEnabled = false,
 					IsTransparencyEnabled = false,
 					ZIndex = 999,
 				};
 
 				_mapTileSources.Add(mapTileSource);
 				_customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
-				if (_mapTileSources.Count > 1) Logger.Add_TPL("There are multiple map tile sources!", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
 			}).ConfigureAwait(false);
 		}
 		protected override async Task CloseMayOverrideAsync()
 		{
 			RemoveHandler_DataChanged();
-			var tileDownloader = _tileDownloader;
-			if (tileDownloader != null) await tileDownloader.CloseAsync().ConfigureAwait(false);
-			//await CloseAlternativeMap_Http_Async().ConfigureAwait(false);
-			await CloseAlternativeMap_Custom_Async().ConfigureAwait(false);
+			//await RunInUiThreadAsync(CloseAlternativeMap_Http_2).ConfigureAwait(false);
+			await RunInUiThreadAsync(CloseAlternativeMap_Custom).ConfigureAwait(false);
+			var td = _tileDownloader;
+			if (td != null) await td.CloseAsync().ConfigureAwait(false);
 		}
 
-		private Task CloseAlternativeMap_Http_Async()
+		private void CloseAlternativeMap_Http()
 		{
-			return RunInUiThreadAsync(delegate
-			{
-				var httpMapTileDataSource = _httpMapTileDataSource;
-				if (httpMapTileDataSource != null) httpMapTileDataSource.UriRequested -= OnHttpDataSource_UriRequested;
-				//if (_tileDataSource_custom != null) _tileDataSource_custom.BitmapRequested -= OnCustomDataSource_BitmapRequested;
-				//var mts = _mapTileSource;
-				//if (mts != null) _mapTileSources?.Remove(mts);
-				_mapTileSources?.Clear();
-			});
+			var ds = _httpMapTileDataSource;
+			if (ds != null) ds.UriRequested -= OnHttpDataSource_UriRequested;
+			_mapTileSources?.Clear();
 		}
-		private Task CloseAlternativeMap_Custom_Async()
+		private void CloseAlternativeMap_Custom()
 		{
-			return RunInUiThreadAsync(delegate
-			{
-				var customMapTileDataSource = _customMapTileDataSource;
-				if (customMapTileDataSource != null) customMapTileDataSource.BitmapRequested -= OnCustomDataSource_BitmapRequested;
-				//var mts = _mapTileSource;
-				//if (mts != null) _mapTileSources?.Remove(mts);
-				_mapTileSources?.Clear();
-			});
+			var ds = _customMapTileDataSource;
+			if (ds != null) ds.BitmapRequested -= OnCustomDataSource_BitmapRequested;
+			_mapTileSources?.Clear();
 		}
 		#endregion construct and dispose
-		/// <summary>
-		/// Start or resume downloading tiles if so desired
-		/// run this on the threadpool because it can last forever
-		/// </summary>
-		/// <returns></returns>
-		private async Task UpdateDownloadTilesAfterConditionsChangedAsync()
-		{
-			if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
-			{
-				Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
-				if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
-			}
-		}
 
 		#region event handling
 		private bool _isDataChangedHandlerActive = false;
@@ -209,18 +180,16 @@ namespace LolloGPS.Core
 			{
 				Task reopen = RunFunctionIfOpenAsyncT(async delegate
 				{
-					//await CloseAlternativeMap_Http_Async().ConfigureAwait(false);
-					//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
-					await CloseAlternativeMap_Custom_Async().ConfigureAwait(false);
-					await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+					await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+					//await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
 			{
 				Task updIsCaching = RunFunctionIfOpenAsyncA(delegate
 				{
-					var tileCache = _tileCache;
-					if (tileCache != null) tileCache.IsCaching = PersistentData.IsMapCached;
+					var tc = _tileCache;
+					if (tc != null) tc.IsCaching = PersistentData.IsMapCached;
 				});
 			}
 		}
@@ -236,43 +205,67 @@ namespace LolloGPS.Core
 			var deferral = args.Request.GetDeferral();
 			try
 			{
-				//args.Request.Uri = new Uri("ms-appx:///Assets/pointer_start-72.png");				
-				var newUri = await _tileCache.GetTileUriAsync(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
-				if (newUri != null) args.Request.Uri = newUri;
+				//args.Request.Uri = new Uri("ms-appx:///Assets/pointer_start-72.png");
+				var tc = _tileCache;
+				if (tc == null) return;
+				var newUri = await tc.GetTileUriAsync(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
+				if (newUri != null)
+				{
+					args.Request.Uri = newUri;
+				}
 			}
 			catch (Exception ex)
 			{
 				Debug.WriteLine(ex);
 				// Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
 			}
-			deferral.Complete();
+			finally
+			{
+				deferral.Complete();
+			}
 		}
 		private async void OnCustomDataSource_BitmapRequested(CustomMapTileDataSource sender, MapTileBitmapRequestedEventArgs args)
 		{
 			var deferral = args.Request.GetDeferral();
 			try
 			{
-				var pixelRef = await _tileCache.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
+				var tc = _tileCache;
+				if (tc == null) return;
+				var pixelRef = await tc.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
 				if (pixelRef != null) args.Request.PixelData = pixelRef;
 			}
 			catch (Exception exc)
 			{
 				Debug.WriteLine("Exception in OnCustomDataSource_BitmapRequested(); " + exc.ToString() + exc.Message);
 			}
-			deferral.Complete();
+			finally
+			{
+				deferral.Complete();
+			}
 		}
 		#endregion event handling
 
 
 		#region services
+		/// <summary>
+		/// Start or resume downloading tiles if so desired
+		/// run this on the threadpool because it can last forever
+		/// </summary>
+		/// <returns></returns>
+		private async Task UpdateDownloadTilesAfterConditionsChangedAsync()
+		{
+			if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
+			{
+				Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+				if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
+			}
+		}
 		public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()
 		{
 			var result = new List<Tuple<int, int>>();
-			var tileDownloader = _tileDownloader;
-			if (tileDownloader != null)
-			{
-				await RunFunctionIfOpenAsyncT(async delegate { result = await tileDownloader.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync().ConfigureAwait(false); }).ConfigureAwait(false);
-			}
+			var td = _tileDownloader;
+			if (td == null) return result;
+			await RunFunctionIfOpenAsyncT(async delegate { result = await td.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync().ConfigureAwait(false); }).ConfigureAwait(false);
 			return result;
 		}
 
@@ -284,14 +277,12 @@ namespace LolloGPS.Core
 		public async Task<bool> AddMapCentreToCheckpoints()
 		{
 			var gbbProvider = _gbbProvider;
-			if (gbbProvider != null && PersistentData != null)
-			{
-				var centre = await gbbProvider.GetCentreAsync();
-				// this stupid control does not know the altitude, it gives crazy high numbers
-				centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
-				return await PersistentData.TryAddPointToCheckpointsAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
-			}
-			return false;
+			if (gbbProvider == null || PersistentData == null) return false;
+
+			var centre = await gbbProvider.GetCentreAsync();
+			// this stupid control does not know the altitude, it gives crazy high numbers
+			centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
+			return await PersistentData.TryAddPointToCheckpointsAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
 		}
 		#endregion services
 	}
