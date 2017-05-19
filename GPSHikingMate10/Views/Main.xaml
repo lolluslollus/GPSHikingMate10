@@ -487,17 +487,19 @@
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Column="5"
-				HorizontalAlignment="Center"
-				Label="Map style"
-				Click="OnMapStyleButton_Click"
-				IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}"
-				Style="{StaticResource AppBarButtonRecoloured}">
-				<AppBarButton.Icon>
-					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+			<ContentControl Grid.Column="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+				<AppBarButton
+					HorizontalAlignment="Center"
+					Label="Overlay"
+					Click="OnMapStyleButton_Click"
+					IsEnabled="{x:Bind MainVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					Style="{StaticResource AppBarButtonRecoloured}">
+					<AppBarButton.Icon>
+						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-				</AppBarButton.Icon>
-			</AppBarButton>
+					</AppBarButton.Icon>
+				</AppBarButton>
+			</ContentControl>
 		</Grid>
 
 		<!-- left button bar -->
@@ -554,17 +556,20 @@
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Row="5"
-				HorizontalAlignment="Center"
-				Label="Map style"
-				Click="OnMapStyleButton_Click"
-				IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}"
-				Style="{StaticResource AppBarButtonRecoloured}">
-				<AppBarButton.Icon>
-					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+			<ContentControl Grid.Row="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+				<AppBarButton
+					HorizontalAlignment="Center"
+					Label="Overlay"
+					Click="OnMapStyleButton_Click"
+					IsEnabled="{x:Bind MainVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					Style="{StaticResource AppBarButtonRecoloured}">
+					<AppBarButton.Icon>
+						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-				</AppBarButton.Icon>
-			</AppBarButton>
+					</AppBarButton.Icon>
+				</AppBarButton>
+			</ContentControl>
+
 		</Grid>
 	</Grid>
 </ctl:ObservablePage>

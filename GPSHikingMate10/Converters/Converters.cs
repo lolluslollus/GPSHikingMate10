@@ -755,10 +755,8 @@ namespace LolloGPS.Converters
 			{
 				case MapStyle.None:
 					return "N";
-				case MapStyle.Terrain:
-					return "T";
 				default:
-					return "?";
+					return "Y";
 			}
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)

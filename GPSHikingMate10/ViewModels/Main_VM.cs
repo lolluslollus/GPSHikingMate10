@@ -61,6 +61,8 @@ namespace LolloGPS.Core
 		public bool IsTestCustomTileSourceEnabled { get { return _isTestBtnEnabled; } private set { if (_isTestBtnEnabled != value) { _isTestBtnEnabled = value; RaisePropertyChanged_UI(); } } }
 		private bool _isChangeTileSourceEnabled = false;
 		public bool IsChangeTileSourceEnabled { get { return _isChangeTileSourceEnabled; } private set { if (_isChangeTileSourceEnabled != value) { _isChangeTileSourceEnabled = value; RaisePropertyChanged_UI(); } } }
+		private bool _isChangeMapStyleEnabled = false;
+		public bool IsChangeMapStyleEnabled { get { return _isChangeMapStyleEnabled; } private set { if (_isChangeMapStyleEnabled != value) { _isChangeMapStyleEnabled = value; RaisePropertyChanged_UI(); } } }
 
 		private string _testTileSourceErrorMsg = "";
 		public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
@@ -189,6 +191,7 @@ namespace LolloGPS.Core
 				UpdateIsLeechingEnabled();
 				UpdateIsChangeTileSourceEnabled();
 				UpdateIsTestCustomTileSourceEnabled();
+				Task upd = UpdateIsChangeMapStyleEnabledAsync();
 
 				await RunInUiThreadAsync(delegate
 				{
@@ -320,6 +323,14 @@ namespace LolloGPS.Core
 				&& RuntimeData.IsConnectionAvailable;
 			});
 		}
+		internal async Task UpdateIsChangeMapStyleEnabledAsync()
+		{
+			var ts = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+			Task ui = RunInUiThreadAsync(delegate
+			{
+				IsChangeMapStyleEnabled = !ts.IsDefault;
+			});
+		}
 
 		#endregion updaters
 
@@ -367,6 +378,7 @@ namespace LolloGPS.Core
 				{
 					UpdateIsLeechingEnabled();
 					UpdateIsCacheBtnEnabled();
+					Task upd = UpdateIsChangeMapStyleEnabledAsync();
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.TileSourcez))

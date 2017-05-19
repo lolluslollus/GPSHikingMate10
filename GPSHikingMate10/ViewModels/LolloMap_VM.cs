@@ -54,11 +54,20 @@ namespace LolloGPS.Core
 		}
 		private async Task OpenAlternativeMap_Http_Async()
 		{
-			var tileSource = await PersistentData.GetCurrentTileSourceClone().ConfigureAwait(false);
-			if (tileSource == null || tileSource.IsDefault) return;
+			var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+			if (tileSource == null) return;
+
+			if (tileSource.IsDefault)
+			{
+				await RunInUiThreadAsync(delegate
+				{
+					CloseAlternativeMap_Http();
+					PersistentData.MapStyle = MapStyle.Terrain;
+				}).ConfigureAwait(false);
+				return;
+			};
 
 			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
-
 			await RunInUiThreadAsync(delegate
 			{
 				CloseAlternativeMap_Http();
@@ -67,7 +76,7 @@ namespace LolloGPS.Core
 					// UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
 					AllowCaching = false, //true, // we do our own caching
 				};
-				
+
 				var mapTileSource = new MapTileSource(
 					_httpMapTileDataSource,
 					// new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() })
@@ -94,11 +103,20 @@ namespace LolloGPS.Core
 		}
 		private async Task OpenAlternativeMap_Custom_Async()
 		{
-			var tileSource = await PersistentData.GetCurrentTileSourceClone().ConfigureAwait(false);
-			if (tileSource == null || tileSource.IsDefault) return;
-			
-			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
+			var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+			if (tileSource == null) return;
 
+			if (tileSource.IsDefault)
+			{
+				await RunInUiThreadAsync(delegate
+				{
+					CloseAlternativeMap_Custom();
+					PersistentData.MapStyle = MapStyle.Terrain;
+				}).ConfigureAwait(false);
+				return;
+			};
+
+			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
 			await RunInUiThreadAsync(delegate
 			{
 				CloseAlternativeMap_Custom();

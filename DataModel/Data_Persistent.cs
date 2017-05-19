@@ -1492,7 +1492,7 @@ namespace LolloGPS.Data
 			return result;
 		}
 
-		public Task<TileSourceRecord> GetCurrentTileSourceClone()
+		public Task<TileSourceRecord> GetCurrentTileSourceCloneAsync()
 		{
 			return GetTileSourceClone(CurrentTileSource);
 		}
