@@ -49,8 +49,8 @@ namespace LolloGPS.Core
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-			await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
-			//await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+			//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+			await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
 		}
 		private async Task OpenAlternativeMap_Http_Async()
 		{
@@ -147,7 +147,7 @@ namespace LolloGPS.Core
 		protected override async Task CloseMayOverrideAsync()
 		{
 			RemoveHandler_DataChanged();
-			//await RunInUiThreadAsync(CloseAlternativeMap_Http_2).ConfigureAwait(false);
+			//await RunInUiThreadAsync(CloseAlternativeMap_Http).ConfigureAwait(false);
 			await RunInUiThreadAsync(CloseAlternativeMap_Custom).ConfigureAwait(false);
 			var td = _tileDownloader;
 			if (td != null) await td.CloseAsync().ConfigureAwait(false);
@@ -198,8 +198,8 @@ namespace LolloGPS.Core
 			{
 				Task reopen = RunFunctionIfOpenAsyncT(async delegate
 				{
-					await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
-					//await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+					//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+					await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))

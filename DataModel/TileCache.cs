@@ -80,12 +80,20 @@ namespace LolloGPS.Data.TileCache
 		#region getters
 		private Uri GetUriForFile(string fileName)
 		{
+			// LOLLO TODO check this method
+			/*
+			 * works
+			return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute);
+			*/
+
+			// fails
+			//var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}"; 
+			//var uri0 = new Uri(Uri.EscapeUriString(address), UriKind.Absolute);
+			//return uri0;
+
 			var filePath = Path.Combine(_imageFolder.Path, fileName);
-			var test0 = new Uri(filePath, UriKind.Absolute);
-			return test0;
-			var test = new Uri("ms-appdata:///local/ForUMaps/" + fileName);
-			return test;
-			return new UriBuilder(Path.Combine(_imageFolder.Path, fileName)).Uri;
+			var uri10 = new Uri(filePath, UriKind.Absolute);
+			return uri10;
 		}
 		/// <summary>
 		/// gets the web uri of the tile (TileSource, X, Y, Z and Zoom)
