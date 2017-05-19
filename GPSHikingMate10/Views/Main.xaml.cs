@@ -304,10 +304,10 @@ namespace LolloGPS.Core
 			PersistentData.IsShowingPivot = false;
 		}
 
-		private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
-		{
-			PersistentData.CycleMapStyle();
-		}
+		//private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
+		//{
+		//	//PersistentData.CycleMapStyle();
+		//}
 		#endregion event handling
 
 

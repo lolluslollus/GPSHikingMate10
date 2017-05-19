@@ -19,7 +19,7 @@ using Windows.UI.Xaml.Controls.Maps;
 
 namespace LolloGPS.Core
 {
-	public sealed class LolloMapVM : OpenableObservableData
+public sealed class LolloMapVM : OpenableObservableData
 	{
 		// http://josm.openstreetmap.de/wiki/Maps
 
@@ -31,13 +31,15 @@ namespace LolloGPS.Core
 		private readonly IGeoBoundingBoxProvider _gbbProvider = null;
 		private readonly IList<MapTileSource> _mapTileSources = null;
 		private readonly TileDownloader _tileDownloader = null;
+		private readonly MapControl _mapControl = null;
 		private TileCacheReaderWriter _tileCache = null;
 		private HttpMapTileDataSource _httpMapTileDataSource = null;
 		private CustomMapTileDataSource _customMapTileDataSource = null;
 
 		#region construct and dispose
-		public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, MainVM mainVM)
+		public LolloMapVM(MapControl control, IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, MainVM mainVM)
 		{
+			_mapControl = control;
 			MyMainVM = mainVM;
 			//MyMainVM.LolloMapVM = this;
 			_gbbProvider = gbbProvider;
@@ -67,7 +69,8 @@ namespace LolloGPS.Core
 					// UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
 					AllowCaching = false, //true, // we do our own caching
 				};
-				
+				_mapControl.Style = MapStyle.None;
+
 				var mapTileSource = new MapTileSource(
 					_httpMapTileDataSource,
 					// new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() })
@@ -75,7 +78,7 @@ namespace LolloGPS.Core
 					// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
 					new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
 				{
-					Layer = MapTileLayer.BackgroundOverlay,
+					Layer = MapTileLayer.BackgroundReplacement,
 					// Layer = MapTileLayer.BackgroundReplacement,
 					// Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
 					// Layer = (MapTileLayer.BackgroundOverlay | MapTileLayer.RoadOverlay), // still does not hide the roads
@@ -103,14 +106,14 @@ namespace LolloGPS.Core
 			{
 				CloseAlternativeMap_Custom();
 				_customMapTileDataSource = new CustomMapTileDataSource();
-
+				_mapControl.Style = MapStyle.None;
 				var mapTileSource = new MapTileSource(
 					_customMapTileDataSource,
 					// The MapControl won't request the uri if the zoom is outside its bounds.
 					// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
 					new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
 				{
-					Layer = MapTileLayer.BackgroundOverlay,
+					Layer = MapTileLayer.BackgroundReplacement,
 					// Layer = MapTileLayer.BackgroundReplacement,
 					// Layer = MapTileLayer.BackgroundOverlay, // show the Nokia map when the alternative source is not available, otherwise it goes all blank (ie black)
 					AllowOverstretch = true,
