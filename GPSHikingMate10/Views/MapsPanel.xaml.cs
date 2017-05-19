@@ -58,10 +58,10 @@ namespace LolloGPS.Core
 		{
 			Task gt = MainVM?.Goto2DAsync();
 		}
-		private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
-		{
-			PersistentData.CycleMapStyle();
-		}
+		//private void OnMapStyleButton_Click(object sender, RoutedEventArgs e)
+		//{
+		//	//PersistentData.CycleMapStyle();
+		//}
 
 		private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
 		{

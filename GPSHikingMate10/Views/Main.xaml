@@ -487,7 +487,7 @@
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Column="5"
+			<!--<AppBarButton Grid.Column="5"
 				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
@@ -497,7 +497,7 @@
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
 				</AppBarButton.Icon>
-			</AppBarButton>
+			</AppBarButton>-->
 		</Grid>
 
 		<!-- left button bar -->
@@ -554,7 +554,7 @@
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
 			<!-- map style -->
-			<AppBarButton Grid.Row="5"
+			<!--<AppBarButton Grid.Row="5"
 				HorizontalAlignment="Center"
 				Label="Map style"
 				Click="OnMapStyleButton_Click"
@@ -564,7 +564,7 @@
 					<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
 				</AppBarButton.Icon>
-			</AppBarButton>
+			</AppBarButton>-->
 		</Grid>
 	</Grid>
 </ctl:ObservablePage>

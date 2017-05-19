@@ -133,7 +133,7 @@ namespace LolloGPS.Data
 			target.IsShowAim = source.IsShowAim;
 			target.IsShowAimOnce = source.IsShowAimOnce;
 			target.IsShowSpeed = source.IsShowSpeed;
-			target.MapStyle = source.MapStyle;
+			//target.MapStyle = source.MapStyle;
 			target.MapLastLat = source.MapLastLat;
 			target.MapLastLon = source.MapLastLon;
 			target.MapLastHeading = source.MapLastHeading;
@@ -431,9 +431,9 @@ namespace LolloGPS.Data
 		[DataMember]
 		public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } }
 
-		private MapStyle _mapStyle = MapStyle.Terrain;
-		[DataMember]
-		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
+		//private MapStyle _mapStyle = MapStyle.Terrain;
+		//[DataMember]
+		//public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
 		private volatile bool _isMapCached = false;
 		[DataMember]
 		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
@@ -1611,16 +1611,19 @@ namespace LolloGPS.Data
 			else if (whichSeries == Tables.Checkpoints) return _checkpoints;
 			else return null;
 		}
+		/*
 		public void CycleMapStyle()
 		{
-			switch (MapStyle)
-			{
-				case MapStyle.None:
-					MapStyle = MapStyle.Terrain; break;
-				default:
-					MapStyle = MapStyle.None; break;
-			}
+			return;
+			//switch (MapStyle)
+			//{
+			//	case MapStyle.None:
+			//		MapStyle = MapStyle.Terrain; break;
+			//	default:
+			//		MapStyle = MapStyle.None; break;
+			//}
 		}
+		*/
 		//private static int GetIndexCheckingDateAscending(PointRecord dataRecord, PersistentData myData)
 		//{
 		//    int index = 0;

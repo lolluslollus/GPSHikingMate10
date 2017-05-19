@@ -146,11 +146,7 @@ namespace LolloGPS.Core
 			_myMapInstance = new WeakReference(MyMap);
 
 			MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = 0.0, Longitude = 0.0 });
-			MyMap.Style = PersistentData.MapStyle;
-			//MyMap.DesiredPitch = 0.0;
-			//MyMap.Heading = 0;
-			//MyMap.TrafficFlowVisible = false;
-			//MyMap.LandmarksVisible = false; // important
+			MyMap.Style = MapStyle.Terrain;
 			MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
 																																					//MyMap.PedestrianFeaturesVisible = false;
 			MyMap.ColorScheme = MapColorScheme.Light; //.Dark
@@ -178,7 +174,7 @@ namespace LolloGPS.Core
 			_isRoute0InMap = false;
 			_isFlyoutPointInMap = false;
 
-			_lolloMapVM = new LolloMapVM(MyMap.TileSources, this, MainVM);
+			_lolloMapVM = new LolloMapVM(MyMap, MyMap.TileSources, this, MainVM);
 			await _lolloMapVM.OpenAsync();
 			RaisePropertyChanged_UI(nameof(LolloMapVM));
 
@@ -850,6 +846,7 @@ namespace LolloGPS.Core
 
 		private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
+			/*
 			if (e.PropertyName == nameof(PersistentData.MapStyle))
 			{
 				Task ms = RunInUiThreadAsync(delegate
@@ -857,7 +854,8 @@ namespace LolloGPS.Core
 					MyMap.Style = PersistentData.MapStyle;
 				});
 			}
-			else if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
+			else */
+			if (e.PropertyName == nameof(PersistentData.IsShowImperialUnits))
 			{
 				Task iu = RunInUiThreadAsync(delegate
 				{
