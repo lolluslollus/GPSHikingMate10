@@ -159,7 +159,7 @@ namespace LolloGPS.Core
 			if (App.IsTouchDevicePresent) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
 			else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
 			MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
-			//MyMap.MapElements.Clear(); // no!			
+			//MyMap.MapElements.Clear(); // no!
 		}
 		private bool GetIsSmallScreen()
 		{
@@ -1128,7 +1128,7 @@ namespace LolloGPS.Core
 				//Debug.WriteLine("bar length = " + hypotheticalMeasureBarLength);
 				Geopoint locationN = null;
 				Geopoint locationS = null; // PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
-				mapControl.GetLocationFromOffset(pointN, out locationN);
+				mapControl.GetLocationFromOffset(pointN, out locationN); // pointN = 684.5, 430 throws LOLLO TODO 
 				mapControl.GetLocationFromOffset(pointS, out locationS);
 
 				double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;

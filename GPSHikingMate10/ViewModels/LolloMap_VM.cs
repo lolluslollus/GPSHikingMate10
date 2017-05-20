@@ -32,8 +32,9 @@ namespace LolloGPS.Core
 		private readonly IList<MapTileSource> _mapTileSources = null;
 		private readonly TileDownloader _tileDownloader = null;
 		private TileCacheReaderWriter _tileCache = null;
-		private HttpMapTileDataSource _httpMapTileDataSource = null;
 		private CustomMapTileDataSource _customMapTileDataSource = null;
+		private HttpMapTileDataSource _httpMapTileDataSource = null;
+		private LocalMapTileDataSource _localMapTileDataSource = null;
 
 		#region construct and dispose
 		public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, MainVM mainVM)
@@ -49,9 +50,57 @@ namespace LolloGPS.Core
 			await _tileDownloader.OpenAsync();
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
-			//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+			
 			await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+			//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+			//await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
 		}
+		private async Task OpenAlternativeMap_Local_Async()
+		{
+			var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+			if (tileSource == null) return;
+
+			if (tileSource.IsDefault)
+			{
+				await RunInUiThreadAsync(delegate
+				{
+					CloseAlternativeMap_Local();
+					PersistentData.MapStyle = MapStyle.Terrain;
+				}).ConfigureAwait(false);
+				return;
+			};
+
+			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, true);
+			await RunInUiThreadAsync(delegate
+			{
+				CloseAlternativeMap_Local();
+				//PersistentData.MapStyle = MapStyle.None;
+				_localMapTileDataSource = new LocalMapTileDataSource()
+				{
+					// UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
+				};
+
+				var mapTileSource = new MapTileSource(
+					_localMapTileDataSource,
+					// The MapControl won't request the uri if the zoom is outside its bounds.
+					// To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
+					new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+				{
+					AllowOverstretch = true,					
+					IsRetryEnabled = true,
+					IsFadingEnabled = false,
+					IsTransparencyEnabled = false,
+					Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+					TilePixelSize = tileCache.GetTilePixelSize(),
+					ZIndex = 999,
+					//ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
+				};
+
+				_mapTileSources.Add(mapTileSource);
+				_localMapTileDataSource.UriRequested += OnLocalMapTileDataSource_UriRequested;
+			}).ConfigureAwait(false);
+		}
+
 		private async Task OpenAlternativeMap_Http_Async()
 		{
 			var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
@@ -67,7 +116,7 @@ namespace LolloGPS.Core
 				return;
 			};
 
-			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
+			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, false);
 			await RunInUiThreadAsync(delegate
 			{
 				CloseAlternativeMap_Http();
@@ -113,7 +162,7 @@ namespace LolloGPS.Core
 				return;
 			};
 
-			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached);
+			var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, false);
 			await RunInUiThreadAsync(delegate
 			{
 				CloseAlternativeMap_Custom();
@@ -143,12 +192,21 @@ namespace LolloGPS.Core
 		protected override async Task CloseMayOverrideAsync()
 		{
 			RemoveHandler_DataChanged();
-			//await RunInUiThreadAsync(CloseAlternativeMap_Http).ConfigureAwait(false);
+			
 			await RunInUiThreadAsync(CloseAlternativeMap_Custom).ConfigureAwait(false);
+			//await RunInUiThreadAsync(CloseAlternativeMap_Http).ConfigureAwait(false);
+			//await RunInUiThreadAsync(CloseAlternativeMap_Local).ConfigureAwait(false);
+
 			var td = _tileDownloader;
 			if (td != null) await td.CloseAsync().ConfigureAwait(false);
 		}
 
+		private void CloseAlternativeMap_Local()
+		{
+			var ds = _localMapTileDataSource;
+			if (ds != null) ds.UriRequested -= OnLocalMapTileDataSource_UriRequested;
+			_mapTileSources?.Clear();
+		}
 		private void CloseAlternativeMap_Http()
 		{
 			var ds = _httpMapTileDataSource;
@@ -194,8 +252,9 @@ namespace LolloGPS.Core
 			{
 				Task reopen = RunFunctionIfOpenAsyncT(async delegate
 				{
-					//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
 					await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+					//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
+					//await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
 				});
 			}
 			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
@@ -214,6 +273,31 @@ namespace LolloGPS.Core
 				Task resume = RunFunctionIfOpenAsyncT_MT(UpdateDownloadTilesAfterConditionsChangedAsync);
 			}
 		}
+		private async void OnLocalMapTileDataSource_UriRequested(LocalMapTileDataSource sender, MapTileUriRequestedEventArgs args)
+		{ // this uri must use a local protocol such as ms-appdata
+			var deferral = args.Request.GetDeferral();
+			try
+			{
+				//args.Request.Uri = new Uri("ms-appx:///Assets/pointer_start-72.png");
+				var tc = _tileCache;
+				if (tc == null) return;
+				var newUri = await tc.GetTileUriAsync(args.X, args.Y, 0, args.ZoomLevel, CancToken).ConfigureAwait(false);
+				if (newUri != null)
+				{
+					args.Request.Uri = newUri;
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+				// Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Info);
+			}
+			finally
+			{
+				deferral.Complete();
+			}
+		}
+
 		private async void OnHttpDataSource_UriRequested(HttpMapTileDataSource sender, MapTileUriRequestedEventArgs args)
 		{
 			var deferral = args.Request.GetDeferral();

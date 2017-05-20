@@ -43,6 +43,9 @@ namespace LolloGPS.Data.TileCache
 		//public bool IsCaching { get { lock (_isCachingLocker) { return _isCaching; } } set { lock (_isCachingLocker) { _isCaching = value; } } }
 		public bool IsCaching { get { return _isCaching; } set { _isCaching = value; } }
 
+		private readonly bool _isReturnLocalUris = false;
+		public bool IsReturnLocalUris { get { return _isReturnLocalUris; } }
+
 		private readonly string _webUriFormat = string.Empty;
 		private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
@@ -54,7 +57,7 @@ namespace LolloGPS.Data.TileCache
 		/// </summary>
 		/// <param name="tileSource"></param>
 		/// <param name="isCaching"></param>
-		public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching)
+		public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching, bool isReturnLocalUris)
 		{
 			if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 
@@ -73,6 +76,7 @@ namespace LolloGPS.Data.TileCache
 			}
 
 			_isCaching = isCaching;
+			_isReturnLocalUris = isReturnLocalUris;
 			_imageFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(_tileSource.TechName, CreationCollisionOption.OpenIfExists).AsTask().Result;
 		}
 		#endregion construct and dispose
@@ -86,14 +90,19 @@ namespace LolloGPS.Data.TileCache
 			return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute);
 			*/
 
-			// fails
-			//var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}"; 
-			//var uri0 = new Uri(Uri.EscapeUriString(address), UriKind.Absolute);
-			//return uri0;
+			if (_isReturnLocalUris)
+			{
+				// works when requesting local uri
+				var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}";
+				var localUri = new Uri(Uri.EscapeUriString(address), UriKind.Absolute);
+				//var localUri = new Uri(address, UriKind.Absolute);
+				return localUri;
+			}
 
+			// should work when requesting any uri, but it fails for some reason
 			var filePath = Path.Combine(_imageFolder.Path, fileName);
-			var uri10 = new Uri(filePath, UriKind.Absolute);
-			return uri10;
+			var uri = new Uri(filePath, UriKind.Absolute);
+			return uri;
 		}
 		/// <summary>
 		/// gets the web uri of the tile (TileSource, X, Y, Z and Zoom)
@@ -275,7 +284,8 @@ namespace LolloGPS.Data.TileCache
 			}
 			finally
 			{
-				await _queue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
+				//await _queue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
+				Task remove = _queue.RemoveFromQueueAsync(fileNameNoExtension);
 			}
 
 			return result;
@@ -328,7 +338,8 @@ namespace LolloGPS.Data.TileCache
 			}
 			finally
 			{
-				await _queue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
+				//await _queue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
+				Task remove =_queue.RemoveFromQueueAsync(fileNameNoExtension);
 			}
 			return result;
 		}

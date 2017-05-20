@@ -1523,7 +1523,7 @@ namespace LolloGPS.Data
 							DownloadSession sessionClone = null;
 							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-							var newTileCache = new TileCache.TileCacheReaderWriter(CurrentTileSource, false);
+							var newTileCache = new TileCache.TileCacheReaderWriter(CurrentTileSource, false, false);
 
 							result = Tuple.Create(newTileCache, sessionClone);
 						}
@@ -1539,7 +1539,7 @@ namespace LolloGPS.Data
 							DownloadSession sessionClone = null;
 							DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
 
-							var newTileCache = new TileCache.TileCacheReaderWriter(lastTileSource, false);
+							var newTileCache = new TileCache.TileCacheReaderWriter(lastTileSource, false, false);
 
 							result = Tuple.Create(newTileCache, sessionClone);
 						}
