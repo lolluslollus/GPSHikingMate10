@@ -353,9 +353,15 @@ namespace LolloGPS.Core
 		{
 			if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
 			{
-				KeepAlive.UpdateKeepAlive(true);
+				await RunInUiThreadAsync(delegate
+				{
+					KeepAlive.UpdateKeepAlive(true);
+				}).ConfigureAwait(false);
 				Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
-				KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
+				await RunInUiThreadAsync(delegate
+				{
+					KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
+				}).ConfigureAwait(false);
 				if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
 			}
 		}

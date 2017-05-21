@@ -143,9 +143,13 @@ namespace LolloGPS.Data.TileCache
 
 		private string GetFileNameFromFileCache(string fileNameNoExtension, StorageFolder folder)
 		{
-			var files = System.IO.Directory.GetFiles(_imageFolder.Path, fileNameNoExtension + "*");
-			//var files = Directory.GetFileSystemEntries(_imageFolder.Path, fileNameNoExtension);
-			if (files?.Length > 0) return Path.GetFileName(files[0]);
+			try
+			{
+				var files = System.IO.Directory.GetFiles(_imageFolder.Path, fileNameNoExtension + "*");
+				//var files = Directory.GetFileSystemEntries(_imageFolder.Path, fileNameNoExtension);
+				if (files?.Length > 0) return Path.GetFileName(files[0]);
+			}
+			catch { }
 			return null;
 		}
 
