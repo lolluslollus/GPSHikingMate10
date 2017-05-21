@@ -30,14 +30,14 @@ namespace LolloGPS.Data.TileCache
 		private readonly StorageFolder _imageFolder = null;
 
 		//private readonly object _isCachingLocker = new object();
-		private volatile bool _isCaching = false;
+		//private volatile bool _isCaching = false;
 		/// <summary>
 		/// Gets if this cache writes away (ie caches) the data it picks up.
 		/// Only relevant for supplying map tiles on the fly.
 		/// We could read this from PersistentData whenever we need it, but it does not work well.
 		/// </summary>
 		//public bool IsCaching { get { lock (_isCachingLocker) { return _isCaching; } } set { lock (_isCachingLocker) { _isCaching = value; } } }
-		public bool IsCaching { get { return _isCaching; } set { _isCaching = value; } }
+		//public bool IsCaching { get { return _isCaching; } set { _isCaching = value; } }
 
 		private readonly bool _isReturnLocalUris = false;
 		public bool IsReturnLocalUris { get { return _isReturnLocalUris; } }
@@ -67,7 +67,7 @@ namespace LolloGPS.Data.TileCache
 				Debug.WriteLine("Exception in TileCache.ctor: " + exc.Message + exc.StackTrace);
 			}
 
-			_isCaching = isCaching;
+			//_isCaching = isCaching;
 			_isReturnLocalUris = isReturnLocalUris;
 			_imageFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(_tileSource.TechName, CreationCollisionOption.OpenIfExists).AsTask().Result;
 		}
@@ -250,16 +250,16 @@ namespace LolloGPS.Data.TileCache
 						string sWebUri = GetWebUri(x, y, z, zoom);
 						//Debug.WriteLine("IsCaching = " + _isCaching);
 						// tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
-						if (_isCaching)
-						{
-							fileNameWithExtension = await TrySaveTile2Async(sWebUri, x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
-							if (fileNameWithExtension != null) result = GetUriForFile(fileNameWithExtension);
-						}
-						// tile not in cache and cache off: return the web uri of the tile
-						else
-						{
+						//if (_isCaching)
+						//{
+						//	fileNameWithExtension = await TrySaveTile2Async(sWebUri, x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
+						//	if (fileNameWithExtension != null) result = GetUriForFile(fileNameWithExtension);
+						//}
+						//// tile not in cache and cache off: return the web uri of the tile
+						//else
+						//{
 							result = new Uri(sWebUri);
-						}
+						//}
 					}
 				}
 				// tile is in cache: return an uri pointing at it (ie at its file)
@@ -473,7 +473,7 @@ namespace LolloGPS.Data.TileCache
 		}
 		#endregion  services
 	}
-
+	// LOLLO TODO MAYBE before and after clearing, say how much disk space you saved
 	/// <summary>
 	/// Cache clearer and cache reader writer cannot be the same thing because they have different purposes and properties. The former is a singleton.
 	/// </summary>

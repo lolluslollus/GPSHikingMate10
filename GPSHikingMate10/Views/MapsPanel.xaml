@@ -20,8 +20,8 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
+			<!--<RowDefinition Height="Auto"/>-->
+			<!--<RowDefinition Height="Auto"/>-->
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="4*"/>
@@ -91,7 +91,7 @@
 				ItemSelected="OnMapSourceChooser_ItemSelected"/>
 		</Grid>
 
-		<TextBlock Grid.Row="4" Grid.Column="0" 
+		<!--<TextBlock Grid.Row="4" Grid.Column="0" 
 			Text="As you visit a part of a map, cache it for offline use"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
@@ -101,19 +101,19 @@
 			IsEnabled="{x:Bind MainVM.IsCacheBtnEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
-			Icon="Camera"/>
-		<TextBlock Grid.Row="5" Grid.Column="0" 
+			Icon="Camera"/>-->
+		<TextBlock Grid.Row="4" Grid.Column="0" 
 			Text="Download all map tiles in the frame for offline use"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<AppBarButton Grid.Row="5" Grid.Column="1"
+		<AppBarButton Grid.Row="4" Grid.Column="1"
 			IsEnabled="{x:Bind MainVM.IsLeechingEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Click="OnDownloadMap_Click"
 			Icon="Download"/>
-		<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+		<TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Right"
 			Style="{StaticResource BaseMessageStyle}"
@@ -121,7 +121,7 @@
 			Foreground="{StaticResource FlashyForeground}"
 			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 			Text="No connection"/>
-		<uctl:LolloListChooser Grid.Row="6" Grid.Column="0"
+		<uctl:LolloListChooser Grid.Row="5" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ZoomLevelChooser"
 			PlaceholderText="Select max zoom level to download"
@@ -134,18 +134,18 @@
 			AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
 			TextItemStyle="{StaticResource ListItemTextStyle}"                                      
 			ItemSelected="OnZoomLevelChooser_ItemSelected"/>
-		<TextBlock Grid.Row="7" Grid.Column="0" 
+		<TextBlock Grid.Row="6" Grid.Column="0" 
 			Text="Clear the cache"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<AppBarButton Grid.Row="7" Grid.Column="1"
+		<AppBarButton Grid.Row="6" Grid.Column="1"
 			IsEnabled="{x:Bind MainVM.IsClearCacheEnabled, Mode=OneWay}"
 			Click="OnClearMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Icon="Delete"/>
-		<uctl:LolloListChooser Grid.Row="7" Grid.Column="0"
+		<uctl:LolloListChooser Grid.Row="6" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ClearCacheChooser"
 			PlaceholderText="Which cache do you want to clear?"
@@ -159,15 +159,15 @@
 			TextItemStyle="{StaticResource ListItemTextStyle}"
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
-		<TextBlock Grid.Row="8" Grid.Column="0" 
-			Text="Keep the app alive, never mind the lock screen settings. Useful for a long download."
+		<!--<TextBlock Grid.Row="7" Grid.Column="0" 
+			Text="Keep the app alive, never mind the lock screen settings."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<AppBarToggleButton Grid.Row="8" Grid.Column="1"
+		<AppBarToggleButton Grid.Row="7" Grid.Column="1"
 			IsChecked="{x:Bind PersistentData.IsKeepAlive, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
-			Icon="Pin"/>
+			Icon="Pin"/>-->
 	</Grid>
 </uctl:OpenableObservableControl>

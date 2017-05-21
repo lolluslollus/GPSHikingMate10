@@ -436,7 +436,7 @@ namespace LolloGPS.Data
 		private MapStyle _mapStyle = MapStyle.Terrain;
 		[DataMember]
 		public MapStyle MapStyle { get { return _mapStyle; } set { _mapStyle = value; RaisePropertyChanged_UI(); } }
-		private volatile bool _isMapCached = false;
+		private volatile bool _isMapCached = true; //false;
 		[DataMember]
 		public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
 		private double _mapLastLat = default(double);

@@ -53,7 +53,7 @@ namespace LolloGPS.Core
 			
 			await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
 			//await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
-			//await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
+			//await OpenAlternativeMap_Local_Async().ConfigureAwait(false);  // LOLLO NOTE If you decide to use it, remember that the tileCacheReaderWriter must always cache!
 		}
 		private async Task OpenAlternativeMap_Local_Async()
 		{
@@ -100,7 +100,6 @@ namespace LolloGPS.Core
 				_localMapTileDataSource.UriRequested += OnLocalMapTileDataSource_UriRequested;
 			}).ConfigureAwait(false);
 		}
-
 		private async Task OpenAlternativeMap_Http_Async()
 		{
 			var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
@@ -257,14 +256,14 @@ namespace LolloGPS.Core
 					//await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
 				});
 			}
-			else if (e.PropertyName == nameof(PersistentData.IsMapCached))
-			{
-				Task updIsCaching = RunFunctionIfOpenAsyncA(delegate
-				{
-					var tc = _tileCache;
-					if (tc != null) tc.IsCaching = PersistentData.IsMapCached;
-				});
-			}
+			//else if (e.PropertyName == nameof(PersistentData.IsMapCached))
+			//{
+			//	Task updIsCaching = RunFunctionIfOpenAsyncA(delegate
+			//	{
+			//		var tc = _tileCache;
+			//		if (tc != null) tc.IsCaching = PersistentData.IsMapCached;
+			//	});
+			//}
 		}
 		private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
@@ -354,7 +353,9 @@ namespace LolloGPS.Core
 		{
 			if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
 			{
+				KeepAlive.UpdateKeepAlive(true);
 				Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+				KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
 				if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
 			}
 		}
