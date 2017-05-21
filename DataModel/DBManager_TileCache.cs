@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Storage;
-
+/*
 // Download SQLite for Windows 10, install it, restart visual studio. no nuget or github required.
 // Add a reference to it in the project that uses it.
 namespace LolloGPS.Data.TileCache
@@ -508,3 +508,4 @@ namespace LolloGPS.Data.TileCache
 		}
 	}
 }
+*/

@@ -190,12 +190,12 @@ namespace LolloGPS.Data
 		{
 			_checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
 		}
-
+		/*
 		public static Task OpenTileCacheDbAsync()
 		{
 			return TileCache.LolloSQLiteConnectionPoolMT.OpenAsync();
 		}
-
+		*/
 		public static void OpenMainDb()
 		{
 			LolloSQLiteConnectionPoolMT.Open();
@@ -210,6 +210,7 @@ namespace LolloGPS.Data
 		{
 			return LolloSQLiteConnectionPoolMT.RunInOtherTask(action);
 		}
+		/*
 		/// <summary>
 		/// Waits for current DB operations to terminate and then locks the DB.
 		/// </summary>
@@ -217,6 +218,7 @@ namespace LolloGPS.Data
 		{
 			await TileCache.LolloSQLiteConnectionPoolMT.CloseAsync().ConfigureAwait(false);
 		}
+		*/
 		/// <summary>
 		/// Waits for current DB operations to terminate and then locks the DB.
 		/// </summary>
@@ -1292,6 +1294,50 @@ namespace LolloGPS.Data
 		}
 		public enum ClearCacheResult { Ok, Error, Cancelled }
 
+		public async Task<ClearCacheResult> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
+		{
+			if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return ClearCacheResult.Error;
+
+			try
+			{
+				await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
+				IsTileSourcezBusy = true;
+
+				List<string> folderNamesToBeDeleted = GetFolderNamesToBeDeleted(tileSource);
+
+				if (folderNamesToBeDeleted?.Any() == true)
+				{
+					var localFolder = ApplicationData.Current.LocalCacheFolder;
+					foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
+					{
+						try
+						{
+							if (cancToken.IsCancellationRequested)
+								return ClearCacheResult.Cancelled;
+
+							var imageFolder = await localFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
+							if (imageFolder != null)
+							{
+								await localFolder.CreateFolderAsync(folderName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+								// remove tile source from collection last.
+								if (isAlsoRemoveSources) await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+							}
+						}
+						catch (OperationCanceledException) { return ClearCacheResult.Cancelled; }
+						catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
+						catch (FileNotFoundException) { Debug.WriteLine("FileNotFound in ClearCacheAsync()"); }
+						catch (Exception ex) { Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename); }
+					}
+				}
+				return ClearCacheResult.Ok;
+			}
+			finally
+			{
+				IsTileSourcezBusy = false;
+				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+			}
+		}
+		/*
 		public async Task<Tuple<ClearCacheResult, int>> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
 		{
 			if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return Tuple.Create(ClearCacheResult.Error, 0);
@@ -1314,12 +1360,12 @@ namespace LolloGPS.Data
 							if (cancToken.IsCancellationRequested)
 								return Tuple.Create(ClearCacheResult.Cancelled, howManyRecordsDeletedTotal);
 
-							/*	Delete db entries first.
-							 *  It's not terrible if some files are not deleted and the db thinks they are:
-								they will be downloaded again, and not resaved (with the current logic).
-							 *  It's terrible if files are deleted and the db thinks they are still there,
-								because they will never be downloaded again, and the tiles will be forever empty.
-							 */
+								//Delete db entries first.
+							 //*  It's not terrible if some files are not deleted and the db thinks they are:
+								//they will be downloaded again, and not resaved (with the current logic).
+							 //*  It's terrible if files are deleted and the db thinks they are still there,
+								//because they will never be downloaded again, and the tiles will be forever empty.
+							
 							var dbResult = await TileCache.DBManager.DeleteTileCacheAsync(folderName).ConfigureAwait(false);
 
 							if (cancToken.IsCancellationRequested)
@@ -1358,6 +1404,7 @@ namespace LolloGPS.Data
 				SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
 			}
 		}
+		*/
 		private List<string> GetFolderNamesToBeDeleted(TileSourceRecord tileSource)
 		{
 			var result = new List<string>();

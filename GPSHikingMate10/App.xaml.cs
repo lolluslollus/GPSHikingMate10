@@ -85,7 +85,7 @@ namespace LolloGPS.Core
 			_persistentData = PersistentData.GetInstance();
 			_runtimeData = RuntimeData.GetInstance();
 
-			await PersistentData.OpenTileCacheDbAsync().ConfigureAwait(false);
+			//await PersistentData.OpenTileCacheDbAsync().ConfigureAwait(false);
 			PersistentData.OpenMainDb();
 		}
 
@@ -95,8 +95,8 @@ namespace LolloGPS.Core
 			// lock the DBs
 			PersistentData.CloseMainDb();
 			Debug.WriteLine("CloseAllAsync() closed the main db");
-			await PersistentData.CloseTileCacheAsync(); //.ConfigureAwait(false);
-			Debug.WriteLine("CloseAllAsync() closed the tile cache");
+			//await PersistentData.CloseTileCacheAsync(); //.ConfigureAwait(false);
+			//Debug.WriteLine("CloseAllAsync() closed the tile cache");
 			// unregister events and stop long running tasks.
 			Main main = null;
 			await RunInUiThreadAsync(delegate

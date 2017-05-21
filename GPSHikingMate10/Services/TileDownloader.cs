@@ -278,7 +278,7 @@ namespace LolloGPS.Core
 					try
 					{
 						cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
-							CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token, TileCacheProcessingQueue.GetInstance().CancellationToken);
+							CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);
 						var cancToken = cancTokenSourceLinked.Token;
 
 						if (cancToken != null && !cancToken.IsCancellationRequested)

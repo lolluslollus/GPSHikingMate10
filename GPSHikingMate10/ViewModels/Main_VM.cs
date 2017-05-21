@@ -182,6 +182,7 @@ namespace LolloGPS.Core
 				WhichSeriesJustLoaded = PersistentData.Tables.Nil;
 
 				await _gpsInteractor.OpenAsync();
+				await _tileCacheClearer.OpenAsync();
 				RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
 				AddHandlers_DataChanged();
 
@@ -258,6 +259,7 @@ namespace LolloGPS.Core
 			{
 				RemoveHandlers_DataChanged();
 				await RunInUiThreadAsync(KeepAlive.StopKeepAlive).ConfigureAwait(false);
+				await _tileCacheClearer.CloseAsync().ConfigureAwait(false);
 				await _gpsInteractor.CloseAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -423,11 +425,11 @@ namespace LolloGPS.Core
 			// output messages
 			if (args.TileSource.IsAll)
 			{
-				if (args.HowManyRecordsDeleted > 0)
+				/*if (args.HowManyRecordsDeleted > 0)
 				{
 					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " records deleted");
 				}
-				else if (args.IsCacheCleared)
+				else */if (args.IsCacheCleared)
 				{
 					PersistentData.LastMessage = ("Cache empty");
 				}
@@ -438,11 +440,11 @@ namespace LolloGPS.Core
 			}
 			else
 			{
-				if (args.HowManyRecordsDeleted > 0)
+				/*if (args.HowManyRecordsDeleted > 0)
 				{
 					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " " + args.TileSource.DisplayName + " records deleted");
 				}
-				else if (args.IsCacheCleared)
+				else */if (args.IsCacheCleared)
 				{
 					PersistentData.LastMessage = (args.TileSource.DisplayName + " cache is empty");
 				}
