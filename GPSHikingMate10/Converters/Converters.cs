@@ -836,12 +836,13 @@ namespace LolloGPS.Converters
 		}
 	}
 
-	public class MapSourceToItsDescriptionConverter : IValueConverter
+	public class MapSourceToItsCopyrightNoticeConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, string language)
 		{
-			if (!(value is TileSourceRecord)) return false;
-			return (value as TileSourceRecord).DisplayName;
+            var tsr = value as TileSourceRecord;
+            if (tsr == null) return false;
+			return $"{tsr.DisplayName} © {tsr.CopyrightNotice}";
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, string language)
 		{

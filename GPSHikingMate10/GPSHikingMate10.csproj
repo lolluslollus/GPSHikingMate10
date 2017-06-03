@@ -163,6 +163,7 @@
     <Content Include="Assets\Icon.targetsize-32.png" />
     <Content Include="Assets\Icon.targetsize-256.png" />
     <Content Include="Assets\Icon.targetsize-48.png" />
+    <Content Include="Assets\mobius-500.png" />
     <Content Include="Assets\pointer_base-36.png" />
     <Content Include="Assets\pointer_checkpoint-60.png" />
     <Content Include="Assets\pointer_checkpoint-40.png" />

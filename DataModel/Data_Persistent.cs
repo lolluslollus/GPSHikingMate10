@@ -97,7 +97,7 @@ namespace LolloGPS.Data
             {
                 await Task.Run(delegate
                 //return from.RunInUiThreadAsync(delegate
-                {                    
+                {
                     //I must clone memberwise, otherwise the current event handlers get lost
                     CloneNonDbProperties2(from, ref target, true);
                 });
@@ -204,7 +204,7 @@ namespace LolloGPS.Data
             {
                 foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
                 {
-                    target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
+                    target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.FolderName, srcItem.CopyrightNotice, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable)); //srcItem.IsTesting, srcItem.IsValid));
                 }
             }
             if (!skipUI) target.RaisePropertyChanged(nameof(TileSourcez));
@@ -1272,7 +1272,7 @@ namespace LolloGPS.Data
                 if (_testTileSource == null) return Tuple.Create(false, "Record not found");
                 if (string.IsNullOrWhiteSpace(_testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
                 // set non-screen properties
-                _testTileSource.DisplayName = _testTileSource.TechName; // we always set it automatically
+                _testTileSource.FolderName = _testTileSource.DisplayName = _testTileSource.TechName; // we always set it automatically
                 _testTileSource.IsDeletable = true;
                 string errorMsg = _testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
 
@@ -1283,7 +1283,7 @@ namespace LolloGPS.Data
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                return Tuple.Create(false, string.Format("Error with tile source {0}", _testTileSource?.TechName ?? string.Empty));
+                return Tuple.Create(false, $"Error with tile source {_testTileSource?.DisplayName ?? string.Empty}");
             }
             finally
             {
@@ -1294,7 +1294,7 @@ namespace LolloGPS.Data
 
         private void TryInsertTestTileSourceIntoTileSourcezUIAsync(ref Tuple<bool, string> result)
         {
-            var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName);
+            var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName || tileSource.FolderName == _testTileSource.TechName);
             if (recordsWithSameName?.Count() == 1)
             {
                 var recordWithSameName = recordsWithSameName.First();
@@ -1302,17 +1302,17 @@ namespace LolloGPS.Data
                 {
                     _tileSourcez.Remove(recordWithSameName); // LOLLO TODO check this
                     Logger.Add_TPL(recordWithSameName.ToString() + " removed from _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                    Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                    result = Tuple.Create(true, string.Format("Source {0} changed", _testTileSource.DisplayName));
+                    Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                    result = Tuple.Create(true, $"Source {_testTileSource.DisplayName} changed");
                 }
                 else
                 {
-                    result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+                    result = Tuple.Create(false, $"Tile source {_testTileSource.DisplayName} cannot be changed");
                 }
             }
             else if (recordsWithSameName?.Count() > 1)
             {
-                result = Tuple.Create(false, string.Format("Tile source {0} cannot be changed", _testTileSource.TechName));
+                result = Tuple.Create(false, $"Tile source {_testTileSource.DisplayName} cannot be changed");
             }
             if (result == null || result.Item1)
             {
@@ -1321,11 +1321,11 @@ namespace LolloGPS.Data
                 _tileSourcez.Add(newRecord);
 
                 Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                Logger.Add_TPL("_tileSourcez now has " + _tileSourcez.Count + " records", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
                 RaisePropertyChanged(nameof(TileSourcez));
                 CurrentTileSource = newRecord;
-                if (result == null) result = Tuple.Create(true, string.Format("Source {0} added", _testTileSource.DisplayName));
+                if (result == null) result = Tuple.Create(true, $"Source {_testTileSource.DisplayName} added");
             }
         }
         public enum ClearCacheResult { Ok, Error, Cancelled }
@@ -1445,17 +1445,17 @@ namespace LolloGPS.Data
         {
             var result = new List<string>();
             if (tileSource == null) return result;
-            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.TechName))
+            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName))
             {
-                result.Add(tileSource.TechName);
+                result.Add(tileSource.FolderName);
             }
             else if (tileSource.IsAll)
             {
                 foreach (var item in _tileSourcez)
                 {
-                    if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.TechName))
+                    if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.FolderName))
                     {
-                        result.Add(item.TechName);
+                        result.Add(item.FolderName);
                     }
                 }
             }
@@ -1484,46 +1484,6 @@ namespace LolloGPS.Data
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
             }
         }
-        //public async Task RemoveTileSourcesAsync(TileSourceRecord tileSource)
-        //{
-        //	try
-        //	{
-        //		await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-        //		await RunInUiThreadAsync(delegate
-        //		{
-        //			if (tileSource.IsAll)
-        //			{
-        //				Collection<TileSourceRecord> tsTBDeleted = new Collection<TileSourceRecord>();
-        //				foreach (var item in TileSourcez.Where(ts => ts.IsDeletable))
-        //				{
-        //					// restore default if removing current tile source
-        //					if (CurrentTileSource.TechName == item.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
-        //					tsTBDeleted.Add(item);
-        //					// TileSourcez.Remove(item); // nope, it dumps if you modify a collection while looping over it
-        //				}
-        //				foreach (var item in tsTBDeleted)
-        //				{
-        //					TileSourcez.Remove(item);
-        //				}
-        //			}
-        //			else if (tileSource.IsDeletable)
-        //			{
-        //				// restore default if removing current tile source
-        //				if (CurrentTileSource.TechName == tileSource.TechName) CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
-        //				TileSourcez.Remove(tileSource);
-        //			}
-        //			RaisePropertyChanged(nameof(TileSourcez));
-        //		}).ConfigureAwait(false);
-        //	}
-        //	catch (Exception ex)
-        //	{
-        //		Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-        //	}
-        //	finally
-        //	{
-        //		SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-        //	}
-        //}
         #endregion tileSourcesMethods
 
         #region download session methods

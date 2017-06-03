@@ -112,11 +112,11 @@
 				<RotateTransform Angle="-90"/>
 			</Border.RenderTransform>
 			<StackPanel Orientation="Horizontal" >
-				<TextBlock Text="© "
+				<!--<TextBlock Text="© "
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
-					Margin="6,2,6,2"/>
-				<TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsDescriptionConverter}, Mode=OneWay}"
+					Margin="6,2,6,2"/>-->
+				<TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>

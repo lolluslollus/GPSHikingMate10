@@ -37,7 +37,7 @@
 			<conv:FloatNotNullToVisibleConverter x:Key="FloatNotNullToVisibleConverter"/>
 			<conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>
 			<conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>
-			<conv:MapSourceToItsDescriptionConverter x:Key="MapSourceToItsDescriptionConverter"/>
+			<conv:MapSourceToItsCopyrightNoticeConverter x:Key="MapSourceToItsCopyrightNoticeConverter"/>
 			<conv:TileSourceToTextAndTagConverter x:Key="TileSourceToTextAndTagConverter"/>
 			<conv:TileSourcezToTextAndTagsConverter x:Key="TileSourcezToTextAndTagsConverter"/>
 			<conv:MapCacheIsEnabledConverter x:Key="MapCacheIsEnabledConverter"/>

@@ -49,7 +49,7 @@ namespace LolloGPS.Data.Leeching
 			private set { _tileSourceTechName = value; }
 		}
 
-		public bool IsZoomsValid()
+        public bool IsZoomsValid()
 		{
 			return string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom));
 		}
@@ -72,7 +72,7 @@ namespace LolloGPS.Data.Leeching
 			MaxZoom = maxZoom;
 			NWCorner = gbb.NorthwestCorner;
 			SECorner = gbb.SoutheastCorner;
-			TileSourceTechName = tileSource.TechName;
+			TileSourceTechName = tileSource.TechName;            
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
 

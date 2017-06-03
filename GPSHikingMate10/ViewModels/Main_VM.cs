@@ -510,7 +510,7 @@ namespace LolloGPS.Core
         public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
         {
             bool isScheduled = await Task.Run(() => _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
-            PersistentData.LastMessage = isScheduled ? "cache will be cleared asap" : "cache busy";
+            PersistentData.LastMessage = isScheduled ? "cache will be cleared asap" : "cache unchanged";
         }
 
         public Task StartUserTestingTileSourceAsync()
