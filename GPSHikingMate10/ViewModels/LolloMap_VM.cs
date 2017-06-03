@@ -72,7 +72,7 @@ namespace LolloGPS.Core
                 return;
             };
 
-            var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, true);
+            var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, true); // both true and false fail, this thing never accepts links to my localcache.
             await RunInUiThreadAsync(delegate
             {
                 CloseAlternativeMap_Local();
@@ -117,7 +117,7 @@ namespace LolloGPS.Core
                 return;
             };
 
-            var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, false);
+            var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, true); // both true and false fail
             await RunInUiThreadAsync(delegate
             {
                 CloseAlternativeMap_Http();

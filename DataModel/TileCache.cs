@@ -75,22 +75,18 @@ namespace LolloGPS.Data.TileCache
         #region getters
         private Uri GetUriForFile(string fileName)
         {
-            // LOLLO TODO check this method
-            /*
-			 * works
-			return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute);
-			*/
-
+            // LOLLO TODO check this method            
             if (_isReturnLocalUris)
             {
-                // works when requesting local uri
-                var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}";
-                var localUri = new Uri(Uri.EscapeUriString(address), UriKind.Absolute);
-                //var localUri = new Uri(address, UriKind.Absolute);
+                // return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute); // this works
+
+                var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}"; // this fails
+                var localUri = new Uri(address, UriKind.Absolute);
                 return localUri;
             }
 
-            // should work when requesting any uri, but it fails for some reason
+            // should work when requesting any uri, but it fails after the MapControl was updated in 10.5****.
+            // this is why I create the bitmaps... when those imbeciles fix it, we can go back to returning uris like before.
             var filePath = Path.Combine(_imageFolder.Path, fileName);
             var uri = new Uri(filePath, UriKind.Absolute);
             return uri;
@@ -232,6 +228,7 @@ namespace LolloGPS.Data.TileCache
 
         public async Task<Uri> GetTileUriAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
         {
+            // I must return null if I haven't got the tile yet, otherwise the caller will stop searching and present an empty tile forever
             if (cancToken.IsCancellationRequested) return null;
 
             // out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
@@ -244,8 +241,7 @@ namespace LolloGPS.Data.TileCache
             string fileNameNoExtension = GetFileNameNoExtensionFromKey(x, y, z, zoom);
             // not working on this set of data? Mark it as busy, closing the gate for other threads
             // already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
-
-            // I must return null if I haven't got the tile yet, otherwise the caller will stop searching and present an empty tile forever
+            
             if (!await ProcessingQueue.TryAddToQueueAsync(fileNameNoExtension).ConfigureAwait(false)) return null; // return GetUriForFile(fileName); NO!
             // from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 
