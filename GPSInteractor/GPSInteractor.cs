@@ -50,7 +50,7 @@ namespace LolloGPS.GPSInteraction
 
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync(object args = null)
 		{
 			RemoveHandlers_DataModelPropertyChanged();
 			RemoveHandlers_GeoLocator();

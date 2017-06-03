@@ -47,7 +47,7 @@ namespace LolloGPS.Core
 		}
 		protected override async Task OpenMayOverrideAsync(object args = null)
 		{
-			await _tileDownloader.OpenAsync();
+			await _tileDownloader.OpenAsync(args);
 			AddHandler_DataChanged();
 			Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
 			
@@ -188,7 +188,7 @@ namespace LolloGPS.Core
 				_customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
 			}).ConfigureAwait(false);
 		}
-		protected override async Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync(object args = null)
 		{
 			RemoveHandler_DataChanged();
 			
@@ -197,7 +197,7 @@ namespace LolloGPS.Core
 			//await RunInUiThreadAsync(CloseAlternativeMap_Local).ConfigureAwait(false);
 
 			var td = _tileDownloader;
-			if (td != null) await td.CloseAsync().ConfigureAwait(false);
+			if (td != null) await td.CloseAsync(args).ConfigureAwait(false);
 		}
 
 		private void CloseAlternativeMap_Local()

@@ -221,7 +221,7 @@ namespace LolloGPS.Core
 
 			return base.OpenMayOverrideAsync();
 		}
-		protected override Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync(object args = null)
 		{
 			_holdingTimer?.Dispose();
 			_holdingTimer = null;

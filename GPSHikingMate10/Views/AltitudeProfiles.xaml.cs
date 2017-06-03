@@ -51,7 +51,10 @@ namespace LolloGPS.Core
 		protected override Task OpenMayOverrideAsync(object args = null)
 		{
 			Logger.Add_TPL("AltitudeProfiles started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			_altitudeProfilesVM = new AltitudeProfilesVM(MainVM);
+            bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
+            bool isFileActivating = args != null && (LifecycleEvents)args == LifecycleEvents.NavigatedToAfterFileActivated;
+
+            _altitudeProfilesVM = new AltitudeProfilesVM(MainVM);
 			RaisePropertyChanged_UI(nameof(AltitudeProfilesVM));
 
 			HistoryChart.Open();
@@ -61,22 +64,22 @@ namespace LolloGPS.Core
 			AddHandlers();
 
 			// if the app is file activating, ignore the series that are already present; 
-			// the newly read series will draw automatically once they are pushed in and the chosen one will be centred with an external command.
-			if (App.IsFileActivating) return Task.CompletedTask;
+			// the newly read series will draw automatically once they are pushed in and (the chosen one) will be centred with an external command.
+			if (isFileActivating) return Task.CompletedTask;
 
 			// this panel may be hidden: if so, do not draw anything
 			if (!PersistentData.IsShowingAltitudeProfiles) return Task.CompletedTask;
 
-			Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History); // Task.Run(DrawHistoryAsync);
-			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+			Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History);
+			if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
 			{
-				Task drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0); // Task.Run(DrawRoute0Async);
+				Task drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0);
 			}
-			if (!App.IsResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+			if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
 			{
-				Task drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints); //  Task.Run(DrawCheckpointsAsync);
+				Task drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
 			}
-			if (!App.IsResuming)
+			if (!isResuming)
 			{
 				var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later
 				Task restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
@@ -85,7 +88,7 @@ namespace LolloGPS.Core
 			return Task.CompletedTask;
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync(object args = null)
 		{
 			RemoveHandlers();
 

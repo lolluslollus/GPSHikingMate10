@@ -29,437 +29,312 @@ using Windows.UI.Xaml.Navigation;
 
 namespace LolloGPS.Core
 {
-	/// <summary>
-	/// Provides application-specific behavior to supplement the default Application class.
-	/// </summary>
-	public sealed partial class App : Application
-	{
-		#region properties
-		private static PersistentData _persistentData = null; // PersistentData.GetInstance();
-		public static PersistentData PersistentData { get { return _persistentData; } }
-		private static RuntimeData _runtimeData = null; // RuntimeData.GetInstance();
-		public static RuntimeData RuntimeData { get { return _runtimeData; } }
+    /// <summary>
+    /// Provides application-specific behavior to supplement the default Application class.
+    /// </summary>
+    public sealed partial class App : Application
+    {
+        #region properties
+        private static PersistentData _persistentData = null;
+        public static PersistentData PersistentData { get { return _persistentData; } }
+        private static RuntimeData _runtimeData = null;
+        public static RuntimeData RuntimeData { get { return _runtimeData; } }
 
-		private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-		private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
-		public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
-		private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
-
-		private static volatile bool _isResuming = false;
-		public static bool IsResuming { get { return _isResuming; } private set { _isResuming = value; } }
-		private static volatile bool _isFileActivating = false;
-		public static bool IsFileActivating { get { return _isFileActivating; } private set { _isFileActivating = value; } }
-		#endregion properties
+        private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+        private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
+        public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
+        private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+        #endregion properties
 
 
-		#region events
-		// these events are useful to avoid "the action was marshalled for a different thread" errors. 
-		// We don't want to hog the UI thread just to catch these, and we want the response to be immediate.
-		public static event EventHandler ResumingStatic;
-		public static event SuspendingEventHandler SuspendingStatic;
-		#endregion events
+        #region lifecycle
+        /// <summary>
+        /// Initializes the singleton application object.  This is the first line of authored code
+        /// executed, and as such is the logical equivalent of main() or WinMain().
+        /// </summary>
+        public App()
+        {
+            Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
+                Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
+                Microsoft.ApplicationInsights.WindowsCollectors.Session);
+
+            //Resuming += OnResuming;
+            Suspending += OnSuspending;
+            UnhandledException += OnUnhandledException;
+
+            InitializeComponent();
+
+            Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+        }
+        #endregion lifecycle
 
 
-		#region lifecycle
-		/// <summary>
-		/// Initializes the singleton application object.  This is the first line of authored code
-		/// executed, and as such is the logical equivalent of main() or WinMain().
-		/// </summary>
-		public App()
-		{
-			Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
-				Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
-				Microsoft.ApplicationInsights.WindowsCollectors.Session);
+        #region event handlers
+        /// <summary>
+        /// Invoked when the application is launched normally by the end user.  Other entry points
+        /// will be used when the application is launched to open a specific file, to display
+        /// search results, and so forth.
+        /// This is also invoked when the app is resumed after being terminated.
+        /// </summary>
+        /// <param name="e">Details about the launch request and process.</param>
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        {
+            Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
+                Logger.AppEventsLogFilename,
+                Logger.Severity.Info,
+                false);
 
-			UnhandledException += OnApp_UnhandledException;
-			Resuming += OnResuming;
-			Suspending += OnSuspending;
+            e.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
+            e.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
 
-			InitializeComponent();
+            _runtimeData = RuntimeData.GetInstance();
+            // disable UI commands
+            RuntimeData.SetIsSettingsRead_UI(false);
+            _persistentData = await SuspensionManager.LoadSettingsAsync();
 
-			Logger.Add_TPL("App ctor ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-		}
+            try
+            {
+                Frame rootFrame = GetCreateRootFrame(e);
+                NavigateToRootFrameContent(rootFrame, NavigationParameters.Launched);
+                // Ensure the current window is active
+                Window.Current.Activate();
+            }
+            catch (Exception ex)
+            {
+                await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
+            }
+            finally
+            {
+                // enable UI commands
+                RuntimeData.SetIsSettingsRead_UI(true);
+                Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            }
+        }
 
-		private async Task OpenDataAsync()
-		{
-			_persistentData = PersistentData.GetInstance();
-			_runtimeData = RuntimeData.GetInstance();
+        /// <summary>
+        /// Let the app launch, then check if the license is OK. Otherwise, there will be trouble with the cert kit and light slowdowns on launch.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        private async void OnSplashScreen_Dismissed(SplashScreen sender, object args)
+        {
+            sender.Dismissed -= OnSplashScreen_Dismissed;
+            if (!await Licenser.GetInstance().CheckLicensedAsync()) await Quit();
+        }
 
-			//await PersistentData.OpenTileCacheDbAsync().ConfigureAwait(false);
-			PersistentData.OpenMainDb();
-		}
+        /// <summary>
+        /// Invoked when Navigation to a certain page fails
+        /// </summary>
+        /// <param name="sender">The Frame which failed navigation</param>
+        /// <param name="e">Details about the navigation failure</param>
+        private async void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        {
+            await Logger.AddAsync(e.Exception.ToString(), Logger.AppEventsLogFilename);
+            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
 
-		private async Task CloseAllAsync()
-		{
-			Debug.WriteLine("CloseAllAsync() started");
-			// lock the DBs
-			PersistentData.CloseMainDb();
-			Debug.WriteLine("CloseAllAsync() closed the main db");
-			//await PersistentData.CloseTileCacheAsync(); //.ConfigureAwait(false);
-			//Debug.WriteLine("CloseAllAsync() closed the tile cache");
-			// unregister events and stop long running tasks.
-			Main main = null;
-			await RunInUiThreadAsync(delegate
-			{
-				main = (Window.Current?.Content as Frame)?.Content as Main;
-			});
-			if (main != null)
-			{
-				await main.CloseAsync().ConfigureAwait(false);
-			}
+        /// <summary>
+        /// Invoked when application execution is being suspended.  Application state is saved
+        /// without knowing whether the application will be terminated or resumed with the contents
+        /// of memory still intact.
+        /// LOLLO NOTE This method must complete within the deadline, which is 5 sec with a slow phone.
+        /// </summary>
+        /// <param name="sender">The source of the suspend request.</param>
+        /// <param name="e">Details about the suspend request.</param>
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
+        {
+            var deferral = e.SuspendingOperation.GetDeferral();
+            try
+            {
+                Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+                    Logger.AppEventsLogFilename,
+                    Logger.Severity.Info,
+                    false);
 
-			Debug.WriteLine("CloseAllAsync() closed the UI");
-			//// lock the DBs
-			//PersistentData.CloseMainDb();
-			//await PersistentData.CloseTileCacheAsync().ConfigureAwait(false);
-			// back up the app settings
-			await SuspensionManager.SaveSettingsAsync(PersistentData).ConfigureAwait(false);
-			Debug.WriteLine("CloseAllAsync() saved the settings");
-			RuntimeData?.Close();
-		}
-		#endregion lifecycle
+                await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
+                RuntimeData?.Close();
 
+                Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        }
+        /*
+        /// <summary>
+        /// Invoked when the app is resumed without being terminated.
+        /// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
+        /// You do not need to restore other app state when the app resumes.
+        /// </summary>
+        private async void OnResuming(object sender, object e)
+        {
+            // In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
+            // but I deregister them when suspending to make sure long running tasks are really stopped.
+            // This also includes the background task state check.
+            // If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
+            // which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
+            // This is done in the MainVM
+            Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            try
+            {
+                await _resumingActivatingSemaphore.WaitAsync();
+                Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-		#region event handlers
-		private async void OnApp_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-		{
-			// this does not always work when the device force-shuts the app
-			await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename);
-		}
+                if (!await Licenser.GetInstance().CheckLicensedAsync()) return;
 
-		/// <summary>
-		/// Invoked when the application is launched normally by the end user.  Other entry points
-		/// will be used when the application is launched to open a specific file, to display
-		/// search results, and so forth.
-		/// This is also invoked when the app is resumed after being terminated.
-		/// </summary>
-		/// <param name="e">Details about the launch request and process.</param>
-		protected override async void OnLaunched(LaunchActivatedEventArgs e)
-		{
-			Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
-				Logger.AppEventsLogFilename,
-				Logger.Severity.Info,
-				false);
+                
+            }
+            catch (Exception ex)
+            {
+                await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
+            }
+            finally
+            {
+                Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+            }
+        }
+        */
+        //protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
 
-			await OpenDataAsync();
-			e.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
-			e.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
-
-			try
-			{
-				Frame rootFrame = GetCreateRootFrame(e);
-				NavigateToRootFrameContent(rootFrame);
-				// Ensure the current window is active
-				Window.Current.Activate();
-				// disable UI commands
-				RuntimeData.SetIsDBDataRead_UI(false);
-
-				var main = rootFrame.Content as Main;
-				await SuspensionManager.LoadDbDataAndSettingsAsync(true, true);
-				//Task readData = SuspensionManager.LoadDbDataAndSettingsAsync(true, true); // this makes trouble, 
-				// it is pointless to do too much in separate threads when the UI is only ready once the data is loaded anyway.
-				// the UI does not freeze, this is as much as it make sense to achieve.
-				var yne = await main.OpenAsync().ConfigureAwait(false);
-				Logger.Add_TPL("OnLaunched opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
-			}
-
-			// enable UI commands
-			RuntimeData.SetIsSettingsRead_UI(true);
-			RuntimeData.SetIsDBDataRead_UI(true);
-
-			Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-		}
-
-		/// <summary>
-		/// Let the app launch, then check if the license is OK. Otherwise, there will be trouble with the cert kit and light slowdowns on launch.
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="args"></param>
-		private async void OnSplashScreen_Dismissed(SplashScreen sender, object args)
-		{
-			sender.Dismissed -= OnSplashScreen_Dismissed;
-			if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) await Quit();
-		}
-
-		/// <summary>
-		/// Invoked when Navigation to a certain page fails
-		/// </summary>
-		/// <param name="sender">The Frame which failed navigation</param>
-		/// <param name="e">Details about the navigation failure</param>
-		private async void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-		{
-			await Logger.AddAsync(e.Exception.ToString(), Logger.AppEventsLogFilename);
-			throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
-		}
-
-		/// <summary>
-		/// Invoked when application execution is being suspended.  Application state is saved
-		/// without knowing whether the application will be terminated or resumed with the contents
-		/// of memory still intact.
-		/// LOLLO NOTE This method must complete within the deadline, which is 5 sec with a slow phone.
-		/// </summary>
-		/// <param name="sender">The source of the suspend request.</param>
-		/// <param name="e">Details about the suspend request.</param>
-		private async void OnSuspending(object sender, SuspendingEventArgs e)
-		{
-			var deferral = e.SuspendingOperation.GetDeferral();
-			try
-			{
-				Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
-					Logger.AppEventsLogFilename,
-					Logger.Severity.Info,
-					false);
-
-				SuspendingStatic?.Invoke(this, e);
-
-				await CloseAllAsync().ConfigureAwait(false);
-				Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			}
-			finally
-			{
-				deferral.Complete();
-			}
-		}
-
-		/// <summary>
-		/// Invoked when the app is resumed without being terminated.
-		/// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
-		/// You do not need to restore other app state when the app resumes.
-		/// </summary>
-		private async void OnResuming(object sender, object e)
-		{
-			Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-			try
-			{
-				await _resumingActivatingSemaphore.WaitAsync();
-				ResumingStatic?.Invoke(this, EventArgs.Empty);
-				IsResuming = true;
-				Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-				await OpenDataAsync();
-				if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
-
-				if (IsRootFrameMain)
-				{
-					// disable UI commands
-					RuntimeData.SetIsDBDataRead_UI(false);
-
-					var main = (Window.Current.Content as Frame).Content as Main;
-					// Settings and data are already in.
-					// However, reread the history coz the background task may have changed it while I was suspended.
-					await PersistentData.LoadHistoryFromDbAsync(false, false);
-					Logger.Add_TPL("OnResuming() has read history from db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-					// In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
-					// but I deregister them when suspending to make sure long running tasks are really stopped.
-					// This also includes the background task state check.
-					// If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
-					// which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
-					var yne = await main.OpenAsync().ConfigureAwait(false);
-					Logger.Add_TPL("OnResuming() has opened main with result = " + yne, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				}
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
-			}
-			finally
-			{
-				// enable UI commands
-				RuntimeData.SetIsSettingsRead_UI(true);
-				RuntimeData.SetIsDBDataRead_UI(true);
-
-				Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-				IsResuming = false;
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-			}
-		}
-		//protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
-
-		/// <summary>
-		/// Fires when attempting to open a file, which is associated with the application. 
-		/// Test it with the app both running and closed.
-		/// LOLLO NOTE if resuming (ie the app was running), the system starts this method an instant after OnResuming(). 
-		/// The awaits cause both methods to run in parallel, alternating on the UI thread.
-		/// </summary>
+        /// <summary>
+        /// Fires when attempting to open a file, which is associated with the application. 
+        /// Test it with the app both running and closed.
+        /// LOLLO NOTE if resuming (ie the app was running), the system starts this method an instant after OnResuming(). 
+        /// The awaits cause both methods to run in parallel, alternating on the UI thread.
+        /// </summary>
 		protected override async void OnFileActivated(FileActivatedEventArgs args)
-		{
-			Logger.Add_TPL("OnFileActivated() starting with kind = " + args.Kind.ToString() + " and previous execution state = " + args.PreviousExecutionState.ToString() + " and verb = " + args.Verb,
-				Logger.AppEventsLogFilename,
-				Logger.Severity.Info,
-				false);
+        {
+            Logger.Add_TPL("OnFileActivated() starting with kind = " + args.Kind.ToString() + " and previous execution state = " + args.PreviousExecutionState.ToString() + " and verb = " + args.Verb,
+                Logger.AppEventsLogFilename,
+                Logger.Severity.Info,
+                false);
 
-			try
-			{
-				await _resumingActivatingSemaphore.WaitAsync();
-				IsFileActivating = true;
-				Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            try
+            {
+                await _resumingActivatingSemaphore.WaitAsync();
+                Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-				await OpenDataAsync();
+                bool isAppAlreadyRunning = IsRootFrameMain;
+                if (!isAppAlreadyRunning)
+                {
+                    if (!await Licenser.GetInstance().CheckLicensedAsync()) return;
+                    Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                }
 
-				bool isAppAlreadyRunning = IsRootFrameMain;
-				if (!isAppAlreadyRunning)
-				{
-					if (!await Licenser.GetInstance().CheckLicensedAsync() /*|| _runtimeData.IsBuying*/) return;
-					Logger.Add_TPL("OnFileActivated() checked the license", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				}
+                if (args?.Files?[0]?.Path?.Length > 4 && args.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
+                {
+                    _runtimeData = RuntimeData.GetInstance();
+                    // disable UI commands
+                    RuntimeData.SetIsDBDataRead_UI(false);
 
-				if (args?.Files?[0]?.Path?.Length > 4 && args.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
-				{
-					var rootFrame = GetCreateRootFrame(args);
-					if (!isAppAlreadyRunning)
-					{
-						NavigateToRootFrameContent(rootFrame);
-						Window.Current.Activate();
-					}
-					// disable UI commands
-					RuntimeData.SetIsDBDataRead_UI(false);
+                    var rootFrame = GetCreateRootFrame(args);
+                    if (!isAppAlreadyRunning)
+                    {
+                        // disable UI commands
+                        RuntimeData.SetIsSettingsRead_UI(false);
+                        _persistentData = await SuspensionManager.LoadSettingsAsync();
+                        NavigateToRootFrameContent(rootFrame, NavigationParameters.FileActivated);
+                        Window.Current.Activate();
+                    }
+                    var main = rootFrame.Content as Main;
+                    if (main == null) throw new Exception("OnFileActivated: main is null");
+                    var mainVM = main.MainVM;
+                    while (mainVM == null || !mainVM.IsOpen) { await Task.Delay(25); } // LOLLO TODO add a timeout
+                    await mainVM.LoadFileAsync(args).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename).ConfigureAwait(false);
+            }
+            finally
+            {
+                // enable UI commands
+                RuntimeData.SetIsSettingsRead_UI(true);
+                RuntimeData.SetIsDBDataRead_UI(true);
 
-					var main = rootFrame.Content as Main;
-					if (main == null) throw new Exception("OnFileActivated: main is null");
+                Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-					await SuspensionManager.LoadDbDataAndSettingsAsync(false, !isAppAlreadyRunning);
-					var yne = await main.OpenAsync(); // already open if app already running
-					Logger.Add_TPL("OnFileActivated() opened main with result = " + yne + ", app already running", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-					var mainVM = main.MainVM;
-					if (mainVM == null) throw new Exception("OnFileActivated: mainVM is null");
+                SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+            }
+        }
 
-					var whichTables = await mainVM.LoadFileIntoDbAsync(args);
-					Logger.Add_TPL("OnFileActivated() got whichTables", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-					if (isAppAlreadyRunning)
-					{
-						if (whichTables != null)
-						{
-							// get file data from DB into UI
-							foreach (var series in whichTables)
-							{
-								await PersistentData.LoadSeriesFromDbAsync(series, false, false);
-								Logger.Add_TPL("OnFileActivated() got series " + series.ToString() + " into PersistentData", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-							}
-						}
-					}
-					else
-					{
-						// get all data from DB into UI
-						await SuspensionManager.LoadDbDataAndSettingsAsync(true, false);
-					}
-
-					// centre view on the file data
-					mainVM.CentreOnSeriesDelayed(whichTables?.FirstOrDefault());
-
-					Logger.Add_TPL("OnFileActivated() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-				}
-			}
-			catch (Exception ex)
-			{
-				await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
-			}
-			finally
-			{
-				// enable UI commands
-				RuntimeData.SetIsSettingsRead_UI(true);
-				RuntimeData.SetIsDBDataRead_UI(true);
-
-				Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-				IsFileActivating = false;
-				SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
-			}
-		}
-		#endregion event handlers
+        private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            // this does not always work when the device force-shuts the app
+            await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename).ConfigureAwait(false);
+        }
+        #endregion event handlers
 
 
-		#region services
-		public async Task Quit()
-		{
-			await CloseAllAsync();
-			Exit();
-		}
-		private bool IsRootFrameMain
-		{
-			get
-			{
-				return (Window.Current?.Content as Frame)?.Content is Main;
-			}
-		}
-		private Frame GetCreateRootFrame(IActivatedEventArgs e) //(LaunchActivatedEventArgs e) was
-		{
-			Frame rootFrame = null;
-			if (Window.Current?.Content is Frame)
-			{
-				rootFrame = Window.Current.Content as Frame;
-			}
+        #region services
+        public async Task Quit()
+        {
+            await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
+            RuntimeData?.Close();
+            Exit();
+        }
+        private bool IsRootFrameMain
+        {
+            get
+            {
+                return (Window.Current?.Content as Frame)?.Content is Main;
+            }
+        }
+        private Frame GetCreateRootFrame(IActivatedEventArgs e)
+        {
+            Frame rootFrame = null;
+            if (Window.Current?.Content is Frame)
+            {
+                rootFrame = Window.Current.Content as Frame;
+            }
 
-			if (rootFrame == null)  // Do not repeat app initialization when the Window already has content, just ensure that the window is active
-			{
-				// Create a Frame to act as the navigation context and navigate to the first page
-				rootFrame = new Frame
-				{
-					UseLayoutRounding = true,
-					// Set the default language
-					//rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
-					// LOLLO NOTE this is important and decides for the whole app
-					Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag
-				};
+            if (rootFrame == null)  // Do not repeat app initialization when the Window already has content, just ensure that the window is active
+            {
+                // Create a Frame to act as the navigation context and navigate to the first page
+                rootFrame = new Frame
+                {
+                    UseLayoutRounding = true,
+                    // Set the default language
+                    //rootFrame.Language = Windows.Globalization.ApplicationLanguages.Languages[0];
+                    // LOLLO NOTE this is important and decides for the whole app
+                    Language = Windows.Globalization.Language.CurrentInputMethodLanguageTag
+                };
 
-				// Place the frame in the current Window
-				Window.Current.Content = rootFrame;
-			}
+                // Place the frame in the current Window
+                Window.Current.Content = rootFrame;
+            }
 
-			rootFrame.Name = "RootFrame";
-			return rootFrame;
-		}
+            rootFrame.Name = "RootFrame";
+            return rootFrame;
+        }
 
-		private void NavigateToRootFrameContent(Frame rootFrame)
-		{
-			if (rootFrame != null && rootFrame.Content == null)
-			{
-				// Logger.Add_TPL("rootFrame.Content == null, about to navigate to Main", Logger.ForegroundLogFilename);
-				// When the navigation stack isn't restored navigate to the first page,
-				// configuring the new page by passing required information as a navigation
-				// parameter (in theory, but no parameter here, we simply navigate)
-				if (!rootFrame.Navigate(typeof(Main)))
-				{
-					Logger.Add_TPL("Failed to create initial page", Logger.AppEventsLogFilename);
-					throw new Exception("Failed to create initial page");
-				}
-			}
-		}
+        private void NavigateToRootFrameContent(Frame rootFrame, object navigationParameter)
+        {
+            if (rootFrame != null && rootFrame.Content == null)
+            {
+                // Logger.Add_TPL("rootFrame.Content == null, about to navigate to Main", Logger.ForegroundLogFilename);
+                // When the navigation stack isn't restored navigate to the first page,
+                // configuring the new page by passing required information as a navigation
+                // parameter (in theory, but no parameter here, we simply navigate)
+                if (!rootFrame.Navigate(typeof(Main), navigationParameter))
+                {
+                    Logger.Add_TPL("Failed to create initial page", Logger.AppEventsLogFilename);
+                    throw new Exception("Failed to create initial page");
+                }
+            }
+        }
 
-		public static void ShortVibration()
-		{
-			if (_isVibrationDevicePresent)
-			{
-				VibrationDevice myDevice = VibrationDevice.GetDefault();
-				myDevice.Vibrate(TimeSpan.FromSeconds(.12));
-			}
-		}
-
-		private async Task RunInUiThreadAsync(DispatchedHandler action)
-		{
-			try
-			{
-				if (CoreApplication.MainView.CoreWindow.Dispatcher?.HasThreadAccess == true)
-				{
-					action();
-				}
-				else
-				{
-					await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, action).AsTask().ConfigureAwait(false);
-				}
-			}
-			catch (InvalidOperationException) // called from a background task: ignore
-			{ }
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-			}
-		}
-		#endregion services
-	}
+        public static void ShortVibration()
+        {
+            if (_isVibrationDevicePresent)
+            {
+                VibrationDevice myDevice = VibrationDevice.GetDefault();
+                myDevice.Vibrate(TimeSpan.FromSeconds(.12));
+            }
+        }
+        #endregion services
+    }
 }

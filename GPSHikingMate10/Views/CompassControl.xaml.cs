@@ -47,7 +47,7 @@ namespace GPSHikingMate10.Views
 			return Task.CompletedTask;
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync(object args = null)
 		{
 			_dispatcherTimer?.Dispose();
 			var compass = _compass; if (compass != null) compass.ReadingChanged -= OnCompass_ReadingChanged;

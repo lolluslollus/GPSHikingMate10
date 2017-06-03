@@ -35,7 +35,7 @@ namespace LolloGPS.Core
 			await base.OpenMayOverrideAsync().ConfigureAwait(false);
 		}
 
-		protected override async Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync(object args = null)
 		{
 			await ClearCustomCacheChooser.CloseAsync().ConfigureAwait(false);
 			await base.CloseMayOverrideAsync().ConfigureAwait(false);

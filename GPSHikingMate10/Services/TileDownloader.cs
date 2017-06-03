@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
 using System.Threading;
-
+using Utilz.Controlz;
 
 namespace LolloGPS.Core
 {
@@ -130,8 +130,6 @@ namespace LolloGPS.Core
 		}
 		protected override Task OpenMayOverrideAsync(object args = null)
 		{
-			App.ResumingStatic += OnResuming;
-			App.SuspendingStatic += OnSuspending;
 			_runtimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
 			IsSuspended = false;
 			IsCancelledByUser = false;
@@ -139,11 +137,12 @@ namespace LolloGPS.Core
 			return Task.CompletedTask;
 		}
 
-		protected override Task CloseMayOverrideAsync()
+		protected override Task CloseMayOverrideAsync(object args = null)
 		{
-			App.ResumingStatic -= OnResuming;
-			App.SuspendingStatic -= OnSuspending;
-			_runtimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
+            bool isSuspending = args != null && (LifecycleEvents)args == LifecycleEvents.Suspending;
+            if (isSuspending) IsSuspended = true;
+
+            _runtimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
 			lock (_cancUserLocker)
 			{
 				_userCts?.Dispose();
@@ -171,15 +170,7 @@ namespace LolloGPS.Core
 				UpdateConnCts();
 			}
 		}
-		private void OnResuming(object sender, object e)
-		{
-			IsSuspended = false;
-		}
 
-		private void OnSuspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
-		{
-			IsSuspended = true;
-		}
 		internal void CancelDownloadByUser()
 		{
 			IsCancelledByUser = true;

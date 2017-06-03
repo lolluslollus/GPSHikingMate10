@@ -46,7 +46,7 @@ namespace LolloGPS.Core
 			await base.OpenMayOverrideAsync().ConfigureAwait(false);
 		}
 
-		protected override async Task CloseMayOverrideAsync()
+		protected override async Task CloseMayOverrideAsync(object args = null)
 		{
 			await MapSourceChooser.CloseAsync().ConfigureAwait(false);
 			await ZoomLevelChooser.CloseAsync().ConfigureAwait(false);
