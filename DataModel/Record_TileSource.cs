@@ -90,6 +90,11 @@ namespace LolloGPS.Data
         [DataMember]
         public bool IsDeletable { get { return _isDeletable; } set { _isDeletable = value; RaisePropertyChanged(); } }
 
+        // LOLLO TODO instead of this, add a generic delegate that does generic stuff. What? We'll see in future.
+        private string _referer = null;
+        [DataMember]
+        public string Referer { get { return _referer; } set { _referer = value; RaisePropertyChanged(); } }
+
         [IgnoreDataMember]
         public bool IsDefault { get { return _techName == DefaultTileSourceTechName; } }
         [IgnoreDataMember]
@@ -102,7 +107,7 @@ namespace LolloGPS.Data
         [IgnoreDataMember]
         public int MaxTechNameLengthProp { get { return MaxTechNameLength; } }
 
-        public TileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice, string uri, string providerUri, int minZoom, int maxZoom, int tilePixelSize, bool isDeletable) //, bool isValid)
+        public TileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice, string uri, string providerUri, int minZoom, int maxZoom, int tilePixelSize, bool isDeletable, string referer = null) //, bool isValid)
         {
             TechName = techName;
             FolderName = folderName;
@@ -114,6 +119,7 @@ namespace LolloGPS.Data
             MaxZoom = maxZoom;
             TilePixelSize = tilePixelSize;
             IsDeletable = isDeletable;
+            Referer = referer;
         }
         public string Check()
         {
@@ -231,6 +237,7 @@ namespace LolloGPS.Data
             target.MaxZoom = source._maxZoom;
             target.TilePixelSize = source._tilePixelSize;
             target.IsDeletable = source._isDeletable;
+            target.Referer = source._referer;
         }
         public bool IsEqualTo(TileSourceRecord comp)
         {
@@ -245,7 +252,8 @@ namespace LolloGPS.Data
                 && comp._minZoom == _minZoom
                 && comp._maxZoom == _maxZoom
                 && comp._tilePixelSize == _tilePixelSize
-                && comp._isDeletable == _isDeletable;
+                && comp._isDeletable == _isDeletable
+                && comp._referer == _referer;
         }
         public static List<TileSourceRecord> GetDefaultTileSources()
         {
@@ -321,17 +329,20 @@ namespace LolloGPS.Data
                 new TileSourceRecord("UTTopoLightTwo", "UT Topo Light 2 (Norway)","UTTopoLight", "",
                     "https://tilesprod.ut.no/tilestache/ut_topo_light/{zoomlevel}/{x}/{y}.jpg",
                     "http://ut.no/", 5, 16, 256, false),
-                new TileSourceRecord("LanskartaSe", "Lanskarta (Sweden)","LanskartaSe", "",
-                    "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/proxy/proxy.ashx?http://maps.lantmateriet.se/topowebb/v1/wmts/1.0.0/topowebb/default/3006/{zoomlevel}/{y}/{x}.png",
-                    "http://www.lansstyrelsen.se/", 3, 17, 256, false),
-                new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "",
-                    "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg",
-                    "http://kartat.kapsi.fi/", 2, 17, 256, false),
+                // LOLLO TODO this is tricky, maybe because it returns HttpRequestHeader.TransferEncoding = chunked, maybe because it makes a call within the call and it needs special headers
+                //new TileSourceRecord("LanskartaSe", "Lanskarta (Sweden)","LanskartaSe", "",
+                //    "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/proxy/proxy.ashx?http://maps.lantmateriet.se/topowebb/v1/wmts/1.0.0/topowebb/default/3006/{zoomlevel}/{y}/{x}.png",
+                //    "http://www.lansstyrelsen.se/", 3, 17, 256, false, "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/?visibleLayerNames=L%C3%A4nsstyrelsens%20kontor"),
+                // "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/?visibleLayerNames=L%C3%A4nsstyrelsens%20kontor&zoomLevel=4&x=524106.125&y=6883110.65625"
+                // very unreliable
+                //new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "",
+                //    "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg",
+                //    "http://kartat.kapsi.fi/", 2, 17, 256, false),
                 new TileSourceRecord("KartatKapsiFiBackground", "Kartat Kapsi Background (FI)","KartatKapsiFiBackground", "",
                     "http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg",
                     "http://kartat.kapsi.fi/", 2, 17, 256, false),
                 new TileSourceRecord("Maanmittauslaitos", "Maanmittauslaitos (FI)","Maanmittauslaitos", "",
-                    "https://karttamoottori.maanmittauslaitos.fi/maasto/wmts/1.0.0/maastokartta/default/ETRS-TM35FIN/{zoomlevel}/{x}/{y}.png",
+                    "https://karttamoottori.maanmittauslaitos.fi/maasto/wmts/1.0.0/maastokartta/default/ETRS-TM35FIN/{zoomlevel}/{y}/{x}.png",
                     "http://www.maanmittauslaitos.fi/", 2, 15, 256, false),
                 new TileSourceRecord("OrdnanceSurvey", "Ordnance Survey (UK)","OrdnanceSurvey", "",
                     "http://a.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png",
@@ -339,19 +350,22 @@ namespace LolloGPS.Data
                 new TileSourceRecord("UmpPoland", "Ump Poland","UmpPoland", "",
                     "http://3.tiles.ump.waw.pl/ump_tiles/{zoomlevel}/{x}/{y}.png",
                     "http://ump.waw.pl/", 1, 17, 256, false),
-                new TileSourceRecord("FreemapSlovakia", "Freemap Slovakia","FreemapSlovakia", "",
-                    "http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png",
-                    "http://www.freemap.sk/", 0, 17, 256, false),
+                // not so good anymore
+                //new TileSourceRecord("FreemapSlovakia", "Freemap Slovakia","FreemapSlovakia", "",                
+                //    "http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png",
+                //    "http://www.freemap.sk/", 0, 17, 256, false),
                 // a good map of spain is http://sigpac.mapama.gob.es/SDG/raster/MTN25@3857/14.8026.10210.img, for zoom 14 and 15, and you must replace MTN25 with MTN200 for smaller zooms
                 new TileSourceRecord("IgnEs", "Ign (Spain)","IgnEs", "",
                     "http://www.ign.es/wmts/mapa-raster?layer=MTN&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={zoomlevel}&TileCol={x}&TileRow={y}",
                     "http://www.ign.es/", 6, 16, 256, false),
-                new TileSourceRecord("CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
-                    "http://a.tile.osm-tools.org/osm_then/{zoomlevel}/{x}/{y}.png",
-                    "http://osm-tools.org/", 5, 19, 256, false),
-                new TileSourceRecord("NSWTopo", "LPI NSW Topographic Map (AU)","NSWTopo", "",
-                    "http://maps4.six.nsw.gov.au/arcgis/rest/services/sixmaps/LPI_Imagery_Best/MapServer/tile/{zoomlevel}/{y}/{x}",
-                    "http://www.lpi.nsw.gov.au/", 4, 16, 256, false),
+                // this is rather useless
+                //new TileSourceRecord("CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
+                //    "http://a.tile.osm-tools.org/osm_then/{zoomlevel}/{x}/{y}.png",
+                //    "http://osm-tools.org/", 5, 19, 256, false),
+                // this has become very unreliable
+                //new TileSourceRecord("NSWTopo", "LPI NSW Topographic Map (AU)","NSWTopo", "",
+                //    "http://maps4.six.nsw.gov.au/arcgis/rest/services/sixmaps/LPI_Imagery_Best/MapServer/tile/{zoomlevel}/{y}/{x}",
+                //    "http://www.lpi.nsw.gov.au/", 4, 16, 256, false),
                 new TileSourceRecord("MyTopo", "My Topo (N America)","MyTopo", "",
                     "http://tileserver.trimbleoutdoors.com/SecureTile/TileHandler.ashx?mapType=Topo&x={x}&y={y}&z={zoomlevel}",
                     "http://www.mytopo.com/", 10, 16, 256, false),

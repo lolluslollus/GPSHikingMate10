@@ -85,7 +85,7 @@ namespace LolloGPS.Data.TileCache
                 return localUri;
             }
 
-            // should work when requesting any uri, but it fails after the MapControl was updated in 10.5****.
+            // should work when requesting any uri, but it fails after the MapControl was updated in 10.0.15063.
             // this is why I create the bitmaps... when those imbeciles fix it, we can go back to returning uris like before.
             var filePath = Path.Combine(_imageFolder.Path, fileName);
             var uri = new Uri(filePath, UriKind.Absolute);
@@ -241,7 +241,7 @@ namespace LolloGPS.Data.TileCache
             string fileNameNoExtension = GetFileNameNoExtensionFromKey(x, y, z, zoom);
             // not working on this set of data? Mark it as busy, closing the gate for other threads
             // already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
-            
+
             if (!await ProcessingQueue.TryAddToQueueAsync(fileNameNoExtension).ConfigureAwait(false)) return null; // return GetUriForFile(fileName); NO!
             // from now on, any returns must happen after removing the current fileName from the processing queue, to reopen the gate!
 
@@ -365,6 +365,10 @@ namespace LolloGPS.Data.TileCache
                 request.Accept = MimeTypeImageAny;
                 request.AllowReadStreamBuffering = true;
                 request.ContinueTimeout = WebRequestTimeoutMsec;
+                if (!string.IsNullOrWhiteSpace(_tileSource.Referer))
+                {
+                    request.Headers[HttpRequestHeader.Referer] = _tileSource.Referer; // verry tricky!
+                }
 
                 where = 2;
 
@@ -381,11 +385,45 @@ namespace LolloGPS.Data.TileCache
                     }
                 }, false);
 
-
                 using (var response = await request.GetResponseAsync().ConfigureAwait(false))
                 {
                     if (cancToken.IsCancellationRequested) return null;
-                    if (IsWebResponseHeaderOk(response))
+                    // LOLLO TODO this is an experiment; it fails anyway, I think lanskarte does something funny.
+                    /*
+                    var resp = response as System.Net.HttpWebResponse;
+                    if (resp.ContentLength > 0)
+                    {
+                        if (resp.Headers[HttpRequestHeader.TransferEncoding] == "chunked")
+                        {
+                            using (var ms = new MemoryStream())
+                            {
+                                using (var responseStream = resp.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
+                                {
+                                    byte[] buffer = new byte[1024];
+                                    int bytesProcessed = 0;
+                                    int bytesRead = 1;
+                                    while (true)
+                                    {
+                                        bytesRead = responseStream.Read(buffer, 0, buffer.Length);
+                                        if (bytesRead == 0) break;
+                                        string test = System.Text.Encoding.UTF8.GetString(buffer);
+                                        ms.Write(buffer, 0, bytesRead);
+                                        bytesProcessed += bytesRead;
+                                    }
+                                }
+                                var newFile0 = await _imageFolder.CreateFileAsync("Lollo.png", CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                                using (var writeStream = await newFile0.OpenStreamForWriteAsync().ConfigureAwait(false))
+                                {
+                                    writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
+                                    ms.Seek(0, SeekOrigin.Begin); // need it
+                                    ms.CopyTo(writeStream);
+                                }
+                            }
+                        }
+                    }
+                    */
+
+                    if ((response as System.Net.HttpWebResponse).StatusCode == HttpStatusCode.OK && response.ContentLength > 0)
                     {
                         where = 3;
                         using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
@@ -408,15 +446,6 @@ namespace LolloGPS.Data.TileCache
                                     var newFile = await _imageFolder.CreateFileAsync(newRecord.FileName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
                                     using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
                                     {
-                                        //if (writeStream.Length > 0) // file already exists, it should never happen. 
-                                        // This only makes sense with CreationCollisionOption.OpenIfExists in the CreateFileAsync() above.
-                                        //{
-                                        //	result = true;
-                                        //	where = 99;
-                                        //	Logger.Add_TPL("GetTileUri() avoided overwriting a file with name = " + fileName + " and returned its uri = " + GetUriForFile(fileName), Logger.ForegroundLogFilename, Logger.Severity.Info, false);
-                                        //}
-                                        //else
-                                        //{
                                         where = 7;
                                         writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
                                         await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
@@ -480,12 +509,6 @@ namespace LolloGPS.Data.TileCache
             }
             //isStreamOk = newRecord.Img.FirstOrDefault(a => a != 0) != null; // this may take too long, so we only check the last 100 bytes
             return false;
-        }
-
-        private static bool IsWebResponseHeaderOk(WebResponse response)
-        {
-            return response.ContentLength > 0; //  && response.ContentType.Contains(ImageToCheck);
-                                               // swisstopo answers with a binary/octet-stream
         }
         #endregion  services
     }
