@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
 using Windows.ApplicationModel.Resources;
+using Windows.Devices.Input;
 using Windows.Networking.Connectivity;
-
+using Windows.Phone.Devices.Notification;
 
 namespace LolloGPS.Data.Runtime
 {
@@ -25,12 +27,20 @@ namespace LolloGPS.Data.Runtime
         private volatile int _trialResidualDays = -1;
         public int TrialResidualDays { get { return _trialResidualDays; } set { _trialResidualDays = value; RaisePropertyChanged_UI(); } }
 
-        private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
-        public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
-
         private volatile bool _isAllowCentreOnCurrent = false;
         public bool IsAllowCentreOnCurrent { get { return _isAllowCentreOnCurrent; } set { if (_isAllowCentreOnCurrent != value) { _isAllowCentreOnCurrent = value; RaisePropertyChanged_UI(); } } }
 
+        #region hardware
+        private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+
+        private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
+        public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
+
+        private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
+        public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
+        #endregion hardware
+
+        #region commands active
         private volatile bool _isSettingsRead = false;
         public bool IsSettingsRead { get { return _isSettingsRead; } }
         private async Task Set_IsSettingsRead_Async(bool value)
@@ -95,7 +105,9 @@ namespace LolloGPS.Data.Runtime
                 }
             }
         }
+        #endregion commands active
 
+        #region download tiles
         private double _downloadProgressValue = default(double);
         public double DownloadProgressValue { get { return _downloadProgressValue; } private set { if (_downloadProgressValue != value) { _downloadProgressValue = value; RaisePropertyChanged(); } } }
         public void SetDownloadProgressValue_UI(double newProgressValue)
@@ -105,8 +117,10 @@ namespace LolloGPS.Data.Runtime
                 GetInstance().DownloadProgressValue = newProgressValue;
             });
         }
+        #endregion download tiles
 
-        private readonly object _isConnAvailLocker = new object();
+        #region connection
+        private static readonly object _isConnAvailLocker = new object();
         private bool _isConnectionAvailable = false; // no volatile here: I have the locker already, so I use it. volatile is very fast, but the locker is way faster.
         public bool IsConnectionAvailable
         {
@@ -160,6 +174,9 @@ namespace LolloGPS.Data.Runtime
                 }
             }
         }
+        #endregion connection
+
+        #region globalisation
         private static readonly ResourceLoader _resourceLoader = new ResourceLoader();
         /// <summary>
         /// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
@@ -174,16 +191,16 @@ namespace LolloGPS.Data.Runtime
             string name = _resourceLoader.GetString(resourceName);
             return name ?? string.Empty;
         }
+        #endregion globalisation
         #endregion properties
-
 
         #region lifecycle
         private static RuntimeData _instance;
-        private static readonly object _instanceLock = new object();
+        private static readonly object _instanceLocker = new object();
         private bool _isOpen = false;
         public static RuntimeData GetInstance()
         {
-            lock (_instanceLock)
+            lock (_instanceLocker)
             {
                 if (_instance == null)
                 {
@@ -208,14 +225,13 @@ namespace LolloGPS.Data.Runtime
         }
         public void Close()
         {
-            lock (_instanceLock)
+            lock (_instanceLocker)
             {
                 RemoveHandlers();
                 _isOpen = false;
             }
         }
         #endregion lifecycle
-
 
         #region event helpers
         private bool _isHandlersActive = false;
@@ -234,12 +250,22 @@ namespace LolloGPS.Data.Runtime
         }
         #endregion event helpers
 
-
         #region event handlers
         private void OnNetworkStatusChanged(object sender)
         {
             UpdateIsConnectionAvailable();
         }
         #endregion event handlers
+
+        #region services
+        public static void ShortVibration()
+        {
+            if (_isVibrationDevicePresent)
+            {
+                VibrationDevice myDevice = VibrationDevice.GetDefault();
+                myDevice.Vibrate(TimeSpan.FromSeconds(.12));
+            }
+        }
+        #endregion services
     }
 }

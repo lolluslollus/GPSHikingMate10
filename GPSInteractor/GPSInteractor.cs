@@ -27,10 +27,10 @@ namespace LolloGPS.GPSInteraction
 
 		#region lifecycle
 		private static GPSInteractor _instance;
-		private static readonly object _instanceLock = new object();
+		private static readonly object _instanceLocker = new object();
 		public static GPSInteractor GetInstance(IGpsDataModel persistentData)
 		{
-			lock (_instanceLock)
+			lock (_instanceLocker)
 			{
 				return _instance ?? (_instance = new GPSInteractor(persistentData));
 			}

@@ -113,6 +113,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetLocBackgroundTaskSemaphoreManager.cs" />
     <Compile Include="GPSInteractor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Properties\GPSInteractor.rd.xml" />

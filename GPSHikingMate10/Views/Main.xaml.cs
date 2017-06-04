@@ -54,8 +54,6 @@ namespace LolloGPS.Core
 #endif
         }
 
-        //public enum YesNoError { Yes, No, Error }
-
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
             Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -86,14 +84,12 @@ namespace LolloGPS.Core
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
-        //public async Task CloseAsync()
         {
             Debug.WriteLine("Main.CloseAsync() entered CloseAsync");
             try
             {
                 RemoveHandlers();
 
-                //await RunInUiThreadAsync(EndAllAnimations);
                 EndAllAnimations();
 
                 var mainVM = _mainVM;
@@ -124,17 +120,11 @@ namespace LolloGPS.Core
 
             _isDataChangedHandlerActive = true;
             if (PersistentData != null) PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
-            //if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed += OnHardwareButtons_BackPressed;
-            //var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
-            //if (naviManager != null) naviManager.BackRequested += OnTabletSoftwareButton_BackPressed;
         }
 
         private void RemoveHandlers()
         {
             if (PersistentData != null) PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-            //if (RuntimeData.IsHardwareButtonsAPIPresent) HardwareButtons.BackPressed -= OnHardwareButtons_BackPressed;
-            //var naviManager = Windows.UI.Core.SystemNavigationManager.GetForCurrentView();
-            //if (naviManager != null) naviManager.BackRequested -= OnTabletSoftwareButton_BackPressed;
             _isDataChangedHandlerActive = false;
         }
 
@@ -196,13 +186,13 @@ namespace LolloGPS.Core
         }
         private void OnGetAFixNow_Click(object sender, RoutedEventArgs e)
         {
-            Task vibrate = Task.Run(() => App.ShortVibration());
+            Task vibrate = Task.Run(() => RuntimeData.ShortVibration());
             _mainVM.GetAFix();
         }
 
         private void OnGotoLast_Click(object sender, RoutedEventArgs e)
         {
-            Task vibrate = Task.Run(() => App.ShortVibration());
+            Task vibrate = Task.Run(() => RuntimeData.ShortVibration());
             Task go = _mainVM.CentreOnCurrentAsync();
         }
 
@@ -342,5 +332,17 @@ namespace LolloGPS.Core
             SelectedPointPopup.IsOpen = true;
         }
         #endregion point info panel
+
+        #region file activated
+        public async Task FileActivateAsync(FileActivatedEventArgs args)
+        {
+            if (!IsOnMe) return;
+            // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, 
+            // while I am already trying to open it from somewhere else.
+            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe) { await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm).ConfigureAwait(false); } // LOLLO TODO add a timeout
+            if (!IsOnMe) return;
+            await _mainVM.LoadFileAsync(args).ConfigureAwait(false);
+        }
+        #endregion file activated
     }
 }

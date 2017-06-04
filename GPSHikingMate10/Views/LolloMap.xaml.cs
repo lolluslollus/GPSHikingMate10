@@ -156,9 +156,9 @@ namespace LolloGPS.Core
             MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
                                                                                                                                                     //MyMap.PedestrianFeaturesVisible = false;
             MyMap.ColorScheme = MapColorScheme.Light; //.Dark
-            if (App.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
+            if (RuntimeData.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.ZoomInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
-            if (App.IsTouchDevicePresent) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
+            if (RuntimeData.IsTouchDevicePresent) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             //MyMap.MapElements.Clear(); // no!
@@ -768,7 +768,7 @@ namespace LolloGPS.Core
                     }
                     if (selectedRecords.Any())
                     {
-                        Task vibrate = Task.Run(() => App.ShortVibration());
+                        Task vibrate = Task.Run(() => RuntimeData.ShortVibration());
                         ShowManyPointDetailsRequested?.Invoke(this, new ShowManyPointDetailsRequestedArgs(selectedRecords, selectedSeriess));
                     }
                 }
@@ -796,7 +796,7 @@ namespace LolloGPS.Core
 
         private async void OnAim_Tapped(object sender, Windows.UI.Xaml.Input.TappedRoutedEventArgs e)
         {
-            Task vibrate = Task.Run(() => App.ShortVibration());
+            Task vibrate = Task.Run(() => RuntimeData.ShortVibration());
 
             await _lolloMapVM.AddMapCentreToCheckpoints(); // .ConfigureAwait(false);
             if (PersistentData.IsShowAimOnce)

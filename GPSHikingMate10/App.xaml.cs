@@ -10,8 +10,6 @@ using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
-using Windows.Devices.Input;
-using Windows.Phone.Devices.Notification;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -41,9 +39,6 @@ namespace LolloGPS.Core
         private static RuntimeData _runtimeData = null;
         public static RuntimeData RuntimeData { get { return _runtimeData; } }
 
-        private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-        private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
-        public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
         private static readonly SemaphoreSlimSafeRelease _startingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         #endregion properties
 
@@ -182,14 +177,16 @@ namespace LolloGPS.Core
                 false);
             try
             {
-                // make sure the subscribers are all closed before saving the settings
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                // notify the subscribers (eg Main.cs)
                 SuspendStarted?.Invoke(this, e);
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                // make sure the subscribers are all closed before saving the settings.
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: all are closed", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                 await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
+                //first to come, last to go
                 RuntimeData?.Close();
 
                 Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -212,17 +209,18 @@ namespace LolloGPS.Core
             // This also includes the background task state check.
             // If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
             // which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
-            // This is done in the MainVM
+            // This is done in the MainVM, which is subscribed to ResumeStarted.
             Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             try
             {
                 await _startingSemaphore.WaitAsync();
                 Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                // make sure the subscribers are all open before proceeding
                 Logger.Add_TPL("invoke the subscribers to ResumeStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                // notify the subscribers; we don't do anything else here.
                 ResumeStarted?.Invoke(this, EventArgs.Empty);
                 Logger.Add_TPL("invoke the subscribers to ResumeStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                // make sure the subscribers are all open before proceeding
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, ResumeStarted?.GetInvocationList(), true).ConfigureAwait(false);
                 Logger.Add_TPL("invoke the subscribers to ResumeStarted: all are open", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
@@ -280,13 +278,14 @@ namespace LolloGPS.Core
                         NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.FileActivated);
                         Window.Current.Activate();
                     }
-                    rootFrame = GetCreateRootFrame(args);
+                    else
+                    {
+                        rootFrame = GetCreateRootFrame(args);
+                    }
+
                     var main = rootFrame.Content as Main;
                     if (main == null) throw new Exception("OnFileActivated: main is null");
-                    var mainVM = main.MainVM;
-                    // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, while its host page will try and open it herself.
-                    while (mainVM == null || !mainVM.IsOpen) { await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm); } // LOLLO TODO add a timeout
-                    await mainVM.LoadFileAsync(args).ConfigureAwait(false);
+                    await main.FileActivateAsync(args).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -358,7 +357,6 @@ namespace LolloGPS.Core
         {
             if (rootFrame != null && rootFrame.Content == null)
             {
-                // Logger.Add_TPL("rootFrame.Content == null, about to navigate to Main", Logger.ForegroundLogFilename);
                 // When the navigation stack isn't restored navigate to the first page,
                 // configuring the new page by passing required information as a navigation
                 // parameter (in theory, but no parameter here, we simply navigate)
@@ -367,15 +365,6 @@ namespace LolloGPS.Core
                     Logger.Add_TPL("Failed to create initial page", Logger.AppEventsLogFilename);
                     throw new Exception("Failed to create initial page");
                 }
-            }
-        }
-
-        public static void ShortVibration()
-        {
-            if (_isVibrationDevicePresent)
-            {
-                VibrationDevice myDevice = VibrationDevice.GetDefault();
-                myDevice.Vibrate(TimeSpan.FromSeconds(.12));
             }
         }
         #endregion services

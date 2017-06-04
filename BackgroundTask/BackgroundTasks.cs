@@ -21,7 +21,6 @@ namespace BackgroundTasks
 	public sealed class GetLocationBackgroundTask : IBackgroundTask
 	{
 		private volatile SafeCancellationTokenSource _cts = null;
-		private volatile BackgroundTaskDeferral _deferral = null;
 		private volatile IBackgroundTaskInstance _taskInstance = null;
 
 		/// <summary>
@@ -30,7 +29,8 @@ namespace BackgroundTasks
 		/// <param name="taskInstance"></param>
 		public async void Run(IBackgroundTaskInstance taskInstance)
 		{
-			try
+            BackgroundTaskDeferral deferral = null;
+            try
 			{
 				// LOLLO Background tasks may take up max 40 MB. There is also a time limit I believe.
 				// We should keep it as stupid as possible,
@@ -40,7 +40,7 @@ namespace BackgroundTasks
 				// Guidance: If BackgroundWorkCost is high, then perform only the minimum amount
 				// of work in the background task and return immediately.
 
-				_deferral = taskInstance.GetDeferral();
+				deferral = taskInstance.GetDeferral();
 
 				_taskInstance = taskInstance;
 				_taskInstance.Canceled += OnCanceled;
@@ -117,7 +117,7 @@ namespace BackgroundTasks
 				_cts = null;
 				if (_taskInstance != null) _taskInstance.Canceled -= OnCanceled;
 				Logger.Add_TPL("GetLocationBackgroundTask ended", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
-				_deferral?.Complete();
+				deferral?.Complete();
 			}
 		}
 
@@ -130,12 +130,8 @@ namespace BackgroundTasks
 		private static Task<Geoposition> GetGeopositionAsync(CancellationToken token)
 		{
 			Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
-
-			if (geolocator != null)
-			{
-				return geolocator.GetGeopositionAsync().AsTask(token);
-			}
-			return null;
+            if (geolocator == null) return null;
+			return geolocator.GetGeopositionAsync().AsTask(token);
 		}
 		//
 		// Simulate the background task activity.

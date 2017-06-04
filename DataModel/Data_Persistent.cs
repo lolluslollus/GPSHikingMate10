@@ -81,10 +81,10 @@ namespace LolloGPS.Data
 
         #region construct dispose and clone
         private static PersistentData _instance;
-        private static readonly object _instanceLock = new object();
+        private static readonly object _instanceLocker = new object();
         public static PersistentData GetInstance()
         {
-            lock (_instanceLock)
+            lock (_instanceLocker)
             {
                 return _instance ?? (_instance = new PersistentData());
             }
@@ -99,7 +99,7 @@ namespace LolloGPS.Data
         public static PersistentData GetInstanceWithClonedSerialisedProperties(PersistentData source)
         {
             if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
-            lock (_instanceLock)
+            lock (_instanceLocker)
             {
                 // make sure no UI has been initialised yet
                 if (source.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");

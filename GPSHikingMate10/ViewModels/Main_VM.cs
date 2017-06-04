@@ -252,7 +252,6 @@ namespace LolloGPS.Core
                         }
                     }
                 }
-
                 Logger.Add_TPL("MainVM.OpenMayOverrideAsync() ran OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (Exception ex)
@@ -576,7 +575,7 @@ namespace LolloGPS.Core
             GPSInteractor gpsInteractor = GPSInteractor.GetInstance(PersistentData);
             if (gpsInteractor == null) return;
 
-            Task vibrate = Task.Run(() => App.ShortVibration());
+            Task vibrate = Task.Run(() => RuntimeData.ShortVibration());
 
             var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
             var persistentData = PersistentData;
@@ -847,6 +846,7 @@ namespace LolloGPS.Core
         #region open app through file
         public async Task LoadFileAsync(FileActivatedEventArgs args)
         {
+            if (args == null) return;
             // get file data into DB
             var whichTables = await LoadFileIntoDbAsync(args).ConfigureAwait(false);
             if (whichTables == null)
