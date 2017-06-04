@@ -362,13 +362,19 @@ namespace LolloGPS.Data.TileCache
             try
             {
                 var request = WebRequest.CreateHttp(sWebUri);
-                request.Accept = MimeTypeImageAny;
+                if (_tileSource.RequestHeaders != null)
+                {
+                    foreach (var item in _tileSource.RequestHeaders)
+                    {
+                        HttpRequestHeader headerKey;
+                        if (Enum.TryParse(item.Key, out headerKey))
+                        {
+                            request.Headers[headerKey] = item.Value;
+                        }
+                    }
+                }
                 request.AllowReadStreamBuffering = true;
                 request.ContinueTimeout = WebRequestTimeoutMsec;
-                if (!string.IsNullOrWhiteSpace(_tileSource.Referer))
-                {
-                    request.Headers[HttpRequestHeader.Referer] = _tileSource.Referer; // verry tricky!
-                }
 
                 where = 2;
 
@@ -431,7 +437,7 @@ namespace LolloGPS.Data.TileCache
                             where = 4;
                             // read response stream into a new record. 
                             // This extra step is the price to pay if we want to check the stream content
-                            var newRecord = new TileCacheRecord(x, y, z, zoom, new byte[response.ContentLength], fileNameNoExtension, response.ContentType);
+                            var newRecord = new TileCacheRecord(x, y, z, zoom, new byte[response.ContentLength], fileNameNoExtension, response);
                             if (cancToken.IsCancellationRequested) return null;
                             if (!string.IsNullOrWhiteSpace(newRecord.FileName))
                             {
@@ -824,8 +830,6 @@ namespace LolloGPS.Data.TileCache
         public string FileName { get { return _fileName; } private set { _fileName = value; } }
         public byte[] Img { get { return _img; } private set { _img = value; } } // this field has a setter, so SQLite may use it
 
-        //private string _tileSourceFolderName = string.Empty;
-        //private string _tileSourceTechName = string.Empty; // = TileSources.Nokia;
         private int _x = 0;
         private int _y = 0;
         private int _z = 0;
@@ -834,16 +838,23 @@ namespace LolloGPS.Data.TileCache
         private byte[] _img = null;
 
         //public TileCacheRecord() { } // for the db query
-        public TileCacheRecord(/*string tileSourceFolderName, string tileSourceTechName, */int x, int y, int z, int zoom, byte[] img, string fileNameNoExtension, string mimeType) : this(/*tileSourceFolderName, tileSourceTechName, */x, y, z, zoom)
+        public TileCacheRecord(int x, int y, int z, int zoom, byte[] img, string fileNameNoExtension, WebResponse response) : this(x, y, z, zoom)
         {
+            if (response == null || response.ContentType == null) return;
             _img = img;
-            if (mimeType == null || !mimeType.Contains(MimeTypeImagePrefix)) return;
-            _fileName = Path.ChangeExtension(fileNameNoExtension, mimeType.Replace(MimeTypeImagePrefix, ""));
+            var mimeType = response.ContentType;
+            if (mimeType.Contains(MimeTypeImagePrefix))
+            {
+                _fileName = Path.ChangeExtension(fileNameNoExtension, mimeType.Replace(MimeTypeImagePrefix, ""));
+            }
+            else if (!string.IsNullOrWhiteSpace(response.ResponseUri?.AbsolutePath))
+            {
+                var extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
+                _fileName = Path.ChangeExtension(fileNameNoExtension, extension);
+            }
         }
-        public TileCacheRecord(/*string tileSourceFolderName, string tileSourceTechName, */int x, int y, int z, int zoom)
+        public TileCacheRecord(int x, int y, int z, int zoom)
         {
-            //_tileSourceFolderName = tileSourceFolderName;
-            //_tileSourceTechName = tileSourceTechName;
             _x = x;
             _y = y;
             _z = z;
