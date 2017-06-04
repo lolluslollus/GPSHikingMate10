@@ -229,7 +229,7 @@ namespace Utilz
 				//_runtimeData.TrialResidualDays = 0; // idem
 				return true;
 			}
-			await (App.Current as App).Quit().ConfigureAwait(false);
+			(App.Current as App).Quit();
 			return false;
 		}
 		/// <summary>

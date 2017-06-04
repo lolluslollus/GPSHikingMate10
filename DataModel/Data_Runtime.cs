@@ -8,6 +8,12 @@ using Windows.Networking.Connectivity;
 
 namespace LolloGPS.Data.Runtime
 {
+    /// <summary>
+    /// This should be the first entity to be instantiated in the application lifecycle,
+    /// and the last to be closed. For example, it should not hold references to PersistentData,
+    /// which is not necessarily available 
+    /// (except for its default instance, which is always available since it's a singleton).
+    /// </summary>
     public sealed class RuntimeData : ObservableData
     {
         #region properties
@@ -120,7 +126,7 @@ namespace LolloGPS.Data.Runtime
                 }
             }
         }
-        private void UpdateIsConnectionAvailable()
+        public void UpdateIsConnectionAvailable()
         {
             lock (_isConnAvailLocker)
             {
@@ -134,9 +140,8 @@ namespace LolloGPS.Data.Runtime
                     var level = profile.GetNetworkConnectivityLevel();
                     if (level == NetworkConnectivityLevel.InternetAccess || level == NetworkConnectivityLevel.LocalAccess)
                     {
-                        if (_persistentData == null) _persistentData = PersistentData.GetInstance();
                         if (
-                            _persistentData.IsAllowMeteredConnection
+                            PersistentData.GetInstance().IsAllowMeteredConnection
                             ||
                             NetworkInformation.GetInternetConnectionProfile()?.GetConnectionCost()?.NetworkCostType == NetworkCostType.Unrestricted
                             )
@@ -189,7 +194,6 @@ namespace LolloGPS.Data.Runtime
             }
         }
 
-        private static volatile PersistentData _persistentData = null;
         private RuntimeData()
         {
             Open();
@@ -220,16 +224,12 @@ namespace LolloGPS.Data.Runtime
             if (!_isHandlersActive)
             {
                 _isHandlersActive = true;
-                if (_persistentData == null) _persistentData = PersistentData.GetInstance();
                 NetworkInformation.NetworkStatusChanged += OnNetworkStatusChanged;
-                _persistentData.PropertyChanged += OnPersistentData_PropertyChanged;
             }
         }
         private void RemoveHandlers()
         {
-            if (_persistentData == null) _persistentData = PersistentData.GetInstance();
             NetworkInformation.NetworkStatusChanged -= OnNetworkStatusChanged;
-            _persistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
             _isHandlersActive = false;
         }
         #endregion event helpers
@@ -239,10 +239,6 @@ namespace LolloGPS.Data.Runtime
         private void OnNetworkStatusChanged(object sender)
         {
             UpdateIsConnectionAvailable();
-        }
-        private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(PersistentData.IsAllowMeteredConnection)) UpdateIsConnectionAvailable();
         }
         #endregion event handlers
     }

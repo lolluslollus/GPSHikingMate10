@@ -16,6 +16,7 @@ using Windows.Storage;
 using System.IO;
 using System.Threading;
 using System.Globalization;
+using LolloGPS.Data.Runtime;
 
 
 // There is a sqlite walkthrough at:
@@ -89,116 +90,87 @@ namespace LolloGPS.Data
             }
         }
 
-        public static async Task<PersistentData> GetInstanceWithClonedNonDbPropertiesAsync(PersistentData from)
+        /// <summary>
+        /// This method is not thread safe: it must be called before any UI or any property changed handlers start.
+        /// In particular, it may trick the <see cref="PropertyChanged"/> subscribers to the properties that are set here.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static PersistentData GetInstanceWithClonedNonDbProperties(PersistentData source)
         {
-            var target = GetInstance();
-            if (from == null) return target;
-            try
+            if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
+            lock (_instanceLock)
             {
-                await Task.Run(delegate
-                //return from.RunInUiThreadAsync(delegate
-                {
-                    //I must clone memberwise, otherwise the current event handlers get lost
-                    CloneNonDbProperties2(from, ref target, true);
-                });
+                // make sure no UI has been initialised yet
+                if (source.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
+                if (_instance.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
+                // initialise non-serialised properties
+                source._checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
+                source._history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
+                source._route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
+                source.SetCurrentToLast();
+                // set the singleton instance
+                _instance = source;
+                return _instance;
             }
-            catch (Exception ex)
-            {
-                await Logger.AddAsync(ex.ToString(), Logger.PersistentDataLogFilename).ConfigureAwait(false);
-            }
-            return target;
         }
-
-        private static void CloneNonDbProperties2(PersistentData source, ref PersistentData target, bool skipUI = false)
+        /*
+        /// <summary>
+        /// Clones memberwise, so the current event handlers are preserved.
+        /// If this method is called properly, PropertyChanged will always be null, because it is not thread safe.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        private static void CloneNonDbProperties2(PersistentData source, ref PersistentData target)
         {
-            if (source == null || target == null) return;
+            if (source == null) throw new ArgumentException("PersistentData.CloneNonDbProperties2 was called with source == null");
+            if (target == null) throw new ArgumentException("PersistentData.CloneNonDbProperties2 was called with target == null");
+            if (target.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.CloneNonDbProperties2 must not be called when any UI is active");
 
             PointRecord.Clone(source.Selected, ref target._selected);
-            if (!skipUI) target.RaisePropertyChanged(nameof(Selected));
 
             if (!source.Target.IsEmpty()) PointRecord.Clone(source.Target, ref target._target);
-            if (!skipUI) target.RaisePropertyChanged(nameof(Target));
 
-            target._selectedSeries = source.SelectedSeries;
-            if (!skipUI) target.RaisePropertyChanged(nameof(SelectedSeries));
-
-            target._backgroundUpdatePeriodInMinutes = source.BackgroundUpdatePeriodInMinutes;
-            if (!skipUI) target.RaisePropertyChanged(nameof(BackgroundUpdatePeriodInMinutes));
-            target._desiredAccuracyInMeters = source.DesiredAccuracyInMeters;
-            if (!skipUI) target.RaisePropertyChanged(nameof(DesiredAccuracyInMeters));
-            target._reportIntervalInMilliSec = source.ReportIntervalInMilliSec;
-            if (!skipUI) target.RaisePropertyChanged(nameof(ReportIntervalInMilliSec));
-
+            target.SelectedSeries = source.SelectedSeries;
+            target.BackgroundUpdatePeriodInMinutes = source.BackgroundUpdatePeriodInMinutes;
+            target.DesiredAccuracyInMeters = source.DesiredAccuracyInMeters;
+            target.ReportIntervalInMilliSec = source.ReportIntervalInMilliSec;
             // target.LastMessage = source.LastMessage; // we don't want to repeat the last message whenever one starts the app
-            target._isTracking = source.IsTracking;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsTracking));
-            target._isBackgroundEnabled = source.IsBackgroundEnabled;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsBackgroundEnabled));
-            target._isCentreOnCurrent = source.IsCentreOnCurrent;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsCentreOnCurrent));
-            target._isShowAim = source.IsShowAim;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowAim));
-            target._isShowAimOnce = source.IsShowAimOnce;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowAimOnce));
-            target._isShowSpeed = source.IsShowSpeed;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowSpeed));
-            target._mapStyle = source.MapStyle;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapStyle));
-            target._mapLastLat = source.MapLastLat;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapLastLat));
-            target._mapLastLon = source.MapLastLon;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapLastLon));
-            target._mapLastHeading = source.MapLastHeading;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapLastHeading));
-            target._mapLastPitch = source.MapLastPitch;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapLastPitch));
-            target._mapLastZoom = source.MapLastZoom;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MapLastZoom));
-            target._isMapCached = source.IsMapCached;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsMapCached));
-            target._isTilesDownloadDesired = source.IsTilesDownloadDesired;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsTilesDownloadDesired));
-            target._maxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
-            if (!skipUI) target.RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
-            target._tapTolerance = source.TapTolerance;
-            if (!skipUI) target.RaisePropertyChanged(nameof(TapTolerance));
-            target._isShowDegrees = source.IsShowDegrees;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowDegrees));
-            target._isKeepAlive = source.IsKeepAlive;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsKeepAlive));
-            target._isShowingAltitudeProfiles = source.IsShowingAltitudeProfiles;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowingAltitudeProfiles));
-            target._selectedPivotIndex = source.SelectedPivotIndex;
-            if (!skipUI) target.RaisePropertyChanged(nameof(SelectedPivotIndex));
-            target._isShowingPivot = source.IsShowingPivot;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowingPivot));
-            target._isBackButtonEnabled = source.IsBackButtonEnabled;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsBackButtonEnabled));
-            target._isAllowMeteredConnection = source.IsAllowMeteredConnection;
-            //if (!skipUI) target.RaisePropertyChanged(nameof(IsAllowMeteredConnection));
-            target.RaisePropertyChanged(nameof(IsAllowMeteredConnection)); // this must always fire coz it is referenced in RuntimeData!
-            target._altLastVScroll = source.AltLastVScroll;
-            if (!skipUI) target.RaisePropertyChanged(nameof(AltLastVScroll));
-            target._isShowImperialUnits = source.IsShowImperialUnits;
-            if (!skipUI) target.RaisePropertyChanged(nameof(IsShowImperialUnits));
-            target._historyAltitudeI0 = source.HistoryAltitudeI0;
-            if (!skipUI) target.RaisePropertyChanged(nameof(HistoryAltitudeI0));
-            target._historyAltitudeI1 = source.HistoryAltitudeI1;
-            if (!skipUI) target.RaisePropertyChanged(nameof(HistoryAltitudeI1));
-            target._route0AltitudeI0 = source.Route0AltitudeI0;
-            if (!skipUI) target.RaisePropertyChanged(nameof(Route0AltitudeI0));
-            target._route0AltitudeI1 = source.Route0AltitudeI1;
-            if (!skipUI) target.RaisePropertyChanged(nameof(Route0AltitudeI1));
-            target._checkpointsAltitudeI0 = source.CheckpointsAltitudeI0;
-            if (!skipUI) target.RaisePropertyChanged(nameof(CheckpointsAltitudeI0));
-            target._checkpointsAltitudeI1 = source.CheckpointsAltitudeI1;
-            if (!skipUI) target.RaisePropertyChanged(nameof(CheckpointsAltitudeI1));
+            target.IsTracking = source.IsTracking;
+            target.IsBackgroundEnabled = source.IsBackgroundEnabled;
+            target.IsCentreOnCurrent = source.IsCentreOnCurrent;
+            target.IsShowAim = source.IsShowAim;
+            target.IsShowAimOnce = source.IsShowAimOnce;
+            target.IsShowSpeed = source.IsShowSpeed;
+            target.MapStyle = source.MapStyle;
+            target.MapLastLat = source.MapLastLat;
+            target.MapLastLon = source.MapLastLon;
+            target.MapLastHeading = source.MapLastHeading;
+            target.MapLastPitch = source.MapLastPitch;
+            target.MapLastZoom = source.MapLastZoom;
+            target.IsMapCached = source.IsMapCached;
+            target.IsTilesDownloadDesired = source.IsTilesDownloadDesired;
+            target.MaxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
+            target.TapTolerance = source.TapTolerance;
+            target.IsShowDegrees = source.IsShowDegrees;
+            target.IsKeepAlive = source.IsKeepAlive;
+            target.IsShowingAltitudeProfiles = source.IsShowingAltitudeProfiles;
+            target.SelectedPivotIndex = source.SelectedPivotIndex;
+            target.IsShowingPivot = source.IsShowingPivot;
+            target.IsBackButtonEnabled = source.IsBackButtonEnabled;
+            target.IsAllowMeteredConnection = source.IsAllowMeteredConnection; // this must always fire coz it is th eonly prop referenced in RuntimeData, which is the only entity that may exist before this.
+            target.AltLastVScroll = source.AltLastVScroll;
+            target.IsShowImperialUnits = source.IsShowImperialUnits;
+            target.HistoryAltitudeI0 = source.HistoryAltitudeI0;
+            target.HistoryAltitudeI1 = source.HistoryAltitudeI1;
+            target.Route0AltitudeI0 = source.Route0AltitudeI0;
+            target.Route0AltitudeI1 = source.Route0AltitudeI1;
+            target.CheckpointsAltitudeI0 = source.CheckpointsAltitudeI0;
+            target.CheckpointsAltitudeI1 = source.CheckpointsAltitudeI1;
 
             TileSourceRecord.Clone(source.TestTileSource, ref target._testTileSource);
-            if (!skipUI) target.RaisePropertyChanged(nameof(TestTileSource));
 
             TileSourceRecord.Clone(source.CurrentTileSource, ref target._currentTileSource);
-            if (!skipUI) target.RaisePropertyChanged(nameof(CurrentTileSource));
 
             if (source.TileSourcez != null && source.TileSourcez.Any()) // start with the default values
             {
@@ -207,11 +179,10 @@ namespace LolloGPS.Data
                     target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.FolderName, srcItem.CopyrightNotice, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable, srcItem.RequestHeaders));
                 }
             }
-            if (!skipUI) target.RaisePropertyChanged(nameof(TileSourcez));
 
             DownloadSession.Clone(source._lastDownloadSession, ref target._lastDownloadSession);
-            if (!skipUI) target.RaisePropertyChanged(nameof(LastDownloadSession));
         }
+        */
         static PersistentData()
         {
             var memUsageLimit = Windows.System.MemoryManager.AppMemoryUsageLimit; // 33966739456 on PC, less than 200000000 on phone
@@ -224,6 +195,9 @@ namespace LolloGPS.Data
         private PersistentData()
         {
             _checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
+            _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
+            _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
+            SetCurrentToLast();
         }
 
         public static void OpenMainDb()
@@ -302,13 +276,13 @@ namespace LolloGPS.Data
         [DataMember]
         public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 
-        private readonly SwitchableObservableCollection<PointRecord> _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
+        private SwitchableObservableCollection<PointRecord> _history = null;
         [IgnoreDataMember] // we save the history into the DB 
         public SwitchableObservableCollection<PointRecord> History { get { return _history; } }
-        private readonly SwitchableObservableCollection<PointRecord> _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
+        private SwitchableObservableCollection<PointRecord> _route0 = null;
         [IgnoreDataMember] // we save the route into the DB 
         public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } }
-        private readonly SwitchableObservableCollection<PointRecord> _checkpoints = null; // new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints); // we init this in the static ctor
+        private SwitchableObservableCollection<PointRecord> _checkpoints = null;
         [IgnoreDataMember] // we save the checkpoints into the DB 
         public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } }
 
@@ -452,7 +426,7 @@ namespace LolloGPS.Data
         public bool IsKeepAlive { get { return _isKeepAlive; } set { _isKeepAlive = value; RaisePropertyChanged_UI(); } }
         private bool _isAllowMeteredConnection = false;
         [DataMember]
-        public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RaisePropertyChanged_UI(); } }
+        public bool IsAllowMeteredConnection { get { return _isAllowMeteredConnection; } set { _isAllowMeteredConnection = value; RuntimeData.GetInstance().UpdateIsConnectionAvailable(); RaisePropertyChanged_UI(); } }
 
         private MapStyle _mapStyle = MapStyle.Terrain;
         [DataMember]
@@ -527,10 +501,11 @@ namespace LolloGPS.Data
             }
         }
 
+        private static readonly object _targetLocker = new object();
         private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
         // this setter is only used by the serialiser
         [DataMember]
-        public PointRecord Target { get { return _target; } private set { _target = value; RaisePropertyChanged(); } }
+        public PointRecord Target { get { lock (_targetLocker) { return _target; } } private set { lock (_targetLocker) { _target = value; RaisePropertyChanged(); } } }
 
         // I cannot make this property readonly coz I need a setter for the deserializer
         private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
@@ -921,6 +896,10 @@ namespace LolloGPS.Data
             {
                 PointRecord newCurrent = history.LastOrDefault();
                 Current = newCurrent;
+            }
+            else if (Current == null)
+            {
+                Current = new PointRecord();
             }
         }
         #endregion historyMethods
@@ -1520,7 +1499,8 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
                 IsTileSourcezBusy = true;
 
-                TileSourceRecord.Clone(tileSource, ref result);
+                if (tileSource == null) TileSourceRecord.Clone(CurrentTileSource, ref result);
+                else TileSourceRecord.Clone(tileSource, ref result);
             }
             catch (Exception ex)
             {
@@ -1537,7 +1517,7 @@ namespace LolloGPS.Data
 
         public Task<TileSourceRecord> GetCurrentTileSourceCloneAsync()
         {
-            return GetTileSourceClone(CurrentTileSource);
+            return GetTileSourceClone(null);
         }
         public async Task<Tuple<TileCache.TileCacheReaderWriter, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
         {

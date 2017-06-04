@@ -32,9 +32,10 @@ namespace LolloGPS.Core
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    public sealed partial class App : Application
+    public sealed partial class App : Application, ISuspenderResumer
     {
         #region properties
+        //private const int MSecToWaitToConfirm = 25;
         private static PersistentData _persistentData = null;
         public static PersistentData PersistentData { get { return _persistentData; } }
         private static RuntimeData _runtimeData = null;
@@ -43,9 +44,38 @@ namespace LolloGPS.Core
         private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
         private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
         public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
-        private static readonly SemaphoreSlimSafeRelease _resumingActivatingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+        private static readonly SemaphoreSlimSafeRelease _startingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         #endregion properties
 
+        #region events
+        public event SuspendingEventHandler SuspendStarted;
+        public event EventHandler ResumeStarted;
+        // interesting: the new event handlers with more control
+        //event EventHandler ISuspenderResumer.ResumeStarted
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+        //event SuspendingEventHandler ISuspenderResumer.SuspendStarted
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+        #endregion events
 
         #region lifecycle
         /// <summary>
@@ -58,7 +88,7 @@ namespace LolloGPS.Core
                 Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
                 Microsoft.ApplicationInsights.WindowsCollectors.Session);
 
-            //Resuming += OnResuming;
+            Resuming += OnResuming;
             Suspending += OnSuspending;
             UnhandledException += OnUnhandledException;
 
@@ -87,15 +117,16 @@ namespace LolloGPS.Core
             e.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
             e.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
 
-            _runtimeData = RuntimeData.GetInstance();
-            // disable UI commands
-            RuntimeData.SetIsSettingsRead_UI(false);
-            _persistentData = await SuspensionManager.LoadSettingsAsync();
-
             try
             {
+                await _startingSemaphore.WaitAsync();
+                _runtimeData = RuntimeData.GetInstance();
+                // disable UI commands
+                RuntimeData.SetIsSettingsRead_UI(false);
+                _persistentData = await SuspensionManager.LoadSettingsAsync();
+
                 Frame rootFrame = GetCreateRootFrame(e);
-                NavigateToRootFrameContent(rootFrame, NavigationParameters.Launched);
+                NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.Launched);
                 // Ensure the current window is active
                 Window.Current.Activate();
             }
@@ -107,6 +138,7 @@ namespace LolloGPS.Core
             {
                 // enable UI commands
                 RuntimeData.SetIsSettingsRead_UI(true);
+                SemaphoreSlimSafeRelease.TryRelease(_startingSemaphore);
                 Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
         }
@@ -119,7 +151,7 @@ namespace LolloGPS.Core
         private async void OnSplashScreen_Dismissed(SplashScreen sender, object args)
         {
             sender.Dismissed -= OnSplashScreen_Dismissed;
-            if (!await Licenser.GetInstance().CheckLicensedAsync()) await Quit();
+            if (!await Licenser.GetInstance().CheckLicensedAsync()) Quit();
         }
 
         /// <summary>
@@ -144,12 +176,18 @@ namespace LolloGPS.Core
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
+            Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+                Logger.AppEventsLogFilename,
+                Logger.Severity.Info,
+                false);
             try
             {
-                Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
-                    Logger.AppEventsLogFilename,
-                    Logger.Severity.Info,
-                    false);
+                // make sure the subscribers are all closed before saving the settings
+                Logger.Add_TPL("invoke the subscribers to SuspendStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                SuspendStarted?.Invoke(this, e);
+                Logger.Add_TPL("invoke the subscribers to SuspendStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
+                Logger.Add_TPL("invoke the subscribers to SuspendStarted: all are closed", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                 await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
                 RuntimeData?.Close();
@@ -161,7 +199,7 @@ namespace LolloGPS.Core
                 deferral.Complete();
             }
         }
-        /*
+
         /// <summary>
         /// Invoked when the app is resumed without being terminated.
         /// You should handle the Resuming event only if you need to refresh any displayed content that might have changed while the app is suspended. 
@@ -178,12 +216,15 @@ namespace LolloGPS.Core
             Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             try
             {
-                await _resumingActivatingSemaphore.WaitAsync();
+                await _startingSemaphore.WaitAsync();
                 Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                if (!await Licenser.GetInstance().CheckLicensedAsync()) return;
-
-                
+                // make sure the subscribers are all open before proceeding
+                Logger.Add_TPL("invoke the subscribers to ResumeStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                ResumeStarted?.Invoke(this, EventArgs.Empty);
+                Logger.Add_TPL("invoke the subscribers to ResumeStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, ResumeStarted?.GetInvocationList(), true).ConfigureAwait(false);
+                Logger.Add_TPL("invoke the subscribers to ResumeStarted: all are open", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (Exception ex)
             {
@@ -192,10 +233,10 @@ namespace LolloGPS.Core
             finally
             {
                 Logger.Add_TPL("OnResuming ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+                SemaphoreSlimSafeRelease.TryRelease(_startingSemaphore);
             }
         }
-        */
+
         //protected override void OnFileOpenPickerActivated(FileOpenPickerActivatedEventArgs args) // this one never fires...
 
         /// <summary>
@@ -204,7 +245,7 @@ namespace LolloGPS.Core
         /// LOLLO NOTE if resuming (ie the app was running), the system starts this method an instant after OnResuming(). 
         /// The awaits cause both methods to run in parallel, alternating on the UI thread.
         /// </summary>
-		protected override async void OnFileActivated(FileActivatedEventArgs args)
+        protected override async void OnFileActivated(FileActivatedEventArgs args)
         {
             Logger.Add_TPL("OnFileActivated() starting with kind = " + args.Kind.ToString() + " and previous execution state = " + args.PreviousExecutionState.ToString() + " and verb = " + args.Verb,
                 Logger.AppEventsLogFilename,
@@ -213,7 +254,7 @@ namespace LolloGPS.Core
 
             try
             {
-                await _resumingActivatingSemaphore.WaitAsync();
+                await _startingSemaphore.WaitAsync();
                 Logger.Add_TPL("OnFileActivated() is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                 bool isAppAlreadyRunning = IsRootFrameMain;
@@ -229,19 +270,22 @@ namespace LolloGPS.Core
                     // disable UI commands
                     RuntimeData.SetIsDBDataRead_UI(false);
 
-                    var rootFrame = GetCreateRootFrame(args);
+                    Frame rootFrame = null;
                     if (!isAppAlreadyRunning)
                     {
                         // disable UI commands
                         RuntimeData.SetIsSettingsRead_UI(false);
                         _persistentData = await SuspensionManager.LoadSettingsAsync();
-                        NavigateToRootFrameContent(rootFrame, NavigationParameters.FileActivated);
+                        rootFrame = GetCreateRootFrame(args);
+                        NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.FileActivated);
                         Window.Current.Activate();
                     }
+                    rootFrame = GetCreateRootFrame(args);
                     var main = rootFrame.Content as Main;
                     if (main == null) throw new Exception("OnFileActivated: main is null");
                     var mainVM = main.MainVM;
-                    while (mainVM == null || !mainVM.IsOpen) { await Task.Delay(25); } // LOLLO TODO add a timeout
+                    // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, while its host page will try and open it herself.
+                    while (mainVM == null || !mainVM.IsOpen) { await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm); } // LOLLO TODO add a timeout
                     await mainVM.LoadFileAsync(args).ConfigureAwait(false);
                 }
             }
@@ -257,7 +301,7 @@ namespace LolloGPS.Core
 
                 Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                SemaphoreSlimSafeRelease.TryRelease(_resumingActivatingSemaphore);
+                SemaphoreSlimSafeRelease.TryRelease(_startingSemaphore);
             }
         }
 
@@ -270,9 +314,8 @@ namespace LolloGPS.Core
 
 
         #region services
-        public async Task Quit()
+        public void Quit()
         {
-            await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
             RuntimeData?.Close();
             Exit();
         }

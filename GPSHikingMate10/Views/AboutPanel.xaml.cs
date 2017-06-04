@@ -25,7 +25,7 @@ namespace LolloGPS.Core
 		private async void OnBuy_Click(object sender, RoutedEventArgs e)
 		{
 			bool isAlreadyBought = await Licenser.GetInstance().BuyAsync();
-			if (!isAlreadyBought) await (App.Current as App).Quit();
+			if (!isAlreadyBought) (App.Current as App).Quit();
 		}
 
 		private async void OnRate_Click(object sender, RoutedEventArgs e)

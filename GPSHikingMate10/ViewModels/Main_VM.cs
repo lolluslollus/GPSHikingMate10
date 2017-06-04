@@ -191,7 +191,6 @@ namespace LolloGPS.Core
                     Task loadRoute0 = isResuming ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, false);
                     return Task.WhenAll(loadCheckpoints, loadHistory, loadRoute0);
                 });
-                RuntimeData.SetIsDBDataRead_UI(true);
 
                 WhichSeriesJustLoaded = PersistentData.Tables.Nil;
 
@@ -264,6 +263,7 @@ namespace LolloGPS.Core
             {
                 IsLoading = false;
                 IsSaving = false;
+                RuntimeData.SetIsDBDataRead_UI(true);
                 //_whichSeriesJustLoaded = PersistentData.Tables.nil; NO!
             }
         }
