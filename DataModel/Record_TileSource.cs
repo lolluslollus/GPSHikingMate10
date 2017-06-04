@@ -423,5 +423,21 @@ namespace LolloGPS.Data
         {
             return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", SampleUriString, DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, GetDefaultWebHeaderCollection());
         }
+
+        public void ApplyHeaders(WebRequest request)
+        {
+            if (RequestHeaders != null)
+            {
+                foreach (var item in RequestHeaders)
+                {
+                    HttpRequestHeader headerKey;
+                    if (Enum.TryParse(item.Key, out headerKey))
+                    {
+                        request.Headers[headerKey] = item.Value;
+                    }
+                }
+            }
+
+        }
     }
 }

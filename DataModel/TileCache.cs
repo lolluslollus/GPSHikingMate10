@@ -20,6 +20,7 @@ namespace LolloGPS.Data.TileCache
 
     public sealed class TileCacheReaderWriter
     {
+        public const string MimeTypeImagePrefix = "image/";
         public const string MimeTypeImageAny = "image/*"; // "image/png"
                                                           //public const string ImageToCheck = "image";
         public const int MaxRecords = 65535;
@@ -112,7 +113,7 @@ namespace LolloGPS.Data.TileCache
         /// so every different tile source must produce a different file name, 
         /// even if X, Y, Z and Zoom are equal.
         /// </summary>
-        private string GetFileNameNoExtensionFromKey(int x, int y, int z, int zoom)
+        private string GetFileNameNoExtension(int x, int y, int z, int zoom)
         {
             return string.Format(_tileFileFormat, zoom, x, y, _tileSource.FolderName);
         }
@@ -238,7 +239,7 @@ namespace LolloGPS.Data.TileCache
             else if (zoom > GetMaxZoom()) return _mustZoomOutUri;
 
             // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
-            string fileNameNoExtension = GetFileNameNoExtensionFromKey(x, y, z, zoom);
+            string fileNameNoExtension = GetFileNameNoExtension(x, y, z, zoom);
             // not working on this set of data? Mark it as busy, closing the gate for other threads
             // already working on this set of data? Don't duplicate web requests or file accesses or any extra work and return null
 
@@ -289,7 +290,6 @@ namespace LolloGPS.Data.TileCache
                 //await ProcessingQueue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
                 Task remove = ProcessingQueue.RemoveFromQueueAsync(fileNameNoExtension);
             }
-
             return null;
         }
 
@@ -298,7 +298,7 @@ namespace LolloGPS.Data.TileCache
             if (cancToken.IsCancellationRequested) return false;
 
             // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
-            var fileNameNoExtension = GetFileNameNoExtensionFromKey(x, y, z, zoom);
+            var fileNameNoExtension = GetFileNameNoExtension(x, y, z, zoom);
             // not working on this set of data? Mark it as busy, closing the gate for other threads.
             // already working on this set of data? Don't duplicate web requests of file accesses or any extra work and return false.
             // if I am not caching and another TileCache is working on the same tile at the same time, tough: this tile won't be downloaded.
@@ -362,17 +362,7 @@ namespace LolloGPS.Data.TileCache
             try
             {
                 var request = WebRequest.CreateHttp(sWebUri);
-                if (_tileSource.RequestHeaders != null)
-                {
-                    foreach (var item in _tileSource.RequestHeaders)
-                    {
-                        HttpRequestHeader headerKey;
-                        if (Enum.TryParse(item.Key, out headerKey))
-                        {
-                            request.Headers[headerKey] = item.Value;
-                        }
-                    }
-                }
+                _tileSource.ApplyHeaders(request);
                 request.AllowReadStreamBuffering = true;
                 request.ContinueTimeout = WebRequestTimeoutMsec;
 
@@ -437,24 +427,26 @@ namespace LolloGPS.Data.TileCache
                             where = 4;
                             // read response stream into a new record. 
                             // This extra step is the price to pay if we want to check the stream content
-                            var newRecord = new TileCacheRecord(x, y, z, zoom, new byte[response.ContentLength], fileNameNoExtension, response);
+                            var fileNameWithExtension = GetFileNameWithExtension(fileNameNoExtension, response);
+                            var imgBytes = new byte[response.ContentLength];
+                            var newRecord = new TileCacheRecord(x, y, z, zoom);
                             if (cancToken.IsCancellationRequested) return null;
-                            if (!string.IsNullOrWhiteSpace(newRecord.FileName))
+                            if (!string.IsNullOrWhiteSpace(fileNameWithExtension))
                             {
                                 where = 5;
-                                await responseStream.ReadAsync(newRecord.Img, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
+                                await responseStream.ReadAsync(imgBytes, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
 
                                 if (cancToken.IsCancellationRequested) return null;
-                                if (IsWebResponseContentOk(newRecord.Img))
+                                if (IsWebResponseContentOk(imgBytes))
                                 {
                                     where = 6;
                                     // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
-                                    var newFile = await _imageFolder.CreateFileAsync(newRecord.FileName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                                    var newFile = await _imageFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
                                     using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
                                     {
                                         where = 7;
                                         writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
-                                        await writeStream.WriteAsync(newRecord.Img, 0, newRecord.Img.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
+                                        await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
                                         where = 8;
                                         writeStream.Flush();
                                         // check file vs stream
@@ -468,7 +460,7 @@ namespace LolloGPS.Data.TileCache
                                             //bool isInserted = await DBManager.TryInsertOrIgnoreIntoTileCacheAsync(newRecord).ConfigureAwait(false);
                                             //if (isInserted)
                                             //{
-                                            return newRecord.FileName;
+                                            return fileNameWithExtension;
                                             //	where = 11;
                                             //}
                                         }
@@ -516,6 +508,23 @@ namespace LolloGPS.Data.TileCache
             //isStreamOk = newRecord.Img.FirstOrDefault(a => a != 0) != null; // this may take too long, so we only check the last 100 bytes
             return false;
         }
+
+        private static string GetFileNameWithExtension(string fileNameNoExtension, WebResponse response)
+        {
+            if (response == null || response.ContentType == null) return null;
+            var mimeType = response.ContentType;
+            if (mimeType.Contains(MimeTypeImagePrefix))
+            {
+                return Path.ChangeExtension(fileNameNoExtension, mimeType.Replace(MimeTypeImagePrefix, ""));
+            }
+            else if (!string.IsNullOrWhiteSpace(response.ResponseUri?.AbsolutePath))
+            {
+                var extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
+                return Path.ChangeExtension(fileNameNoExtension, extension);
+            }
+            return null;
+        }
+
         #endregion  services
     }
     // LOLLO TODO MAYBE before and after clearing, say how much disk space you saved
@@ -819,40 +828,16 @@ namespace LolloGPS.Data.TileCache
     /// </summary>
     public sealed class TileCacheRecord
     {
-        public const string MimeTypeImagePrefix = "image/";
+        public int X { get { return _x; } }
+        public int Y { get { return _y; } }
+        public int Z { get { return _z; } }
+        public int Zoom { get { return _zoom; } }
 
-        //public string TileSourceFolderName { get { return _tileSourceFolderName; } private set { _tileSourceFolderName = value; } }
-        //public string TileSourceTechName { get { return _tileSourceTechName; } private set { _tileSourceTechName = value; } }
-        public int X { get { return _x; } private set { _x = value; } }
-        public int Y { get { return _y; } private set { _y = value; } }
-        public int Z { get { return _z; } private set { _z = value; } }
-        public int Zoom { get { return _zoom; } private set { _zoom = value; } }
-        public string FileName { get { return _fileName; } private set { _fileName = value; } }
-        public byte[] Img { get { return _img; } private set { _img = value; } } // this field has a setter, so SQLite may use it
+        private readonly int _x = 0;
+        private readonly int _y = 0;
+        private readonly int _z = 0;
+        private readonly int _zoom = 2;
 
-        private int _x = 0;
-        private int _y = 0;
-        private int _z = 0;
-        private int _zoom = 2;
-        private string _fileName = "";
-        private byte[] _img = null;
-
-        //public TileCacheRecord() { } // for the db query
-        public TileCacheRecord(int x, int y, int z, int zoom, byte[] img, string fileNameNoExtension, WebResponse response) : this(x, y, z, zoom)
-        {
-            if (response == null || response.ContentType == null) return;
-            _img = img;
-            var mimeType = response.ContentType;
-            if (mimeType.Contains(MimeTypeImagePrefix))
-            {
-                _fileName = Path.ChangeExtension(fileNameNoExtension, mimeType.Replace(MimeTypeImagePrefix, ""));
-            }
-            else if (!string.IsNullOrWhiteSpace(response.ResponseUri?.AbsolutePath))
-            {
-                var extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
-                _fileName = Path.ChangeExtension(fileNameNoExtension, extension);
-            }
-        }
         public TileCacheRecord(int x, int y, int z, int zoom)
         {
             _x = x;

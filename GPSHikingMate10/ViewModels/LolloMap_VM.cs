@@ -429,6 +429,7 @@ namespace LolloGPS.Core
             {
                 lock (_cancDownloadTilesLocker)
                 {
+                    _downloadTilesCts?.CancelSafe(true);
                     _downloadTilesCts?.Dispose();
                     _linkedCts?.Dispose();
                     _downloadTilesCts = null;
