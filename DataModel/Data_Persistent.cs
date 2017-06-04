@@ -96,7 +96,7 @@ namespace LolloGPS.Data
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static PersistentData GetInstanceWithClonedNonDbProperties(PersistentData source)
+        public static PersistentData GetInstanceWithClonedSerialisedProperties(PersistentData source)
         {
             if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
             lock (_instanceLock)

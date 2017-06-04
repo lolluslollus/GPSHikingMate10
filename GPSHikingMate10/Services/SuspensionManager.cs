@@ -24,11 +24,11 @@ namespace LolloGPS.Suspension
     {
         private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private const string SettingsFilename = "LolloSessionData.xml";
-        
+
         // LOLLO NOTE important! The Mutex can work across AppDomains (ie across main app and background task) but only if you give it a name!
         // Also, if you declare initially owned true, the second thread trying to cross it will stay locked forever. So, declare it false.
         // All this is not well documented.
-        
+
         public static async Task<PersistentData> LoadSettingsAsync() //List<string> errorMessages)
         {
             string errorMessage = string.Empty;
@@ -57,7 +57,16 @@ namespace LolloGPS.Suspension
                         newPersistentData = (PersistentData)(serializer.ReadObject(iinStream));
                         await iinStream.FlushAsync().ConfigureAwait(false);
 
-                        newPersistentData = PersistentData.GetInstanceWithClonedNonDbProperties(newPersistentData);
+                        if (IsLatestDataStructure(newPersistentData))
+                        {
+                            newPersistentData = PersistentData.GetInstanceWithClonedSerialisedProperties(newPersistentData);
+                        }
+                        else
+                        {
+                            errorMessage = "could not restore the settings: they have an old structure";
+                            await Logger.AddAsync(errorMessage, Logger.FileErrorLogFilename).ConfigureAwait(false);
+                            newPersistentData = PersistentData.GetInstance();
+                        }
                     }
                 }
             }
@@ -80,7 +89,25 @@ namespace LolloGPS.Suspension
             }
             return newPersistentData;
         }
-        
+
+        /// <summary>
+        /// Change this method to reflect the latest structure changes, whenever you make one.
+        /// </summary>
+        /// <param name="persistentData"></param>
+        /// <returns></returns>
+        private static bool IsLatestDataStructure(PersistentData persistentData)
+        {
+            if (persistentData == null || persistentData.TileSourcez == null) return false;
+            foreach (var ts in persistentData.TileSourcez)
+            {
+                if (!string.IsNullOrWhiteSpace(ts.FolderName))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static async Task SaveSettingsAsync(PersistentData persistentData)
         {
             try
