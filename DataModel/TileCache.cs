@@ -159,17 +159,17 @@ namespace LolloGPS.Data.TileCache
             if (uri.Scheme == "file")
             {
                 if (!uri.Segments.Any()) return null;
-                return await PixelHelper.GetPixelStreamRefFromFile(_imageFolder, uri.Segments.Last()).ConfigureAwait(false);
+                return await PixelHelper.GetPixelStreamRefFromFile(_imageFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
             }
             if (uri.Scheme == "ms-appx")
             {
                 if (!uri.Segments.Any()) return null;
                 var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
-                return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last()).ConfigureAwait(false);
+                return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
             }
             return null;
             /*
-            // it's a proper web request: do it. However, this will never happen coz every call is now cached!
+            // it's a proper web request: do it. However, this will never be required coz every call is now cached!
             return await Task.Run(async () =>
             {
                 try
@@ -863,15 +863,18 @@ namespace LolloGPS.Data.TileCache
     internal static class PixelHelper
     {
         private static readonly BitmapTransform _bitmapTransform = new BitmapTransform() { InterpolationMode = BitmapInterpolationMode.Linear };
-        internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName)
+        internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName, CancellationToken cancToken)
         {
             try
             {
+                if (cancToken.IsCancellationRequested) return null;
                 byte[] pixels = null;
                 using (var readStream = await imageFolder.OpenStreamForReadAsync(fileName).ConfigureAwait(false))
                 {
+                    if (cancToken.IsCancellationRequested) return null;
                     //pixels = await GetPixelArrayFromByteStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
                     pixels = await GetPixelArrayFromRandomAccessStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
+                    if (cancToken.IsCancellationRequested) return null;
                 }
                 return await GetStreamRefFromArray(pixels).ConfigureAwait(false);
             }
@@ -881,6 +884,7 @@ namespace LolloGPS.Data.TileCache
                 return null;
             }
         }
+        /*
         internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromByteArray(byte[] imgBytes)
         {
             try
@@ -894,7 +898,8 @@ namespace LolloGPS.Data.TileCache
                 return null;
             }
         }
-
+        */
+        /*
         private static async Task<byte[]> GetPixelArrayFromByteArray(byte[] bytes)
         {
             try
@@ -921,6 +926,7 @@ namespace LolloGPS.Data.TileCache
                 return null;
             }
         }
+        */
         private static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
         {
 #if DEBUG
@@ -977,6 +983,7 @@ namespace LolloGPS.Data.TileCache
                 return RandomAccessStreamReference.CreateFromStream(inMemoryRandomAccessStream);
             }
         }
+        /*
         public static async Task<IRandomAccessStreamReference> GetRedTileStreamRefAsync()
         { // this is sample code from MS
             int pixelHeight = 256;
@@ -1009,5 +1016,6 @@ namespace LolloGPS.Data.TileCache
             await writer.FlushAsync();
             return RandomAccessStreamReference.CreateFromStream(randomAccessStream);
         }
+        */
     }
 }
