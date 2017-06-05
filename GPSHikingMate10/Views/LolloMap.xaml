@@ -15,7 +15,7 @@
 	d:DesignWidth="500">
     <UserControl.Resources>
         <local:HeadingConverter x:Key="HeadingConverter"/>
-        <local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
+        <!--<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>-->
         <x:Double x:Key="LeftMargin4Scale">20</x:Double>
     </UserControl.Resources>
     <Grid x:Name="LayoutRoot">
@@ -64,7 +64,7 @@
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
             <!-- right distance -->
-            <Grid Grid.Row="1" Grid.Column="1"
+            <!--<Grid Grid.Row="1" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Width="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX, Mode=OneWay}">
                 <TextBlock Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded, Mode=OneWay}"
@@ -72,11 +72,26 @@
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" Padding="0"
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+            </Grid>-->
+            <Grid Grid.Row="1" Grid.Column="1"
+				HorizontalAlignment="Left"
+				Width="{x:Bind ScaleFactors.RightLabelX, Mode=OneWay}">
+                <TextBlock Text="{x:Bind ScaleFactors.DistRoundedFormatted, Mode=OneWay}"
+				   HorizontalAlignment="Right"
+				   FontWeight="Bold" 
+				   Style="{StaticResource BaseMessageStyle}" Padding="0"
+				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
             </Grid>
             <!-- internal zoom level -->
-            <TextBlock Grid.Row="0" Grid.Column="1"
+            <!--<TextBlock Grid.Row="0" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom, Mode=OneWay}"
+				FontWeight="Bold" 
+				Style="{StaticResource BaseMessageStyle}" Padding="0"
+				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />-->
+            <TextBlock Grid.Row="0" Grid.Column="1"
+				HorizontalAlignment="Left"
+				Text="{x:Bind ScaleFactors.TechZoom, Mode=OneWay}"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
@@ -86,9 +101,13 @@
 				Source="ms-appx:///Assets/scale-300.png" 
 				Stretch="None"
 				RenderTransformOrigin="0.0,0.0" >
-                <Image.RenderTransform>
+                <!--<Image.RenderTransform>
                     <CompositeTransform ScaleX="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform, Mode=OneWay}"/>
+                </Image.RenderTransform>-->
+                <Image.RenderTransform>
+                    <CompositeTransform ScaleX="{x:Bind ScaleFactors.ImageScaleTransform, Mode=OneWay}"/>
                 </Image.RenderTransform>
+
             </Image>
         </Grid>
         <!--aim centre-->

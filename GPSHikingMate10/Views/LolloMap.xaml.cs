@@ -19,6 +19,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Controls;
+using Utilz.Data;
+using System.Threading;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 
@@ -104,6 +106,9 @@ namespace LolloGPS.Core
         private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
         private static readonly Point _pointersAnchorPoint = new Point(0.5, 0.625);
 
+        private ScaleFactors _scaleFactors = null;
+        public ScaleFactors ScaleFactors { get { return _scaleFactors; } private set { _scaleFactors = value; RaisePropertyChanged_UI(); } }
+
         public PersistentData PersistentData => App.PersistentData;
         public RuntimeData RuntimeData => App.RuntimeData;
         private LolloMapVM _lolloMapVM = null;
@@ -117,10 +122,12 @@ namespace LolloGPS.Core
         public static readonly DependencyProperty MainVMProperty =
             DependencyProperty.Register("MainVM", typeof(MainVM), typeof(LolloMap), new PropertyMetadata(null));
 
-        private static WeakReference _myMapInstance = null;
-        internal static MapControl GetMapControlInstanceIfReady() // for the converters
+        //private static WeakReference _myReadyMapInstance = null;
+        private static MapControl _myReadyMapInstance = null;
+        private static MapControl GetMapControlInstanceIfReady() // for the converters
         {
-            return _myMapInstance?.Target as MapControl;
+            //return _myReadyMapInstance?.Target as MapControl;
+            return _myReadyMapInstance;
         }
 
         private bool _isHistoryInMap = false;
@@ -256,12 +263,13 @@ namespace LolloGPS.Core
             }
 
             await Task.WhenAll(restore, drawC, drawH, drawR);
-            _myMapInstance = new WeakReference(MyMap);
+            //_myReadyMapInstance = new WeakReference(MyMap);
+            _myReadyMapInstance = MyMap;
         }
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
             RemoveHandlers();
-            _myMapInstance = null;
+            _myReadyMapInstance = null;
             await CompassControl.CloseAsync(args);
             await _lolloMapVM.CloseAsync(args).ConfigureAwait(false);
         }
@@ -1090,10 +1098,13 @@ namespace LolloGPS.Core
                 });
             }
         }
-        private void OnZoomLevelChanged(MapControl sender, object args)
+        private async void OnZoomLevelChanged(MapControl sender, object args)
         {
             if (!IsOpen) return;
             PersistentData.MapLastZoom = sender.ZoomLevel;
+            // the following two expressions seem equivalent
+            ScaleFactors = await ScaleFactors.GetNewScaleFactors(GetMapControlInstanceIfReady()).ConfigureAwait(false);
+            //Task ww = ScaleFactors.GetNewScaleFactors(GetMapControlInstanceIfReady()).ContinueWith(async (Task<ScaleFactors> sf) => { ScaleFactors = await sf; });
         }
 
         private void OnHeadingChanged(MapControl sender, object args)
@@ -1137,7 +1148,7 @@ namespace LolloGPS.Core
             throw new Exception("should never get here");
         }
     }
-
+    /*
     public class ScaleSizeConverter : IValueConverter
     {
         //private const double VerticalHalfCircM = 20004000.0;
@@ -1230,8 +1241,8 @@ namespace LolloGPS.Core
                 if (hypotheticalMeasureBarY1 <= 0.0 || hypotheticalMeasureBarX1 <= 0.0) return;
 
                 Geopoint centre = mapControl.Center;
-                if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeasureBarY1 *= 1.5; /*Debug.WriteLine("halfMapHeight + ");*/ }
-                else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeasureBarY1 *= .5; /*Debug.WriteLine("halfMapHeight - ");*/ }
+                if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeasureBarY1 *= 1.5; }
+                else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeasureBarY1 *= .5; }
 
                 double headingRadians = mapControl.Heading * ConstantData.DEG_TO_RAD;
 
@@ -1421,6 +1432,319 @@ namespace LolloGPS.Core
         {
             throw new Exception("should never get here");
         }
+    }
+*/
+    public class ScaleFactors
+    {
+        #region instance
+        private readonly double _imageScaleTransform;
+        public double ImageScaleTransform { get { return _imageScaleTransform; } }
+        private readonly string _distRoundedFormatted;
+        public string DistRoundedFormatted { get { return _distRoundedFormatted; } }
+        private readonly double _rightLabelX;
+        public double RightLabelX { get { return _rightLabelX; } }
+        private readonly string _techZoom;
+        public string TechZoom { get { return _techZoom; } }
+        public ScaleFactors(string distRoundedFormatted, double imageScaleTransform, double rightLabelX, string techZoom)
+        {
+            _distRoundedFormatted = distRoundedFormatted;
+            _imageScaleTransform = imageScaleTransform;
+            _rightLabelX = rightLabelX;
+            _techZoom = techZoom;
+        }
+        #endregion instance
+
+        #region static
+        #region calcs
+        // LOLLO the mercator formulas are at http://wiki.openstreetmap.org/wiki/Mercator
+        // and http://wiki.openstreetmap.org/wiki/EPSG:3857
+        // and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
+
+        //private const double VerticalHalfCircM = 20004000.0;
+        private const double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
+
+        private static async Task<ScaleFactors> CalcAlongMeridians(MapControl mapControl, CancellationToken cancToken)
+        {
+            if (mapControl == null) return LastScaleFactors;
+
+            double actualHeight = mapControl.ActualHeight;
+            double actualWidth = mapControl.ActualWidth;
+            double centerLatitude = mapControl.Center.Position.Latitude;
+            double heading = mapControl.Heading;
+            double zoomLevel = mapControl.ZoomLevel;
+
+            Func<Point, Geopoint> getLocationFromOffset = (Point p) =>
+            {
+                Geopoint gp = null;
+                mapControl.GetLocationFromOffset(p, out gp);
+                return gp;
+            };
+
+            return await Task.Run(() => CalcAlongMeridians2(actualHeight, actualWidth, centerLatitude, heading, zoomLevel, getLocationFromOffset, cancToken), cancToken).ConfigureAwait(false);
+        }
+        private static ScaleFactors CalcAlongMeridians2(double actualHeight, double actualWidth, double centerLatitude, double heading, double zoomLevel, Func<Point, Geopoint> getLocationFromOffset, CancellationToken cancToken)
+        {
+            if (cancToken.IsCancellationRequested) return LastScaleFactors;
+            // we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
+            // in practise, we can also move along the parallels, it works anyway.
+            // we put a hypothetical bar on the map, and we ask the map to measure where it starts and ends.
+            // then we compare the bar length with the scale length, so we find out the distance in metres between the scale ends.
+
+            double hypotheticalMeasureBarLength = Math.Min(actualHeight, actualWidth) * .25; // I use a shortish bar length so it always fits snugly in the MapControl. Too short would be inaccurate.
+                                                                                             // The map may be shifted badly; these maps can shift vertically so badly, that the north or the south pole can be in the centre of the control.
+                                                                                             // If this happens, we place the hypothetical bar lower or higher, so it is always safely on the Earth.
+                                                                                             // Since these shifts happen vertically, it is easier to use a horizontal hypothetical bar.
+
+            double hypotheticalMeasureBarX1 = 0.0;
+            double hypotheticalMeasureBarY1 = 0.0;
+            if (centerLatitude >= LolloMap.MAX_LAT_NEARLY)
+            {
+                if (heading < 90.0 || heading > 270.0) hypotheticalMeasureBarY1 = actualHeight * .6;
+                else hypotheticalMeasureBarY1 = actualHeight * .4;
+                if (heading < 180.0) hypotheticalMeasureBarX1 = actualWidth * .9;
+                else hypotheticalMeasureBarX1 = actualWidth * .1;
+            }
+            else if (centerLatitude <= LolloMap.MIN_LAT_NEARLY)
+            {
+                if (heading < 90.0 || heading > 270.0) hypotheticalMeasureBarY1 = actualHeight * .1;
+                else hypotheticalMeasureBarY1 = actualHeight * .9;
+                if (heading < 180.0) hypotheticalMeasureBarX1 = actualWidth * .1;
+                else hypotheticalMeasureBarX1 = actualWidth * .9;
+            }
+            else
+            {
+                hypotheticalMeasureBarY1 = actualHeight * .5;
+                hypotheticalMeasureBarX1 = actualWidth * .5;
+            }
+            if (hypotheticalMeasureBarY1 <= 0.0 || hypotheticalMeasureBarX1 <= 0.0) return LastScaleFactors;
+
+            double headingRadians = heading * ConstantData.DEG_TO_RAD;
+            var pointN = new Point(hypotheticalMeasureBarX1, hypotheticalMeasureBarY1);
+            var pointS = new Point(
+                hypotheticalMeasureBarX1 + hypotheticalMeasureBarLength * Math.Sin(headingRadians),
+                hypotheticalMeasureBarY1 + hypotheticalMeasureBarLength * Math.Cos(headingRadians));
+            // this is good for testing
+            //double checkIpotenusaMustBeSameAsBarLength = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
+            //Debug.WriteLine("ipotenusa = " + checkIpotenusaMustBeSameAsBarLength);
+            //Debug.WriteLine("bar length = " + hypotheticalMeasureBarLength);
+
+            if (cancToken.IsCancellationRequested) return LastScaleFactors;
+            Geopoint locationN = getLocationFromOffset(pointN);
+            if (cancToken.IsCancellationRequested) return LastScaleFactors;
+            Geopoint locationS = getLocationFromOffset(pointS);
+            if (cancToken.IsCancellationRequested) return LastScaleFactors;
+
+            double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;
+
+            double distInChosenUnit = 0.0;
+            double distInChosenUnitRounded = 0.0;
+
+            string resultDistRoundedFormatted = string.Empty;
+            if (PersistentData.GetInstance().IsShowImperialUnits)
+            {
+                if (scaleEndsDistanceMetres > ConstantData.MILE_TO_M)
+                {
+                    distInChosenUnit = scaleEndsDistanceMetres / ConstantData.MILE_TO_M;
+                    distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                    resultDistRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " mi";
+                }
+                else
+                {
+                    distInChosenUnit = scaleEndsDistanceMetres * ConstantData.M_TO_FOOT;
+                    distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                    resultDistRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " ft";
+                }
+            }
+            else
+            {
+                if (scaleEndsDistanceMetres > ConstantData.KM_TO_M)
+                {
+                    distInChosenUnit = scaleEndsDistanceMetres / ConstantData.KM_TO_M;
+                    distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                    resultDistRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " km";
+                }
+                else
+                {
+                    distInChosenUnit = scaleEndsDistanceMetres;
+                    distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                    resultDistRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " m";
+                }
+            }
+
+            double resultImageScaleTransform = default(double);
+            if (distInChosenUnit != 0.0) resultImageScaleTransform = distInChosenUnitRounded / distInChosenUnit;
+            else resultImageScaleTransform = 999.999;
+
+            double resultRightLabelX = default(double);
+            resultRightLabelX = LolloMap.SCALE_IMAGE_WIDTH * resultImageScaleTransform;
+
+            string resultTechZoom = zoomLevel.ToString("zoom #0.#", CultureInfo.CurrentUICulture);
+
+            return new ScaleFactors(resultDistRoundedFormatted, resultImageScaleTransform, resultRightLabelX, resultTechZoom);
+        }
+        private static double GetDistRounded(double distMetres)
+        {
+            string distMetres_String = Math.Truncate(distMetres).ToString(CultureInfo.InvariantCulture);
+
+            int howManyZeroesToBeAdded = distMetres_String.Length - 1;
+
+            string distStrRounded = distMetres_String.Substring(0, 1);
+            if (distStrRounded == "3" || distStrRounded == "4") distStrRounded = "2";
+            else if (distStrRounded == "6" || distStrRounded == "7" || distStrRounded == "8" || distStrRounded == "9") distStrRounded = "5";
+
+            for (int i = 0; i < howManyZeroesToBeAdded; i++)
+            {
+                distStrRounded += "0";
+            }
+            double distRounded = 0.0;
+            double.TryParse(distStrRounded, out distRounded);
+            return distRounded;
+        }
+        /*
+        private static void CalcAlongParallels_Old(MapControl mapControl)
+        {
+            if (mapControl != null)
+            {
+                // we work out the distance moving along the meridians, because the parallels are always at the same distance at all latitudes
+                // in practise, we can also move along the parallels, it works anyway.
+                // we put a hypothetical bar on the map, and we ask the map to measure where it starts and ends.
+                // then we compare the bar length with the scale length, so we find out the distance in metres between the scale ends.
+
+                double hypotheticalMeasureBarLength = mapControl.ActualWidth / 3.0; // I use a shortish bar length so it always fits snugly in the MapControl. Too short would be inaccurate.
+                                                                                    // The map may be shifted badly; these maps can shift vertically so badly, that the north or the south pole can be in the centre of the control.
+                                                                                    // If this happens, we place the hypothetical bar lower or higher, so it is always safely on the Earth.
+                                                                                    // Since these shifts happen vertically, it is easier to use a horizontal hypothetical bar.
+
+                double hypotheticalMeasureBarX1 = mapControl.ActualWidth / 2.0;
+                double hypotheticalMeasureBarY1 = mapControl.ActualHeight / 2.0;
+                if (hypotheticalMeasureBarY1 <= 0.0 || hypotheticalMeasureBarX1 <= 0.0) return;
+
+                Geopoint centre = mapControl.Center;
+                if (centre.Position.Latitude >= LolloMap.MAX_LAT_NEARLY) { hypotheticalMeasureBarY1 *= 1.5; }
+                else if (centre.Position.Latitude <= LolloMap.MIN_LAT_NEARLY) { hypotheticalMeasureBarY1 *= .5; }
+
+                double headingRadians = mapControl.Heading * ConstantData.DEG_TO_RAD;
+
+                //Point pointN = new Point(halfMapWidth, halfMapHeight);
+
+                //                    Point pointS = new Point(halfMapWidth, halfMapHeight + barLength);//this returns funny results when the map is turned: I must always measure along the meridians
+                //Point pointS = new Point(halfMapWidth + hypotheticalMeridianBarLength * Math.Sin(headingRadians), halfMapHeight + hypotheticalMeridianBarLength * Math.Cos(headingRadians));
+                //double checkIpotenusaMustBeSameAsBarLength = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
+                //Geopoint locationN = null; Geopoint locationS = null;
+                //mapControl.GetLocationFromOffset(pointN, out locationN);
+                //mapControl.GetLocationFromOffset(pointS, out locationS);
+
+                Point pointW = new Point(hypotheticalMeasureBarX1, hypotheticalMeasureBarY1);
+                Point pointE = new Point(
+                    hypotheticalMeasureBarX1 + hypotheticalMeasureBarLength * Math.Sin(ConstantData.PI_HALF - headingRadians),
+                    hypotheticalMeasureBarY1 - hypotheticalMeasureBarLength * Math.Cos(ConstantData.PI_HALF - headingRadians));
+                // if(pointE.X > 360.0 || pointW.X > 360.0) { }
+                Geopoint locationW = null;
+                Geopoint locationE = null; // PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
+                mapControl.GetLocationFromOffset(pointW, out locationW);
+                mapControl.GetLocationFromOffset(pointE, out locationE);
+
+                //double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
+                double scaleEndsDistanceMetres = Math.Abs(locationE.Position.Longitude - locationW.Position.Longitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;
+
+                double distInChosenUnit = 0.0;
+                double distInChosenUnitRounded = 0.0;
+
+                if (PersistentData.GetInstance().IsShowImperialUnits)
+                {
+                    if (scaleEndsDistanceMetres > ConstantData.MILE_TO_M)
+                    {
+                        distInChosenUnit = scaleEndsDistanceMetres / ConstantData.MILE_TO_M;
+                        distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                        _distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " mi";
+                    }
+                    else
+                    {
+                        distInChosenUnit = scaleEndsDistanceMetres * ConstantData.M_TO_FOOT;
+                        distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                        _distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " ft";
+                    }
+                }
+                else
+                {
+                    if (scaleEndsDistanceMetres > ConstantData.KM_TO_M)
+                    {
+                        distInChosenUnit = scaleEndsDistanceMetres / ConstantData.KM_TO_M;
+                        distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                        _distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " km";
+                    }
+                    else
+                    {
+                        distInChosenUnit = scaleEndsDistanceMetres;
+                        distInChosenUnitRounded = GetDistRounded(distInChosenUnit);
+                        _distRoundedFormatted = distInChosenUnitRounded.ToString(CultureInfo.CurrentUICulture) + " m";
+                    }
+                }
+
+                if (distInChosenUnit != 0.0) _imageScaleTransform = distInChosenUnitRounded / distInChosenUnit;
+                else _imageScaleTransform = 999.999;
+
+                _rightLabelX = LolloMap.SCALE_IMAGE_WIDTH * _imageScaleTransform;
+            }
+        }
+        */
+        #endregion calcs
+
+        #region boilerplate
+        private static readonly object _ctsLocker = new object();
+        private static SafeCancellationTokenSource _cts = null; // new SafeCancellationTokenSource();
+
+        private static readonly object _lastObjectsLocker = new object();
+
+        private static double _lastZoom = -1.0; // an absurd value
+        private static ScaleFactors _lastScaleFactors = new ScaleFactors("~", 1.0, LolloMap.SCALE_IMAGE_WIDTH, (-1.0).ToString("zoom #0.#", CultureInfo.CurrentUICulture));
+        private static double LastZoom { get { lock (_lastObjectsLocker) { return _lastZoom; } } set { lock (_lastObjectsLocker) { _lastZoom = value; } } }
+        private static ScaleFactors LastScaleFactors { get { lock (_lastObjectsLocker) { return _lastScaleFactors; } } set { lock (_lastObjectsLocker) { _lastScaleFactors = value; } } }
+        private static ScaleFactors GetInitialScaleFactors()
+        {
+            return new ScaleFactors("~", 1.0, LolloMap.SCALE_IMAGE_WIDTH, PersistentData.GetInstance().MapLastZoom.ToString("zoom #0.#", CultureInfo.CurrentUICulture));
+        }
+
+        /// <summary>
+        /// Assumes an initialised map control and the UI thread
+        /// </summary>
+        /// <param name="mapControl"></param>
+        /// <returns></returns>
+        public static async Task<ScaleFactors> GetNewScaleFactors(MapControl mapControl)
+        {
+            if (mapControl == null) return GetInitialScaleFactors();
+            if (mapControl.ZoomLevel == LastZoom) return LastScaleFactors;
+            double zoomLevel = mapControl.ZoomLevel;
+
+            // cancel any previous calculations, there is a new value now. This is a bit overkill, but nice.
+            CancellationToken cancToken;
+            lock (_ctsLocker)
+            {
+                _cts?.CancelSafe(true);
+                _cts?.Dispose();
+                _cts = new SafeCancellationTokenSource();
+                cancToken = _cts.Token;
+            }
+
+            // calc
+            ScaleFactors result = LastScaleFactors;
+            try
+            {
+                LastScaleFactors = result = await CalcAlongMeridians(mapControl, cancToken).ConfigureAwait(false);
+                LastZoom = zoomLevel; //remember this to avoid repeating the same calculation
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                // there may be exceptions if I am in a very awkward place in the map, such as the arctic, and at funny heading angles.
+                // I took care of most, so we log the rest.
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+
+            return result;
+        }
+        #endregion boilerplate
+        #endregion static
     }
     #endregion converters
 }
