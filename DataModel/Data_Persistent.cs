@@ -48,8 +48,8 @@ namespace LolloGPS.Data
         public const int MaxRecordsInHistory = short.MaxValue;
         private const int MaxCheckpoints1 = 500; // was 100
         private const int MaxCheckpoints2 = 1000; // was 200
-        private const int MaxCheckpoints3 = 2000; // was 500
-        private const int MaxCheckpoints4 = 5000; // was 1000
+        private const int MaxCheckpoints3 = 1500; // was 500
+        private const int MaxCheckpoints4 = 2000; // was 1000
 
         public static readonly int MaxRecordsInCheckpoints = MaxCheckpoints4;
 
