@@ -26,7 +26,7 @@
             <views:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
             <Image Canvas.Top="120" Canvas.Left="30"
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
+				 RenderTransformOrigin="0.5,0.56" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
                 <Image.RenderTransform>
                     <CompositeTransform Rotation="{x:Bind MyMap.Heading, Converter={StaticResource HeadingConverter}, Mode=OneWay}"/>
                 </Image.RenderTransform>
