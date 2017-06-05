@@ -14,10 +14,10 @@
 
     <x:Double x:Key="HistoryThickness_SmallScreen">4</x:Double>
     <x:Double x:Key="Route0Thickness_SmallScreen">6</x:Double>
-    <x:Double x:Key="HistoryThickness_MediumScreen">8</x:Double>
-    <x:Double x:Key="Route0Thickness_MediumScreen">10</x:Double>
-    <x:Double x:Key="HistoryThickness_LargeScreen">12</x:Double>
-	<x:Double x:Key="Route0Thickness_LargeScreen">16</x:Double>
+    <x:Double x:Key="HistoryThickness_MediumScreen">6</x:Double>
+    <x:Double x:Key="Route0Thickness_MediumScreen">8</x:Double>
+    <x:Double x:Key="HistoryThickness_LargeScreen">8</x:Double>
+	<x:Double x:Key="Route0Thickness_LargeScreen">10</x:Double>
 
 	<Thickness x:Key="Thickness0">0, 0, 0, 0</Thickness>
 	<Thickness x:Key="Thickness2">2</Thickness>

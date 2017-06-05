@@ -30,12 +30,17 @@ namespace LolloGPS.Core
     public sealed partial class LolloMap : OpenableObservableControl, IGeoBoundingBoxProvider, IMapAltProfCentrer, IInfoPanelEventReceiver
     {
         #region properties
-        // LOLLO TODO checkpoints are still expensive to draw, no matter what I tried, 
+        // LOLLO NOTE checkpoints are still expensive to draw, no matter what I tried, 
         // so I set their limit to a low number, which grows with the available memory.
         // This is in the static ctor of PersistentData.
         // It would be nice to have more checkpoints though.
-        // I tried MapIcon instead of Images: they are much slower loading but respond better to map movements! Ellipses are slower than images.
+        // I tried MapIcon instead of Images: they are much slower loading but respond much better to map movements! Ellipses are slower than images.
         // Things look better with win 10 on a pc, so I used icons, which don't seem slower than images anymore.
+        // Things look better with 10.0.15063: I can now load 5x more checkpoints at a comparable speed.
+        // There are still problems tho:
+        // All MapElements shift a bit when zooming in a lot and panning the map.
+        // MapIcons show a grey line between the should-be point and the actual point where the icon is centred.
+        // Even using images only for the start, current and end pointers, they glitch when panning the map.
         // The MapItemsControl throws weird errors and it loads slowly.
         internal const double SCALE_IMAGE_WIDTH = 300.0;
 
@@ -68,7 +73,7 @@ namespace LolloGPS.Core
         //private static Image _imageStartHistory = null;
         //private static Image _imageEndHistory = null;
         //private static Image _imageFlyoutPoint = null;
-        
+
         private readonly MapIcon _iconEndHistory = new MapIcon()
         {
             CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
@@ -91,11 +96,9 @@ namespace LolloGPS.Core
             Visible = true,
         };
 
-        private readonly RandomAccessStreamReference _checkpointIconStreamReference;
-
         //private static List<Image> _checkpointImages = new List<Image>();
-        //private static Image _checkpointBaseImage = null;
         //private static BitmapImage _checkpointImageSource = null;
+        private readonly RandomAccessStreamReference _checkpointIconStreamReference;
 
         private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
         private static readonly Point _pointersAnchorPoint = new Point(0.5, 0.625);
@@ -138,14 +141,13 @@ namespace LolloGPS.Core
                 case ElementsSize.Small:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_SmallScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_SmallScreen"]);
-                    //_imageStartHistory= new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png"));
-                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png"));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
                     break;
                 case ElementsSize.Large:
@@ -154,11 +156,10 @@ namespace LolloGPS.Core
                     //_imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png"));
-                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-144.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-144.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png"));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png", UriKind.Absolute));
                     break;
                 default:
@@ -167,11 +168,10 @@ namespace LolloGPS.Core
                     //_imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
                     //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png"));
-                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-72.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-72.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png"));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png", UriKind.Absolute));
                     break;
             }
@@ -415,15 +415,13 @@ namespace LolloGPS.Core
 
                 await RunInUiThreadAsync(delegate
                 {
-                    // LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
+                    // LOLLO TODO when zooming in and panning, the polylines and the MapIcons move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
                     _mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
                                                                                                                   // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
 
                     //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-                    //MapControl.SetNormalizedAnchorPoint(_imageStartHistory, _pointersAnchorPoint);
                     //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions.Last()));
-                    //MapControl.SetNormalizedAnchorPoint(_imageEndHistory, _pointersAnchorPoint);
                     _iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
                     _iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
                     //Better even: use binding; sadly, it is broken for the moment
@@ -433,8 +431,8 @@ namespace LolloGPS.Core
                     if (!_isHistoryInMap)
                     {
                         if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
-                        //if (!MyMap.Children.Contains(_imageStartHistory)) MyMap.Children.Add(_imageStartHistory);
-                        //if (!MyMap.Children.Contains(_imageEndHistory)) MyMap.Children.Add(_imageEndHistory);
+                        //if (!MyMap.Children.Contains(_imageStartHistory)) { MyMap.Children.Add(_imageStartHistory); MapControl.SetNormalizedAnchorPoint(_imageStartHistory, _pointersAnchorPoint); }
+                        //if (!MyMap.Children.Contains(_imageEndHistory)) { MyMap.Children.Add(_imageEndHistory); MapControl.SetNormalizedAnchorPoint(_imageEndHistory, _pointersAnchorPoint); }
                         if (!MyMap.MapElements.Contains(_iconStartHistory)) MyMap.MapElements.Add(_iconStartHistory);
                         if (!MyMap.MapElements.Contains(_iconEndHistory)) MyMap.MapElements.Add(_iconEndHistory);
                         _isHistoryInMap = true;
@@ -467,7 +465,7 @@ namespace LolloGPS.Core
 
                 await RunInUiThreadAsync(delegate
                 {
-                    // LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
+                    // LOLLO TODO when zooming in and panning, the polylines and the MapIcons move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
                     _mapPolylineRoute0.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface instead of destroying and redoing, it would be nice to just add the latest point; 
 
@@ -492,7 +490,7 @@ namespace LolloGPS.Core
                 SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
             }
         }
-        
+
         private async Task DrawCheckpointsMapIconsAsync()
         {
             try
@@ -560,8 +558,8 @@ namespace LolloGPS.Core
                 SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
             }
         }
-        
-        
+
+
         private bool InitCheckpoints_MapIcons()
         {
 #if DEBUG
@@ -689,25 +687,24 @@ namespace LolloGPS.Core
         {
             return RunInUiThreadAsync(delegate
             {
-                //_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Collapsed;
+                //_imageFlyoutPoint.Visibility = Visibility.Collapsed;
                 _iconFlyoutPoint.Visible = false;
             });
         }
-        
+
         private Task DrawFlyoutPointAsync()
         {
             return RunInUiThreadAsync(delegate
             {
-                //_imageFlyoutPoint.Visibility = Windows.UI.Xaml.Visibility.Visible;
+                //_imageFlyoutPoint.Visibility = Visibility.Visible;
                 _iconFlyoutPoint.Visible = true;
 
                 //MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
-                //MapControl.SetNormalizedAnchorPoint(_imageFlyoutPoint, _pointersAnchorPoint);
                 _iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
 
                 if (!_isFlyoutPointInMap)
                 {
-                    //if (!MyMap.Children.Contains(_imageFlyoutPoint)) MyMap.Children.Add(_imageFlyoutPoint);
+                    //if (!MyMap.Children.Contains(_imageFlyoutPoint)) { MyMap.Children.Add(_imageFlyoutPoint); MapControl.SetNormalizedAnchorPoint(_imageFlyoutPoint, _pointersAnchorPoint); }
                     if (!MyMap.MapElements.Contains(_iconFlyoutPoint)) MyMap.MapElements.Add(_iconFlyoutPoint);
                     _isFlyoutPointInMap = true;
                 }
@@ -1261,7 +1258,7 @@ namespace LolloGPS.Core
                 //Debug.WriteLine("bar length = " + hypotheticalMeasureBarLength);
                 Geopoint locationN = null;
                 Geopoint locationS = null; // PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
-                mapControl.GetLocationFromOffset(pointN, out locationN); // pointN = 684.5, 430 throws LOLLO TODO 
+                mapControl.GetLocationFromOffset(pointN, out locationN);
                 mapControl.GetLocationFromOffset(pointS, out locationS);
 
                 double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;
