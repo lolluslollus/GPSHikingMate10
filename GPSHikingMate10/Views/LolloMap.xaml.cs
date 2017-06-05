@@ -136,10 +136,10 @@ namespace LolloGPS.Core
         {
             InitializeComponent();
 
-            ScreenSize screenSize = GetIsSmallScreen();
+            ElementsSize screenSize = GetElementsSize();
             switch (screenSize)
             {
-                case ScreenSize.Small:
+                case ElementsSize.Small:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_SmallScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_SmallScreen"]);
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
@@ -147,7 +147,7 @@ namespace LolloGPS.Core
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
                     break;
-                case ScreenSize.Large:
+                case ElementsSize.Large:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_LargeScreen"]);
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
@@ -183,8 +183,8 @@ namespace LolloGPS.Core
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             //MyMap.MapElements.Clear(); // no!
         }
-        private enum ScreenSize { Small, Medium, Large }
-        private ScreenSize GetIsSmallScreen()
+        private enum ElementsSize { Small, Medium, Large }
+        private ElementsSize GetElementsSize()
         {
             double rawPixelsPerViewPixel = 2.0;
             try
@@ -193,9 +193,9 @@ namespace LolloGPS.Core
                 rawPixelsPerViewPixel = displayInformation.RawPixelsPerViewPixel;
             }
             catch { }
-            if (rawPixelsPerViewPixel < 1.5) return ScreenSize.Small;
-            if (rawPixelsPerViewPixel < 2.5) return ScreenSize.Medium;
-            return ScreenSize.Large;
+            if (rawPixelsPerViewPixel < 1.5) return ElementsSize.Small;
+            if (rawPixelsPerViewPixel < 2.5) return ElementsSize.Medium;
+            return ElementsSize.Large;
         }
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
