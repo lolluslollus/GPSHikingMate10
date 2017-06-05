@@ -178,7 +178,7 @@ namespace LolloGPS.Core
             try
             {
                 // first of all
-                await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
+                await SuspensionManager.SaveSettingsAsync(_persistentData);
 
                 // try closing the subscribers tidily.
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);

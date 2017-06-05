@@ -223,7 +223,8 @@ namespace LolloGPS.Core
 		}
 		protected override Task CloseMayOverrideAsync(object args = null)
 		{
-			_holdingTimer?.Dispose();
+            var timer = _holdingTimer;
+			timer?.Dispose();
 			_holdingTimer = null;
 
 			PersistentData.IsBackButtonEnabled = false;

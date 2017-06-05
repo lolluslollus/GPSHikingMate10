@@ -84,7 +84,7 @@ namespace LolloGPS.Suspension
             }
             finally
             {
-                if (!string.IsNullOrWhiteSpace(errorMessage)) newPersistentData.LastMessage = errorMessage;
+                newPersistentData.LastMessage = errorMessage;
                 SemaphoreSlimSafeRelease.TryRelease(_loadSaveSemaphore);
             }
             return newPersistentData;

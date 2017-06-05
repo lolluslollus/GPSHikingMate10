@@ -58,18 +58,14 @@ namespace LolloGPS.Core
         {
             Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-            var openMainVmMessage = PersistentData.LastMessage;
-
             _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles);
             await _mainVM.OpenAsync(args);
             RaisePropertyChanged_UI(nameof(MainVM));
             await Task.Delay(1); // just in case
 
-            openMainVmMessage = PersistentData.LastMessage.Equals(openMainVmMessage) ? string.Empty : PersistentData.LastMessage;
-
-            Task alt0 = UpdateAltitudeColumnWidthAsync();
-            Task alt1 = UpdateAltitudeColumnMaxWidthAsync();
-            Task butt = UpdateIsExtraButtonsEnabledAsync();
+            await UpdateAltitudeColumnWidthAsync();
+            await UpdateAltitudeColumnMaxWidthAsync();
+            await UpdateIsExtraButtonsEnabledAsync();
 
             Logger.Add_TPL("Main.OpenAsync is about to open its child controls", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
@@ -80,7 +76,6 @@ namespace LolloGPS.Core
             await MyCustomMapsPanel.OpenAsync(args);
 
             AddHandlers();
-            PersistentData.LastMessage = openMainVmMessage; // output the msg into the UI
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
@@ -285,7 +280,6 @@ namespace LolloGPS.Core
             return RunInUiThreadAsync(delegate
             {
                 AltitudeColumn.Width = IsWideEnough ? new GridLength(1.0, GridUnitType.Star) : new GridLength(0.0);
-
                 Grid.SetColumn(MyAltitudeProfiles, IsWideEnough ? 1 : 0);
             });
         }
