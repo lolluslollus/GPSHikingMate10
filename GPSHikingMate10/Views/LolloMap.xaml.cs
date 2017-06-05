@@ -17,6 +17,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Xaml.Controls;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 
@@ -50,9 +52,6 @@ namespace LolloGPS.Core
         internal const double MIN_LON = -180.0;
         internal const double MAX_LON = 180.0;
 
-        //private Point _checkpointsNormalisedIconPoint = new Point(0.5, 0.5);
-        //public Point CheckpointsNormalisedIconPoint { get { return _checkpointsNormalisedIconPoint; } }
-
         private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
         {
             MapTabIndex = ROUTE0_TAB_INDEX,
@@ -66,43 +65,40 @@ namespace LolloGPS.Core
             StrokeColor = ((SolidColorBrush)(Application.Current.Resources["HistoryBrush"])).Color,
             StrokeDashed = false,
         };
-        //private static Image _imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-        //private static Image _imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-        //private static Image _imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-        private readonly MapIcon _iconStartHistory = new MapIcon()
-        {
-            CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-            //Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute)),
-            MapTabIndex = START_STOP_TAB_INDEX,
-            NormalizedAnchorPoint = new Point(0.5, 0.625),
-            Visible = true,
-        };
+        //private static Image _imageStartHistory = null;
+        //private static Image _imageEndHistory = null;
+        //private static Image _imageFlyoutPoint = null;
+        
         private readonly MapIcon _iconEndHistory = new MapIcon()
         {
             CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-            //Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute)),
             MapTabIndex = START_STOP_TAB_INDEX,
-            NormalizedAnchorPoint = new Point(0.5, 0.625),
+            NormalizedAnchorPoint = _pointersAnchorPoint,
             Visible = true,
         };
         private readonly MapIcon _iconFlyoutPoint = new MapIcon()
         {
             CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-            //Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute)),
             MapTabIndex = START_STOP_TAB_INDEX,
-            NormalizedAnchorPoint = new Point(0.5, 0.625),
+            NormalizedAnchorPoint = _pointersAnchorPoint,
             Visible = false,
         };
+        private readonly MapIcon _iconStartHistory = new MapIcon()
+        {
+            CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
+            MapTabIndex = START_STOP_TAB_INDEX,
+            NormalizedAnchorPoint = _pointersAnchorPoint,
+            Visible = true,
+        };
+
         private readonly RandomAccessStreamReference _checkpointIconStreamReference;
-        //private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-        // this uses a new "simple" icon with only 4 bits, so it's much faster to draw
-        //private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint_simple-8.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
-        //private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint_simple-16.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
 
-        //private static Image _checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
         //private static List<Image> _checkpointImages = new List<Image>();
+        //private static Image _checkpointBaseImage = null;
+        //private static BitmapImage _checkpointImageSource = null;
 
-        private readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
+        private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
+        private static readonly Point _pointersAnchorPoint = new Point(0.5, 0.625);
 
         public PersistentData PersistentData => App.PersistentData;
         public RuntimeData RuntimeData => App.RuntimeData;
@@ -142,25 +138,40 @@ namespace LolloGPS.Core
                 case ElementsSize.Small:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_SmallScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_SmallScreen"]);
-                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
+                    //_imageStartHistory= new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-36.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png"));
+                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute));
+                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
                     break;
                 case ElementsSize.Large:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_LargeScreen"]);
-                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
+                    //_imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-144.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png"));
+                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-144.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-144.png", UriKind.Absolute));
+                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png", UriKind.Absolute));
                     break;
                 default:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_MediumScreen"]);
                     _mapPolylineHistory.StrokeThickness = (double)(Application.Current.Resources["HistoryThickness_MediumScreen"]);
-                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
+                    //_imageStartHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_start-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageEndHistory = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_end-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_imageFlyoutPoint = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_current-72.png")) { CreateOptions = BitmapCreateOptions.None }, Stretch = Stretch.None };
+                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png"));
+                    //_checkpointBaseImage = new Image() { Source = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png")), Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed };
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-72.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-72.png", UriKind.Absolute));
+                    _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
                     _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png", UriKind.Absolute));
                     break;
             }
@@ -171,10 +182,10 @@ namespace LolloGPS.Core
             MyMap.Style = PersistentData.MapStyle;
             //MyMap.DesiredPitch = 0.0;
             //MyMap.Heading = 0;
+            //MyMap.PedestrianFeaturesVisible = false;
             //MyMap.TrafficFlowVisible = false;
             MyMap.LandmarksVisible = false;
-            MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
-                                                                                                                                                    //MyMap.PedestrianFeaturesVisible = false;
+            MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6";
             MyMap.ColorScheme = MapColorScheme.Light; //.Dark
             if (RuntimeData.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.ZoomInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
@@ -230,7 +241,8 @@ namespace LolloGPS.Core
             }
             if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
             {
-                Task drawC = Task.Run(DrawCheckpointsAsync);
+                Task drawC = Task.Run(DrawCheckpointsMapIconsAsync);
+                //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
             }
             if (!isResuming)
             {
@@ -268,14 +280,10 @@ namespace LolloGPS.Core
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
-
-                //var whichSeriesIsJustLoaded = PersistentData.Tables.Nil;
                 //// LOLLO NOTE dependency properties (MainVM here) must be referenced in the UI thread
-                //await RunInUiThreadAsync(() => { whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
 
                 if (whichSeriesIsJustLoaded == PersistentData.Tables.Nil)
                 {
-                    // LOLLO NOTE the shorter parameterless ctor syntax
                     var gp = new Geopoint(new BasicGeoposition { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
                     await RunInUiThreadAsync(delegate
                     {
@@ -410,9 +418,12 @@ namespace LolloGPS.Core
                     // LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
                     _mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
-                                                                               // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-                                                                               //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-                                                                               //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+                                                                                                                  // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+
+                    //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+                    //MapControl.SetNormalizedAnchorPoint(_imageStartHistory, _pointersAnchorPoint);
+                    //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions.Last()));
+                    //MapControl.SetNormalizedAnchorPoint(_imageEndHistory, _pointersAnchorPoint);
                     _iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
                     _iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
                     //Better even: use binding; sadly, it is broken for the moment
@@ -481,8 +492,8 @@ namespace LolloGPS.Core
                 SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
             }
         }
-
-        private async Task DrawCheckpointsAsync()
+        
+        private async Task DrawCheckpointsMapIconsAsync()
         {
             try
             {
@@ -494,7 +505,7 @@ namespace LolloGPS.Core
 
                 await RunInUiThreadAsync(delegate
                 {
-                    InitCheckpoints();
+                    InitCheckpoints_MapIcons();
 
                     if (CancToken.IsCancellationRequested) return;
 
@@ -536,7 +547,7 @@ namespace LolloGPS.Core
                     }
                     //Logger.Add_TPL(geoPoints.Count.ToString() + " checkpoints drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 #if DEBUG
-                    sw0.Stop(); Debug.WriteLine("attaching icons to map took " + sw0.ElapsedMilliseconds + " msec");
+                    sw0.Stop(); Debug.WriteLine("attaching checkpoints to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif
                 }).ConfigureAwait(false);
             }
@@ -549,8 +560,9 @@ namespace LolloGPS.Core
                 SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
             }
         }
-
-        private bool InitCheckpoints()
+        
+        
+        private bool InitCheckpoints_MapIcons()
         {
 #if DEBUG
             Stopwatch sw0 = new Stopwatch(); sw0.Start();
@@ -558,16 +570,15 @@ namespace LolloGPS.Core
             bool isInit = false;
             if (MyMap.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
             {
-                Debug.WriteLine("InitCheckpoints() is initialising the checkpoints, because there really are some");
+                Debug.WriteLine("InitCheckpoints_MapIcons() is initialising the checkpoints, because there really are some");
                 for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
                 {
                     MapIcon newIcon = new MapIcon()
                     {
                         CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
                         Image = _checkpointIconStreamReference,
-                        // Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute)),
                         MapTabIndex = CHECKPOINT_TAB_INDEX,
-                        NormalizedAnchorPoint = _checkpointsAnchorPoint, // new Point(0.5, 0.5),
+                        NormalizedAnchorPoint = _checkpointsAnchorPoint,
                         Visible = false
                     };
 
@@ -586,6 +597,94 @@ namespace LolloGPS.Core
 #endif
             return isInit;
         }
+        /*
+        private async Task DrawCheckpointsImagesAsync()
+        {
+            try
+            {
+                await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+
+                List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude })).ToList();
+
+                if (CancToken.IsCancellationRequested) return;
+
+                await RunInUiThreadAsync(delegate
+                {
+                    InitCheckpoints_Images();
+
+                    if (CancToken.IsCancellationRequested) return;
+
+#if DEBUG
+                    Stopwatch sw0 = new Stopwatch(); sw0.Start();
+#endif
+
+                    int howManyMapChildren = MyMap.Children.Count;
+                    int howManyGeopoints = geoPoints.Count;
+                    for (int i = 0; i < howManyGeopoints; i++)
+                    {
+                        var image = MyMap.Children[i] as FrameworkElement;
+                        if (image != null) {
+                            image.Visibility = Visibility.Visible;
+                            MapControl.SetLocation(image, geoPoints[i]);
+                            MapControl.SetNormalizedAnchorPoint(image, _checkpointsAnchorPoint);
+                        }
+                    }
+
+                    if (CancToken.IsCancellationRequested) return;
+
+                    for (int i = howManyGeopoints; i < PersistentData.MaxRecordsInCheckpoints; i++)
+                    {
+                        var image = MyMap.Children[i] as FrameworkElement;
+                        if (image != null)
+                        {
+                            image.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    //Logger.Add_TPL(geoPoints.Count.ToString() + " checkpoints drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+#if DEBUG
+                    sw0.Stop(); Debug.WriteLine("attaching checkpoints to map took " + sw0.ElapsedMilliseconds + " msec");
+#endif
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+            }
+        }
+        */
+        /*
+        private bool InitCheckpoints_Images()
+        {
+#if DEBUG
+            Stopwatch sw0 = new Stopwatch(); sw0.Start();
+#endif
+            bool isInit = false;
+            if (MyMap.Children.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
+            {
+                Debug.WriteLine("InitCheckpoints_Images() is initialising the checkpoints, because there really are some");
+                for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
+                {
+                    //MyMap.Children.Add(_checkpointBaseImage);
+                    MyMap.Children.Add(new Image() { Source = _checkpointImageSource, Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed });
+                }
+                isInit = true;
+                Debug.WriteLine("Checkpoints were initialised");
+            }
+            else
+            {
+                isInit = true;
+                Debug.WriteLine("Checkpoints were already initialised");
+            }
+#if DEBUG
+            sw0.Stop(); Debug.WriteLine("Initialising checkpoints took " + sw0.ElapsedMilliseconds + " msec");
+#endif
+            return isInit;
+        }
+        */
         private Task HideFlyoutPointAsync()
         {
             return RunInUiThreadAsync(delegate
@@ -594,6 +693,7 @@ namespace LolloGPS.Core
                 _iconFlyoutPoint.Visible = false;
             });
         }
+        
         private Task DrawFlyoutPointAsync()
         {
             return RunInUiThreadAsync(delegate
@@ -602,14 +702,13 @@ namespace LolloGPS.Core
                 _iconFlyoutPoint.Visible = true;
 
                 //MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
+                //MapControl.SetNormalizedAnchorPoint(_imageFlyoutPoint, _pointersAnchorPoint);
                 _iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
 
                 if (!_isFlyoutPointInMap)
                 {
-                    if (!MyMap.MapElements.Contains(_iconFlyoutPoint))
-                    {
-                        MyMap.MapElements.Add(_iconFlyoutPoint);
-                    }
+                    //if (!MyMap.Children.Contains(_imageFlyoutPoint)) MyMap.Children.Add(_imageFlyoutPoint);
+                    if (!MyMap.MapElements.Contains(_iconFlyoutPoint)) MyMap.MapElements.Add(_iconFlyoutPoint);
                     _isFlyoutPointInMap = true;
                 }
             });
@@ -947,7 +1046,8 @@ namespace LolloGPS.Core
             {
                 Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
                 {
-                    await DrawCheckpointsAsync().ConfigureAwait(false);
+                    await DrawCheckpointsMapIconsAsync().ConfigureAwait(false);
+                    //await DrawCheckpointsImagesAsync().ConfigureAwait(false);
                     // if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnCheckpointsAsync().ConfigureAwait(false);
                 });
             }
