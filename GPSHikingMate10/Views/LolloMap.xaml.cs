@@ -37,7 +37,7 @@ namespace LolloGPS.Core
         // I tried MapIcon instead of Images: they are much slower loading but respond much better to map movements! Ellipses are slower than images.
         // Things look better with win 10 on a pc, so I used icons, which don't seem slower than images anymore.
         // Things look better with 10.0.15063: I can now load 5x more checkpoints at a comparable speed.
-        // There are still problems tho:
+        // There are still problems tho, updated to 10.0.15063:
         // All MapElements shift a bit when zooming in a lot and panning the map.
         // MapIcons show a grey line between the should-be point and the actual point where the icon is centred.
         // Even using images only for the start, current and end pointers, they glitch when panning the map.
@@ -99,6 +99,7 @@ namespace LolloGPS.Core
         //private static List<Image> _checkpointImages = new List<Image>();
         //private static BitmapImage _checkpointImageSource = null;
         private readonly RandomAccessStreamReference _checkpointIconStreamReference;
+        //private readonly BitmapSource _checkpointImageSource;
 
         private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
         private static readonly Point _pointersAnchorPoint = new Point(0.5, 0.625);
@@ -243,6 +244,7 @@ namespace LolloGPS.Core
             {
                 Task drawC = Task.Run(DrawCheckpointsMapIconsAsync);
                 //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
+                //Task drawC = Task.Run(DrawCheckpointsMapItemsAsync);
             }
             if (!isResuming)
             {
@@ -683,6 +685,46 @@ namespace LolloGPS.Core
             return isInit;
         }
         */
+        /*
+        public class PointOfInterest
+        {
+            public string DisplayName { get; set; }
+            public Geopoint Location { get; set; }
+            public BitmapSource ImageSource { get; set; }
+            public Point NormalizedAnchorPoint { get; set; }
+        }
+        
+        private async Task DrawCheckpointsMapItemsAsync()
+        {
+            try
+            {
+                await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
+
+                List<PointOfInterest> checkpoints = PersistentData.Checkpoints.Select(item => new PointOfInterest()
+                {
+                    ImageSource = _checkpointImageSource,
+                    Location = new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }),
+                    NormalizedAnchorPoint = _checkpointsAnchorPoint
+
+                }).ToList();
+
+                if (CancToken.IsCancellationRequested) return;
+
+                await RunInUiThreadAsync(delegate
+                {
+                    MapItems.ItemsSource = checkpoints;
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
+            }
+        }
+        */
         private Task HideFlyoutPointAsync()
         {
             return RunInUiThreadAsync(delegate
@@ -1043,6 +1085,7 @@ namespace LolloGPS.Core
             {
                 Task draw = RunFunctionIfOpenAsyncT_MT(async delegate
                 {
+                    // await DrawCheckpointsMapItemsAsync().ConfigureAwait(false);
                     await DrawCheckpointsMapIconsAsync().ConfigureAwait(false);
                     //await DrawCheckpointsImagesAsync().ConfigureAwait(false);
                     // if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnCheckpointsAsync().ConfigureAwait(false);

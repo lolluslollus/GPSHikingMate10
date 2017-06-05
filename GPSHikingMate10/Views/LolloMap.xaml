@@ -13,86 +13,86 @@
 	UseLayoutRounding="True"
 	d:DesignHeight="400"
 	d:DesignWidth="500">
-	<UserControl.Resources>
-		<local:HeadingConverter x:Key="HeadingConverter"/>
-		<local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
-		<x:Double x:Key="LeftMargin4Scale">20</x:Double>
-	</UserControl.Resources>
-	<Grid x:Name="LayoutRoot">
-		<!--compass-->
-		<Canvas Canvas.ZIndex="200"
+    <UserControl.Resources>
+        <local:HeadingConverter x:Key="HeadingConverter"/>
+        <local:ScaleSizeConverter x:Key="ScaleSizeConverter"/>
+        <x:Double x:Key="LeftMargin4Scale">20</x:Double>
+    </UserControl.Resources>
+    <Grid x:Name="LayoutRoot">
+        <!--compass-->
+        <Canvas Canvas.ZIndex="200"
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				VerticalAlignment="Top" HorizontalAlignment="Left">
-			<views:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
-			<Image Canvas.Top="120" Canvas.Left="30"
+            <views:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
+            <Image Canvas.Top="120" Canvas.Left="30"
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				 RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
-				<Image.RenderTransform>
-					<CompositeTransform Rotation="{x:Bind MyMap.Heading, Converter={StaticResource HeadingConverter}, Mode=OneWay}"/>
-				</Image.RenderTransform>
-			</Image>
-		</Canvas>
-		<!--speedometer-->
-		<Canvas Canvas.ZIndex="200" 
+                <Image.RenderTransform>
+                    <CompositeTransform Rotation="{x:Bind MyMap.Heading, Converter={StaticResource HeadingConverter}, Mode=OneWay}"/>
+                </Image.RenderTransform>
+            </Image>
+        </Canvas>
+        <!--speedometer-->
+        <Canvas Canvas.ZIndex="200" 
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				VerticalAlignment="Top" HorizontalAlignment="Right">
-			<StackPanel Orientation="Horizontal" Canvas.Left="-230" Canvas.Top="150" 
+            <StackPanel Orientation="Horizontal" Canvas.Left="-230" Canvas.Top="150" 
 				HorizontalAlignment="Left"
 				Visibility="{x:Bind PersistentData.IsShowSpeed, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
-				<TextBlock Text="{x:Bind PersistentData.Current.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}, Mode=OneWay}"
+                <TextBlock Text="{x:Bind PersistentData.Current.SpeedInMetreSec, Converter={StaticResource MetreSecToKmHConverter}, Mode=OneWay}"
 					Foreground="{StaticResource ObjectInOverlayForegroundBrush}"
 					Style="{StaticResource HugeTextStyle}"/>
-			</StackPanel>
-		</Canvas>
-		<!--scale-->
-		<Grid Height="Auto" Canvas.ZIndex="200" VerticalAlignment="Bottom" Margin="0" Padding="0">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="28"/>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-				<ColumnDefinition />
-			</Grid.ColumnDefinitions>
-			<!-- left distance -->
-			<TextBlock Grid.Row="1" Grid.Column="1"
+            </StackPanel>
+        </Canvas>
+        <!--scale-->
+        <Grid Height="Auto" Canvas.ZIndex="200" VerticalAlignment="Bottom" Margin="0" Padding="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="28"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <!-- left distance -->
+            <TextBlock Grid.Row="1" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Text="0"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
-			<!-- right distance -->
-			<Grid Grid.Row="1" Grid.Column="1"
+            <!-- right distance -->
+            <Grid Grid.Row="1" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Width="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=rightLabelX, Mode=OneWay}">
-				<TextBlock Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded, Mode=OneWay}"
+                <TextBlock Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=distRounded, Mode=OneWay}"
 				   HorizontalAlignment="Right"
 				   FontWeight="Bold" 
 				   Style="{StaticResource BaseMessageStyle}" Padding="0"
 				   Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
-			</Grid>
-			<!-- internal zoom level -->
-			<TextBlock Grid.Row="0" Grid.Column="1"
+            </Grid>
+            <!-- internal zoom level -->
+            <TextBlock Grid.Row="0" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Text="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=techZoom, Mode=OneWay}"
 				FontWeight="Bold" 
 				Style="{StaticResource BaseMessageStyle}" Padding="0"
 				Foreground="{StaticResource ObjectInOverlayForegroundBrush}" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
-			<!-- scale bar -->
-			<Image Grid.Row="2" Grid.Column="1"
+            <!-- scale bar -->
+            <Image Grid.Row="2" Grid.Column="1"
 				HorizontalAlignment="Left"
 				Source="ms-appx:///Assets/scale-300.png" 
 				Stretch="None"
 				RenderTransformOrigin="0.0,0.0" >
-				<Image.RenderTransform>
-					<CompositeTransform ScaleX="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform, Mode=OneWay}"/>
-				</Image.RenderTransform>
-			</Image>
-		</Grid>
-		<!--aim centre-->
-		<Image Canvas.ZIndex="200" 
+                <Image.RenderTransform>
+                    <CompositeTransform ScaleX="{x:Bind MyMap.ZoomLevel, Converter={StaticResource ScaleSizeConverter}, ConverterParameter=imageScaleTransform, Mode=OneWay}"/>
+                </Image.RenderTransform>
+            </Image>
+        </Grid>
+        <!--aim centre-->
+        <Image Canvas.ZIndex="200" 
 			Source="ms-appx:///Assets/aim-120.png"
 			Stretch="None"
 			VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -100,34 +100,49 @@
 			Tapped="OnAim_Tapped"
 			Holding="OnAim_Holding"
 			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
-		<!-- tile source -->
-		<Border Canvas.ZIndex="300"
+        <!-- tile source -->
+        <Border Canvas.ZIndex="300"
 				HorizontalAlignment="Right" VerticalAlignment="Top"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				CornerRadius="10,10,0,0"
 				RenderTransformOrigin="1, 1"
 				Visibility="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnProvider_Tapped">
-			<Border.RenderTransform>
-				<RotateTransform Angle="-90"/>
-			</Border.RenderTransform>
-			<StackPanel Orientation="Horizontal" >
-				<!--<TextBlock Text="© "
+            <Border.RenderTransform>
+                <RotateTransform Angle="-90"/>
+            </Border.RenderTransform>
+            <StackPanel Orientation="Horizontal" >
+                <!--<TextBlock Text="© "
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>-->
-				<TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
+                <TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>
-			</StackPanel>
-		</Border>
-		<Maps:MapControl Canvas.ZIndex="100"
+            </StackPanel>
+        </Border>
+        <Maps:MapControl Canvas.ZIndex="100"
 			x:Name="MyMap"
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
 			MapTapped="OnMap_Tapped"
 			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False">
-		</Maps:MapControl>
-	</Grid>
+            <!--<Maps:MapItemsControl x:Name="MapItems">
+                <Maps:MapItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding ImageSource}"
+                               Maps:MapControl.NormalizedAnchorPoint="{Binding NormalizedAnchorPoint}"
+                               Maps:MapControl.Location="{Binding Location}">
+                            <Image.Transitions>
+                                <TransitionCollection>
+                                    <EntranceThemeTransition/>
+                                </TransitionCollection>
+                            </Image.Transitions>
+                        </Image>
+                    </DataTemplate>
+                </Maps:MapItemsControl.ItemTemplate>
+            </Maps:MapItemsControl>-->
+        </Maps:MapControl>
+    </Grid>
 </uctl:OpenableObservableControl>
