@@ -172,7 +172,7 @@ namespace LolloGPS.Core
             //MyMap.DesiredPitch = 0.0;
             //MyMap.Heading = 0;
             //MyMap.TrafficFlowVisible = false;
-            //MyMap.LandmarksVisible = false; // important
+            MyMap.LandmarksVisible = false;
             MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6"; // "b77a5c561934e089"; // "t8Ko1RpGcknITinQoF1IdA"; // "b77a5c561934e089";
                                                                                                                                                     //MyMap.PedestrianFeaturesVisible = false;
             MyMap.ColorScheme = MapColorScheme.Light; //.Dark
@@ -191,8 +191,12 @@ namespace LolloGPS.Core
             {
                 var displayInformation = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
                 rawPixelsPerViewPixel = displayInformation.RawPixelsPerViewPixel;
+                Logger.Add_TPL($"rawPixelsPerViewPixel={rawPixelsPerViewPixel}", Logger.ForegroundLogFilename, Logger.Severity.Info);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
             if (rawPixelsPerViewPixel < 1.5) return ElementsSize.Small;
             if (rawPixelsPerViewPixel < 2.5) return ElementsSize.Medium;
             return ElementsSize.Large;
@@ -406,9 +410,9 @@ namespace LolloGPS.Core
                     // LOLLO TODO when zooming in and panning, the polylines move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
                     _mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
-                                                                                                                  // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
-                                                                                                                  //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-                                                                                                                  //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
+                                                                               // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+                                                                               //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
+                                                                               //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions[basicGeoPositions.Count - 1]));
                     _iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
                     _iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
                     //Better even: use binding; sadly, it is broken for the moment

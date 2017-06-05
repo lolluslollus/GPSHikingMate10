@@ -186,9 +186,9 @@ namespace LolloGPS.Core
                     // When resuming, settings and data are already in.
                     // However, reread the history coz the background task may have changed it while I was suspended.
                     bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
-                    Task loadCheckpoints = isResuming ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, false);
-                    Task loadHistory = PersistentData.LoadHistoryFromDbAsync(false, false);
-                    Task loadRoute0 = isResuming ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, false);
+                    Task loadCheckpoints = isResuming ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
+                    Task loadHistory = PersistentData.LoadHistoryFromDbAsync(false, true);
+                    Task loadRoute0 = isResuming ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
                     return Task.WhenAll(loadCheckpoints, loadHistory, loadRoute0);
                 });
 
