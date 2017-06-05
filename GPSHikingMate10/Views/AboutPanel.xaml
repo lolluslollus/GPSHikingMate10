@@ -41,7 +41,7 @@
 			VerticalAlignment="Center"/>
 
 		<TextBlock Grid.Row="2"
-			Text="Copyright Lollus 2015"
+			Text="Copyright Lollus 2015, 2016, 2017"
 			TextWrapping="Wrap" 
 			Style="{StaticResource TextParagraphStyle}"
 			Margin="{StaticResource Thickness0404}"

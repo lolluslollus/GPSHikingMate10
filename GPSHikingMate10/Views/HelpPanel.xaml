@@ -114,7 +114,7 @@
 		<TextBlock Text="Compass"
 			Style="{StaticResource HeaderTextStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is approximate, the compass will be opaque. If it is unreliable, the overlay won't appear at all: to fix this, you can wait a bit, move a bit or try to calibrate the device. To do so, move the device about like in the following picture (property of Microsoft)."
+		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is approximate, the overlay will be dashed. If it is unreliable, the overlay will be grey and dashed: to fix this, you can wait a bit, move a bit or try to calibrate the device. To do so, move the device about like in the following picture (courtesy of Microsoft)."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>

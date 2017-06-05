@@ -14,8 +14,9 @@
 		Background="Transparent"
 		Visibility="Visible">
 
-		<Image IsTapEnabled="False" IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-			RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-outer-90.png" Stretch="None" HorizontalAlignment="Center">
+		<Image x:Name="MyImage"
+            IsTapEnabled="False" IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+			RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-outer-good-90.png" Stretch="None" HorizontalAlignment="Center">
 			<Image.RenderTransform>
 				<CompositeTransform x:Name="Heading"/>
 			</Image.RenderTransform>

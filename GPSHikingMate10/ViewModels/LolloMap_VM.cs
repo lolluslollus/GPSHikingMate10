@@ -76,7 +76,6 @@ namespace LolloGPS.Core
             await RunInUiThreadAsync(delegate
             {
                 CloseAlternativeMap_Local();
-                //PersistentData.MapStyle = MapStyle.None;
                 _localMapTileDataSource = new LocalMapTileDataSource()
                 {
                     // UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
@@ -121,7 +120,6 @@ namespace LolloGPS.Core
             await RunInUiThreadAsync(delegate
             {
                 CloseAlternativeMap_Http();
-                //PersistentData.MapStyle = MapStyle.None;
                 _httpMapTileDataSource = new HttpMapTileDataSource()
                 {
                     // UriFormatString = tileCache.GetWebUriFormat(), not required coz we catch the event OnDataSource_UriRequested
@@ -167,7 +165,6 @@ namespace LolloGPS.Core
             await RunInUiThreadAsync(delegate
             {
                 CloseAlternativeMap_Custom();
-                //PersistentData.MapStyle = MapStyle.None;
                 _customMapTileDataSource = new CustomMapTileDataSource();
 
                 var mapTileSource = new MapTileSource(
