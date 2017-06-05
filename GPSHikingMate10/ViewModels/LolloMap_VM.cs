@@ -331,7 +331,7 @@ namespace LolloGPS.Core
             {
                 var tc = _tileCache;
                 if (tc == null) return;
-                var pixelRef = await tc.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, _ctsManager.LinkedCancToken).ConfigureAwait(false);
+                var pixelRef = await Task.Run(() => tc.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, _ctsManager.LinkedCancToken), _ctsManager.LinkedCancToken).ConfigureAwait(false);
                 if (pixelRef != null) args.Request.PixelData = pixelRef;
             }
             catch (Exception exc)

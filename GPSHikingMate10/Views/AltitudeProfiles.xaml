@@ -13,10 +13,12 @@
 	d:DesignWidth="400">
 
 	<Grid x:Name="LayoutRoot">
+        <!--ViewChanging="OnMyScrollViewer_ViewChanging"-->
 		<ScrollViewer VerticalScrollBarVisibility="Auto" 
 			HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled"
 			BringIntoViewOnFocusChange="True" 
 			Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+            ViewChanged="OnMyScrollViewer_ViewChanged"
 			x:Name="MyScrollViewer">
 
 			<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">

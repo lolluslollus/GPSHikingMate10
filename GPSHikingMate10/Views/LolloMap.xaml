@@ -127,7 +127,11 @@
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
 			VerticalAlignment="Stretch" VerticalContentAlignment="Stretch"
 			MapTapped="OnMap_Tapped"
-			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False">
+			IsHoldingEnabled="True" IsDoubleTapEnabled="False" IsRightTapEnabled="False"
+            CenterChanged="OnCenterChanged"
+            HeadingChanged="OnHeadingChanged"
+            PitchChanged="OnPitchChanged"
+            ZoomLevelChanged="OnZoomLevelChanged">
             <!--<Maps:MapItemsControl x:Name="MapItems">
                 <Maps:MapItemsControl.ItemTemplate>
                     <DataTemplate>

@@ -256,20 +256,6 @@ namespace LolloGPS.Core
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
             RemoveHandlers();
-            // save last map settings
-            try
-            {
-                PersistentData.MapLastLat = MyMap.Center.Position.Latitude;
-                PersistentData.MapLastLon = MyMap.Center.Position.Longitude;
-                PersistentData.MapLastHeading = MyMap.Heading;
-                PersistentData.MapLastPitch = MyMap.Pitch;
-                PersistentData.MapLastZoom = MyMap.ZoomLevel;
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-            }
-
             await CompassControl.CloseAsync(args);
             await _lolloMapVM.CloseAsync(args).ConfigureAwait(false);
         }
@@ -1090,6 +1076,35 @@ namespace LolloGPS.Core
                     //await DrawCheckpointsImagesAsync().ConfigureAwait(false);
                     // if (e.Action == NotifyCollectionChangedAction.Replace) await CentreOnCheckpointsAsync().ConfigureAwait(false);
                 });
+            }
+        }
+        private void OnZoomLevelChanged(MapControl sender, object args)
+        {
+            if (!IsOpen) return;
+            PersistentData.MapLastZoom = sender.ZoomLevel;
+        }
+
+        private void OnHeadingChanged(MapControl sender, object args)
+        {
+            if (!IsOpen) return;
+            PersistentData.MapLastHeading = MyMap.Heading;
+        }
+
+        private void OnPitchChanged(MapControl sender, object args)
+        {
+            if (!IsOpen) return;
+            PersistentData.MapLastPitch = MyMap.Pitch;
+        }
+
+        private void OnCenterChanged(MapControl sender, object args)
+        {
+            if (!IsOpen) return;
+            double? lat = MyMap.Center?.Position.Latitude;
+            double? lon = MyMap.Center?.Position.Longitude;
+            if (lat != null && lon != null)
+            {
+                PersistentData.MapLastLat = (double)lat;
+                PersistentData.MapLastLon = (double)lon;
             }
         }
         #endregion data event handlers

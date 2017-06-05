@@ -177,6 +177,10 @@ namespace LolloGPS.Core
                 false);
             try
             {
+                // first of all
+                await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
+
+                // try closing the subscribers tidily.
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 // notify the subscribers (eg Main.cs)
                 SuspendStarted?.Invoke(this, e);
@@ -185,11 +189,14 @@ namespace LolloGPS.Core
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: all are closed", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                await SuspensionManager.SaveSettingsAsync(_persistentData).ConfigureAwait(false);
                 //first to come, last to go
                 RuntimeData?.Close();
 
                 Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.AppEventsLogFilename);
             }
             finally
             {

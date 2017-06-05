@@ -13,6 +13,7 @@ using Utilz;
 using Windows.UI.Xaml;
 using System.Collections;
 using System.Globalization;
+using Windows.UI.Xaml.Controls;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // Multithreading documentation:
@@ -91,9 +92,6 @@ namespace LolloGPS.Core
 		protected override Task CloseMayOverrideAsync(object args = null)
 		{
 			RemoveHandlers();
-
-			PersistentData.AltLastVScroll = MyScrollViewer.VerticalOffset;
-
 			HistoryChart.Close();
 			Route0Chart.Close();
 			CheckpointsChart.Close();
@@ -366,11 +364,23 @@ namespace LolloGPS.Core
 			PersistentData.SetSeriesAltitudeI0I1(PersistentData.Tables.Checkpoints, e.I0, e.I1);
 		}
 
-		#endregion user event handlers
+        private void OnMyScrollViewer_ViewChanged(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e)
+        {
+            if (!IsOpen) return;
+            var scrollViewer = sender as ScrollViewer;
+            if (sender == null) return;
+            PersistentData.LastAltLastVScroll = scrollViewer.VerticalOffset;
+        }
+
+        private void OnMyScrollViewer_ViewChanging(object sender, Windows.UI.Xaml.Controls.ScrollViewerViewChangingEventArgs e)
+        {
+
+        }
+        #endregion user event handlers
 
 
-		#region services
-		private async Task RestoreViewCenteringAsync(PersistentData.Tables whichSeriesJustLoaded)
+        #region services
+        private async Task RestoreViewCenteringAsync(PersistentData.Tables whichSeriesJustLoaded)
 		{
 			try
 			{
@@ -380,7 +390,7 @@ namespace LolloGPS.Core
 				//// LOLLO NOTE dependency properties (MainVM here) must be referenced in the UI thread
 				//await RunInUiThreadAsync(() => { whichSeriesJustLoaded = MainVM.WhichSeriesJustLoaded; }).ConfigureAwait(false);
 
-				if (whichSeriesJustLoaded == PersistentData.Tables.Nil) await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, PersistentData.AltLastVScroll, 1, true); }).ConfigureAwait(false);
+				if (whichSeriesJustLoaded == PersistentData.Tables.Nil) await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, PersistentData.LastAltLastVScroll, 1, true); }).ConfigureAwait(false);
 				//else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
 				//else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);
 				//else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnCheckpointsAsync().ConfigureAwait(false);
@@ -668,6 +678,6 @@ namespace LolloGPS.Core
 			catch { }
 			return Task.CompletedTask;
 		}
-		#endregion IMapAltProfCentrer
-	}
+        #endregion IMapAltProfCentrer
+    }
 }

@@ -436,19 +436,19 @@ namespace LolloGPS.Data
         public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
         private double _mapLastLat = default(double);
         [DataMember]
-        public double MapLastLat { get { return _mapLastLat; } set { _mapLastLat = value; RaisePropertyChanged(); } }
+        public double MapLastLat { get { return _mapLastLat; } set { _mapLastLat = value; } }
         private double _mapLastLon = default(double);
         [DataMember]
-        public double MapLastLon { get { return _mapLastLon; } set { _mapLastLon = value; RaisePropertyChanged(); } }
+        public double MapLastLon { get { return _mapLastLon; } set { _mapLastLon = value; } }
         private double _mapLastZoom = 2.0;
         [DataMember]
-        public double MapLastZoom { get { return _mapLastZoom; } set { _mapLastZoom = value; RaisePropertyChanged(); } }
+        public double MapLastZoom { get { return _mapLastZoom; } set { _mapLastZoom = value; } }
         private double _mapLastHeading = 0.0;
         [DataMember]
-        public double MapLastHeading { get { return _mapLastHeading; } set { _mapLastHeading = value; RaisePropertyChanged(); } }
+        public double MapLastHeading { get { return _mapLastHeading; } set { _mapLastHeading = value; } }
         private double _mapLastPitch = 0.0;
         [DataMember]
-        public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; RaisePropertyChanged(); } }
+        public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; } }
 
         private static readonly object _lastDownloadLocker = new object();
         private bool _isTilesDownloadDesired = false; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
@@ -524,9 +524,9 @@ namespace LolloGPS.Data
         [IgnoreDataMember]
         public bool IsTileSourcezBusy { get { return _isTileSourcezBusy; } private set { if (_isTileSourcezBusy != value) { _isTileSourcezBusy = value; RaisePropertyChanged_UI(); } } }
 
-        private double _altLastVScroll = 0.0;
+        private double _lastAltitudeLastVScroll = 0.0;
         [DataMember]
-        public double AltLastVScroll { get { return _altLastVScroll; } set { _altLastVScroll = value; RaisePropertyChanged(); } }
+        public double LastAltLastVScroll { get { return _lastAltitudeLastVScroll; } set { _lastAltitudeLastVScroll = value; } }
 
         private volatile bool _isShowImperialUnits = false;
         [DataMember]
