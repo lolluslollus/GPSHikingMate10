@@ -388,8 +388,12 @@ namespace LolloGPS.Core
 
                 if (whichSeriesJustLoaded == PersistentData.Tables.Nil)
                 {
-                    var vScroll = PersistentData.LastAltLastVScroll;
-                    await RunInUiThreadAsync(delegate { MyScrollViewer.ChangeView(0.0, vScroll, 1, true); }).ConfigureAwait(false);
+                    // LastAltLastVScroll can be speed-critical, so always reference it in the UI thread to avoid locks.
+                    await RunInUiThreadAsync(delegate
+                    {
+                        var vScroll = PersistentData.LastAltLastVScroll;
+                        MyScrollViewer.ChangeView(0.0, vScroll, 1, true);
+                    }).ConfigureAwait(false);
                 }
                 //else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
                 //else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);

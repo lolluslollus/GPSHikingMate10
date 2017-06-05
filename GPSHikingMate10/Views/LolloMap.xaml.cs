@@ -272,13 +272,16 @@ namespace LolloGPS.Core
 
                 if (whichSeriesIsJustLoaded == PersistentData.Tables.Nil)
                 {
-                    var gp = new Geopoint(new BasicGeoposition { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
-                    var zoom = PersistentData.MapLastZoom;
-                    var heading = PersistentData.MapLastHeading;
-                    var pitch = PersistentData.MapLastPitch;
                     Task restore = null;
                     await RunInUiThreadAsync(delegate
                     {
+                        double lat = PersistentData.MapLastLat; // always reference these variables in the UI thread, to avoid locks, coz they can be speed-critical
+                        double lon = PersistentData.MapLastLon;
+                        var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon });
+                        double zoom = PersistentData.MapLastZoom;
+                        double heading = PersistentData.MapLastHeading;
+                        double pitch = PersistentData.MapLastPitch;
+
                         restore = MyMap.TrySetViewAsync(gp, zoom, heading, pitch, MapAnimationKind.None).AsTask();
                     }).ConfigureAwait(false);
                     await restore.ConfigureAwait(false);
