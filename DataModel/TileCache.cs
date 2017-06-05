@@ -362,7 +362,7 @@ namespace LolloGPS.Data.TileCache
             try
             {
                 var request = WebRequest.CreateHttp(sWebUri);
-                _tileSource.ApplyHeaders(request);
+                _tileSource.ApplyHeadersToWebRequest(request);
                 request.AllowReadStreamBuffering = true;
                 request.ContinueTimeout = WebRequestTimeoutMsec;
 

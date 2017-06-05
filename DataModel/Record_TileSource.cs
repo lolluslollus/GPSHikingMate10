@@ -9,6 +9,7 @@ using Utilz.Data;
 // LOLLO NOTE https://dzjow.com/2012/04/12/free-online-topographic-maps-for-hiking/
 // http://onlinetopomaps.net/
 
+    // LOLLO TODO introduce servers with multiple mirrors, such as a.osm, b.osm, c.osm etc .
 namespace LolloGPS.Data
 {
     [DataContract]
@@ -424,7 +425,7 @@ namespace LolloGPS.Data
             return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", SampleUriString, DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, GetDefaultWebHeaderCollection());
         }
 
-        public void ApplyHeaders(WebRequest request)
+        public void ApplyHeadersToWebRequest(WebRequest request)
         {
             if (RequestHeaders != null)
             {
