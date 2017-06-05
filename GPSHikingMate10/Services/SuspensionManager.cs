@@ -134,7 +134,7 @@ namespace LolloGPS.Suspension
             }
             catch (Exception ex)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.FileErrorLogFilename);
+                await Logger.AddAsync(ex.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
             }
             finally
             {
