@@ -71,22 +71,26 @@ namespace LolloGPS.Core
             // this panel may be hidden: if so, do not draw anything
             if (!PersistentData.IsShowingAltitudeProfiles) return Task.CompletedTask;
 
-            Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History);
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
-            {
-                Task drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0);
-            }
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
-            {
-                Task drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
-            }
+            Task restore = Task.CompletedTask;
             if (!isResuming)
             {
                 var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later
-                Task restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
+                restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
 
-            return Task.CompletedTask;
+            Task drawC = Task.CompletedTask;
+            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+            {
+                drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
+            }
+            Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History);
+            Task drawR = Task.CompletedTask;
+            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+            {
+                drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0);
+            }
+
+            return Task.WhenAll(restore, drawC, drawH, drawR);
         }
 
         protected override Task CloseMayOverrideAsync(object args = null)
@@ -491,7 +495,7 @@ namespace LolloGPS.Core
                 try
                 {
 #if DEBUG
-					Stopwatch sw = new Stopwatch(); sw.Start();
+                    Stopwatch sw = new Stopwatch(); sw.Start();
 #endif
                     if (CancToken.IsCancellationRequested) return;
 
@@ -519,8 +523,8 @@ namespace LolloGPS.Core
                     chart.Y1GridLabels = PersistentData.IsShowImperialUnits ? new GridLabels(yLabels, "#0. ft") : new GridLabels(yLabels, "#0. m");
 
 #if DEBUG
-					sw.Stop();
-					Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
+                    sw.Stop();
+                    Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
 #endif
                 }
                 catch (Exception ex)

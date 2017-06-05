@@ -179,7 +179,7 @@ namespace LolloGPS.Core
 
             _myMapInstance = new WeakReference(MyMap);
 
-            MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = 0.0, Longitude = 0.0 });
+            MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
             MyMap.Style = PersistentData.MapStyle;
             //MyMap.DesiredPitch = 0.0;
             //MyMap.Heading = 0;
@@ -235,23 +235,29 @@ namespace LolloGPS.Core
             // the newly read series will draw automatically once they are pushed in and (the chosen one) will be centred with an external command.
             if (isFileActivating) return;
 
-            Task drawH = Task.Run(DrawHistoryAsync);
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
-            {
-                Task drawR = Task.Run(DrawRoute0Async);
-            }
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
-            {
-                Task drawC = Task.Run(DrawCheckpointsMapIconsAsync);
-                //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
-                //Task drawC = Task.Run(DrawCheckpointsMapItemsAsync);
-            }
+            Task restore = Task.CompletedTask;
             if (!isResuming)
             {
                 var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later,
                 // since dependency props must be read in the UI thread.
-                Task restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
+                restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
+
+            Task drawC = Task.CompletedTask;
+            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+            {
+                drawC = Task.Run(DrawCheckpointsMapIconsAsync);
+                //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
+                //Task drawC = Task.Run(DrawCheckpointsMapItemsAsync);
+            }
+            Task drawH = Task.Run(DrawHistoryAsync);
+            Task drawR = Task.CompletedTask;
+            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+            {
+                drawR = Task.Run(DrawRoute0Async);
+            }
+
+            await Task.WhenAll(restore, drawC, drawH, drawR).ConfigureAwait(false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
