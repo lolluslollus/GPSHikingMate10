@@ -248,7 +248,8 @@ namespace LolloGPS.Core
             }
             if (!isResuming)
             {
-                var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later
+                var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later,
+                // since dependency props must be read in the UI thread.
                 Task restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
         }
@@ -268,16 +269,19 @@ namespace LolloGPS.Core
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
-                //// LOLLO NOTE dependency properties (MainVM here) must be referenced in the UI thread
 
                 if (whichSeriesIsJustLoaded == PersistentData.Tables.Nil)
                 {
                     var gp = new Geopoint(new BasicGeoposition { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
+                    var zoom = PersistentData.MapLastZoom;
+                    var heading = PersistentData.MapLastHeading;
+                    var pitch = PersistentData.MapLastPitch;
+                    Task restore = null;
                     await RunInUiThreadAsync(delegate
                     {
-                        MyMap.TrySetViewAsync(gp, PersistentData.MapLastZoom, PersistentData.MapLastHeading, PersistentData.MapLastPitch,
-                                MapAnimationKind.None).AsTask();
+                        restore = MyMap.TrySetViewAsync(gp, zoom, heading, pitch, MapAnimationKind.None).AsTask();
                     }).ConfigureAwait(false);
+                    await restore.ConfigureAwait(false);
                 }
                 //else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnSeriesAsync(PersistentData.History).ConfigureAwait(false);
                 //else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnSeriesAsync(PersistentData.Route0).ConfigureAwait(false);
