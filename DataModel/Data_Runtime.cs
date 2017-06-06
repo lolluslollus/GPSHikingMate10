@@ -38,74 +38,7 @@ namespace LolloGPS.Data.Runtime
 
         private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
         public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
-        #endregion hardware
-
-        #region commands active
-        private volatile bool _isSettingsRead = false;
-        public bool IsSettingsRead { get { return _isSettingsRead; } }
-        private async Task Set_IsSettingsRead_Async(bool value)
-        {
-            try
-            {
-                await _settingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
-                if (_isSettingsRead != value)
-                {
-                    _isSettingsRead = value;
-                    RaisePropertyChanged_UI(nameof(IsSettingsRead));
-                    IsCommandsActive = _isSettingsRead && _isDbDataRead;
-                }
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
-            }
-        }
-        public static void SetIsSettingsRead_UI(bool isSettingsRead,
-            [CallerMemberName] string memberName = "",
-            [CallerFilePath] string sourceFilePath = "",
-            [CallerLineNumber] int sourceLineNumber = 0)
-        {
-            Task set = GetInstance().Set_IsSettingsRead_Async(isSettingsRead);
-        }
-
-        private volatile bool _isDbDataRead = false;
-        public bool IsDbDataRead { get { return _isDbDataRead; } }
-        private async Task Set_IsDBDataRead_Async(bool value)
-        {
-            try
-            {
-                await _settingsDbDataReadSemaphore.WaitAsync().ConfigureAwait(false);
-                if (_isDbDataRead != value)
-                {
-                    _isDbDataRead = value;
-                    RaisePropertyChanged_UI(nameof(IsDbDataRead));
-                    IsCommandsActive = _isSettingsRead && _isDbDataRead;
-                }
-            }
-            finally
-            {
-                SemaphoreSlimSafeRelease.TryRelease(_settingsDbDataReadSemaphore);
-            }
-        }
-        public static void SetIsDBDataRead_UI(bool isDbDataRead)
-        {
-            Task set = GetInstance().Set_IsDBDataRead_Async(isDbDataRead);
-        }
-
-        private volatile bool _isCommandsActive = false;
-        public bool IsCommandsActive
-        {
-            get { return _isCommandsActive; }
-            private set
-            {
-                if (_isCommandsActive != value)
-                {
-                    _isCommandsActive = value;
-                    RaisePropertyChangedUrgent_UI(nameof(IsCommandsActive));
-                }
-            }
-        }
-        #endregion commands active
+        #endregion hardware       
 
         #region download tiles
         private double _downloadProgressValue = default(double);

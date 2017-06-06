@@ -116,8 +116,6 @@ namespace LolloGPS.Core
             {
                 await _startingSemaphore.WaitAsync();
                 _runtimeData = RuntimeData.GetInstance();
-                // disable UI commands
-                RuntimeData.SetIsSettingsRead_UI(false);
                 _persistentData = await SuspensionManager.LoadSettingsAsync();
 
                 Frame rootFrame = GetCreateRootFrame(e);
@@ -131,8 +129,6 @@ namespace LolloGPS.Core
             }
             finally
             {
-                // enable UI commands
-                RuntimeData.SetIsSettingsRead_UI(true);
                 SemaphoreSlimSafeRelease.TryRelease(_startingSemaphore);
                 Logger.Add_TPL("OnLaunched ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
@@ -184,7 +180,6 @@ namespace LolloGPS.Core
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 // notify the subscribers (eg Main.cs)
                 SuspendStarted?.Invoke(this, e);
-                Logger.Add_TPL("invoke the subscribers to SuspendStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 // make sure the subscribers are all closed before saving the settings.
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
                 Logger.Add_TPL("invoke the subscribers to SuspendStarted: all are closed", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -221,12 +216,9 @@ namespace LolloGPS.Core
             try
             {
                 await _startingSemaphore.WaitAsync();
-                Logger.Add_TPL("OnResuming started is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
                 Logger.Add_TPL("invoke the subscribers to ResumeStarted: start", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 // notify the subscribers; we don't do anything else here.
                 ResumeStarted?.Invoke(this, EventArgs.Empty);
-                Logger.Add_TPL("invoke the subscribers to ResumeStarted: end", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 // make sure the subscribers are all open before proceeding
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, ResumeStarted?.GetInvocationList(), true).ConfigureAwait(false);
                 Logger.Add_TPL("invoke the subscribers to ResumeStarted: all are open", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
@@ -272,14 +264,10 @@ namespace LolloGPS.Core
                 if (args?.Files?[0]?.Path?.Length > 4 && args.Files[0].Path.EndsWith(ConstantData.GPX_EXTENSION, StringComparison.OrdinalIgnoreCase))
                 {
                     _runtimeData = RuntimeData.GetInstance();
-                    // disable UI commands
-                    RuntimeData.SetIsDBDataRead_UI(false);
 
                     Frame rootFrame = null;
                     if (!isAppAlreadyRunning)
                     {
-                        // disable UI commands
-                        RuntimeData.SetIsSettingsRead_UI(false);
                         _persistentData = await SuspensionManager.LoadSettingsAsync();
                         rootFrame = GetCreateRootFrame(args);
                         NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.FileActivated);
@@ -301,20 +289,15 @@ namespace LolloGPS.Core
             }
             finally
             {
-                // enable UI commands
-                RuntimeData.SetIsSettingsRead_UI(true);
-                RuntimeData.SetIsDBDataRead_UI(true);
-
-                Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
                 SemaphoreSlimSafeRelease.TryRelease(_startingSemaphore);
+                Logger.Add_TPL("OnFileActivated() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
         }
 
         private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             // this does not always work when the device force-shuts the app
-            await Logger.AddAsync("UnhandledException: " + e.Exception.ToString(), Logger.AppExceptionLogFilename).ConfigureAwait(false);
+            await Logger.AddAsync($"UnhandledException: {e.Exception.ToString()}{Environment.NewLine}---StackTrace:---{Environment.NewLine}{e.Exception.StackTrace}{Environment.NewLine}---InnerException:---{Environment.NewLine}{e.Exception.InnerException?.ToString()}---InnerException.StackTrace:---{Environment.NewLine}{e.Exception.InnerException?.StackTrace}", Logger.AppExceptionLogFilename).ConfigureAwait(false);
         }
         #endregion event handlers
 

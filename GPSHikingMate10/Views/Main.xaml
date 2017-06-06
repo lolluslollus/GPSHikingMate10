@@ -130,11 +130,12 @@
 		</VisualStateManager.VisualStateGroups>
 
 		<!-- loading overlay -->
+        <!--Visibility="{x:Bind Path=RuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">-->
 		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
 			  Opacity=".5"
 			  Canvas.ZIndex="999"
-			  Visibility="{x:Bind Path=RuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">
+			  Visibility="{x:Bind Path=MainVM.IsDrawing, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Visible}">
 			<TextBlock
 				x:Name="LoadingNoticeTextBlock"
 				Opacity="1"

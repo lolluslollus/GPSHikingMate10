@@ -243,13 +243,13 @@ namespace LolloGPS.Core
             Task restore = Task.CompletedTask;
             if (!isResuming)
             {
-                var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later,
+                var whichSeriesIsJustLoaded = MainVM.WhichSeriesToLoadFromDbOnNextResume; // I read it now to avoid switching threads later,
                 // since dependency props must be read in the UI thread.
                 restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
 
             Task drawC = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Checkpoints)
             {
                 drawC = Task.Run(DrawCheckpointsMapIconsAsync);
                 //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
@@ -257,12 +257,14 @@ namespace LolloGPS.Core
             }
             Task drawH = Task.Run(DrawHistoryAsync);
             Task drawR = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Route0)
             {
                 drawR = Task.Run(DrawRoute0Async);
             }
 
             await Task.WhenAll(restore, drawC, drawH, drawR);
+
+            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(MyMap);
             //_myReadyMapInstance = new WeakReference(MyMap);
             _myReadyMapInstance = MyMap;
         }
@@ -1103,7 +1105,7 @@ namespace LolloGPS.Core
             if (!IsOpen) return;
             PersistentData.MapLastZoom = sender.ZoomLevel;
             // the following two expressions seem equivalent
-            ScaleFactors = await ScaleFactors.GetNewScaleFactors(GetMapControlInstanceIfReady()).ConfigureAwait(false);
+            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(GetMapControlInstanceIfReady()).ConfigureAwait(false);
             //Task ww = ScaleFactors.GetNewScaleFactors(GetMapControlInstanceIfReady()).ContinueWith(async (Task<ScaleFactors> sf) => { ScaleFactors = await sf; });
         }
 
@@ -1463,7 +1465,7 @@ namespace LolloGPS.Core
         //private const double VerticalHalfCircM = 20004000.0;
         private const double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
 
-        private static async Task<ScaleFactors> CalcAlongMeridians(MapControl mapControl, CancellationToken cancToken)
+        private static async Task<ScaleFactors> CalcAlongMeridiansAsync(MapControl mapControl, CancellationToken cancToken)
         {
             if (mapControl == null) return LastScaleFactors;
 
@@ -1692,10 +1694,9 @@ namespace LolloGPS.Core
 
         #region boilerplate
         private static readonly object _ctsLocker = new object();
-        private static SafeCancellationTokenSource _cts = null; // new SafeCancellationTokenSource();
+        private static SafeCancellationTokenSource _cts = null;
 
         private static readonly object _lastObjectsLocker = new object();
-
         private static double _lastZoom = -1.0; // an absurd value
         private static ScaleFactors _lastScaleFactors = new ScaleFactors("~", 1.0, LolloMap.SCALE_IMAGE_WIDTH, (-1.0).ToString("zoom #0.#", CultureInfo.CurrentUICulture));
         private static double LastZoom { get { lock (_lastObjectsLocker) { return _lastZoom; } } set { lock (_lastObjectsLocker) { _lastZoom = value; } } }
@@ -1710,7 +1711,7 @@ namespace LolloGPS.Core
         /// </summary>
         /// <param name="mapControl"></param>
         /// <returns></returns>
-        public static async Task<ScaleFactors> GetNewScaleFactors(MapControl mapControl)
+        public static async Task<ScaleFactors> GetNewScaleFactorsAsync(MapControl mapControl)
         {
             if (mapControl == null) return GetInitialScaleFactors();
             if (mapControl.ZoomLevel == LastZoom) return LastScaleFactors;
@@ -1730,7 +1731,7 @@ namespace LolloGPS.Core
             ScaleFactors result = LastScaleFactors;
             try
             {
-                LastScaleFactors = result = await CalcAlongMeridians(mapControl, cancToken).ConfigureAwait(false);
+                LastScaleFactors = result = await CalcAlongMeridiansAsync(mapControl, cancToken).ConfigureAwait(false);
                 LastZoom = zoomLevel; //remember this to avoid repeating the same calculation
             }
             catch (OperationCanceledException) { }

@@ -74,18 +74,18 @@ namespace LolloGPS.Core
             Task restore = Task.CompletedTask;
             if (!isResuming)
             {
-                var whichSeriesIsJustLoaded = MainVM.WhichSeriesJustLoaded; // I read it now to avoid switching threads later
+                var whichSeriesIsJustLoaded = MainVM.WhichSeriesToLoadFromDbOnNextResume; // I read it now to avoid switching threads later
                 restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
 
             Task drawC = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Checkpoints)
+            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Checkpoints)
             {
                 drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
             }
             Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History);
             Task drawR = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesJustLoaded == PersistentData.Tables.Route0)
+            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Route0)
             {
                 drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0);
             }
