@@ -32,7 +32,8 @@
 			<conv:PointRecordEmptyToVisibleConverter x:Key="PointRecordEmptyToVisibleConverter"/>
 			<conv:PointRecordEmptyToCollapsedConverter x:Key="PointRecordEmptyToCollapsedConverter"/>
 			<conv:MetreSecToKmHConverter x:Key="MetreSecToKmHConverter"/>
-			<conv:StringNotEmptyToVisibleConverter x:Key="StringNotEmptyToVisibleConverter"/>
+            <conv:StringToStringArrayConverter x:Key="StringToStringArrayConverter"/>
+            <conv:StringNotEmptyToVisibleConverter x:Key="StringNotEmptyToVisibleConverter"/>
 			<conv:StringNotEmptyToTrueConverter x:Key="StringNotEmptyToTrueConverter"/>
 			<conv:FloatNotNullToVisibleConverter x:Key="FloatNotNullToVisibleConverter"/>
 			<conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>

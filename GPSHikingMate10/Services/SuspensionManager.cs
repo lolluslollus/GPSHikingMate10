@@ -24,7 +24,7 @@ namespace LolloGPS.Suspension
     {
         private static readonly SemaphoreSlimSafeRelease _loadSaveSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private const string SettingsFilename = "LolloSessionData.xml";
-
+        //private static readonly Type[] KnownTypes = {typeof(IReadOnlyList<string>), typeof(string[])};
         // LOLLO NOTE important! The Mutex can work across AppDomains (ie across main app and background task) but only if you give it a name!
         // Also, if you declare initially owned true, the second thread trying to cross it will stay locked forever. So, declare it false.
         // All this is not well documented.
@@ -52,7 +52,7 @@ namespace LolloGPS.Suspension
                 {
                     using (var iinStream = inStream.AsStreamForRead())
                     {
-                        DataContractSerializer serializer = new DataContractSerializer(typeof(PersistentData));
+                        DataContractSerializer serializer = new DataContractSerializer(typeof(PersistentData)); //, KnownTypes);
                         iinStream.Position = 0;
                         newPersistentData = (PersistentData)(serializer.ReadObject(iinStream));
                         await iinStream.FlushAsync().ConfigureAwait(false);
@@ -100,7 +100,7 @@ namespace LolloGPS.Suspension
             if (persistentData == null || persistentData.TileSourcez == null) return false;
             foreach (var ts in persistentData.TileSourcez)
             {
-                if (!string.IsNullOrWhiteSpace(ts.FolderName))
+                if (!string.IsNullOrWhiteSpace(ts.FolderName) && ts.UriStrings != null)
                 {
                     return true;
                 }

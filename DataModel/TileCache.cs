@@ -42,7 +42,8 @@ namespace LolloGPS.Data.TileCache
         private readonly bool _isReturnLocalUris = false;
         public bool IsReturnLocalUris { get { return _isReturnLocalUris; } }
 
-        private readonly string _webUriFormat = string.Empty;
+        private int _webUriFormatIndex = 0;
+        private readonly IReadOnlyList<string> _webUriFormats;
         private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
         #region lifecycle
@@ -56,16 +57,23 @@ namespace LolloGPS.Data.TileCache
             if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 
             TileSourceRecord.Clone(tileSource, ref _tileSource);
-            try
+
+            var webUriFormats = new List<string>();
+            foreach (var uriString in _tileSource.UriStrings)
             {
-                _webUriFormat = _tileSource.UriString.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
-                _webUriFormat = _webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
-                _webUriFormat = _webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
+                try
+                {
+                    string webUriFormat = uriString.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
+                    webUriFormat = webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
+                    webUriFormat = webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
+                    webUriFormats.Add(webUriFormat);
+                }
+                catch (Exception exc)
+                {
+                    Debug.WriteLine("Exception in TileCache.ctor: " + exc.Message + exc.StackTrace);
+                }
             }
-            catch (Exception exc)
-            {
-                Debug.WriteLine("Exception in TileCache.ctor: " + exc.Message + exc.StackTrace);
-            }
+            _webUriFormats = webUriFormats.AsReadOnly();
 
             //_isCaching = isCaching;
             _isReturnLocalUris = isReturnLocalUris;
@@ -93,13 +101,18 @@ namespace LolloGPS.Data.TileCache
             return uri;
         }
         /// <summary>
-        /// gets the web uri of the tile (TileSource, X, Y, Z and Zoom)
+        /// gets a web uri of the tile (TileSource, X, Y, Z and Zoom)
         /// </summary>
         private string GetWebUri(int x, int y, int z, int zoom)
         {
             try
             {
-                return string.Format(_webUriFormat, zoom, x, y);
+                // this is not critical, so we don#t lock, but mind the multithreading
+                var newIndex = _webUriFormatIndex;
+                if (newIndex >= _webUriFormats.Count - 1) newIndex = 0;
+                else newIndex++;
+                _webUriFormatIndex = newIndex;
+                return string.Format(_webUriFormats[newIndex], zoom, x, y);
             }
             catch (Exception exc)
             {
@@ -259,12 +272,11 @@ namespace LolloGPS.Data.TileCache
                 {
                     if (!RuntimeData.GetInstance().IsConnectionAvailable) return null;
 
-                    string sWebUri = GetWebUri(x, y, z, zoom);
                     //Debug.WriteLine("IsCaching = " + _isCaching);
                     // tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
                     //if (_isCaching)
                     //{
-                    fileNameWithExtension = await TrySaveTile2Async(sWebUri, x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
+                    fileNameWithExtension = await TrySaveTile2Async(x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
                     if (fileNameWithExtension != null) return GetUriForFile(fileNameWithExtension);
                     //}
                     //// tile not in cache and cache off: return the web uri of the tile
@@ -321,8 +333,7 @@ namespace LolloGPS.Data.TileCache
                     // tile is not in cache: download it and save it
                     if (RuntimeData.GetInstance().IsConnectionAvailable)
                     {
-                        string sWebUri = GetWebUri(x, y, z, zoom);
-                        result = await (TrySaveTile2Async(sWebUri, x, y, z, zoom, fileNameNoExtension, cancToken)).ConfigureAwait(false) != null;
+                        result = await (TrySaveTile2Async(x, y, z, zoom, fileNameNoExtension, cancToken)).ConfigureAwait(false) != null;
                     }
                 }
                 // tile is in cache: return ok
@@ -354,13 +365,14 @@ namespace LolloGPS.Data.TileCache
         /// <param name="fileNameNoExtension"></param>
         /// <param name="cancToken"></param>
         /// <returns>file name with extension</returns>
-        private async Task<string> TrySaveTile2Async(string sWebUri, int x, int y, int z, int zoom, string fileNameNoExtension, CancellationToken cancToken)
+        private async Task<string> TrySaveTile2Async(int x, int y, int z, int zoom, string fileNameNoExtension, CancellationToken cancToken)
         {
             if (cancToken.IsCancellationRequested) return null;
             int where = 0;
 
             try
             {
+                string sWebUri = GetWebUri(x, y, z, zoom);
                 var request = WebRequest.CreateHttp(sWebUri);
                 _tileSource.ApplyHeadersToWebRequest(request);
                 request.AllowReadStreamBuffering = true;

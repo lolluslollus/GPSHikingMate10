@@ -57,7 +57,7 @@
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
 		<TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" 
-			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			InputScope="Url"
 			VerticalAlignment="Center"/>
