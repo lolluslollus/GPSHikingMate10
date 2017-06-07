@@ -138,29 +138,32 @@ namespace LolloGPS.Core
                     if (isResuming && WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Nil)
                     {
                         var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
+                        Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to read file {file?.Name ?? "NONE"} with {WhichSeriesToLoadFromFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                         Task loadCheckpointsFromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Checkpoints, CancToken);
                         Task loadRoute0FromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Route0, CancToken);
                         await Task.WhenAll(loadCheckpointsFromFile, loadRoute0FromFile).ConfigureAwait(false);
                         WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
                     }
 
+                    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to load from db; isResuming = {isResuming} and the series is {WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                     Task loadCheckpointsFromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
                     Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, the bkb task may have changed it
                     Task loadRoute0FromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
                     await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
                     WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil;
+                    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync has loaded from db. There are {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                     if (isResuming && WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Nil)
                     {
                         var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
+                        Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to save file {file?.Name ?? "NONE"} with {WhichSeriesToSaveToFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                         Task saveCheckpointsToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Checkpoints, PersistentData.Tables.Checkpoints, DateTimeForSave, file, CancToken);
                         Task saveHistoryToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.History ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.History, PersistentData.Tables.History, DateTimeForSave, file, CancToken);
                         Task saveRoute0ToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Route0, PersistentData.Tables.Route0, DateTimeForSave, file, CancToken);
                         await Task.WhenAll(saveCheckpointsToFile, saveHistoryToFile, saveRoute0ToFile).ConfigureAwait(false);
-                        WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
+                        WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
                     }
                 });
-                Logger.Add_TPL($"MainVm.OpenMayOverrideAsync has loaded from db. There are {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                 await _gpsInteractor.OpenAsync(args);
                 await _tileCacheClearer.OpenAsync(args);
