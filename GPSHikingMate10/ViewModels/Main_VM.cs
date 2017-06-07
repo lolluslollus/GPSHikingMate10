@@ -135,34 +135,35 @@ namespace LolloGPS.Core
                     // 2) The device suspended with the file picker
                     bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
 
-                    if (isResuming && WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Nil)
-                    {
-                        var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
-                        Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to read file {file?.Name ?? "NONE"} with {WhichSeriesToLoadFromFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                        Task loadCheckpointsFromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Checkpoints, CancToken);
-                        Task loadRoute0FromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Route0, CancToken);
-                        await Task.WhenAll(loadCheckpointsFromFile, loadRoute0FromFile).ConfigureAwait(false);
-                        WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
-                    }
+                    //if (isResuming && WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Nil)
+                    //{
+                    //    var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
+                    //    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to read file {file?.Name ?? "NONE"} with {WhichSeriesToLoadFromFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                    //    Task loadCheckpointsFromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Checkpoints, CancToken);
+                    //    Task loadRoute0FromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Route0, CancToken);
+                    //    await Task.WhenAll(loadCheckpointsFromFile, loadRoute0FromFile).ConfigureAwait(false);
+                    //    WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
+                    //}
 
                     Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to load from db; isResuming = {isResuming} and the series is {WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                    Task loadCheckpointsFromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
-                    Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, the bkb task may have changed it
-                    Task loadRoute0FromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
-                    await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
-                    WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil;
+                    //Task loadCheckpointsFromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
+                    //Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, the bkb task may have changed it
+                    //Task loadRoute0FromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
+                    //await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
+                    //WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil;
+                    await PersistentData.LoadHistoryFromDbAsync(false, true).ConfigureAwait(false); // always load this, the bkb task may have changed it
                     Logger.Add_TPL($"MainVm.OpenMayOverrideAsync has loaded from db. There are {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                    if (isResuming && WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Nil)
-                    {
-                        var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
-                        Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to save file {file?.Name ?? "NONE"} with {WhichSeriesToSaveToFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                        Task saveCheckpointsToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Checkpoints, PersistentData.Tables.Checkpoints, DateTimeForSave, file, CancToken);
-                        Task saveHistoryToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.History ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.History, PersistentData.Tables.History, DateTimeForSave, file, CancToken);
-                        Task saveRoute0ToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Route0, PersistentData.Tables.Route0, DateTimeForSave, file, CancToken);
-                        await Task.WhenAll(saveCheckpointsToFile, saveHistoryToFile, saveRoute0ToFile).ConfigureAwait(false);
-                        WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
-                    }
+                    //if (isResuming && WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Nil)
+                    //{
+                    //    var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
+                    //    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to save file {file?.Name ?? "NONE"} with {WhichSeriesToSaveToFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                    //    Task saveCheckpointsToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Checkpoints, PersistentData.Tables.Checkpoints, DateTimeForSave, file, CancToken);
+                    //    Task saveHistoryToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.History ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.History, PersistentData.Tables.History, DateTimeForSave, file, CancToken);
+                    //    Task saveRoute0ToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Route0, PersistentData.Tables.Route0, DateTimeForSave, file, CancToken);
+                    //    await Task.WhenAll(saveCheckpointsToFile, saveHistoryToFile, saveRoute0ToFile).ConfigureAwait(false);
+                    //    WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
+                    //}
                 });
 
                 await _gpsInteractor.OpenAsync(args);
@@ -606,22 +607,32 @@ namespace LolloGPS.Core
 
 
         #region save and load with picker
-        internal Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
+        internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
         {
-            return RunFunctionIfOpenAsyncT(async () =>
-            {
-                if (CancToken.IsCancellationRequested) return;
-                SetLastMessage_UI("saving GPX file...");
+            if (CancToken.IsCancellationRequested || !_isOpen) return;
+            SetLastMessage_UI("saving GPX file...");
 
-                SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
-                DateTime fileCreationDateTime = DateTime.Now;
-                var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
-                if (file != null)
+            SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
+            DateTime fileCreationDateTime = DateTime.Now;
+            // this may trigger a suspend on phones.
+            Logger.Add_TPL($"PickSaveSeriesToFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
+            if (file != null)
+            {
+                WhichSeriesToSaveToFileOnNextResume = whichSeries;
+                DateTimeForSave = fileCreationDateTime;
+                Logger.Add_TPL($"PickSaveSeriesToFileAsync will save file {file.Name} for series {whichSeries.ToString()}; isOpen = {_isOpen}; the parameters are saved", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+                //if (CancToken.IsCancellationRequested) return;
+                while (!_isOpen)
+                {
+                    //if (CancToken.IsCancellationRequested) return;
+                    await Task.Delay(25).ConfigureAwait(false);
+                }
+                await RunFunctionIfOpenAsyncT(async () =>
                 {
                     try
                     {
-                        WhichSeriesToSaveToFileOnNextResume = whichSeries;
-                        DateTimeForSave = fileCreationDateTime;
                         if (CancToken.IsCancellationRequested) return;
                         Logger.Add_TPL("PickSaveSeriesToFileAsync about to save series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                         // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. 
@@ -631,12 +642,12 @@ namespace LolloGPS.Core
                         WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
                     }
                     catch (OperationCanceledException) { }
-                }
-                else
-                {
-                    SetLastMessage_UI("Saving cancelled");
-                }
-            });
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                SetLastMessage_UI("Saving cancelled");
+            }
         }
         /// <summary>
         /// Returns a pair of bools: the first says if the operation was ok, the second says if the operation was maybe ok but cancelled
@@ -678,22 +689,31 @@ namespace LolloGPS.Core
             return Tuple.Create(isResultOk, isCancelled);
         }
 
-        internal Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
+        internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
         {
-            return RunFunctionIfOpenAsyncT(async () =>
+            if (CancToken.IsCancellationRequested || !_isOpen) return;
+            SetLastMessage_UI("reading GPX file...");
+            // this may trigger a suspend on phones.
+            Logger.Add_TPL($"PickLoadSeriesFromFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
+            if (file != null)
             {
-                if (CancToken.IsCancellationRequested) return;
-                SetLastMessage_UI("reading GPX file...");
+                WhichSeriesToLoadFromFileOnNextResume = whichSeries;
+                WhichSeriesToLoadFromDbOnNextResume = whichSeries;
+                Logger.Add_TPL($"PickLoadSeriesFromFileAsync will open file {file.Name} for series {whichSeries.ToString()}; isOpen = {_isOpen}; the parameters are saved", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-                var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
-                if (file != null)
+                //if (CancToken.IsCancellationRequested) return;
+                while (!_isOpen)
                 {
+                    //if (CancToken.IsCancellationRequested) return;
+                    await Task.Delay(25).ConfigureAwait(false);
+                }
+                await RunFunctionIfOpenAsyncT(async () =>
+                {
+                    if (CancToken.IsCancellationRequested) return;
                     try
                     {
                         IsDrawing = true;
-                        WhichSeriesToLoadFromFileOnNextResume = whichSeries;
-                        WhichSeriesToLoadFromDbOnNextResume = whichSeries;
-                        if (CancToken.IsCancellationRequested) return;
                         Logger.Add_TPL("PickLoadSeriesFromFileAsync about to open series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                         // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. 
                         // We play along and cancel, OpenMayOverrideAsync() will take care of it.
@@ -710,12 +730,12 @@ namespace LolloGPS.Core
                     {
                         IsDrawing = false;
                     }
-                }
-                else
-                {
-                    SetLastMessage_UI("Loading cancelled");
-                }
-            });
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                SetLastMessage_UI("Loading cancelled");
+            }
         }
 
         // LOLLO NOTE check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
