@@ -117,12 +117,10 @@ namespace LolloGPS.Core
                     // 2) The device suspended with the file picker. In this case, my picker is smart and will continue on his own, as soon as everyhing is open again.
                     bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
 
-                    //Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to load from db; isResuming = {isResuming} and the series is {WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                     Task loadCheckpointsFromDb = isResuming ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
                     Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, even if resuming, coz the bkb task may have changed it
                     Task loadRoute0FromDb = isResuming ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
                     await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
-                    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync has loaded from db. There are {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 });
 
                 await _gpsInteractor.OpenAsync(args);
@@ -143,7 +141,7 @@ namespace LolloGPS.Core
                     KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
                 }).ConfigureAwait(false);
 
-                Logger.Add_TPL("MainVM.OpenMayOverrideAsync() ran OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                Logger.Add_TPL($"MainVm.OpenMayOverrideAsync ran OK. There are now {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (Exception ex)
             {
@@ -770,7 +768,6 @@ namespace LolloGPS.Core
                 // inform the user about the outcome
                 SetLastMessage_UI($"{PersistentData.GetTextForSeries(whichSeries)}: {cnt.ToString()} points loaded");
                 if (cnt > 0 && isResultOk) PersistentData.IsShowingPivot = false;
-                Logger.Add_TPL("LoadSeriesFromDbIntoUIAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             return isResultOk;
         }

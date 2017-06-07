@@ -271,7 +271,7 @@ namespace LolloGPS.Core
                 await RunInUiThreadAsync(delegate
                 {
                     double lat = PersistentData.MapLastLat; // always reference these variables in the UI thread, to avoid locks, coz they can be speed-critical
-                        double lon = PersistentData.MapLastLon;
+                    double lon = PersistentData.MapLastLon;
                     var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon });
                     double zoom = PersistentData.MapLastZoom;
                     double heading = PersistentData.MapLastHeading;
@@ -529,7 +529,6 @@ namespace LolloGPS.Core
                         MyMap.MapElements[j].Visible = false;
                         j++;
                     }
-                    //Logger.Add_TPL(geoPoints.Count.ToString() + " checkpoints drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 #if DEBUG
                     sw0.Stop(); Debug.WriteLine("attaching checkpoints to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif
@@ -624,7 +623,6 @@ namespace LolloGPS.Core
                             image.Visibility = Visibility.Collapsed;
                         }
                     }
-                    //Logger.Add_TPL(geoPoints.Count.ToString() + " checkpoints drawn", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 #if DEBUG
                     sw0.Stop(); Debug.WriteLine("attaching checkpoints to map took " + sw0.ElapsedMilliseconds + " msec");
 #endif

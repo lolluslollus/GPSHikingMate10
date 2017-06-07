@@ -56,7 +56,7 @@ namespace LolloGPS.Core
 
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
-            Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            Logger.Add_TPL("Main.OpenMayOverrideAsync just started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
             _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles, this);
             await _mainVM.OpenAsync(args);
@@ -67,8 +67,6 @@ namespace LolloGPS.Core
             await UpdateAltitudeColumnMaxWidthAsync();
             await UpdateIsExtraButtonsEnabledAsync();
 
-            Logger.Add_TPL("Main.OpenAsync is about to open its child controls", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
             await MyLolloMap.OpenAsync(args);
             await MyAltitudeProfiles.OpenAsync(args);
             MyMapsPanel.LolloMapVM = MyLolloMap.LolloMapVM;
@@ -76,12 +74,12 @@ namespace LolloGPS.Core
             await MyCustomMapsPanel.OpenAsync(args);
 
             AddHandlers();
-            Logger.Add_TPL("Main.OpenAsync is leaving OpenMayOverrideAsync", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            Logger.Add_TPL("Main.OpenMayOverrideAsync ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
-            Debug.WriteLine("Main.CloseAsync() entered CloseAsync");
+            Debug.WriteLine("Main.CloseMayOverrideAsync() started");
             try
             {
                 RemoveHandlers();
@@ -93,12 +91,12 @@ namespace LolloGPS.Core
                 {
                     await mainVM.CloseAsync(args);
                 }
-                Debug.WriteLine("Main.CloseAsync() closed MainVM");
+                Debug.WriteLine("Main.CloseMayOverrideAsync() closed MainVM");
 
                 await MyPointInfoPanel.CloseAsync(args);
                 await MyLolloMap.CloseAsync(args);
                 await MyAltitudeProfiles.CloseAsync(args);
-                Debug.WriteLine("Main.CloseAsync() closed the altitude");
+                Debug.WriteLine("Main.CloseMayOverrideAsync() closed the altitude");
             }
             catch (Exception ex)
             {
