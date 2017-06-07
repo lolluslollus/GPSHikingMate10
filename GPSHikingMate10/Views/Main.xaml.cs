@@ -334,7 +334,12 @@ namespace LolloGPS.Core
             if (!IsOnMe) return;
             // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, 
             // while I am already trying to open it from somewhere else.
-            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe) { await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm).ConfigureAwait(false); } // LOLLO TODO add a timeout
+            int cnt = 0;
+            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe)
+            {
+                cnt++; if (cnt > 200) return;
+                await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm).ConfigureAwait(false);
+            }
             if (!IsOnMe) return;
             await _mainVM.LoadFileAsync(args).ConfigureAwait(false);
         }

@@ -71,57 +71,10 @@ namespace LolloGPS.Core
         private volatile bool _isDrawing = true; // always written under _isOpenSemaphore
         public bool IsDrawing { get { return _isDrawing; } private set { if (_isDrawing != value) { _isDrawing = value; RaisePropertyChanged_UI(); } } }
 
-        private readonly object _loadSaveLocker = new object();
-        
-        public PersistentData.Tables WhichSeriesToSaveToFileOnNextResume
-        {
-            get
-            {
-                lock (_loadSaveLocker)
-                {
-                    PersistentData.Tables whichSeries = PersistentData.Tables.Nil;
-                    Enum.TryParse(
-                        RegistryAccess.GetValue(ConstantData.REG_SAVE_SERIES_WHICH_SERIES),
-                        out whichSeries);
-                    return whichSeries;
-                }
-            }
-            private set
-            {
-                lock (_loadSaveLocker)
-                {
-                    RegistryAccess.TrySetValue(ConstantData.REG_SAVE_SERIES_WHICH_SERIES, value.ToString());
-                }
-            }
-        }
-        public DateTime DateTimeForSave
-        {
-            get
-            {
-                lock (_loadSaveLocker)
-                {
-                    DateTime dt = default(DateTime);
-                    DateTime.TryParseExact(
-                        RegistryAccess.GetValue(ConstantData.REG_SAVE_SERIES_FILE_CREATION_DATE_TIME),
-                        ConstantData.GPX_DATE_TIME_FORMAT,
-                        CultureInfo.CurrentUICulture,
-                        DateTimeStyles.None,
-                        out dt);
-                    return dt;
-                }
-            }
-            private set
-            {
-                lock (_loadSaveLocker)
-                {
-                    RegistryAccess.TrySetValue(ConstantData.REG_SAVE_SERIES_FILE_CREATION_DATE_TIME, value.ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.CurrentUICulture));
-                }
-            }
-        }
-        private bool _isLoading = false;
-        public bool IsLoading { get { lock (_loadSaveLocker) { return _isLoading; } } private set { lock (_loadSaveLocker) { _isLoading = value; } RaisePropertyChanged_UI(); } }
-        private bool _isSaving = false;
-        public bool IsSaving { get { lock (_loadSaveLocker) { return _isSaving; } } private set { lock (_loadSaveLocker) { _isSaving = value; } RaisePropertyChanged_UI(); } }        
+        private volatile bool _isLoading = false; // always set under _isOpenSemaphore
+        public bool IsLoading { get { return _isLoading; } private set { _isLoading = value; RaisePropertyChanged_UI(); } }
+        private volatile bool _isSaving = false; // always set under _isOpenSemaphore
+        public bool IsSaving { get { return _isSaving; } private set { _isSaving = value; RaisePropertyChanged_UI(); } }
 
         private string _logText;
         public string LogText { get { return _logText; } set { _logText = value; RaisePropertyChanged_UI(); } }
@@ -164,33 +117,12 @@ namespace LolloGPS.Core
                     // 2) The device suspended with the file picker. In this case, my picker is smart and will continue on his own, as soon as everyhing is open again.
                     bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
 
-                    //if (isResuming && WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Nil)
-                    //{
-                    //    var file = await Pickers.GetLastPickedOpenFileAsync().ConfigureAwait(false);
-                    //    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to read file {file?.Name ?? "NONE"} with {WhichSeriesToLoadFromFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                    //    Task loadCheckpointsFromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Checkpoints, CancToken);
-                    //    Task loadRoute0FromFile = WhichSeriesToLoadFromFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : LoadSeriesFromFileIntoDbAsync(file, PersistentData.Tables.Route0, CancToken);
-                    //    await Task.WhenAll(loadCheckpointsFromFile, loadRoute0FromFile).ConfigureAwait(false);
-                    //}
-
                     //Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to load from db; isResuming = {isResuming} and the series is {WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                    //Task loadCheckpointsFromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
-                    //Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, the bkb task may have changed it
-                    //Task loadRoute0FromDb = isResuming && WhichSeriesToLoadFromDbOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
-                    //await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
-                    await PersistentData.LoadHistoryFromDbAsync(false, true).ConfigureAwait(false); // always load this, the bkb task may have changed it
+                    Task loadCheckpointsFromDb = isResuming ? Task.CompletedTask : PersistentData.LoadCheckpointsFromDbAsync(false, true);
+                    Task loadHistoryFromDb = PersistentData.LoadHistoryFromDbAsync(false, true); // always load this, even if resuming, coz the bkb task may have changed it
+                    Task loadRoute0FromDb = isResuming ? Task.CompletedTask : PersistentData.LoadRoute0FromDbAsync(false, true);
+                    await Task.WhenAll(loadCheckpointsFromDb, loadHistoryFromDb, loadRoute0FromDb).ConfigureAwait(false);
                     Logger.Add_TPL($"MainVm.OpenMayOverrideAsync has loaded from db. There are {PersistentData.Checkpoints.Count} checkpoints, {PersistentData.History.Count} history points and {PersistentData.Route0.Count} route points", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-                    // LOLLO TODO avoid reading these variables too often, they access the registry.
-                    //if (isResuming && WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Nil)
-                    //{
-                    //    var file = await Pickers.GetLastPickedSaveFileAsync().ConfigureAwait(false);
-                    //    Logger.Add_TPL($"MainVm.OpenMayOverrideAsync is about to save file {file?.Name ?? "NONE"} with {WhichSeriesToSaveToFileOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                    //    Task saveCheckpointsToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Checkpoints ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Checkpoints, PersistentData.Tables.Checkpoints, DateTimeForSave, file, CancToken);
-                    //    Task saveHistoryToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.History ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.History, PersistentData.Tables.History, DateTimeForSave, file, CancToken);
-                    //    Task saveRoute0ToFile = WhichSeriesToSaveToFileOnNextResume != PersistentData.Tables.Route0 ? Task.CompletedTask : ContinueAfterPickSaveSeriesToFileAsync(PersistentData.Route0, PersistentData.Tables.Route0, DateTimeForSave, file, CancToken);
-                    //    await Task.WhenAll(saveCheckpointsToFile, saveHistoryToFile, saveRoute0ToFile).ConfigureAwait(false);
-                    //}
                 });
 
                 await _gpsInteractor.OpenAsync(args);
@@ -219,9 +151,6 @@ namespace LolloGPS.Core
             }
             finally
             {
-                //WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
-                //WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil;
-                //WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
                 IsDrawing = false;
             }
         }
@@ -634,134 +563,90 @@ namespace LolloGPS.Core
         }
         #endregion IMapAltProfCentrer
 
-        #region save and load with picker
-        internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
+        #region load and save with picker
+        private async Task<MainVM> GetCurrentOpenInstanceAsync()
         {
-            if (CancToken.IsCancellationRequested) return;
-            await RunFunctionIfOpenAsyncT(async () =>
-            {
-                SetLastMessage_UI("saving GPX file...");
-
-                SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
-                DateTime fileCreationDateTime = DateTime.Now;
-
-                WhichSeriesToSaveToFileOnNextResume = whichSeries;
-                DateTimeForSave = fileCreationDateTime;
-                Logger.Add_TPL($"PickSaveSeriesToFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                // this may trigger a suspend on phones.
-                var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
-                if (file != null)
-                {
-                    try
-                    {
-                        // LOLLO TODO this hits after onsuspending is done, it's super quick, so it has no effect (on phone)
-                        //WhichSeriesToSaveToFileOnNextResume = whichSeries;
-                        //DateTimeForSave = fileCreationDateTime;
-                        Logger.Add_TPL($"PickSaveSeriesToFileAsync has picked file {file.Name} for series {whichSeries.ToString()}; isOpen = {_isOpen}; the parameters are saved", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-                        if (CancToken.IsCancellationRequested) return;
-                        Logger.Add_TPL("PickSaveSeriesToFileAsync about to save series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                        // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. 
-                        // We play along and cancel, OpenMayOverrideAsync() will take care of it.
-                        var saveResult = await ContinueAfterPickSaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file, CancToken).ConfigureAwait(false);
-                        if (saveResult.Item2) return; // cancelled
-                        WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
-                    }
-                    catch (OperationCanceledException) { }
-                }
-                else
-                {
-                    WhichSeriesToSaveToFileOnNextResume = PersistentData.Tables.Nil;
-                    SetLastMessage_UI("Saving cancelled");
-                }
-            }).ConfigureAwait(false);
-        }
-        /// <summary>
-        /// Returns a pair of bools: the first says if the operation was ok, the second says if the operation was maybe ok but cancelled
-        /// </summary>
-        /// <param name="series"></param>
-        /// <param name="whichSeries"></param>
-        /// <param name="fileCreationDateTime"></param>
-        /// <param name="file"></param>
-        /// <param name="cancToken"></param>
-        /// <returns></returns>
-        private async Task<Tuple<bool, bool>> ContinueAfterPickSaveSeriesToFileAsync(IReadOnlyCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file, CancellationToken cancToken)
-        {
-            Logger.Add_TPL("ContinueAfterPickSaveSeriesToFileAsync() started with file == null = " + (file == null).ToString() + " and whichSeries = " + whichSeries + " and isOpen = " + _isOpen, Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-            if (file == null || whichSeries == PersistentData.Tables.Nil) return Tuple.Create(false, false);
-            if (cancToken.IsCancellationRequested) return Tuple.Create(false, true);
-
-            bool isResultOk = false;
-            bool isCancelled = false;
-            Tuple<bool, string> readerWriterResult = Tuple.Create(false, "");
-            try
-            {
-                await Task.Run(async delegate
-                {
-                    if (cancToken.IsCancellationRequested) { isCancelled = true; return; }
-                    readerWriterResult = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, cancToken).ConfigureAwait(false);
-                    if (cancToken.IsCancellationRequested) { isCancelled = true; return; }
-                    isResultOk = readerWriterResult.Item1;
-                    Logger.Add_TPL($"MainVm.ContinueAfterPickSaveSeriesToFileAsync has saved series {whichSeries.ToString()} to a file with result ok = {readerWriterResult.Item1.ToString()} and message = {readerWriterResult.Item2}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                }).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) { isCancelled = true; }
-            catch (Exception) { }
-            finally
-            {
-                // inform the user about the outcome if bad
-                if (readerWriterResult?.Item1 != true) SetLastMessage_UI($"could not save {PersistentData.GetTextForSeries(whichSeries)}");
-                Logger.Add_TPL($"MainVm.ContinueAfterPickSaveSeriesToFileAsync() ended with result good = {isResultOk}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-            }
-            return Tuple.Create(isResultOk, isCancelled);
-        }
-
-        internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
-        {
-            var cancToken = CancToken;
-            SetLastMessage_UI("reading GPX file...");
-
-            if (cancToken.IsCancellationRequested) return;
-
-            Logger.Add_TPL($"PickLoadSeriesFromFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-            var openPicker = new FileOpenPicker
-            {
-                ViewMode = PickerViewMode.List,
-                SuggestedStartLocation = PickerLocationId.DocumentsLibrary
-            };
-            openPicker.FileTypeFilter.Add(ConstantData.GPX_EXTENSION);
-
-            // this may trigger a suspend on phones. If so, execution will be cancelled immediately.
-            // It will then resume and come back here, but with a new instance, since I have IOpenable.
-            var file = await openPicker.PickSingleFileAsync();
-            Logger.Add_TPL($"PickLoadSeriesFromFileAsync has picked file {file?.Name ?? "NONE"} for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
             // wait for the UI to be ready, like the user would do, so we don't get in at unexpected instants.
             // This means, wait for Main to be open.
             int cnt = 0;
             while (Instance?.Owner?.IsOpen != true)
             {
-                cnt++; if (cnt > 200) return;
+                cnt++; if (cnt > 200) return null;
                 //Logger.Add_TPL($"PickLoadSeriesFromFileAsync is waiting for MainVM to reopen; Instance is there = {(Instance != null).ToString()}; Instance is open = {Instance?.IsOpen == true}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 //Logger.Add_TPL($"PickLoadSeriesFromFileAsync is waiting for Main to reopen; Owner is there = {(Instance.Owner != null).ToString()}; Owner is open = {Instance.Owner?.IsOpen == true}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 await Task.Delay(25).ConfigureAwait(false);
             }
             Logger.Add_TPL($"PickLoadSeriesFromFileAsync has got an open instance", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-            var instance = Instance;
+            return Instance;
+        }
+        internal async Task PickLoadSeriesFromFileAsync(PersistentData.Tables whichSeries)
+        {
+            if (!_isOpen || CancToken.IsCancellationRequested) return;
+
+            SetLastMessage_UI("reading GPX file...");
+            Logger.Add_TPL($"PickLoadSeriesFromFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+            // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
+            // It will then resume and come back here, but with a new instance, since I have IOpenable.
+            var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION });
+            Logger.Add_TPL($"PickLoadSeriesFromFileAsync has picked file {file?.Name ?? "NONE"} for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
+            if (file == null) return;
+
+            var instance = await GetCurrentOpenInstanceAsync().ConfigureAwait(false);
             if (instance == null) return;
 
             await instance.RunFunctionIfOpenAsyncT(() =>
             {
-                return instance.LoadFile2Async(file, whichSeries==PersistentData.Tables.Checkpoints, whichSeries==PersistentData.Tables.Route0, instance.CancToken);
+                try
+                {
+                    instance.IsSaving = true;
+                    return instance.LoadFile2Async(file, whichSeries == PersistentData.Tables.Checkpoints, whichSeries == PersistentData.Tables.Route0, instance.CancToken);
+                }
+                finally
+                {
+                    instance.IsSaving = false;
+                }
+            }).ConfigureAwait(false);
+        }
+        internal async Task PickSaveSeriesToFileAsync(PersistentData.Tables whichSeries, string fileNameSuffix)
+        {
+            if (!_isOpen || CancToken.IsCancellationRequested) return;
+
+            SetLastMessage_UI("saving GPX file...");
+            Logger.Add_TPL($"PickSaveSeriesToFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+            SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
+            DateTime fileCreationDateTime = DateTime.Now;
+            // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
+            // It will then resume and come back here, but with a new instance, since I have IOpenable.
+            var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
+            Logger.Add_TPL($"PickSaveSeriesToFileAsync has picked file {file?.Name ?? "NONE"} for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
+            if (file == null) return;
+
+            var instance = await GetCurrentOpenInstanceAsync().ConfigureAwait(false);
+            if (instance == null) return;
+
+            await instance.RunFunctionIfOpenAsyncT(async () =>
+            {
+                try
+                {
+                    instance.IsLoading = true;
+                    var saveResult = await instance.SaveSeriesToFileAsync(series, whichSeries, fileCreationDateTime, file, instance.CancToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    instance.IsLoading = false;
+                }
             }).ConfigureAwait(false);
         }
 
         // LOLLO NOTE check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
         // and AnalyticsVersionInfo.DeviceFamily
         // for picker details        
-        #endregion save and load with picker
+        #endregion load and save with picker
 
         #region open app through file
         public Task LoadFileAsync(FileActivatedEventArgs args)
@@ -779,6 +664,7 @@ namespace LolloGPS.Core
         #region load and save utils
         private async Task LoadFile2Async(StorageFile file, bool doCheckpoints, bool doRoutes0, CancellationToken cancToken)
         {
+            Logger.Add_TPL($"MainVM.LoadFile2Async() is starting, isOpen = {_isOpen}", Logger.AppEventsLogFilename, Logger.Severity.Error, true);
             try
             {
                 IsDrawing = true;
@@ -786,10 +672,10 @@ namespace LolloGPS.Core
                 var whichTables = await LoadFileIntoDbAsync(file, doCheckpoints, doRoutes0, cancToken).ConfigureAwait(false);
                 if (whichTables == null)
                 {
-                    Logger.Add_TPL("LoadFileAsync() loaded no files into the db", Logger.AppEventsLogFilename, Logger.Severity.Error, true);
+                    Logger.Add_TPL("MainVM.LoadFile2Async() loaded no files into the db", Logger.AppEventsLogFilename, Logger.Severity.Error, true);
                     return;
                 }
-                Logger.Add_TPL($"LoadFileAsync() loaded {whichTables.Count} file(s) into the db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                Logger.Add_TPL($"MainVM.LoadFile2Async() loaded {whichTables.Count} file(s) into the db", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
                 // get file data from DB into UI
                 if (cancToken.IsCancellationRequested) return;
@@ -798,7 +684,7 @@ namespace LolloGPS.Core
                 {
                     await LoadSeriesFromDbIntoUIAsync(series).ConfigureAwait(false);
                 }
-                Logger.Add_TPL("LoadFileAsync() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                Logger.Add_TPL("MainVM.LoadFile2Async() ended proc OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (OperationCanceledException ex) { }
             finally
@@ -887,6 +773,46 @@ namespace LolloGPS.Core
                 Logger.Add_TPL("LoadSeriesFromDbIntoUIAsync() ended", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             return isResultOk;
+        }
+        /// <summary>
+        /// Returns a pair of bools: the first says if the operation was ok, the second says if the operation was maybe ok but cancelled
+        /// </summary>
+        /// <param name="series"></param>
+        /// <param name="whichSeries"></param>
+        /// <param name="fileCreationDateTime"></param>
+        /// <param name="file"></param>
+        /// <param name="cancToken"></param>
+        /// <returns></returns>
+        private async Task<Tuple<bool, bool>> SaveSeriesToFileAsync(IReadOnlyCollection<PointRecord> series, PersistentData.Tables whichSeries, DateTime fileCreationDateTime, StorageFile file, CancellationToken cancToken)
+        {
+            Logger.Add_TPL($"MainVm.SaveSeriesToFileAsync() started with file == null = {(file == null).ToString()} and whichSeries = {whichSeries} and isOpen = {_isOpen}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            if (file == null || whichSeries == PersistentData.Tables.Nil) return Tuple.Create(false, false);
+            if (cancToken.IsCancellationRequested) return Tuple.Create(false, true);
+
+            bool isResultOk = false;
+            bool isCancelled = false;
+            Tuple<bool, string> readerWriterResult = Tuple.Create(false, "");
+            try
+            {
+                await Task.Run(async delegate
+                {
+                    if (cancToken.IsCancellationRequested) { isCancelled = true; return; }
+                    readerWriterResult = await ReaderWriter.SaveAsync(file, series, fileCreationDateTime, whichSeries, cancToken).ConfigureAwait(false);
+                    if (cancToken.IsCancellationRequested) { isCancelled = true; return; }
+                    isResultOk = readerWriterResult.Item1;
+                    Logger.Add_TPL($"MainVm.SaveSeriesToFileAsync has saved series {whichSeries.ToString()} to a file with result ok = {readerWriterResult.Item1.ToString()} and message = {readerWriterResult.Item2}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                }).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { isCancelled = true; }
+            catch (Exception) { }
+            finally
+            {
+                // inform the user about the outcome
+                if (readerWriterResult?.Item1 == true) SetLastMessage_UI($"{PersistentData.GetTextForSeries(whichSeries)} saved");
+                else SetLastMessage_UI($"could not save {PersistentData.GetTextForSeries(whichSeries)}");
+                Logger.Add_TPL($"MainVm.SaveSeriesToFileAsync() ended with result good = {isResultOk}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            }
+            return Tuple.Create(isResultOk, isCancelled);
         }
         #endregion utils
     }
