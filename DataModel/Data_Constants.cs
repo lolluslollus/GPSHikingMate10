@@ -23,8 +23,9 @@ namespace LolloGPS.Data
 		public const string REG_CLEARING_CACHE_TILE_SOURCE = "IsClearingCache_TileSource";
 		public const string REG_CLEARING_CACHE_IS_REMOVE_SOURCES = "IsClearingCache_IsAlsoRemoveSources";
 		public const string REG_LOAD_SERIES_IS_LOADING = "LoadSeries_IsLoading";
-		public const string REG_LOAD_SERIES_WHICH_SERIES = "LoadSeries_WhichSeries";
-		public const string REG_SAVE_SERIES_IS_SAVING = "SaveSeries_IsSaving";
+		public const string REG_LOAD_SERIES_WHICH_SERIES_FILE = "LoadSeries_WhichSeries_File";
+        public const string REG_LOAD_SERIES_WHICH_SERIES_DB = "LoadSeries_WhichSeries_Db";
+        public const string REG_SAVE_SERIES_IS_SAVING = "SaveSeries_IsSaving";
 		public const string REG_SAVE_SERIES_WHICH_SERIES = "SaveSeries_WhichSeries";
 		public const string REG_SAVE_SERIES_FILE_CREATION_DATE_TIME = "SaveSeries_FileCreationDateTime";
 		//public const double MILE_TO_KM = 1.609344;

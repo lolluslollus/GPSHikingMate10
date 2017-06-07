@@ -297,6 +297,7 @@ namespace LolloGPS.Core
         private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             // this does not always work when the device force-shuts the app
+            await Logger.AddAsync($"UnhandledException: {e.Exception.ToString()}", Logger.AppExceptionLogFilename);
             await Logger.AddAsync($"UnhandledException: {e.Exception.ToString()}{Environment.NewLine}---StackTrace:---{Environment.NewLine}{e.Exception.StackTrace}{Environment.NewLine}---InnerException:---{Environment.NewLine}{e.Exception.InnerException?.ToString()}---InnerException.StackTrace:---{Environment.NewLine}{e.Exception.InnerException?.StackTrace}", Logger.AppExceptionLogFilename).ConfigureAwait(false);
         }
         #endregion event handlers

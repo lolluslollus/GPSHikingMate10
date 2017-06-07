@@ -248,17 +248,22 @@ namespace LolloGPS.Core
                 restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
             }
 
+            Logger.Add_TPL($"LolloMap.Open will decide on drawing the newly loaded series. isResuming = {isResuming} and WhichSeriesToLoadFromDbOnNextResume = {MainVM.WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
             Task drawC = Task.CompletedTask;
             if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Checkpoints)
             {
+                Logger.Add_TPL("LolloMap.Open will draw the checkpoints", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 drawC = Task.Run(DrawCheckpointsMapIconsAsync);
                 //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
                 //Task drawC = Task.Run(DrawCheckpointsMapItemsAsync);
             }
             Task drawH = Task.Run(DrawHistoryAsync);
             Task drawR = Task.CompletedTask;
+            
             if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Route0)
             {
+                Logger.Add_TPL("LolloMap.Open will draw the route", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 drawR = Task.Run(DrawRoute0Async);
             }
 
