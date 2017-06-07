@@ -84,7 +84,8 @@ namespace LolloGPS.Data.TileCache
         #region getters
         private Uri GetUriForFile(string fileName)
         {
-            // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source.   
+            // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source.
+            // Fortunately, we still have the custom tile source, which works fine.
             if (_isReturnLocalUris)
             {
                 // return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute); // this works

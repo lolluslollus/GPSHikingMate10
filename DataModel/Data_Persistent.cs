@@ -109,6 +109,24 @@ namespace LolloGPS.Data
                 source._history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
                 source._route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
                 source.SetCurrentToLast();
+                // replace the stock tile sourcez without uninstalling the app
+                if (_instance?.TileSourcez != null)
+                {
+                    int ii = source.TileSourcez.Count - 1;
+                    for (int i = ii; i >= 0; i--)
+                    {
+                        var ts = source.TileSourcez[i];
+                        if (ts == null || ts.IsDeletable) continue;
+                        source.TileSourcez.RemoveAt(i);
+                    }
+                    ii = _instance.TileSourcez.Count - 1;
+                    for (int i = ii; i >= 0; i--)
+                    {
+                        var ts = _instance.TileSourcez[i];
+                        if (ts == null || ts.IsDeletable) continue;
+                        source.TileSourcez.Insert(0, ts);
+                    }
+                }
                 // set the singleton instance
                 _instance = source;
                 return _instance;

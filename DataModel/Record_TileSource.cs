@@ -381,7 +381,7 @@ namespace LolloGPS.Data
                     "http://maptiles2.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles3.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles4.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord("KartFinnNoHd", "Kart Finn Norway HD","KartFinnNoHd", "", // LOLLO TODO check these: 256 or 512? it downloads 512
+                new TileSourceRecord("KartFinnNoHd", "Kart Finn Norway HD","KartFinnNoHd", "",
                     "http://kart.finn.no/", 4, 20, 512, false, GetAcceptImageWebHeaderCollection(),
                     "http://maptiles1.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles2.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png",
@@ -396,20 +396,20 @@ namespace LolloGPS.Data
                 new TileSourceRecord("UTTopoLightTwo", "UT Topo Light 2 (Norway)","UTTopoLight", "",
                     "http://ut.no/", 5, 16, 256, false, GetAcceptImageWebHeaderCollection(),
                     "https://tilesprod.ut.no/tilestache/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"),
-                // LOLLO TODO this is tricky, maybe because it returns HttpRequestHeader.TransferEncoding = chunked, maybe because it makes a call within the call and it needs special headers
+                // this is tricky, maybe because it returns HttpRequestHeader.TransferEncoding = chunked (but that should be all right), 
+                // maybe because it makes a call within the call and it needs special headers, cookies etc.
                 //new TileSourceRecord("LanskartaSe", "Lanskarta (Sweden)","LanskartaSe", "",
                 //    "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/proxy/proxy.ashx?http://maps.lantmateriet.se/topowebb/v1/wmts/1.0.0/topowebb/default/3006/{zoomlevel}/{y}/{x}.png",
                 //    "http://www.lansstyrelsen.se/", 3, 17, 256, false, GetAcceptImageWebHeaderCollection()),
                 // referer = "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/?visibleLayerNames=L%C3%A4nsstyrelsens%20kontor&zoomLevel=4&x=524106.125&y=6883110.65625"
-                // very unreliable
-                //new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "",
-                //    "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg",
-                //    "http://kartat.kapsi.fi/", 2, 17, 256, false, GetAcceptImageWebHeaderCollection()),
-                // strange projection
-                //new TileSourceRecord("KartatKapsiFiBackground", "Kartat Kapsi Background (FI)","KartatKapsiFiBackground", "",
-                //    "http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg",
-                //    "http://kartat.kapsi.fi/", 2, 17, 256, false, GetAcceptImageWebHeaderCollection()),
-                // strange projection
+                // not very reliable
+                new TileSourceRecord("KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "",
+                    "http://kartat.kapsi.fi/", 2, 17, 256, false, GetAcceptImageWebHeaderCollection(),
+                    "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg"),
+                new TileSourceRecord("KartatKapsiFiBackground", "Kartat Kapsi Background (FI)","KartatKapsiFiBackground", "",
+                    "http://kartat.kapsi.fi/", 2, 17, 256, false, GetAcceptImageWebHeaderCollection(),
+                    "http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg"),
+                // strange projection, https
                 //new TileSourceRecord("Maanmittauslaitos", "Maanmittauslaitos (FI)","Maanmittauslaitos", "",
                 //    "https://karttamoottori.maanmittauslaitos.fi/maasto/wmts/1.0.0/maastokartta/default/ETRS-TM35FIN/{zoomlevel}/{y}/{x}.png",
                 //    "http://www.maanmittauslaitos.fi/", 2, 15, 256, false, GetAcceptImageWebHeaderCollection()),
