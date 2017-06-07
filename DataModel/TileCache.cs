@@ -76,7 +76,7 @@ namespace LolloGPS.Data.TileCache
         #region getters
         private Uri GetUriForFile(string fileName)
         {
-            // LOLLO TODO check this method            
+            // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source.   
             if (_isReturnLocalUris)
             {
                 // return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute); // this works
@@ -384,40 +384,6 @@ namespace LolloGPS.Data.TileCache
                 using (var response = await request.GetResponseAsync().ConfigureAwait(false))
                 {
                     if (cancToken.IsCancellationRequested) return null;
-                    // LOLLO TODO this is an experiment; it fails anyway, I think lanskarte does something funny.
-                    /*
-                    var resp = response as System.Net.HttpWebResponse;
-                    if (resp.ContentLength > 0)
-                    {
-                        if (resp.Headers[HttpRequestHeader.TransferEncoding] == "chunked")
-                        {
-                            using (var ms = new MemoryStream())
-                            {
-                                using (var responseStream = resp.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
-                                {
-                                    byte[] buffer = new byte[1024];
-                                    int bytesProcessed = 0;
-                                    int bytesRead = 1;
-                                    while (true)
-                                    {
-                                        bytesRead = responseStream.Read(buffer, 0, buffer.Length);
-                                        if (bytesRead == 0) break;
-                                        string test = System.Text.Encoding.UTF8.GetString(buffer);
-                                        ms.Write(buffer, 0, bytesRead);
-                                        bytesProcessed += bytesRead;
-                                    }
-                                }
-                                var newFile0 = await _imageFolder.CreateFileAsync("Lollo.png", CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
-                                using (var writeStream = await newFile0.OpenStreamForWriteAsync().ConfigureAwait(false))
-                                {
-                                    writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
-                                    ms.Seek(0, SeekOrigin.Begin); // need it
-                                    ms.CopyTo(writeStream);
-                                }
-                            }
-                        }
-                    }
-                    */
 
                     if ((response as System.Net.HttpWebResponse).StatusCode == HttpStatusCode.OK && response.ContentLength > 0)
                     {
