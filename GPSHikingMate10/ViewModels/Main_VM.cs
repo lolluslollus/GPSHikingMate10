@@ -684,6 +684,7 @@ namespace LolloGPS.Core
             {
                 if (CancToken.IsCancellationRequested) return;
                 SetLastMessage_UI("reading GPX file...");
+
                 var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }).ConfigureAwait(false);
                 if (file != null)
                 {
@@ -691,18 +692,18 @@ namespace LolloGPS.Core
                     {
                         IsDrawing = true;
                         WhichSeriesToLoadFromFileOnNextResume = whichSeries;
+                        WhichSeriesToLoadFromDbOnNextResume = whichSeries;
                         if (CancToken.IsCancellationRequested) return;
                         Logger.Add_TPL("PickLoadSeriesFromFileAsync about to open series = " + whichSeries.ToString(), Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                         // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. 
                         // We play along and cancel, OpenMayOverrideAsync() will take care of it.
                         var loadResult = await LoadSeriesFromFileIntoDbAsync(file, whichSeries, CancToken).ConfigureAwait(false);
                         if (loadResult.Item2) return; // cancelled
-                        WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil;
-                        if (!loadResult.Item1) return; // bad data read
-                        WhichSeriesToLoadFromDbOnNextResume = whichSeries;
+                        WhichSeriesToLoadFromFileOnNextResume = PersistentData.Tables.Nil; // not cancelled, may be good or bad
+                        if (!loadResult.Item1) { WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil; return; }// bad data read
                         if (CancToken.IsCancellationRequested) return;
                         await LoadSeriesFromDbIntoUIAsync(whichSeries);
-                        WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil;
+                        WhichSeriesToLoadFromDbOnNextResume = PersistentData.Tables.Nil; // not cancelled, may be good or bad
                     }
                     catch (OperationCanceledException) { }
                     finally
