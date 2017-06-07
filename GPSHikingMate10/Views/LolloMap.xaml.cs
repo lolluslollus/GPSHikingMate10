@@ -240,33 +240,10 @@ namespace LolloGPS.Core
             // the newly read series will draw automatically once they are pushed in and (the chosen one) will be centred with an external command.
             if (isFileActivating) return;
 
-            Task restore = Task.CompletedTask;
-            if (!isResuming)
-            {
-                var whichSeriesIsJustLoaded = MainVM.WhichSeriesToLoadFromDbOnNextResume; // I read it now to avoid switching threads later,
-                // since dependency props must be read in the UI thread.
-                restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
-            }
-
-            Logger.Add_TPL($"LolloMap.Open will decide on drawing the newly loaded series. isResuming = {isResuming} and WhichSeriesToLoadFromDbOnNextResume = {MainVM.WhichSeriesToLoadFromDbOnNextResume}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-            Task drawC = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Checkpoints)
-            {
-                Logger.Add_TPL("LolloMap.Open will draw the checkpoints", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                drawC = Task.Run(DrawCheckpointsMapIconsAsync);
-                //Task drawC = Task.Run(DrawCheckpointsImagesAsync);
-                //Task drawC = Task.Run(DrawCheckpointsMapItemsAsync);
-            }
+            Task restore = isResuming ? Task.CompletedTask : Task.Run(() => RestoreViewCenteringAsync());
+            Task drawC = isResuming ? Task.CompletedTask : Task.Run(DrawCheckpointsMapIconsAsync);
             Task drawH = Task.Run(DrawHistoryAsync);
-            Task drawR = Task.CompletedTask;
-            
-            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Route0)
-            {
-                Logger.Add_TPL("LolloMap.Open will draw the route", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-                drawR = Task.Run(DrawRoute0Async);
-            }
-
+            Task drawR = isResuming ? Task.CompletedTask : Task.Run(DrawRoute0Async);
             await Task.WhenAll(restore, drawC, drawH, drawR);
 
             ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(MyMap);
@@ -284,31 +261,25 @@ namespace LolloGPS.Core
 
 
         #region services
-        private async Task RestoreViewCenteringAsync(PersistentData.Tables whichSeriesIsJustLoaded)
+        private async Task RestoreViewCenteringAsync()
         {
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-                if (whichSeriesIsJustLoaded == PersistentData.Tables.Nil)
+                Task restore = null;
+                await RunInUiThreadAsync(delegate
                 {
-                    Task restore = null;
-                    await RunInUiThreadAsync(delegate
-                    {
-                        double lat = PersistentData.MapLastLat; // always reference these variables in the UI thread, to avoid locks, coz they can be speed-critical
+                    double lat = PersistentData.MapLastLat; // always reference these variables in the UI thread, to avoid locks, coz they can be speed-critical
                         double lon = PersistentData.MapLastLon;
-                        var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon });
-                        double zoom = PersistentData.MapLastZoom;
-                        double heading = PersistentData.MapLastHeading;
-                        double pitch = PersistentData.MapLastPitch;
+                    var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon });
+                    double zoom = PersistentData.MapLastZoom;
+                    double heading = PersistentData.MapLastHeading;
+                    double pitch = PersistentData.MapLastPitch;
 
-                        restore = MyMap.TrySetViewAsync(gp, zoom, heading, pitch, MapAnimationKind.None).AsTask();
-                    }).ConfigureAwait(false);
-                    await restore.ConfigureAwait(false);
-                }
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnSeriesAsync(PersistentData.History).ConfigureAwait(false);
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnSeriesAsync(PersistentData.Route0).ConfigureAwait(false);
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnSeriesAsync(PersistentData.Checkpoints).ConfigureAwait(false);
+                    restore = MyMap.TrySetViewAsync(gp, zoom, heading, pitch, MapAnimationKind.None).AsTask();
+                }).ConfigureAwait(false);
+                await restore.ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)

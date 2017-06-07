@@ -71,25 +71,10 @@ namespace LolloGPS.Core
             // this panel may be hidden: if so, do not draw anything
             if (!PersistentData.IsShowingAltitudeProfiles) return Task.CompletedTask;
 
-            Task restore = Task.CompletedTask;
-            if (!isResuming)
-            {
-                var whichSeriesIsJustLoaded = MainVM.WhichSeriesToLoadFromDbOnNextResume; // I read it now to avoid switching threads later
-                restore = Task.Run(() => RestoreViewCenteringAsync(whichSeriesIsJustLoaded));
-            }
-
-            Task drawC = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Checkpoints)
-            {
-                drawC = DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
-            }
+            Task restore = isResuming ? Task.CompletedTask : Task.Run(() => RestoreViewCenteringAsync());
+            Task drawC = isResuming ? Task.CompletedTask : DrawOneSeriesAsync(PersistentData.Tables.Checkpoints);
             Task drawH = DrawOneSeriesAsync(PersistentData.Tables.History);
-            Task drawR = Task.CompletedTask;
-            if (!isResuming || MainVM.WhichSeriesToLoadFromDbOnNextResume == PersistentData.Tables.Route0)
-            {
-                drawR = DrawOneSeriesAsync(PersistentData.Tables.Route0);
-            }
-
+            Task drawR = isResuming ? Task.CompletedTask : DrawOneSeriesAsync(PersistentData.Tables.Route0);
             return Task.WhenAll(restore, drawC, drawH, drawR);
         }
 
@@ -384,24 +369,18 @@ namespace LolloGPS.Core
 
 
         #region services
-        private async Task RestoreViewCenteringAsync(PersistentData.Tables whichSeriesJustLoaded)
+        private async Task RestoreViewCenteringAsync()
         {
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-                if (whichSeriesJustLoaded == PersistentData.Tables.Nil)
+                // LastAltLastVScroll can be speed-critical, so always reference it in the UI thread to avoid using locks.
+                await RunInUiThreadAsync(delegate
                 {
-                    // LastAltLastVScroll can be speed-critical, so always reference it in the UI thread to avoid locks.
-                    await RunInUiThreadAsync(delegate
-                    {
-                        var vScroll = PersistentData.LastAltLastVScroll;
-                        MyScrollViewer.ChangeView(0.0, vScroll, 1, true);
-                    }).ConfigureAwait(false);
-                }
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.History) await CentreOnHistoryAsync().ConfigureAwait(false);
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.Route0) await CentreOnRoute0Async().ConfigureAwait(false);
-                //else if (whichSeriesJustLoaded == PersistentData.Tables.Checkpoints) await CentreOnCheckpointsAsync().ConfigureAwait(false);
+                    var vScroll = PersistentData.LastAltLastVScroll;
+                    MyScrollViewer.ChangeView(0.0, vScroll, 1, true);
+                }).ConfigureAwait(false);
             }
             catch { }
             finally
@@ -409,16 +388,6 @@ namespace LolloGPS.Core
                 SemaphoreSlimSafeRelease.TryRelease(_drawSemaphore);
             }
         }
-
-        //private async Task<bool> GetIsVisibleAsync()
-        //{
-        //	bool isVisible = false;
-        //	await RunInUiThreadAsync(delegate
-        //	{
-        //		isVisible = (Visibility == Visibility.Visible);
-        //	}).ConfigureAwait(false);
-        //	return isVisible;
-        //}
 
         private async Task DrawOneSeriesAsync(PersistentData.Tables whichSeries)
         {
@@ -533,54 +502,6 @@ namespace LolloGPS.Core
                 }
             }
         }
-
-        //		private void DrawOneSeriesUI(double maxAltitude, double minAltitude, double maxTime, double minTime, double[,] points,
-        //			LolloChart chart, bool isHistogram)
-        //		{
-        //			chart.Visibility = Visibility.Collapsed; // we set the visibility again after drawing, it seems a little faster
-        //			if (PersistentData != null && points != null && points.GetUpperBound(0) >= 0)
-        //			{
-        //				try
-        //				{
-        //#if DEBUG
-        //					Stopwatch sw = new Stopwatch(); sw.Start();
-        //#endif
-        //					if (CancToken.IsCancellationRequested) return;
-
-        //					chart.XGridScale = new GridScale(ScaleType.Linear, minTime, maxTime);
-        //					chart.XY1DataSeries = new XYDataSeries(points, isHistogram);
-        //					double[] xLabels = { maxTime, minTime };
-        //					//chart.XGridLabels = new GridLabels(xLabels);
-        //					chart.XPrimaryGridLines = new GridLines(xLabels);
-
-        //					chart.Y1GridScale = new GridScale(ScaleType.Linear, minAltitude, maxAltitude);
-        //					double[] yLabels = {
-        //						maxAltitude,
-        //						minAltitude + (maxAltitude - minAltitude) * .75,
-        //						minAltitude + (maxAltitude - minAltitude) * .5,
-        //						minAltitude + (maxAltitude - minAltitude) * .25,
-        //						minAltitude };
-        //					chart.YPrimaryGridLines = new GridLines(yLabels);
-        //					chart.Y1GridLabels = PersistentData.IsShowImperialUnits ? new GridLabels(yLabels, "#0. ft") : new GridLabels(yLabels, "#0. m");
-
-        //					if (CancToken.IsCancellationRequested) return;
-
-        //					chart.DrawAsync();
-
-        //					chart.Visibility = Visibility.Visible;
-
-        //#if DEBUG
-        //					sw.Stop();
-        //					Debug.WriteLine("DrawOneSeries took " + sw.ElapsedMilliseconds + " ms to draw the chart");
-        //#endif
-        //				}
-        //				catch (Exception ex)
-        //				{
-        //					Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-        //				}
-        //			}
-        //			RefreshTBNoData();
-        //		}
 
         private void RefreshTBNoData()
         {

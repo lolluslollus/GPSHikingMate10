@@ -58,7 +58,7 @@ namespace LolloGPS.Core
         {
             Logger.Add_TPL("Main.OpenAsync just started, it is in the semaphore", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-            _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles);
+            _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles, this);
             await _mainVM.OpenAsync(args);
             RaisePropertyChanged_UI(nameof(MainVM));
             await Task.Delay(1); // just in case
@@ -76,6 +76,7 @@ namespace LolloGPS.Core
             await MyCustomMapsPanel.OpenAsync(args);
 
             AddHandlers();
+            Logger.Add_TPL("Main.OpenAsync is leaving OpenMayOverrideAsync", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
