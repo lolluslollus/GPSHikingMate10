@@ -145,7 +145,7 @@ namespace LolloGPS.GPSInteraction
             if (_isGetLocTaskHandlersActive || bt == null) return;
 
             _isGetLocTaskHandlersActive = true;
-            GetLocBackgroundTaskSemaphoreManager.TryWait();
+            Task.Run(() => GetLocBackgroundTaskSemaphoreManager.TryWait()); // don't wait, it might take ages
             bt.Completed += OnGetLocBackgroundTaskCompleted;
         }
 
