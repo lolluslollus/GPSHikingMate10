@@ -290,12 +290,18 @@ namespace LolloGPS.Core
         private async void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             // this does not always work when the device force-shuts the app
+            LogException(e?.Exception);
             await Logger.AddAsync($"UnhandledException: {e.Exception.ToString()}{Environment.NewLine}---StackTrace:---{Environment.NewLine}{e.Exception.StackTrace}{Environment.NewLine}---InnerException:---{Environment.NewLine}{e.Exception.InnerException?.ToString()}---InnerException.StackTrace:---{Environment.NewLine}{e.Exception.InnerException?.StackTrace}", Logger.AppExceptionLogFilename).ConfigureAwait(false);
         }
         #endregion event handlers
 
 
         #region services
+        public void LogException(Exception exc)
+        {
+            if (exc == null) Logger.Add_TPL("Unknown exception", Logger.AppEventsLogFilename);
+            else Logger.Add_TPL($"UnhandledException: {exc.ToString()}{Environment.NewLine}---StackTrace:---{Environment.NewLine}{exc.StackTrace}{Environment.NewLine}---InnerException:---{Environment.NewLine}{exc.InnerException?.ToString()}---InnerException.StackTrace:---{Environment.NewLine}{exc.InnerException?.StackTrace}", Logger.AppExceptionLogFilename);
+        }
         public void Quit()
         {
             RuntimeData?.Close();

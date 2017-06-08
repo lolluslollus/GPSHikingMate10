@@ -70,16 +70,16 @@ namespace LolloGPS.Suspension
                     }
                 }
             }
-            catch (System.Xml.XmlException ex)
+            catch (System.Xml.XmlException exc)
             {
-                errorMessage = $"could not restore the settings: {ex.Message}";
-                await Logger.AddAsync(errorMessage, Logger.FileErrorLogFilename).ConfigureAwait(false);
+                errorMessage = $"XmlException: could not restore the settings: {exc?.Message}";
+                await Logger.AddAsync(exc?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
                 newPersistentData = PersistentData.GetInstance();
             }
-            catch (Exception ex)
+            catch (Exception exc)
             {
-                errorMessage = $"could not restore the settings: {ex.Message}";
-                await Logger.AddAsync(errorMessage, Logger.FileErrorLogFilename).ConfigureAwait(false);
+                errorMessage = $"could not restore the settings: {exc?.Message}";
+                await Logger.AddAsync(exc?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
                 newPersistentData = PersistentData.GetInstance();
             }
             finally
