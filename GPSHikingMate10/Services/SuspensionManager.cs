@@ -59,7 +59,7 @@ namespace LolloGPS.Suspension
 
                         if (IsLatestDataStructure(newPersistentData))
                         {
-                            newPersistentData = PersistentData.GetInstanceWithClonedSerialisedProperties(newPersistentData);
+                            newPersistentData = PersistentData.GetInstanceWithProperties(newPersistentData);
                         }
                         else
                         {

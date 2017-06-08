@@ -1,22 +1,21 @@
-﻿using Utilz.Data;
-using LolloGPS.Data.Leeching;
+﻿using LolloGPS.Data.Leeching;
+using LolloGPS.Data.Runtime;
 using SQLite;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
-using Windows.UI.Xaml.Controls.Maps;
+using Utilz.Data;
 using Windows.Devices.Geolocation;
 using Windows.Storage;
-using System.IO;
-using System.Threading;
-using System.Globalization;
-using LolloGPS.Data.Runtime;
+using Windows.UI.Xaml.Controls.Maps;
 
 
 // There is a sqlite walkthrough at:
@@ -96,11 +95,12 @@ namespace LolloGPS.Data
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        public static PersistentData GetInstanceWithClonedSerialisedProperties(PersistentData source)
+        public static PersistentData GetInstanceWithProperties(PersistentData source)
         {
             if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
             lock (_instanceLocker)
             {
+                if (_instance == null) _instance = new PersistentData();
                 // make sure no UI has been initialised yet
                 if (source.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
                 if (_instance.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
