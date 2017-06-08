@@ -21,8 +21,9 @@ namespace LolloGPS.Data.TileCache
     public sealed class TileCacheReaderWriter
     {
         public const string MimeTypeImagePrefix = "image/";
-        public const string MimeTypeImageAny = "image/*"; // "image/png"
-                                                          //public const string ImageToCheck = "image";
+        public const string MimeTypeImageAny = "image/*";
+        public static readonly string[] AllowedExtensions = { "bmp", "jpeg", "jpg", "png" };
+        public static readonly string[] AllowedExtensionsTolerant = AllowedExtensions.Concat(AllowedExtensions.Select(ext => $".{ext}")).ToArray();
         public const int MaxRecords = 65535;
         public const int WebRequestTimeoutMsec = 65535;
 
@@ -407,7 +408,7 @@ namespace LolloGPS.Data.TileCache
                             where = 4;
                             // read response stream into a new record. 
                             // This extra step is the price to pay if we want to check the stream content
-                            var fileNameWithExtension = GetFileNameWithExtension(fileNameNoExtension, response);
+                            var fileNameWithExtension = GetFileNameWithGuessedExtension(fileNameNoExtension, response);
                             var imgBytes = new byte[response.ContentLength];
                             var newRecord = new TileCacheRecord(x, y, z, zoom);
                             if (cancToken.IsCancellationRequested) return null;
@@ -489,14 +490,14 @@ namespace LolloGPS.Data.TileCache
             return false;
         }
 
-        private static string GetFileNameWithExtension(string fileNameNoExtension, WebResponse response)
+        private static string GetFileNameWithGuessedExtension(string fileNameNoExtension, WebResponse response)
         {
             if (response == null || response.ContentType == null) return null;
 
             string extension = null;
             if (!string.IsNullOrWhiteSpace(response?.ContentType))
             {
-                var contentTypeSegments = response.ContentType.Split(';', '.');
+                var contentTypeSegments = response.ContentType.Split(';');
                 foreach (var segment in contentTypeSegments)
                 {
                     if (segment.Contains(MimeTypeImagePrefix))
@@ -510,11 +511,11 @@ namespace LolloGPS.Data.TileCache
             {
                 extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
             }
-            if (extension.Equals("png") || extension.Equals("bmp") || extension.Equals("jpg") || extension.Equals("jpeg"))
+
+            if (AllowedExtensionsTolerant.Any(ext => ext == extension))
             {
                 return Path.ChangeExtension(fileNameNoExtension, extension);
             }
-
             return null;
         }
 
