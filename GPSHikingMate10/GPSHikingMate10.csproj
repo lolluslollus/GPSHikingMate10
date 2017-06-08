@@ -291,6 +291,10 @@
       <Project>{06425613-e56b-4c98-a8d2-58900e36e417}</Project>
       <Name>Utilz</Name>
     </ProjectReference>
+    <ProjectReference Include="..\BackgroundTask\GPSHikingMate10BackgroundTasks.csproj">
+      <Project>{fccfa2fc-f84a-47ea-b42a-8d90d5545551}</Project>
+      <Name>GPSHikingMate10BackgroundTasks</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DataModel\DataModel.csproj">
       <Project>{116cb644-bdca-462f-81a2-8aaeb46ede92}</Project>
       <Name>DataModel</Name>
