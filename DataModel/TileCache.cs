@@ -77,7 +77,8 @@ namespace LolloGPS.Data.TileCache
 
             //_isCaching = isCaching;
             _isReturnLocalUris = isReturnLocalUris;
-            _imageFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
+            var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
+            _imageFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
         }
         #endregion lifecycle
 
@@ -90,7 +91,7 @@ namespace LolloGPS.Data.TileCache
             {
                 // return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute); // this works
 
-                var address = $"ms-appdata:///localcache/{_imageFolder.Name}/{fileName}"; // this fails
+                var address = $"ms-appdata:///localcache/TileSources/{_imageFolder.Name}/{fileName}"; // this fails
                 var localUri = new Uri(address, UriKind.Absolute);
                 return localUri;
             }
@@ -491,16 +492,29 @@ namespace LolloGPS.Data.TileCache
         private static string GetFileNameWithExtension(string fileNameNoExtension, WebResponse response)
         {
             if (response == null || response.ContentType == null) return null;
-            var mimeType = response.ContentType;
-            if (mimeType.Contains(MimeTypeImagePrefix))
+
+            string extension = null;
+            if (!string.IsNullOrWhiteSpace(response?.ContentType))
             {
-                return Path.ChangeExtension(fileNameNoExtension, mimeType.Replace(MimeTypeImagePrefix, ""));
+                var contentTypeSegments = response.ContentType.Split(';', '.');
+                foreach (var segment in contentTypeSegments)
+                {
+                    if (segment.Contains(MimeTypeImagePrefix))
+                    {
+                        extension = segment.Trim().Replace(MimeTypeImagePrefix, string.Empty);
+                        break;
+                    }
+                }
             }
-            else if (!string.IsNullOrWhiteSpace(response.ResponseUri?.AbsolutePath))
+            if (string.IsNullOrWhiteSpace(extension))
             {
-                var extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
+                extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
+            }
+            if (extension.Equals("png") || extension.Equals("bmp") || extension.Equals("jpg") || extension.Equals("jpeg"))
+            {
                 return Path.ChangeExtension(fileNameNoExtension, extension);
             }
+
             return null;
         }
 
