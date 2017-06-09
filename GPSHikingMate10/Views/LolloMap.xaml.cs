@@ -130,6 +130,7 @@ namespace LolloGPS.Core
             return _myReadyMapInstance;
         }
 
+        // these three are always set in the UI thread
         private bool _isHistoryInMap = false;
         private bool _isRoute0InMap = false;
         private bool _isFlyoutPointInMap = false;
