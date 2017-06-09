@@ -145,13 +145,13 @@ namespace LolloGPS.GPSInteraction
             if (_isGetLocTaskHandlersActive || bt == null) return;
 
             _isGetLocTaskHandlersActive = true;
-            Task.Run(() => GetLocBackgroundTaskSemaphoreManager.TryWait()); // don't wait, it might take ages
+            GetLocBackgroundTaskSemaphoreManager.SetMainAppIsRunningAndActive(); // This may take a while, but if you run it in Task.Run it may fire after its counterpart
             bt.Completed += OnGetLocBackgroundTaskCompleted;
         }
 
         private void RemoveHandlers_GetLocBackgroundTask()
         {
-            if (_isGetLocTaskHandlersActive) GetLocBackgroundTaskSemaphoreManager.Release();
+            GetLocBackgroundTaskSemaphoreManager.SetMainAppIsNotRunningOrNotActive(); // This may take a while, but if you run it in Task.Run it may not fire at all if the app is closing
             var bt = _getlocBkgTask;
             if (bt != null) bt.Completed -= OnGetLocBackgroundTaskCompleted;
             _isGetLocTaskHandlersActive = false;
@@ -263,7 +263,7 @@ namespace LolloGPS.GPSInteraction
                 catch (Exception ex)
                 {
                     errorMsg = ex.ToString();
-                    backgroundAccessStatus = BackgroundAccessStatus.Denied;
+                    backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
             }
@@ -276,7 +276,7 @@ namespace LolloGPS.GPSInteraction
                 catch (Exception ex)
                 {
                     errorMsg = ex.ToString();
-                    backgroundAccessStatus = BackgroundAccessStatus.Denied;
+                    backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
             }
@@ -287,9 +287,13 @@ namespace LolloGPS.GPSInteraction
                     RemoveHandlers_GetLocBackgroundTask();
                     msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
                     break;
-                case BackgroundAccessStatus.Denied:
+                case BackgroundAccessStatus.DeniedByUser:
                     RemoveHandlers_GetLocBackgroundTask();
-                    msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Settings - Privacy - Background apps" : errorMsg;
+                    msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Battery Use Settings" : errorMsg;
+                    break;
+                case BackgroundAccessStatus.DeniedBySystemPolicy:
+                    RemoveHandlers_GetLocBackgroundTask();
+                    msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Battery Use Settings - Battery Optimised - Allow this Application" : errorMsg;
                     break;
                 default:
                     AddHandlers_GetLocBackgroundTask();

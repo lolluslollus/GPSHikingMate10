@@ -51,7 +51,7 @@ namespace BackgroundTasks
                 // only in the background task and only if called before GetDeferral and only if awaited
                 Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
 
-                if (GetLocBackgroundTaskSemaphoreManager.TryOpenExisting()) return; // the app is running, it will catch the background task running: do nothing
+                if (GetLocBackgroundTaskSemaphoreManager.GetMainAppIsRunningAndActive()) return; // the app is running, it will catch the background task running: do nothing
 
                 _taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 
