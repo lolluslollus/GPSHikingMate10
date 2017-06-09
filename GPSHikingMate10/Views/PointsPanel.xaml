@@ -232,12 +232,13 @@
 			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLink, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			PlaceholderText="you can type a link here" 
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
-		<!-- hyperlink name -->
+        <!-- hyperlink name -->
+<!--
 		<TextBlock Grid.Row="6" Grid.Column="0"
 			Visibility="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"
 			Text="Hyperlink name"
 			Style="{StaticResource BaseMessageStyle}"
-			VerticalAlignment="Center" />
+			VerticalAlignment="Center"/>
 		<TextBox Grid.Row="7" Grid.Column="0"
 			Visibility="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"
 			HorizontalAlignment="Stretch" 
@@ -249,6 +250,7 @@
 			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLinkText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			PlaceholderText="you can name your link here" 
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+-->
 		<!-- lat lon commands -->
 		<Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
 			VerticalAlignment="Center">

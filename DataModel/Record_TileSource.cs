@@ -8,6 +8,7 @@ using Utilz.Data;
 
 // LOLLO NOTE https://dzjow.com/2012/04/12/free-online-topographic-maps-for-hiking/
 // http://onlinetopomaps.net/
+// http://www.oruxmaps.com/foro/viewtopic.php?t=3035
 
 namespace LolloGPS.Data
 {
@@ -443,18 +444,29 @@ namespace LolloGPS.Data
                 new TileSourceRecord("IgnEs", "Ign (Spain)","IgnEs", "",
                     "http://www.ign.es/", 6, 16, 256, false, GetAcceptImageWebHeaderCollection(),
                     "http://www.ign.es/wmts/mapa-raster?layer=MTN&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={zoomlevel}&TileCol={x}&TileRow={y}"),
-                // this is rather useless
-                //new TileSourceRecord("CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
-                //    "http://a.tile.osm-tools.org/osm_then/{zoomlevel}/{x}/{y}.png",
-                //    "http://osm-tools.org/", 5, 19, 256, false, GetAcceptImageWebHeaderCollection()),
-                // this has become very unreliable
-                //new TileSourceRecord("NSWTopo", "LPI NSW Topographic Map (AU)","NSWTopo", "",
-                //    "http://maps4.six.nsw.gov.au/arcgis/rest/services/sixmaps/LPI_Imagery_Best/MapServer/tile/{zoomlevel}/{y}/{x}",
-                //    "http://www.lpi.nsw.gov.au/", 4, 16, 256, false, GetAcceptImageWebHeaderCollection()),
-                new TileSourceRecord("MyTopo", "My Topo (N America)","MyTopo", "",
-                    "http://www.mytopo.com/", 10, 16, 256, false, GetAcceptImageWebHeaderCollection(),
-                    "http://tileserver.trimbleoutdoors.com/SecureTile/TileHandler.ashx?mapType=Topo&x={x}&y={y}&z={zoomlevel}"),
+                // Keeps giving 404, I think they use special coordinates
+                //new TileSourceRecord("Minambiente", "Minambiente (Italy)","Minambiente", "",
+                //    "http://www.pcn.minambiente.it/", 4, 18, 512, false, GetAcceptImageWebHeaderCollection(),
+                //    "http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/{zoomlevel}/{y}/{x}"),
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/13/5657/5621
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/18/37543/38249
+
             };
+            // this is rather useless
+            //new TileSourceRecord("CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
+            //    "http://a.tile.osm-tools.org/osm_then/{zoomlevel}/{x}/{y}.png",
+            //    "http://osm-tools.org/", 5, 19, 256, false, GetAcceptImageWebHeaderCollection()),
+            // this has become very unreliable
+            //new TileSourceRecord("NSWTopo", "LPI NSW Topographic Map (AU)","NSWTopo", "",
+            //    "http://maps4.six.nsw.gov.au/arcgis/rest/services/sixmaps/LPI_Imagery_Best/MapServer/tile/{zoomlevel}/{y}/{x}",
+            //    "http://www.lpi.nsw.gov.au/", 4, 16, 256, false, GetAcceptImageWebHeaderCollection()),
+
+#if NOSTORE
+            output.Add(new TileSourceRecord("MyTopo", "My Topo (N America)", "MyTopo", "",
+                "http://www.mytopo.com/", 10, 16, 256, false, GetAcceptImageWebHeaderCollection(),
+                "http://tileserver.trimbleoutdoors.com/SecureTile/TileHandler.ashx?mapType=Topo&x={x}&y={y}&z={zoomlevel}"));
+
+#endif
 
 #if NOSTORE
             // also try http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}
@@ -462,6 +474,10 @@ namespace LolloGPS.Data
                 "", 0, 16, 256, false, GetAcceptImageWebHeaderCollection(),
                 "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif
+            // This has its own coordinates
+            //output.Add(new TileSourceRecord("OSMSchweizTopo", "OSM Schweiz Topo (CH)", "OSMSchweizTopo", "",
+            //    "http://www.mapplus.ch", 7, 16, 256, false, GetAcceptImageWebHeaderCollection(),
+            //    "http://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/{zoomlevel}/{x}/{y}.png"));
 
 #if NOSTORE
             // also try http://wmts109.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/18/12/18.jpeg
@@ -473,6 +489,18 @@ namespace LolloGPS.Data
                 "http://mpa2.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg",
                 "http://mpa3.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg",
                 "http://mpa4.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg"));
+#endif
+
+#if NOSTORE
+            output.Add(new TileSourceRecord("CalTopo", "CalTopo (USA)", "CalTopo", "",
+                "http://caltopo.com", 5, 18, 256, false, GetAcceptImageWebHeaderCollection(),
+                "http://caltopo.com/resource/imagery/mapbuilder/cs-60-40-c21BB6100-h22-a21-r22-t22d-m21-p21/{zoomlevel}/{x}/{y}.png"));
+#endif
+
+#if NOSTORE
+            output.Add(new TileSourceRecord("CalTopo2", "CalTopo 2 (USA)", "CalTopo2", "",
+                "", 5, 16, 256, false, GetAcceptImageWebHeaderCollection(),
+                "http://s3-us-west-1.amazonaws.com/caltopo/topo/{zoomlevel}/{x}/{y}.png?v=1"));
 #endif
             return output;
         }

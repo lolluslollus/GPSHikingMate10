@@ -380,6 +380,8 @@ namespace LolloGPS.Data.TileCache
                 _tileSource.ApplyHeadersToWebRequest(request);
                 request.AllowReadStreamBuffering = true;
                 request.ContinueTimeout = WebRequestTimeoutMsec;
+                //request.CookieContainer = new CookieContainer();
+                //request.UseDefaultCredentials = true;
 
                 where = 2;
 
@@ -454,13 +456,11 @@ namespace LolloGPS.Data.TileCache
                 }
                 Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
             }
-            catch (OperationCanceledException) { return null; }
+            catch (OperationCanceledException) { return null; } // (ex.Response as System.Net.HttpWebResponse).StatusDescription
+            catch (System.Net.WebException ex) { return null; }
             catch (Exception ex)
             {
-                if (!ex.Message.Contains("404"))
-                {
-                    Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
-                }
+                Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
             }
             return null;
         }
