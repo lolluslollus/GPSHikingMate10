@@ -14,10 +14,14 @@ using Windows.Data.Xml.Dom;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
+// date-time formats: http://www.geekzilla.co.uk/View00FF7904-B510-468C-A2C8-F859AA20581F.htm
+// we could use sym to store a pin shape for a waypoin (a circle, a square, a triangle, a pin, a diamond, a flag.....
+// Garmin has extensions to display the color: this example (https://weblogs.asp.net/jimjackson/using-linq-to-xml-with-c-to-read-gpx-files) uses them.
+// Garmin extensions are at http://www8.garmin.com/xmlschemas/GpxExtensions/v3/GpxExtensionsv3.xsd
+// However, I don't want to use extensions. Some apps do <sym>Flag, Blue</sym>
 
 namespace GPX
 {
-    // date-time formats: http://www.geekzilla.co.uk/View00FF7904-B510-468C-A2C8-F859AA20581F.htm
     public sealed class ReaderWriter
     {
         #region load route
@@ -282,17 +286,10 @@ namespace GPX
                     cancToken.ThrowIfCancellationRequested();
                     XmlDocument gpxDoc = await GetEmptyXml(whichTable).ConfigureAwait(false);
                     cancToken.ThrowIfCancellationRequested();
-                    //await PersistentData.GetInstance().RunFunctionUnderSemaphore(
-                    //                   delegate
-                    //                   {
                     EditXmlData(coll, gpxDoc, whichTable, cancToken);
                     EditXmlMetadata(coll, gpxDoc, fileCreationDateTime);
-                    //},
-                    //whichTable).ConfigureAwait(false);
                     cancToken.ThrowIfCancellationRequested();
 
-                    // we don't need this Prevent updates to the remote version of the file until we finish making changes and call CompleteUpdatesAsync. 
-                    // CachedFileManager.DeferUpdates(gpxFile); // http://msdn.microsoft.com/en-us/library/windows/apps/windows.storage.cachedfilemanager(v=win.10).aspx
                     await gpxDoc.SaveToFileAsync(gpxFile).AsTask(cancToken).ConfigureAwait(false);
 
                     Logger.Add_TPL("File " + gpxFile.Name + " was saved", Logger.ForegroundLogFilename, Logger.Severity.Info, false);
