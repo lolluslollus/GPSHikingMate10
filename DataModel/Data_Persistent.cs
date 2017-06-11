@@ -1179,6 +1179,17 @@ namespace LolloGPS.Data
             else if (selectedSeries == Tables.Checkpoints) return _checkpoints.Any();
             else return false;
         }
+        public IReadOnlyList<PointRecord> GetSelectedSeries()
+        {
+            var selectedSeries = _selectedSeries;
+            switch (selectedSeries)
+            {
+                case Tables.Checkpoints: return _checkpoints;
+                case Tables.History: return _history;
+                case Tables.Route0: return _route0;
+                default: return new List<PointRecord>();
+            }
+        }
         public void SelectRecordFromSeries(PointRecord dataRecord, Tables whichTable, int index = -1)
         {
             if (dataRecord != null && !dataRecord.IsEmpty())

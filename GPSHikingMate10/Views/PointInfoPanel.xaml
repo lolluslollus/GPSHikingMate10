@@ -11,60 +11,60 @@
 	mc:Ignorable="d"
 	d:DesignHeight="600"
 	d:DesignWidth="400">
-	<uctl:BackOrientOpenObservControl.Resources>
-		<LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
-			<GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
-			<GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.1"/>
-		</LinearGradientBrush>
-	</uctl:BackOrientOpenObservControl.Resources>
+    <uctl:BackOrientOpenObservControl.Resources>
+        <LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1" >
+            <GradientStop Color="{ThemeResource SystemChromeBlackHighColor}" Offset="0"/>
+            <GradientStop Color="{StaticResource DetailsPopupColor}" Offset="0.1"/>
+        </LinearGradientBrush>
+    </uctl:BackOrientOpenObservControl.Resources>
 
-	<Grid Margin="{StaticResource Thickness0}" x:Name="LayoutRoot">
-		<!-- choose a series to see the point details -->
-		<Grid x:Name="ChooseSeriesGrid" 
+    <Grid Margin="{StaticResource Thickness0}" x:Name="LayoutRoot">
+        <!-- choose a series to see the point details -->
+        <Grid x:Name="ChooseSeriesGrid" 
 			Visibility="{x:Bind IsSeriesChoicePresented, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 			Background="{StaticResource BackgroundBrush}">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<TextBlock
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock
 				Text="You have tapped a point with multiple series, choose one" 
 				TextWrapping="WrapWholeWords"
 				Margin="8" 
 				Style="{StaticResource BaseMessageStyle}"/>
-			<uctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
-				<AppBarButton x:Name="ChooseDisplayHistoryButton"
+            <uctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
+                <AppBarButton x:Name="ChooseDisplayHistoryButton"
 					Click="OnDisplayHistory_Click"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Trk history"
 					Foreground="{StaticResource HistoryBrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"/>
-				<AppBarButton x:Name="ChooseDisplayRoute0Button"
+                <AppBarButton x:Name="ChooseDisplayRoute0Button"
 					Click="OnDisplayRoute0_Click"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Route"
 					Foreground="{StaticResource Route0BrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"/>
-				<AppBarButton x:Name="ChooseDisplayCheckpointsButton"
+                <AppBarButton x:Name="ChooseDisplayCheckpointsButton"
 					Click="OnDisplayCheckpoints_Click"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Target" Label="Checkpoints"
 					Foreground="{StaticResource CheckpointBrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"/>
-			</uctl:UniversalWrapPanel>
-		</Grid>
-		<!-- info grid -->
-		<ScrollViewer x:Name="InfoGrid"
+            </uctl:UniversalWrapPanel>
+        </Grid>
+        <!-- info grid -->
+        <ScrollViewer x:Name="InfoGrid"
 			Visibility="{x:Bind IsSeriesChoicePresented, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 			VerticalScrollBarVisibility="Visible" VerticalScrollMode="Enabled"
 			Background="{StaticResource BackgroundBrush}">
-			<StackPanel Orientation="Vertical">
-				<!-- header -->
-				<uctl:UniversalWrapPanel Orientation="Horizontal">
-					<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+            <StackPanel Orientation="Vertical">
+                <!-- header -->
+                <uctl:UniversalWrapPanel Orientation="Horizontal">
+                    <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 						Text="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesTextConverter}, Mode=OneWay}"/>
-					<!-- point n of m -->
-					<TextBlock TextWrapping="Wrap" 
+                    <!-- point n of m -->
+                    <TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"  
 						Visibility="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=History, Mode=OneWay}">
@@ -73,8 +73,8 @@
 						<Run Text="{x:Bind PersistentData.SelectedIndex_Base1, Mode=OneWay}"/>
 						<Run Text=" of "/>
 						<Run Text="{x:Bind PersistentData.History.Count, Mode=OneWay}"/>
-					</TextBlock>
-					<TextBlock TextWrapping="Wrap" 
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"  
 						Visibility="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Route0, Mode=OneWay}">
@@ -83,8 +83,8 @@
 						<Run Text="{x:Bind PersistentData.SelectedIndex_Base1, Mode=OneWay}"/>
 						<Run Text=" of "/>
 						<Run Text="{x:Bind PersistentData.Route0.Count, Mode=OneWay}"/>
-					</TextBlock>
-					<TextBlock TextWrapping="Wrap" 
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"  
 						Visibility="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Checkpoints, Mode=OneWay}">
@@ -93,21 +93,21 @@
 						<Run Text="{x:Bind PersistentData.SelectedIndex_Base1, Mode=OneWay}"/>
 						<Run Text=" of "/>
 						<Run Text="{x:Bind PersistentData.Checkpoints.Count, Mode=OneWay}"/>
-					</TextBlock>
-				</uctl:UniversalWrapPanel>
-				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+                    </TextBlock>
+                </uctl:UniversalWrapPanel>
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{x:Bind PersistentData.Selected.TimePoint, Converter={StaticResource DateNotNullToVisibilityConverter}, Mode=OneWay}">
 					<Run Text="Time: "/>
 					<Run Text="{x:Bind PersistentData.Selected.TimePoint, Mode=OneWay}"/>
-				</TextBlock>
-				<!-- human description -->
-				<uctl:UniversalWrapPanel Orientation="Horizontal">
-					<TextBlock TextWrapping="Wrap" 
+                </TextBlock>
+                <!-- human description -->
+                <uctl:UniversalWrapPanel Orientation="Horizontal">
+                    <TextBlock TextWrapping="Wrap" 
 						Style="{StaticResource BaseMessageStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						Text="Description: "/>
-					<TextBox TextWrapping="Wrap"
+                    <TextBox TextWrapping="Wrap"
 						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
@@ -120,8 +120,8 @@
 						PlaceholderText="you can type a note here" 
 						PreventKeyboardDisplayOnProgrammaticFocus="True" 
 						PointerEntered="OnTextBox_PointerEntered"/>
-				</uctl:UniversalWrapPanel>
-				<!-- point navigation -->
+                </uctl:UniversalWrapPanel>
+                <!-- point navigation -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
                     <AppBarButton
 						  Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
@@ -142,12 +142,12 @@
 						  Style="{StaticResource AppBarButtonRecoloured}"/>
                 </uctl:UniversalWrapPanel>
                 <!-- link to media -->
-				<uctl:UniversalWrapPanel Orientation="Horizontal">
-					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                <uctl:UniversalWrapPanel Orientation="Horizontal">
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
 						TextWrapping="Wrap"
 						Style="{StaticResource BaseMessageStyle}"
 						Text="Link to media: "/>
-					<TextBox TextWrapping="Wrap"
+                    <TextBox TextWrapping="Wrap"
 						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
@@ -167,9 +167,9 @@
 						IsCompact="True"
 						Style="{StaticResource AppBarButtonRecoloured}"
                         Visibility="{x:Bind PersistentData.Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"/>
-				</uctl:UniversalWrapPanel>
-				<!-- name of media -->
-<!--
+                </uctl:UniversalWrapPanel>
+                <!-- name of media -->
+                <!--
 				<uctl:UniversalWrapPanel Orientation="Horizontal"
 					Visibility="{x:Bind PersistentData.Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}">
 					<TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -234,8 +234,25 @@
 					<Run Text="Distance from previous: "/>
 					<Run Text="{x:Bind DistanceMFromPrevious, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
                     </TextBlock>
+                    <AppBarButton						
+						Click="OnCalcTotalDistance_Click"
+						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                        Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
+						IsCompact="True"
+						Style="{StaticResource AppBarButtonRecoloured}"
+                        Icon="More"/>
+                    <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+					Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					<Run Text="Distance from first: "/>
+					<Run Text="{x:Bind DistanceMFromFirst, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
+					Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					<Run Text="Distance to last: "/>
+					<Run Text="{x:Bind DistanceMToLast, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
+                    </TextBlock>
                 </uctl:UniversalWrapPanel>
-			</StackPanel>
-		</ScrollViewer>
-	</Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </uctl:BackOrientOpenObservControl>
