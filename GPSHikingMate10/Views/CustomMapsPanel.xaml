@@ -81,7 +81,7 @@
 			VerticalAlignment="Center"/>
 		<!-- error message after clicking test -->
 		<TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
-			Text="{x:Bind MainVM.TestTileSourceErrorMsg, Mode=OneWay}"
+			Text="{x:Bind MapsVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
 			Style="{StaticResource BaseMessageStyle}"
@@ -110,7 +110,7 @@
 			<AppBarButton Grid.Row="1" Grid.Column="2"
 				VerticalAlignment="Center"
 				Click="OnTestClicked"
-				IsEnabled="{x:Bind MainVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind MapsVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="View"
@@ -131,7 +131,7 @@
 				Text="Erase custom sources"/>
 			<AppBarButton Grid.Row="3" Grid.Column="2"
 				VerticalAlignment="Center"
-				IsEnabled="{x:Bind MainVM.IsClearCustomCacheEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind MapsVM.IsClearCustomCacheEnabled, Mode=OneWay}"
 				Click="OnClearCustomTileSource_Click"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"

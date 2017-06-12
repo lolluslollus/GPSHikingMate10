@@ -1,11 +1,11 @@
-﻿using Utilz.Controlz;
+﻿using GPSHikingMate10.ViewModels;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Controlz;
 using Windows.ApplicationModel.Activation;
 using Windows.Phone.UI.Input;
 using Windows.UI.Xaml;
@@ -20,9 +20,11 @@ namespace LolloGPS.Core
         #region properties
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
-
+        
         private MainVM _mainVM = null;
         public MainVM MainVM { get { return _mainVM; } }
+        private MapsVM _mapsVM = null;
+        public MapsVM MapsVM { get { return _mapsVM; } }
 
         public bool IsWideEnough
         {
@@ -61,7 +63,7 @@ namespace LolloGPS.Core
             _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles, this);
             await _mainVM.OpenAsync(args);
             RaisePropertyChanged_UI(nameof(MainVM));
-            await Task.Delay(1); // just in case
+            //await Task.Delay(1); // just in case
 
             await UpdateAltitudeColumnWidthAsync();
             await UpdateAltitudeColumnMaxWidthAsync();
@@ -69,8 +71,18 @@ namespace LolloGPS.Core
 
             await MyLolloMap.OpenAsync(args);
             await MyAltitudeProfiles.OpenAsync(args);
+
+            _mapsVM = new MapsVM(MyLolloMap.LolloMapVM, _mainVM);
+            await _mapsVM.OpenAsync(args);
+            RaisePropertyChanged_UI(nameof(MapsVM));
+
             MyMapsPanel.LolloMapVM = MyLolloMap.LolloMapVM;
+            MyMapsPanel.MainVM = _mainVM;
+            MyMapsPanel.MapsVM = _mapsVM;
             await MyMapsPanel.OpenAsync(args);
+
+            MyCustomMapsPanel.MainVM = _mainVM;
+            MyCustomMapsPanel.MapsVM = _mapsVM;
             await MyCustomMapsPanel.OpenAsync(args);
 
             AddHandlers();
@@ -91,7 +103,12 @@ namespace LolloGPS.Core
                 {
                     await mainVM.CloseAsync(args);
                 }
-                Debug.WriteLine("Main.CloseMayOverrideAsync() closed MainVM");
+                var mapsVM = _mapsVM;
+                if (mapsVM != null)
+                {
+                    await mapsVM.CloseAsync(args);
+                }
+                Debug.WriteLine("Main.CloseMayOverrideAsync() closed its VMs");
 
                 await MyPointInfoPanel.CloseAsync(args);
                 await MyLolloMap.CloseAsync(args);

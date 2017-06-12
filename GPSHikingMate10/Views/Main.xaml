@@ -298,17 +298,15 @@
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:MapsPanel x:Name="MyMapsPanel"
-							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
-					</ScrollViewer>
+                        <local:MapsPanel x:Name="MyMapsPanel"/>
+                    </ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
 					<ScrollViewer
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"
-							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
+						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"/>
 					</ScrollViewer>
 				</PivotItem>
 				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
@@ -493,7 +491,7 @@
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
-					IsEnabled="{x:Bind MainVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					IsEnabled="{x:Bind MapsVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
 					<AppBarButton.Icon>
 						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
@@ -562,7 +560,7 @@
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
-					IsEnabled="{x:Bind MainVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					IsEnabled="{x:Bind MapsVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
 					<AppBarButton.Icon>
 						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 

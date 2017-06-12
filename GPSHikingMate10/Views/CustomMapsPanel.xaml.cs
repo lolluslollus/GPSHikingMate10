@@ -4,6 +4,7 @@ using LolloGPS.Data.Runtime;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Core;
+using GPSHikingMate10.ViewModels;
 
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -23,8 +24,15 @@ namespace LolloGPS.Core
 		public static readonly DependencyProperty MainVMProperty =
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
+        public MapsVM MapsVM
+        {
+            get { return (MapsVM)GetValue(MapsVMProperty); }
+            set { SetValue(MapsVMProperty, value); }
+        }
+        public static readonly DependencyProperty MapsVMProperty =
+            DependencyProperty.Register("MapsVM", typeof(MapsVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
-		public CustomMapsPanel()
+        public CustomMapsPanel()
 		{
 			InitializeComponent();
 		}
@@ -43,7 +51,7 @@ namespace LolloGPS.Core
 
 		private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
 		{
-			if (MainVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
+			if (MapsVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
 			{
 				ClearCustomCacheChooser.IsPopupOpen = true;
 			}
@@ -52,12 +60,12 @@ namespace LolloGPS.Core
 
 		private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
 		{
-			Task sch = MainVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
+			Task sch = MapsVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
 		}
 
 		private void OnTestClicked(object sender, RoutedEventArgs e)
 		{
-			Task uuu = MainVM?.StartUserTestingTileSourceAsync();
+			Task uuu = MapsVM?.StartUserTestingTileSourceAsync();
 		}
 	}
 }

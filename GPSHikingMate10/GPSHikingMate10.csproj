@@ -126,6 +126,7 @@
     <Compile Include="ViewModels\AltitudeProfiles_VM.cs" />
     <Compile Include="ViewModels\LolloMap_VM.cs" />
     <Compile Include="ViewModels\Main_VM.cs" />
+    <Compile Include="ViewModels\Maps_VM.cs" />
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AltitudeProfiles.xaml.cs" />
     <Compile Include="Views\CompassControl.xaml.cs">
