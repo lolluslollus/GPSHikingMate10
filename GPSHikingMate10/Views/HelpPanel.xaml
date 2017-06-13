@@ -31,7 +31,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="You can choose among different maps, set your own and download them for offline use."
+		<TextBlock Text="You can choose among different maps and overlays, set your own and download them for offline use."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
@@ -74,7 +74,7 @@
 		<TextBlock Text="Maps"
 			Style="{StaticResource HeaderTextStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="You can choose your own map tiles. Maps are made of tiles that are essentially 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
+		<TextBlock Text="You can choose your own map tiles, one for the base layer and multiple overlays. Maps are made of tiles that are mostly 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>

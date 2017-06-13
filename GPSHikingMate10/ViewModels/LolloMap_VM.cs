@@ -29,12 +29,12 @@ namespace LolloGPS.Core
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
         private readonly IGeoBoundingBoxProvider _gbbProvider = null;
-        private readonly IList<MapTileSource> _mapTileSources = null;
         private readonly TileDownloader _tileDownloader = null;
-        private TileCacheReaderWriter _tileCache = null;
-        private CustomMapTileDataSource _customMapTileDataSource = null;
-        private HttpMapTileDataSource _httpMapTileDataSource = null;
-        private LocalMapTileDataSource _localMapTileDataSource = null;
+        private readonly IList<MapTileSource> _mapTileSources = null;
+        private readonly List<TileCacheReaderWriter> _tileCaches = new List<TileCacheReaderWriter>();
+        private readonly List<CustomMapTileDataSource> _customMapTileDataSources = new List<CustomMapTileDataSource>();
+        //private HttpMapTileDataSource _httpMapTileDataSource = null;
+        //private LocalMapTileDataSource _localMapTileDataSource = null;
 
         private bool _isShowCurrentBaseTileSource = false;
         public bool IsShowCurrentBaseTileSource { get { return _isShowCurrentBaseTileSource; } private set { _isShowCurrentBaseTileSource = value; RaisePropertyChanged_UI(); } }
@@ -60,6 +60,7 @@ namespace LolloGPS.Core
             //await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
             //await OpenAlternativeMap_Local_Async().ConfigureAwait(false);  // LOLLO NOTE If you decide to use it, remember that the tileCacheReaderWriter must always cache!
         }
+        /*
         private async Task OpenAlternativeMap_Local_Async()
         {
             var tileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
@@ -149,12 +150,12 @@ namespace LolloGPS.Core
                 _httpMapTileDataSource.UriRequested += OnHttpDataSource_UriRequested;
             }).ConfigureAwait(false);
         }
+        */
         private async Task OpenAlternativeMap_Custom_Async()
         {
-            var tileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
-            if (tileSource == null) return;
-
-            if (tileSource.IsDefault)
+            var tileSources = await PersistentData.GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
+            // default tile source ----------
+            if (tileSources.Count == 1 && tileSources.ElementAt(0).IsDefault)
             {
                 await RunInUiThreadAsync(delegate
                 {
@@ -163,31 +164,35 @@ namespace LolloGPS.Core
                 }).ConfigureAwait(false);
                 return;
             };
-
-            var tileCache = _tileCache = new TileCacheReaderWriter(tileSource, PersistentData.IsMapCached, false);
+            // custom tile sources ----------
             await RunInUiThreadAsync(delegate
             {
-                CloseAlternativeMap_Custom();
-                _customMapTileDataSource = new CustomMapTileDataSource();
-
-                var mapTileSource = new MapTileSource(
-                    _customMapTileDataSource,
-                    // The MapControl won't request the uri if the zoom is outside its bounds.
-                    // To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
-                    new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+                CloseAlternativeMap_Custom(); // unregister events and clear lists
+                foreach (var ts in tileSources)
                 {
-                    AllowOverstretch = true,
-                    IsRetryEnabled = true,
-                    IsFadingEnabled = false,
-                    IsTransparencyEnabled = false,
-                    Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
-                    TilePixelSize = tileCache.GetTilePixelSize(),
-                    ZIndex = 999,
-                    //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
-                };
+                    var customMapTileDataSource = new CustomMapTileDataSource();
+                    var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource);
+                    var mapTileSource = new MapTileSource(
+                        customMapTileDataSource,
+                        // The MapControl won't request the uri if the zoom is outside its bounds.
+                        // To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
+                        new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+                    {
+                        AllowOverstretch = true,
+                        IsRetryEnabled = true,
+                        IsFadingEnabled = false,
+                        IsTransparencyEnabled = false,
+                        Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+                        TilePixelSize = tileCache.GetTilePixelSize(),
+                        ZIndex = 999,
+                        //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
+                    };
 
-                _mapTileSources.Add(mapTileSource);
-                _customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
+                    _tileCaches.Add(tileCache);
+                    _mapTileSources.Add(mapTileSource);
+                    _customMapTileDataSources.Add(customMapTileDataSource);
+                    customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
+                }
             }).ConfigureAwait(false);
         }
         protected override async Task CloseMayOverrideAsync(object args = null)
@@ -203,7 +208,7 @@ namespace LolloGPS.Core
             var td = _tileDownloader;
             if (td != null) await td.CloseAsync(args).ConfigureAwait(false);
         }
-
+        /*
         private void CloseAlternativeMap_Local()
         {
             var ds = _localMapTileDataSource;
@@ -216,11 +221,20 @@ namespace LolloGPS.Core
             if (ds != null) ds.UriRequested -= OnHttpDataSource_UriRequested;
             _mapTileSources?.Clear();
         }
+        */
         private void CloseAlternativeMap_Custom()
         {
-            var ds = _customMapTileDataSource;
-            if (ds != null) ds.BitmapRequested -= OnCustomDataSource_BitmapRequested;
+            var dss = _customMapTileDataSources;
+            if (dss != null)
+            {
+                foreach (var ds in dss)
+                {
+                    ds.BitmapRequested -= OnCustomDataSource_BitmapRequested;
+                }
+                dss.Clear();
+            }
             _mapTileSources?.Clear();
+            _tileCaches?.Clear();
         }
         #endregion construct and dispose
 
@@ -279,6 +293,7 @@ namespace LolloGPS.Core
                 Task resume = RunFunctionIfOpenAsyncT_MT(UpdateDownloadTilesAfterConditionsChangedAsync);
             }
         }
+        /*
         private async void OnLocalMapTileDataSource_UriRequested(LocalMapTileDataSource sender, MapTileUriRequestedEventArgs args)
         { // this uri must use a local protocol such as ms-appdata
             var deferral = args.Request.GetDeferral();
@@ -328,14 +343,15 @@ namespace LolloGPS.Core
                 deferral.Complete();
             }
         }
+        */
         private async void OnCustomDataSource_BitmapRequested(CustomMapTileDataSource sender, MapTileBitmapRequestedEventArgs args)
         {
             var deferral = args.Request.GetDeferral();
             try
             {
-                var tc = _tileCache;
-                if (tc == null) return;
-                var pixelRef = await Task.Run(() => tc.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, _ctsManager.LinkedCancToken), _ctsManager.LinkedCancToken).ConfigureAwait(false);
+                var tileCache = _tileCaches.FirstOrDefault(tc => tc.MapTileDataSource == sender);
+                if (tileCache == null) return;
+                var pixelRef = await Task.Run(() => tileCache.GetTileStreamRefAsync(args.X, args.Y, 0, args.ZoomLevel, _ctsManager.LinkedCancToken), _ctsManager.LinkedCancToken).ConfigureAwait(false);
                 if (pixelRef != null) args.Request.PixelData = pixelRef;
             }
             catch (Exception exc)

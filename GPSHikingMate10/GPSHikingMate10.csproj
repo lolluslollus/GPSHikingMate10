@@ -200,6 +200,7 @@
     <Content Include="Assets\Icon.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-16.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24.png" />
+    <Content Include="Assets\TileEmpty-256.png" />
     <Content Include="Assets\TileMustZoomIn-256.png" />
     <Content Include="Assets\TileMustZoomOut-256.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-48.png" />
