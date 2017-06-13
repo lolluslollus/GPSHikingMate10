@@ -117,6 +117,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\LolloListChooser.xaml.cs">
+      <DependentUpon>LolloListChooser.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\GPX.cs" />
@@ -126,7 +129,7 @@
     <Compile Include="ViewModels\AltitudeProfiles_VM.cs" />
     <Compile Include="ViewModels\LolloMap_VM.cs" />
     <Compile Include="ViewModels\Main_VM.cs" />
-    <Compile Include="ViewModels\Maps_VM.cs" />
+    <Compile Include="ViewModels\MapsPanel_VM.cs" />
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AltitudeProfiles.xaml.cs" />
     <Compile Include="Views\CompassControl.xaml.cs">
@@ -234,6 +237,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controlz\LolloListChooser.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

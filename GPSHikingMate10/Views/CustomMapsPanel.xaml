@@ -2,6 +2,7 @@
 	x:Class="LolloGPS.Core.CustomMapsPanel"
 	x:Name="me"
 	xmlns:uctl="using:Utilz.Controlz"
+    xmlns:mctl="using:LolloGPS.Controlz"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:LolloGPS.Core"
@@ -81,7 +82,7 @@
 			VerticalAlignment="Center"/>
 		<!-- error message after clicking test -->
 		<TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
-			Text="{x:Bind MapsVM.TestTileSourceErrorMsg, Mode=OneWay}"
+			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
 			Style="{StaticResource BaseMessageStyle}"
@@ -110,7 +111,7 @@
 			<AppBarButton Grid.Row="1" Grid.Column="2"
 				VerticalAlignment="Center"
 				Click="OnTestClicked"
-				IsEnabled="{x:Bind MapsVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="View"
@@ -131,12 +132,12 @@
 				Text="Erase custom sources"/>
 			<AppBarButton Grid.Row="3" Grid.Column="2"
 				VerticalAlignment="Center"
-				IsEnabled="{x:Bind MapsVM.IsClearCustomCacheEnabled, Mode=OneWay}"
+				IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
 				Click="OnClearCustomTileSource_Click"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="Delete"/>
-			<uctl:LolloListChooser Grid.Row="3" Grid.Column="1"
+			<mctl:LolloListChooser Grid.Row="3" Grid.Column="1"
 				SelectorVisibility="Collapsed"
 				x:Name="ClearCustomCacheChooser"
 				PlaceholderText="Which source do you want to erase?"

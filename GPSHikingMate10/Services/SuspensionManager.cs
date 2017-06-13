@@ -98,6 +98,9 @@ namespace LolloGPS.Suspension
         private static bool IsLatestDataStructure(PersistentData persistentData)
         {
             if (persistentData == null || persistentData.TileSourcez == null) return false;
+
+            if (persistentData.CurrentOverlayTileSources == null) return false;
+
             foreach (var ts in persistentData.TileSourcez)
             {
                 if (!string.IsNullOrWhiteSpace(ts.FolderName) && ts.UriStrings != null)

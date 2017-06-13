@@ -14,15 +14,9 @@ namespace LolloGPS.Core
 {
 	public sealed class AltitudeProfilesVM : ObservableData
 	{
-		private MainVM _myMainVM = null;
-		public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
-
 		private const double ALTITUDE_SCALE_MARGIN_WHEN_ALL_EQUAL = 50.0;
 
-		internal AltitudeProfilesVM(MainVM mainVM)
-		{
-			MyMainVM = mainVM;
-		}
+		internal AltitudeProfilesVM(){}
 
 		internal void InitialiseChartData(Collection<PointRecord> coll, bool respectDatesAndTimes, bool sortIfRespectingDatesAndTimes, int firstIndex, int lastIndex,
 			ref double maxAltitude, ref double minAltitude, ref double maxTime, ref double minTime, ref string maxTimeString, ref string minTimeString, ref double[,] boundPoints)

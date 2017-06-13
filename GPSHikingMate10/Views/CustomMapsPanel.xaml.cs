@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
@@ -11,8 +10,8 @@ using GPSHikingMate10.ViewModels;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class CustomMapsPanel : OpenableObservableControl
-	{
+	public sealed partial class CustomMapsPanel : Utilz.Controlz.OpenableObservableControl
+    {
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
@@ -24,13 +23,13 @@ namespace LolloGPS.Core
 		public static readonly DependencyProperty MainVMProperty =
 			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
-        public MapsVM MapsVM
+        public MapsPanelVM MapsPanelVM
         {
-            get { return (MapsVM)GetValue(MapsVMProperty); }
-            set { SetValue(MapsVMProperty, value); }
+            get { return (MapsPanelVM)GetValue(MapsPanelVMProperty); }
+            set { SetValue(MapsPanelVMProperty, value); }
         }
-        public static readonly DependencyProperty MapsVMProperty =
-            DependencyProperty.Register("MapsVM", typeof(MapsVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
+        public static readonly DependencyProperty MapsPanelVMProperty =
+            DependencyProperty.Register("MapsPanelVM", typeof(MapsPanelVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
         public CustomMapsPanel()
 		{
@@ -51,21 +50,21 @@ namespace LolloGPS.Core
 
 		private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
 		{
-			if (MapsVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
+			if (MapsPanelVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
 			{
 				ClearCustomCacheChooser.IsPopupOpen = true;
 			}
 			else PersistentData.LastMessage = "Cache busy";
 		}
 
-		private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
+		private void OnClearCustomCacheChooser_ItemSelected(object sender, Controlz.TextAndTag e)
 		{
-			Task sch = MapsVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
+			Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
 		}
 
 		private void OnTestClicked(object sender, RoutedEventArgs e)
 		{
-			Task uuu = MapsVM?.StartUserTestingTileSourceAsync();
+			Task uuu = MapsPanelVM?.StartUserTestingTileSourceAsync();
 		}
 	}
 }

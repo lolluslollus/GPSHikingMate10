@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
 using System.Threading;
-using Utilz.Controlz;
 
 namespace LolloGPS.Core
 {

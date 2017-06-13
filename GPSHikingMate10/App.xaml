@@ -62,7 +62,8 @@
 			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
 			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
-		</ResourceDictionary>
+            <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>
+        </ResourceDictionary>
 
 	</Application.Resources>
 </Application>

@@ -1,0 +1,93 @@
+﻿<uctl:BackOrientOpenObservControl
+    x:Class="LolloGPS.Controlz.LolloListChooser"
+    x:Name="me"
+    xmlns:uctl="using:Utilz.Controlz"
+    xmlns:mctl="using:LolloGPS.Controlz"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:conv="using:Utilz.Converters"
+    UseLayoutRounding="True"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400">
+    <!--<UserControl.Resources>
+        <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>
+    </UserControl.Resources>-->
+
+    <Grid>
+        <Border BorderThickness="0" 
+            BorderBrush="{ThemeResource ButtonBorderThemeBrush}"
+            Tapped="OnMyTextBlock_Tapped"
+            Background="Transparent"
+            Visibility="{Binding ElementName=me, Path=SelectorVisibility}">
+            <uctl:UniversalWrapPanel Orientation="Horizontal">
+                <TextBlock x:Name="MyTextBlock"
+                    Style="{Binding ElementName=me, Path=TextBlockStyle}"
+                    TextWrapping="Wrap"
+                    IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                    Tapped="OnMyTextBlock_Tapped"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Left"/>
+                <AppBarButton IsCompact="True" Icon="Edit"
+                    Style="{Binding ElementName=me, Path=AppBarButtonStyle}"
+                    IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                    Tapped="OnMyTextBlock_Tapped"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"/>
+            </uctl:UniversalWrapPanel>
+        </Border>
+        <Canvas>
+            <Popup x:Name="MyPopup" IsOpen="False" 
+                Canvas.ZIndex="999"
+                Closed="OnMyPopup_Closed">
+                <Grid x:Name="MyPoupGrid" Background="{ThemeResource FlyoutBackgroundThemeBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="1" 
+						Text="{Binding ElementName=me, Path=ListHeaderText}" 
+						Style="{Binding ElementName=me, Path=ListHeaderStyle}"/>
+                    <ListView Grid.Row="3"
+                            x:Name="MyListView"
+                            Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+                            CanReorderItems="False"
+                            IsItemClickEnabled="True"
+                            IsMultiSelectCheckBoxEnabled="False"
+                            ItemClick="OnMyListView_ItemClick"
+                            Loaded="OnMyListViewLoaded"
+                            SelectionMode="None"
+                            Unloaded="OnMyListViewUnloaded">
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsStackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderThickness="0"
+                                        Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+                                        IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                                        Tapped="OnItemBorder_Tapped">
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  Click="OnCheckBox_Click"
+                                                  Visibility="{Binding ElementName=me, Path=IsMultiSelectCheckBoxEnabled, Converter={StaticResource BooleanToVisibleConverter}}"/>
+                                        <TextBlock Text="{Binding TextAndTag.Text, Mode=OneWay}"
+											TextWrapping="Wrap"
+                                            Style="{Binding ElementName=me, Path=TextItemStyle}"
+                                            Margin="10"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Popup>
+        </Canvas>
+    </Grid>
+</uctl:BackOrientOpenObservControl>

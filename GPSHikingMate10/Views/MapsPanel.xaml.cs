@@ -1,6 +1,6 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.Controlz;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,12 +9,13 @@ using Windows.UI.Xaml;
 using System.Threading.Tasks;
 using Utilz;
 using GPSHikingMate10.ViewModels;
+using static LolloGPS.Controlz.LolloListChooser;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-    public sealed partial class MapsPanel : OpenableObservableControl
+    public sealed partial class MapsPanel : Utilz.Controlz.OpenableObservableControl
     {
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -26,22 +27,13 @@ namespace LolloGPS.Core
         }
         public static readonly DependencyProperty MainVMProperty =
             DependencyProperty.Register("MainVM", typeof(MainVM), typeof(MapsPanel), new PropertyMetadata(null));
-
-        public LolloMapVM LolloMapVM
+        public MapsPanelVM MapsPanelVM
         {
-            get { return (LolloMapVM)GetValue(LolloMapVMProperty); }
-            set { SetValue(LolloMapVMProperty, value); }
+            get { return (MapsPanelVM)GetValue(MapsPanelVMProperty); }
+            set { SetValue(MapsPanelVMProperty, value); }
         }
-        public static readonly DependencyProperty LolloMapVMProperty =
-            DependencyProperty.Register("LolloMapVM", typeof(LolloMapVM), typeof(MapsPanel), new PropertyMetadata(null));
-
-        public MapsVM MapsVM
-        {
-            get { return (MapsVM)GetValue(MapsVMProperty); }
-            set { SetValue(MapsVMProperty, value); }
-        }
-        public static readonly DependencyProperty MapsVMProperty =
-            DependencyProperty.Register("MapsVM", typeof(MapsVM), typeof(MapsPanel), new PropertyMetadata(null));
+        public static readonly DependencyProperty MapsPanelVMProperty =
+            DependencyProperty.Register("MapsPanelVM", typeof(MapsPanelVM), typeof(MapsPanel), new PropertyMetadata(null));
 
         public MapsPanel()
         {
@@ -50,18 +42,20 @@ namespace LolloGPS.Core
 
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
-            await MapSourceChooser.OpenAsync().ConfigureAwait(false);
-            await ZoomLevelChooser.OpenAsync().ConfigureAwait(false);
-            await ClearCacheChooser.OpenAsync().ConfigureAwait(false);
-            await base.OpenMayOverrideAsync().ConfigureAwait(false);
+            await BaseMapSourceChooser.OpenAsync(args).ConfigureAwait(false);
+            await OverlayMapSourceChooser.OpenAsync(args).ConfigureAwait(false);
+            await ZoomLevelChooser.OpenAsync(args).ConfigureAwait(false);
+            await ClearCacheChooser.OpenAsync(args).ConfigureAwait(false);
+            await base.OpenMayOverrideAsync(args).ConfigureAwait(false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
-            await MapSourceChooser.CloseAsync().ConfigureAwait(false);
-            await ZoomLevelChooser.CloseAsync().ConfigureAwait(false);
-            await ClearCacheChooser.CloseAsync().ConfigureAwait(false);
-            await base.CloseMayOverrideAsync().ConfigureAwait(false);
+            await BaseMapSourceChooser.CloseAsync(args).ConfigureAwait(false);
+            await OverlayMapSourceChooser.CloseAsync(args).ConfigureAwait(false);
+            await ZoomLevelChooser.CloseAsync(args).ConfigureAwait(false);
+            await ClearCacheChooser.CloseAsync(args).ConfigureAwait(false);
+            await base.CloseMayOverrideAsync(args).ConfigureAwait(false);
         }
 
         private void OnGoto2D_Click(object sender, RoutedEventArgs e)
@@ -75,30 +69,58 @@ namespace LolloGPS.Core
 
         private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
         {
-            if (MapsVM?.IsClearCacheEnabled == true) // this is redundant safety
+            if (MapsPanelVM?.IsClearCacheEnabled == true) // this is redundant safety
             {
                 ClearCacheChooser.IsPopupOpen = true;
             }
             else PersistentData.LastMessage = "Cache busy";
         }
-        private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
+        private void OnClearCacheChooser_ItemSelected(object sender, Controlz.TextAndTag e)
         {
-            Task sch = MapsVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
+            Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
         }
 
         private void OnDownloadMap_Click(object sender, RoutedEventArgs e)
         {
-            MapsVM?.DownloadMapAsync();
+            MapsPanelVM?.DownloadMapAsync();
         }
-        private void OnZoomLevelChooser_ItemSelected(object sender, TextAndTag e)
+        private void OnZoomLevelChooser_ItemSelected(object sender, Controlz.TextAndTag e)
         {
             if (!(e?.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
-            MapsVM?.Download_ChooseZoomLevel(maxZoom);
+            MapsPanelVM?.Download_ChooseZoomLevel(maxZoom);
         }
-        private void OnMapSourceChooser_ItemSelected(object sender, TextAndTag e)
+
+        private void OnBaseMapSourceChooser_SelectionRequested(object sender, SelectionRequestedEventArgs args)
         {
-            Task set = MapsVM?.SetMapSource(e?.Tag as TileSourceRecord);
+            MapsPanelVM?.SetBaseTileSourceSelection(args);
+        }
+
+        private void OnOverlayMapSourceChooser_SelectionsRequested(object sender, SelectionRequestedEventArgs args)
+        {
+            MapsPanelVM?.SetOverlayTileSourcesSelection(args);
+        }
+
+        private void OnBaseMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
+        {
+            if (args == null) return;
+            Task set = MapsPanelVM?.UnsetMapSource(args?.Tag as TileSourceRecord);
+        }
+        private void OnBaseMapSourceChooser_ItemSelected(object sender, TextAndTag args)
+        {
+            if (args == null) return;
+            Task set = MapsPanelVM?.SetMapSource(args?.Tag as TileSourceRecord);
+        }
+
+        private void OnOverlayMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
+        {
+            if (args == null) return;
+            Task set = MapsPanelVM?.RemoveOverlayMapSources(args?.Tag as TileSourceRecord);
+        }
+        private void OnOverlayMapSourceChooser_ItemSelected(object sender, TextAndTag args)
+        {
+            if (args == null) return;
+            Task set = MapsPanelVM?.AddOverlayMapSources(args?.Tag as TileSourceRecord);
         }
     }
 }

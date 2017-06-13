@@ -1,5 +1,4 @@
 ﻿using GPX;
-using Utilz.Controlz;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
@@ -24,10 +23,10 @@ using Windows.Storage.Pickers;
 
 namespace LolloGPS.Core
 {
-    public sealed class MainVM : OpenableObservableData, IBackPressedRaiser
+    public sealed class MainVM : OpenableObservableData, Utilz.Controlz.IBackPressedRaiser
     {
         #region IBackPressedRaiser
-        public event EventHandler<BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
+        public event EventHandler<Utilz.Controlz.BackOrHardSoftKeyPressedEventArgs> BackOrHardSoftKeyPressed;
         #endregion IBackPressedRaiser
 
 
@@ -65,8 +64,8 @@ namespace LolloGPS.Core
         //private string _testTileSourceErrorMsg = "";
         //public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
-        private volatile bool _isWideEnough = false;
-        public bool IsWideEnough { get { return _isWideEnough; } set { if (_isWideEnough != value) { _isWideEnough = value; RaisePropertyChanged_UI(); } } }
+        //private volatile bool _isWideEnough = false;
+        //public bool IsWideEnough { get { return _isWideEnough; } set { if (_isWideEnough != value) { _isWideEnough = value; RaisePropertyChanged_UI(); } } }
 
         private volatile bool _isDrawing = true; // always written under _isOpenSemaphore
         public bool IsDrawing { get { return _isDrawing; } private set { if (_isDrawing != value) { _isDrawing = value; RaisePropertyChanged_UI(); } } }
@@ -86,11 +85,11 @@ namespace LolloGPS.Core
         private IOpenable Owner { get { return _owner; } }
         private static MainVM _instance = null;
         private static MainVM Instance { get { lock (_instanceLocker) { return _instance; } } }
-        public MainVM(bool isWideEnough, IMapAltProfCentrer lolloMap, IMapAltProfCentrer altitudeProfiles, IOpenable owner)
+        public MainVM(IMapAltProfCentrer lolloMap, IMapAltProfCentrer altitudeProfiles, IOpenable owner)
         {
             _gpsInteractor = GPSInteractor.GetInstance(PersistentData);
             //_tileCacheClearer = TileCacheClearer.GetInstance();
-            IsWideEnough = isWideEnough;
+            //IsWideEnough = isWideEnough;
             _lolloMap = lolloMap;
             _altitudeProfiles = altitudeProfiles;
             lock (_instanceLocker)
@@ -359,21 +358,21 @@ namespace LolloGPS.Core
         #region services
         public void GoBackMyButtonSoft()
         {
-            var args = new BackOrHardSoftKeyPressedEventArgs();
+            var args = new Utilz.Controlz.BackOrHardSoftKeyPressedEventArgs();
             BackOrHardSoftKeyPressed?.Invoke(this, args);
             if (!args.Handled) PersistentData.IsShowingPivot = false;
         }
         public void GoBackTabletSoft(object sender, BackRequestedEventArgs e)
         {
             if (PersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
-            var args = new BackOrHardSoftKeyPressedEventArgs();
+            var args = new Utilz.Controlz.BackOrHardSoftKeyPressedEventArgs();
             BackOrHardSoftKeyPressed?.Invoke(sender, args);
             if (!args.Handled) PersistentData.IsShowingPivot = false;
         }
         public void GoBackHard(object sender, BackPressedEventArgs e)
         {
             if (PersistentData.IsBackButtonEnabled && e != null) e.Handled = true;
-            var args = new BackOrHardSoftKeyPressedEventArgs();
+            var args = new Utilz.Controlz.BackOrHardSoftKeyPressedEventArgs();
             BackOrHardSoftKeyPressed?.Invoke(sender, args);
             if (!args.Handled) PersistentData.IsShowingPivot = false;
         }

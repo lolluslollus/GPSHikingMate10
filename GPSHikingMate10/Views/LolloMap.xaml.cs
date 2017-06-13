@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -29,7 +28,7 @@ using System.Threading;
 // or here: http://phone.codeplex.com/SourceControl/latest
 namespace LolloGPS.Core
 {
-    public sealed partial class LolloMap : OpenableObservableControl, IGeoBoundingBoxProvider, IMapAltProfCentrer, IInfoPanelEventReceiver
+    public sealed partial class LolloMap : Utilz.Controlz.OpenableObservableControl, IGeoBoundingBoxProvider, IMapAltProfCentrer, IInfoPanelEventReceiver
     {
         #region properties
         // LOLLO NOTE checkpoints are still expensive to draw, no matter what I tried, 
@@ -111,16 +110,8 @@ namespace LolloGPS.Core
 
         public PersistentData PersistentData => App.PersistentData;
         public RuntimeData RuntimeData => App.RuntimeData;
-        private LolloMapVM _lolloMapVM = null;
+        private readonly LolloMapVM _lolloMapVM = null;
         public LolloMapVM LolloMapVM => _lolloMapVM;
-
-        public MainVM MainVM
-        {
-            get { return (MainVM)GetValue(MainVMProperty); }
-            set { SetValue(MainVMProperty, value); }
-        }
-        public static readonly DependencyProperty MainVMProperty =
-            DependencyProperty.Register("MainVM", typeof(MainVM), typeof(LolloMap), new PropertyMetadata(null));
 
         //private static WeakReference _myReadyMapInstance = null;
         private static MapControl _myReadyMapInstance = null;
@@ -200,6 +191,9 @@ namespace LolloGPS.Core
             else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             //MyMap.MapElements.Clear(); // no!
+
+            _lolloMapVM = new LolloMapVM(MyMap.TileSources, this);
+            RaisePropertyChanged_UI(nameof(LolloMapVM));
         }
         private enum ElementsSize { Small, Medium, Large }
         private ElementsSize GetElementsSize()
@@ -222,21 +216,19 @@ namespace LolloGPS.Core
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
             Logger.Add_TPL("LolloMap started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-            bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
-            bool isFileActivating = args != null && (LifecycleEvents)args == LifecycleEvents.NavigatedToAfterFileActivated;
 
             _isHistoryInMap = false;
             _isRoute0InMap = false;
             _isFlyoutPointInMap = false;
 
-            _lolloMapVM = new LolloMapVM(MyMap.TileSources, this, MainVM);
             await _lolloMapVM.OpenAsync(args);
-            RaisePropertyChanged_UI(nameof(LolloMapVM));
 
             await CompassControl.OpenAsync(args);
 
             AddHandlers();
 
+            bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
+            bool isFileActivating = args != null && (LifecycleEvents)args == LifecycleEvents.NavigatedToAfterFileActivated;
             // if the app is file activating, ignore the series that are already present; 
             // the newly read series will draw automatically once they are pushed in and (the chosen one) will be centred with an external command.
             if (isFileActivating) return;
@@ -935,7 +927,7 @@ namespace LolloGPS.Core
             // draw the selected point
             await DrawFlyoutPointAsync().ConfigureAwait(false);
             // if this panel is being displayed, centre it
-            if (MainVM?.IsWideEnough == true || !PersistentData.IsShowingAltitudeProfiles) await CentreOnPointAsync(PersistentData.Selected, false);
+            if (RuntimeData?.IsWideEnough == true || !PersistentData.IsShowingAltitudeProfiles) await CentreOnPointAsync(PersistentData.Selected, false);
         }
 
         public void OnInfoPanelClosed(object sender, object e)

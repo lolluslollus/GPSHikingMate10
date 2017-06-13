@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using System;
 using System.Threading.Tasks;
 using Windows.UI.Popups;
@@ -9,7 +8,7 @@ using Windows.UI.Xaml;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class FilesPanel : ObservableControl
+    public sealed partial class FilesPanel : Utilz.Controlz.ObservableControl
     {
         #region properties
         public MainVM MainVM

@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using InteractiveChart;
+﻿using InteractiveChart;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
@@ -23,18 +22,10 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class AltitudeProfiles : OpenableObservableControl, IMapAltProfCentrer, IInfoPanelEventReceiver
+    public sealed partial class AltitudeProfiles : Utilz.Controlz.OpenableObservableControl, IMapAltProfCentrer, IInfoPanelEventReceiver
     {
         #region properties
-        public MainVM MainVM
-        {
-            get { return (MainVM)GetValue(MainVMProperty); }
-            set { SetValue(MainVMProperty, value); }
-        }
-        public static readonly DependencyProperty MainVMProperty =
-            DependencyProperty.Register("MainVM", typeof(MainVM), typeof(AltitudeProfiles), new PropertyMetadata(null));
-
-        private AltitudeProfilesVM _altitudeProfilesVM = null;
+        private readonly AltitudeProfilesVM _altitudeProfilesVM = null;
         public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } }
 
         public PersistentData PersistentData { get { return App.PersistentData; } }
@@ -48,22 +39,21 @@ namespace LolloGPS.Core
         public AltitudeProfiles()
         {
             InitializeComponent();
+            _altitudeProfilesVM = new AltitudeProfilesVM();
+            RaisePropertyChanged_UI(nameof(AltitudeProfilesVM));
         }
         protected override Task OpenMayOverrideAsync(object args = null)
         {
             Logger.Add_TPL("AltitudeProfiles started OpenMayOverrideAsync()", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-            bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
-            bool isFileActivating = args != null && (LifecycleEvents)args == LifecycleEvents.NavigatedToAfterFileActivated;
-
-            _altitudeProfilesVM = new AltitudeProfilesVM(MainVM);
-            RaisePropertyChanged_UI(nameof(AltitudeProfilesVM));
-
+            
             HistoryChart.Open();
             Route0Chart.Open();
             CheckpointsChart.Open();
 
             AddHandlers();
 
+            bool isResuming = args != null && (LifecycleEvents)args == LifecycleEvents.Resuming;
+            bool isFileActivating = args != null && (LifecycleEvents)args == LifecycleEvents.NavigatedToAfterFileActivated;
             // if the app is file activating, ignore the series that are already present; 
             // the newly read series will draw automatically once they are pushed in and (the chosen one) will be centred with an external command.
             if (isFileActivating) return Task.CompletedTask;

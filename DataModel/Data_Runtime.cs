@@ -21,6 +21,8 @@ namespace LolloGPS.Data.Runtime
         #region properties
         private static readonly SemaphoreSlimSafeRelease _settingsDbDataReadSemaphore = new SemaphoreSlimSafeRelease(1, 1);
 
+        private volatile bool _isWideEnough = false;
+        public bool IsWideEnough { get { return _isWideEnough; } set { _isWideEnough = value; RaisePropertyChanged_UI(); } }
         private volatile bool _isTrial = true;
         public bool IsTrial { get { return _isTrial; } set { _isTrial = value; RaisePropertyChanged_UI(); } }
 

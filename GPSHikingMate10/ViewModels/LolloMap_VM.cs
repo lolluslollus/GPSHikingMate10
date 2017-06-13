@@ -24,8 +24,6 @@ namespace LolloGPS.Core
     {
         // http://josm.openstreetmap.de/wiki/Maps
 
-        private MainVM _myMainVM = null;
-        public MainVM MyMainVM { get { return _myMainVM; } private set { _myMainVM = value; RaisePropertyChanged_UI(); } }
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
@@ -38,10 +36,8 @@ namespace LolloGPS.Core
         private LocalMapTileDataSource _localMapTileDataSource = null;
 
         #region construct and dispose
-        public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider, MainVM mainVM)
+        public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider)
         {
-            MyMainVM = mainVM;
-            //MyMainVM.LolloMapVM = this;
             _gbbProvider = gbbProvider;
             _mapTileSources = mapTileSources;
             _tileDownloader = new TileDownloader(gbbProvider);
@@ -364,7 +360,8 @@ namespace LolloGPS.Core
                 {
                     KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
                 }).ConfigureAwait(false);
-                if (downloadResult != null) MyMainVM.SetLastMessage_UI(downloadResult.Item1 + " of " + downloadResult.Item2 + " tiles downloaded");
+                var pd = PersistentData;
+                if (downloadResult != null && pd != null) pd.LastMessage = $"{downloadResult.Item1} of {downloadResult.Item2} tiles downloaded";
             }
         }
         public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()

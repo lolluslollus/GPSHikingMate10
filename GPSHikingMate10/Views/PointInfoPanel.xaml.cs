@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 
 namespace LolloGPS.Core
 {
-    public sealed partial class PointInfoPanel : BackOrientOpenObservControl
+    public sealed partial class PointInfoPanel : Utilz.Controlz.BackOrientOpenObservControl
     {
         public event EventHandler PointChanged;
 
@@ -31,7 +30,7 @@ namespace LolloGPS.Core
         {
             if (args.NewValue != args.OldValue)
             {
-                (obj as BackOrientOpenObservControl).BackPressedRaiser = args.NewValue as IBackPressedRaiser;
+                (obj as Utilz.Controlz.BackOrientOpenObservControl).BackPressedRaiser = args.NewValue as Utilz.Controlz.IBackPressedRaiser;
             }
         }
 

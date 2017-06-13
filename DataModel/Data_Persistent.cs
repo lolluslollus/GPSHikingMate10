@@ -3,6 +3,7 @@ using LolloGPS.Data.Runtime;
 using SQLite;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -541,6 +542,10 @@ namespace LolloGPS.Data
         private volatile TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
         [DataMember]
         public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } private set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged_UI(); } } }
+
+        private volatile SwitchableObservableCollection<TileSourceRecord> _currentOverlayTileSources = new SwitchableObservableCollection<TileSourceRecord>();
+        [DataMember]
+        public SwitchableObservableCollection<TileSourceRecord> CurrentOverlayTileSources { get { return _currentOverlayTileSources; } private set { _currentOverlayTileSources = value; RaisePropertyChanged_UI(); } }
 
         private volatile bool _isTileSourcezBusy = false;
         [IgnoreDataMember]
@@ -1243,7 +1248,7 @@ namespace LolloGPS.Data
         #endregion selectedRecordMethods
 
         #region tileSourcesMethods
-        public async Task SetCurrentTileSourceAsync(TileSourceRecord tileSource)
+        public async Task SetCurrentTileSourceAsync(TileSourceRecord tileSource, bool isBaseLayer)
         {
             if (tileSource == null) return;
             try
@@ -1253,7 +1258,59 @@ namespace LolloGPS.Data
 
                 await RunInUiThreadAsync(delegate
                 {
-                    CurrentTileSource = tileSource;
+                    if (isBaseLayer) CurrentTileSource = tileSource;
+                    else if (!CurrentOverlayTileSources.Any(ts => ts.CompareTo(tileSource) == 0)) {
+                        CurrentOverlayTileSources.Add(tileSource);
+                        RaisePropertyChanged_UI(nameof(CurrentOverlayTileSources));
+                    }
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        public async Task UnsetCurrentTileSourceAsync(bool isBaseLayer) // always true
+        {
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync();
+                IsTileSourcezBusy = true;
+
+                await RunInUiThreadAsync(delegate
+                {
+                    CurrentTileSource = TileSourceRecord.GetDefaultTileSource();
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        public async Task UnsetCurrentTileSourceAsync(TileSourceRecord tileSource, bool isBaseLayer) // always false
+        {
+            if (tileSource == null) return;
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync();
+                IsTileSourcezBusy = true;
+
+                await RunInUiThreadAsync(delegate
+                {
+                    var cots = CurrentOverlayTileSources.FirstOrDefault(ts => ts.CompareTo(tileSource) == 0);
+                    if (cots == null) return;
+                    CurrentOverlayTileSources.Remove(cots);
+                    RaisePropertyChanged_UI(nameof(CurrentOverlayTileSources));
                 }).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -1459,6 +1516,7 @@ namespace LolloGPS.Data
             });
         }
 
+
         public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource)
         {
             TileSourceRecord result = null;
@@ -1470,6 +1528,66 @@ namespace LolloGPS.Data
 
                 if (tileSource == null) TileSourceRecord.Clone(CurrentTileSource, ref result);
                 else TileSourceRecord.Clone(tileSource, ref result);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+
+            return result;
+        }
+
+        public async Task<ICollection<TileSourceRecord>> GetTileSourcezCloneAsync(bool doBase, bool doOverlays)
+        {
+            ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
+
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                IsTileSourcezBusy = true;
+
+                foreach (var ts in _tileSourcez)
+                {
+                    if (ts == null || (!doOverlays && !ts.IsOverlay) || (!doBase && !ts.IsOverlay)) continue;
+                    TileSourceRecord tsClone = null;
+                    TileSourceRecord.Clone(ts, ref tsClone);
+                    result.Add(tsClone);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+
+            return result;
+        }
+
+        public async Task<ICollection<TileSourceRecord>> GetCurrentOverlayTileSourcezCloneAsync()
+        {
+            ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
+
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                IsTileSourcezBusy = true;
+
+                foreach (var ts in _currentOverlayTileSources)
+                {
+                    if (ts == null) continue;
+                    TileSourceRecord tsClone = null;
+                    TileSourceRecord.Clone(ts, ref tsClone);
+                    result.Add(tsClone);
+                }
             }
             catch (Exception ex)
             {

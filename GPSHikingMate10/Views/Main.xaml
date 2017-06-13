@@ -11,167 +11,167 @@
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
-	<ctl:OpenableObservablePage.Resources>
-		<Storyboard x:Name="ShowHideLastMessageFlashyStoryboard">
-			<!-- LOLLO NOTE the animation makes the container of the animated object swell. 
+    <ctl:OpenableObservablePage.Resources>
+        <Storyboard x:Name="ShowHideLastMessageFlashyStoryboard">
+            <!-- LOLLO NOTE the animation makes the container of the animated object swell. 
 			So we must de-animate both. -->
-			<DoubleAnimationUsingKeyFrames 
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
 				Storyboard.TargetName="LastMessageBorder">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
 				Storyboard.TargetName="LastMessageBorder">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
 				Storyboard.TargetName="LastMessageTB">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
 				Storyboard.TargetName="LastMessageTB">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-		<Storyboard x:Name="ShowHideLastMessageDiscreetStoryboard">
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="2.5"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="2.4"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="2.2"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1.8"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Name="ShowHideLastMessageDiscreetStoryboard">
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
 				Storyboard.TargetName="LastMessageTB">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
 				Storyboard.TargetName="LastMessageTB">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleX)" 
 				Storyboard.TargetName="LastMessageBorder">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-			<DoubleAnimationUsingKeyFrames 
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames 
 				Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.ScaleY)" 
 				Storyboard.TargetName="LastMessageBorder">
-				<LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
-				<LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
-			</DoubleAnimationUsingKeyFrames>
-		</Storyboard>
-	</ctl:OpenableObservablePage.Resources>
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:4.9" Value="1.0"/>
+                <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </ctl:OpenableObservablePage.Resources>
 
-	<Grid x:Name="LayoutRoot">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*" />
-			<RowDefinition Height="Auto" />
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="Auto"/>
-			<ColumnDefinition Width="*"/>
-		</Grid.ColumnDefinitions>
-		<VisualStateManager.VisualStateGroups>
-			<VisualStateGroup>
-				<VisualState>
-					<VisualState.StateTriggers>
-						<customTriggers:ProportionsTrigger TargetElement="{x:Bind LayoutRoot}"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="BottomButtonBar.Visibility" Value="Visible" />
-						<Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
-					</VisualState.Setters>
-				</VisualState>
-				<VisualState>
-					<VisualState.StateTriggers>
-						<AdaptiveTrigger MinWindowWidth="1201"/>
-					</VisualState.StateTriggers>
-					<VisualState.Setters>
-						<Setter Target="me.IsWideEnough" Value="true"/>
-						<!-- the following works but I did it in code behind so it's all in one place -->
-						<!--<Setter Target="AltitudeColumn.Width" Value="1*"/> -->
-						<!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
-						<!-- <Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/> -->
-					</VisualState.Setters>
-				</VisualState>
-			</VisualStateGroup>
-		</VisualStateManager.VisualStateGroups>
+    <Grid x:Name="LayoutRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <customTriggers:ProportionsTrigger TargetElement="{x:Bind LayoutRoot}"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="BottomButtonBar.Visibility" Value="Visible" />
+                        <Setter Target="LeftButtonBar.Visibility" Value="Collapsed"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1201"/>
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="me.IsWideEnough" Value="true"/>
+                        <!-- the following works but I did it in code behind so it's all in one place -->
+                        <!--<Setter Target="AltitudeColumn.Width" Value="1*"/> -->
+                        <!-- LOLLO NOTE I need the brackets because Grid.Column is an attached property -->
+                        <!-- <Setter Target="MyAltitudeProfiles.(Grid.Column)" Value="1"/> -->
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
-		<!-- loading overlay -->
+        <!-- loading overlay -->
         <!--Visibility="{x:Bind Path=RuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">-->
-		<Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
+        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
 			  Opacity=".5"
 			  Canvas.ZIndex="999"
 			  Visibility="{x:Bind Path=MainVM.IsDrawing, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay, FallbackValue=Visible}">
-			<TextBlock
+            <TextBlock
 				x:Name="LoadingNoticeTextBlock"
 				Opacity="1"
 				Text="Drawing..." 
 				Foreground="{StaticResource FlashyForeground}"
 				HorizontalAlignment="Center" VerticalAlignment="Center"
 				Style="{StaticResource HugeTextStyle}">
-			</TextBlock>
-		</Grid>
+            </TextBlock>
+        </Grid>
 
-		<!-- Map, altitude, menu, user info and their overlays -->
-		<Grid Grid.Row="0" Grid.Column="1">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="*"/>
-				<RowDefinition x:Name="UserInfoGridRow" Height="40"/>
-			</Grid.RowDefinitions>
-			<!-- map overlays -->
-			<StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
-				<!-- download progress bar -->
-				<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+        <!-- Map, altitude, menu, user info and their overlays -->
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition x:Name="UserInfoGridRow" Height="40"/>
+            </Grid.RowDefinitions>
+            <!-- map overlays -->
+            <StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
+                <!-- download progress bar -->
+                <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Opacity=".75"
 					Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					VerticalAlignment="Top"
 					IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition/>
-						<ColumnDefinition/>
-					</Grid.ColumnDefinitions>
-					<ProgressBar Grid.Column="0" Grid.ColumnSpan="2"
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar Grid.Column="0" Grid.ColumnSpan="2"
 						 IsIndeterminate="False"
 						 Minimum="0"
 						 Maximum="1"
 						 Foreground="{StaticResource FlashyForeground}"
 						 VerticalAlignment="Bottom"
 						 Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"/>
-					<TextBlock Grid.Column="0"
+                    <TextBlock Grid.Column="0"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						Text="Downloading..." 
@@ -180,7 +180,7 @@
 						Margin="10"
 						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
 						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
-					<TextBlock Grid.Column="0"
+                    <TextBlock Grid.Column="0"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						Text="Download will resume when back online"
@@ -190,26 +190,26 @@
 						Margin="10"
 						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
 						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-					<Button Grid.Column="1"
+                    <Button Grid.Column="1"
 						BorderBrush="{StaticResource FlashyForeground}"
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"
 						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
 						Click="OnCancelDownload_Click">
-						<Button.Content>
-							<TextBlock
+                        <Button.Content>
+                            <TextBlock
 								HorizontalAlignment="Center"
 								VerticalAlignment="Center"
 								Text="Cancel" 
 								Foreground="{StaticResource FlashyForeground}"
 								Style="{StaticResource BaseMessageStyle}"
 								IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"/>
-						</Button.Content>
-					</Button>
-				</Grid>
-				<!-- icons for battery consuming functions -->
-				<StackPanel Margin="0" Padding="0" Orientation="Horizontal">
-					<AppBarButton
+                        </Button.Content>
+                    </Button>
+                </Grid>
+                <!-- icons for battery consuming functions -->
+                <StackPanel Margin="0" Padding="0" Orientation="Horizontal">
+                    <AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -217,7 +217,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
-					<AppBarButton
+                    <AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -225,7 +225,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>
-					<AppBarButton
+                    <AppBarButton
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -233,157 +233,159 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Pin" Label="Keeping alive"/>
-				</StackPanel>
-			</StackPanel>
-			<!-- map and altitude-->
-			<Grid Grid.Row="0" Canvas.ZIndex="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="2*"/>
-					<ColumnDefinition Width="0" x:Name="AltitudeColumn"/>
-				</Grid.ColumnDefinitions>
-				<!-- point info panel -->
-				<Popup x:Name="SelectedPointPopup"
+                </StackPanel>
+            </StackPanel>
+            <!-- map and altitude-->
+            <Grid Grid.Row="0" Canvas.ZIndex="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="0" x:Name="AltitudeColumn"/>
+                </Grid.ColumnDefinitions>
+                <!-- point info panel -->
+                <Popup x:Name="SelectedPointPopup"
 					Grid.ColumnSpan="2"
 					IsLightDismissEnabled="True" 
 					Closed="OnInfoPanelClosed"
 					ScrollViewer.HorizontalScrollBarVisibility="Visible" ScrollViewer.VerticalScrollBarVisibility="Visible">
-					<!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
-					<local:PointInfoPanel x:Name="MyPointInfoPanel"
+                    <!-- no need to set the BackPressedRaiser coz it is in a light dismissible popup -->
+                    <local:PointInfoPanel x:Name="MyPointInfoPanel"
 						MainVM="{x:Bind MainVM, Mode=OneWay}"
 						PointChanged="OnInfoPanelPointChanged"/>
-				</Popup>
-				<!-- Map  -->
-				<!-- LOLLO NOTE Must never set visibility = Collapsed on a map control or its owner, 
+                </Popup>
+                <!-- Map  -->
+                <!-- LOLLO NOTE Must never set visibility = Collapsed on a map control or its owner, 
 				even in code: use height = 0 or an overlay instead, to avoid stupid catastrophic failure -->
-				<local:LolloMap Canvas.ZIndex="0"
+                <local:LolloMap Canvas.ZIndex="0"
 					Grid.Column="0"
 					x:Name="MyLolloMap"
-					MainVM="{x:Bind MainVM, Mode=OneWay}"
 					ShowManyPointDetailsRequested="OnShowManyPointDetailsRequested"/>
-				<!-- Altitude profiles -->
-				<local:AltitudeProfiles Canvas.ZIndex="200"
+                <!-- Altitude profiles -->
+                <local:AltitudeProfiles Canvas.ZIndex="200"
 					Grid.Column="0"
 					x:Name="MyAltitudeProfiles"
-					MainVM="{x:Bind MainVM, Mode=OneWay}"
 					Visibility="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					ShowOnePointDetailsRequested="OnShowOnePointDetailsRequested"/>
-			</Grid>
-			<!-- Menu pivot -->
-			<Pivot Grid.Row="0" Canvas.ZIndex="600"
+            </Grid>
+            <!-- Menu pivot -->
+            <Pivot Grid.Row="0" Canvas.ZIndex="600"
 				   x:Name="MyPivot"
 				   Visibility="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				   Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				   Margin="{StaticResource Thickness0}"
 				   SelectedIndex="{x:Bind PersistentData.SelectedPivotIndex, Converter={StaticResource SelectedPivotIndexConverter}, Mode=TwoWay}">
-				<PivotItem Header="Points" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
+                <PivotItem Header="Points" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:PointsPanel 
+                        <local:PointsPanel 
 							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
-						BringIntoViewOnFocusChange="True"
-						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
-						Margin="{StaticResource Thickness0}">
-						<local:FilesPanel 
-							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
-						BringIntoViewOnFocusChange="True"
-						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
-						Margin="{StaticResource Thickness0}">
-                        <local:MapsPanel x:Name="MyMapsPanel"/>
                     </ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
+                </PivotItem>
+                <PivotItem Header="Files" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
+						Margin="{StaticResource Thickness0}">
+                        <local:FilesPanel 
+							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="Maps" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
+						BringIntoViewOnFocusChange="True"
+						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
+						Margin="{StaticResource Thickness0}">
+                        <local:MapsPanel x:Name="MyMapsPanel"
+                            MainVM="{x:Bind MainVM, Mode=OneWay}"
+                            MapsPanelVM="{x:Bind MapsPanelVM, Mode=OneWay}"/>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="Custom maps" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
 						BringIntoViewOnFocusChange="True"                            
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                                     
 						Margin="{StaticResource Thickness0}">
-						<local:CustomMapsPanel x:Name="MyCustomMapsPanel"/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
+                        <local:CustomMapsPanel x:Name="MyCustomMapsPanel"
+                            MainVM="{x:Bind MainVM, Mode=OneWay}"
+                            MapsPanelVM="{x:Bind MapsPanelVM, Mode=OneWay}"/>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="Settings" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:SettingsPanel 
+                        <local:SettingsPanel 
 							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="Help" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
 						BringIntoViewOnFocusChange="True"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"                
 						Margin="{StaticResource Thickness0}">
-						<local:HelpPanel 
+                        <local:HelpPanel 
 							MainVM="{x:Bind MainVM, Mode=OneWay}"/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="About" Style="{StaticResource PivotItemStyle}">
-					<ScrollViewer
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="About" Style="{StaticResource PivotItemStyle}">
+                    <ScrollViewer
 						BringIntoViewOnFocusChange="True"
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
-						<local:AboutPanel/>
-					</ScrollViewer>
-				</PivotItem>
-				<PivotItem Header="Logs" x:Name="LogsButton" Style="{StaticResource PivotItemStyle}">
-					<!-- logs panel -->
-					<Grid Grid.Row="0" Canvas.ZIndex="600"
+                        <local:AboutPanel/>
+                    </ScrollViewer>
+                </PivotItem>
+                <PivotItem Header="Logs" x:Name="LogsButton" Style="{StaticResource PivotItemStyle}">
+                    <!-- logs panel -->
+                    <Grid Grid.Row="0" Canvas.ZIndex="600"
 						VerticalAlignment="Top"                
 						Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 						Margin="{StaticResource Thickness0}">
 
-						<Grid.RowDefinitions>
-							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="*"/>
-						</Grid.RowDefinitions>
-						<StackPanel Grid.Row="0" Orientation="Horizontal">
-							<Button Content="Fgr" Click="OnLogButton_Click"/>
-							<Button Content="Bgr" Click="OnLogButton_Click"/>
-							<Button Content="BgrCanc" Click="OnLogButton_Click"/>
-						</StackPanel>
-						<StackPanel Grid.Row="1" Orientation="Horizontal">
-							<Button Content="FileError" Click="OnLogButton_Click"/>
-							<Button Content="PersistentData" Click="OnLogButton_Click"/>
-						</StackPanel>
-						<StackPanel Grid.Row="2" Orientation="Horizontal">
-							<Button Content="AppExc" Click="OnLogButton_Click"/>
-							<Button Content="AppEvents" Click="OnLogButton_Click"/>
-						</StackPanel>
-						<StackPanel Grid.Row="3" Orientation="Horizontal">
-							<Button Content="Clear" Click="OnLogButton_Click"/>
-							<Button Content="Check files in dbg" Click="OnTestFiles_Click"/>
-						</StackPanel>
-						<ScrollViewer Grid.Row="4" 
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Fgr" Click="OnLogButton_Click"/>
+                            <Button Content="Bgr" Click="OnLogButton_Click"/>
+                            <Button Content="BgrCanc" Click="OnLogButton_Click"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <Button Content="FileError" Click="OnLogButton_Click"/>
+                            <Button Content="PersistentData" Click="OnLogButton_Click"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <Button Content="AppExc" Click="OnLogButton_Click"/>
+                            <Button Content="AppEvents" Click="OnLogButton_Click"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3" Orientation="Horizontal">
+                            <Button Content="Clear" Click="OnLogButton_Click"/>
+                            <Button Content="Check files in dbg" Click="OnTestFiles_Click"/>
+                        </StackPanel>
+                        <ScrollViewer Grid.Row="4" 
 							BringIntoViewOnFocusChange="True"
 							Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 							Margin="{StaticResource Thickness0}">
-							<TextBlock TextWrapping="Wrap"
+                            <TextBlock TextWrapping="Wrap"
 								Text="{x:Bind MainVM.LogText, Mode=OneWay}"
 								MinHeight="400" Unloaded="OnLogText_Unloaded"/>
-						</ScrollViewer>
-					</Grid>
-				</PivotItem>
-			</Pivot>
-			<!-- last fix message -->
-			<Border Grid.Row="1"
+                        </ScrollViewer>
+                    </Grid>
+                </PivotItem>
+            </Pivot>
+            <!-- last fix message -->
+            <Border Grid.Row="1"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToCollapsedConverter}, Mode=OneWay}"
 				Tapped="OnLastMessage_Tapped">
-				<TextBlock TextWrapping="Wrap" Style="{StaticResource BaseTightMessageStyle}">
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseTightMessageStyle}">
 					<Run Text="Last:"/>
 					<Run Text="Lat"/>
 					<Run Text="{x:Bind PersistentData.Current.Latitude, Converter={StaticResource AngleConverterLat}, ConverterParameter=0, Mode=OneWay}"/>
@@ -393,32 +395,32 @@
 					<Run Text="{x:Bind PersistentData.Current.Altitude, Converter={StaticResource FloatConverterNoDecimals}, ConverterParameter='M', Mode=OneWay}"/>
 					<Run Text="@"/>
 					<Run Text="{x:Bind PersistentData.Current.TimePoint, Mode=OneWay}"/>
-				</TextBlock>
-			</Border>
-			<!-- get a fix message -->
-			<Border Grid.Row="0" Grid.RowSpan="2"
+                </TextBlock>
+            </Border>
+            <!-- get a fix message -->
+            <Border Grid.Row="0" Grid.RowSpan="2"
 				VerticalAlignment="Bottom"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Visibility="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnLastMessage_Tapped">
-				<TextBlock
+                <TextBlock
 					TextWrapping="Wrap" 
 					Margin="{StaticResource Thickness1}" 
 					Style="{StaticResource BaseMessageStyle}" 
 					HorizontalAlignment="Left"
 					Text="Get a fix or start tracking to retrieve your location"/>
-			</Border>
-			<!-- last message -->
-			<Border Grid.Row="0" Grid.RowSpan="2" x:Name="LastMessageBorder"
+            </Border>
+            <!-- last message -->
+            <Border Grid.Row="0" Grid.RowSpan="2" x:Name="LastMessageBorder"
 				VerticalAlignment="Bottom"
 				BorderThickness="0" Canvas.ZIndex="999"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				Tapped="OnLastMessage_Tapped">
-				<Border.RenderTransform>
-					<CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
-				</Border.RenderTransform>
-				<TextBlock x:Name="LastMessageTB"
+                <Border.RenderTransform>
+                    <CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
+                </Border.RenderTransform>
+                <TextBlock x:Name="LastMessageTB"
 					TextWrapping="Wrap"
 					Margin="{StaticResource Thickness1}"
 					Style="{StaticResource BaseMessageStyle}" 
@@ -426,149 +428,149 @@
 					Foreground="{StaticResource FlashyForeground}"
 					Text="{x:Bind PersistentData.LastMessage, Mode=OneWay}"
 					RenderTransformOrigin="0.0, 1.0">
-					<TextBlock.RenderTransform>
-						<CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
-					</TextBlock.RenderTransform>
-				</TextBlock>
-			</Border>
-		</Grid>
+                    <TextBlock.RenderTransform>
+                        <CompositeTransform ScaleY="0.0" ScaleX="0.0"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Border>
+        </Grid>
 
-		<!-- bottom button bar -->
-		<Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+        <!-- bottom button bar -->
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
 			x:Name="BottomButtonBar" 
 			Visibility="Collapsed"
 			HorizontalAlignment="Center" VerticalAlignment="Center">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto"/>
-				<ColumnDefinition />
-				<ColumnDefinition />
-				<ColumnDefinition />
-				<ColumnDefinition />
-				<ColumnDefinition />
-			</Grid.ColumnDefinitions>
-			<!-- back -->
-			<AppBarButton Grid.Column="0"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <!-- back -->
+            <AppBarButton Grid.Column="0"
 						  HorizontalAlignment="Center" 
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
 						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-			<!-- get a fix -->
-			<AppBarButton Grid.Column="1"
+            <!-- get a fix -->
+            <AppBarButton Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
-			<!-- go to last -->
-			<ContentControl Grid.Column="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton
+            <!-- go to last -->
+            <ContentControl Grid.Column="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+                <AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
-			</ContentControl>
-			<!-- altitude profiles -->
-			<AppBarToggleButton Grid.Column="3"
+            </ContentControl>
+            <!-- altitude profiles -->
+            <AppBarToggleButton Grid.Column="3"
 				VerticalAlignment="Center"
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- open menu pivot -->
-			<AppBarToggleButton Grid.Column="4"
+            <!-- open menu pivot -->
+            <AppBarToggleButton Grid.Column="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- map style -->
-			<ContentControl Grid.Column="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton
+            <!-- map style -->
+            <ContentControl Grid.Column="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+                <AppBarButton
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
-					IsEnabled="{x:Bind MapsVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
-					<AppBarButton.Icon>
-						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+                    <AppBarButton.Icon>
+                        <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-					</AppBarButton.Icon>
-				</AppBarButton>
-			</ContentControl>
-		</Grid>
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </ContentControl>
+        </Grid>
 
-		<!-- left button bar -->
-		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" 
+        <!-- left button bar -->
+        <Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" 
 			x:Name="LeftButtonBar" 
 			Visibility="Visible"
 			HorizontalAlignment="Center" VerticalAlignment="Center">
 
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition />
-				<RowDefinition />
-				<RowDefinition />
-				<RowDefinition />
-				<RowDefinition />
-			</Grid.RowDefinitions>
-			<!-- back -->
-			<AppBarButton Grid.Row="0"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <!-- back -->
+            <AppBarButton Grid.Row="0"
 						  HorizontalAlignment="Center" 
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
 						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-			<!-- get a fix -->
-			<AppBarButton Grid.Row="1"
+            <!-- get a fix -->
+            <AppBarButton Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 						  Click="OnGetAFixNow_Click" 
 						  Style="{StaticResource AppBarButtonRecoloured}"
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
-			<!-- go to last -->
-			<ContentControl Grid.Row="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton
+            <!-- go to last -->
+            <ContentControl Grid.Row="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+                <AppBarButton
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
-			</ContentControl>
-			<!-- altitude profiles -->
-			<AppBarToggleButton Grid.Row="3"
+            </ContentControl>
+            <!-- altitude profiles -->
+            <AppBarToggleButton Grid.Row="3"
 				HorizontalAlignment="Center" 
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- open menu pivot -->
-			<AppBarToggleButton Grid.Row="4"
+            <!-- open menu pivot -->
+            <AppBarToggleButton Grid.Row="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
-			<!-- map style -->
-			<ContentControl Grid.Row="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-				<AppBarButton
+            <!-- map style -->
+            <ContentControl Grid.Row="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
+                <AppBarButton
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
-					IsEnabled="{x:Bind MapsVM.IsChangeMapStyleEnabled, Mode=OneWay}"
+					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
-					<AppBarButton.Icon>
-						<FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
+                    <AppBarButton.Icon>
+                        <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-					</AppBarButton.Icon>
-				</AppBarButton>
-			</ContentControl>
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </ContentControl>
 
-		</Grid>
-	</Grid>
+        </Grid>
+    </Grid>
 </ctl:OpenableObservablePage>

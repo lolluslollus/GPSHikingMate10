@@ -1,5 +1,4 @@
-﻿using Utilz.Controlz;
-using LolloGPS.Converters;
+﻿using LolloGPS.Converters;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
@@ -13,8 +12,8 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Core
 {
-	public sealed partial class PointsPanel : ObservableControl
-	{
+	public sealed partial class PointsPanel : Utilz.Controlz.ObservableControl
+    {
 		#region properties
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }

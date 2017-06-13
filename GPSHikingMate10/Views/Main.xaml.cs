@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Utilz;
-using Utilz.Controlz;
 using Windows.ApplicationModel.Activation;
 using Windows.Phone.UI.Input;
 using Windows.UI.Xaml;
@@ -15,16 +14,16 @@ using Windows.UI.Xaml.Navigation;
 // The Pivot Application template is documented at http://go.microsoft.com/fwlink/?LinkID=391641
 namespace LolloGPS.Core
 {
-    public sealed partial class Main : OpenableObservablePage, IInfoPanelEventReceiver
+    public sealed partial class Main : Utilz.Controlz.OpenableObservablePage, IInfoPanelEventReceiver
     {
         #region properties
         public PersistentData PersistentData { get { return App.PersistentData; } }
         public RuntimeData RuntimeData { get { return App.RuntimeData; } }
         
-        private MainVM _mainVM = null;
+        private readonly MainVM _mainVM = null;
         public MainVM MainVM { get { return _mainVM; } }
-        private MapsVM _mapsVM = null;
-        public MapsVM MapsVM { get { return _mapsVM; } }
+        private readonly MapsPanelVM _mapsVM = null;
+        public MapsPanelVM MapsPanelVM { get { return _mapsVM; } }
 
         public bool IsWideEnough
         {
@@ -35,8 +34,7 @@ namespace LolloGPS.Core
             DependencyProperty.Register("IsWideEnough", typeof(bool), typeof(Main), new PropertyMetadata(false, OnIsWideEnoughChanged));
         private static void OnIsWideEnoughChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
-            var vm = (obj as Main)?.MainVM;
-            if (vm != null) vm.IsWideEnough = (bool)(args.NewValue);
+            RuntimeData.GetInstance().IsWideEnough = (bool)(args.NewValue);
             Task alt0 = (obj as Main)?.UpdateIsExtraButtonsEnabledAsync();
             Task alt1 = (obj as Main)?.UpdateAltitudeColumnWidthAsync();
         }
@@ -54,16 +52,18 @@ namespace LolloGPS.Core
 #if !NOSTORE
 			MyPivot.Items.Remove(LogsButton);
 #endif
+
+            _mainVM = new MainVM(MyLolloMap, MyAltitudeProfiles, this);
+            RaisePropertyChanged_UI(nameof(MainVM));
+            _mapsVM = new MapsPanelVM(MyLolloMap.LolloMapVM, _mainVM);
+            RaisePropertyChanged_UI(nameof(MapsPanelVM));
         }
 
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
             Logger.Add_TPL("Main.OpenMayOverrideAsync just started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
-
-            _mainVM = new MainVM(IsWideEnough, MyLolloMap, MyAltitudeProfiles, this);
             await _mainVM.OpenAsync(args);
-            RaisePropertyChanged_UI(nameof(MainVM));
-            //await Task.Delay(1); // just in case
+            await _mapsVM.OpenAsync(args);
 
             await UpdateAltitudeColumnWidthAsync();
             await UpdateAltitudeColumnMaxWidthAsync();
@@ -71,18 +71,7 @@ namespace LolloGPS.Core
 
             await MyLolloMap.OpenAsync(args);
             await MyAltitudeProfiles.OpenAsync(args);
-
-            _mapsVM = new MapsVM(MyLolloMap.LolloMapVM, _mainVM);
-            await _mapsVM.OpenAsync(args);
-            RaisePropertyChanged_UI(nameof(MapsVM));
-
-            MyMapsPanel.LolloMapVM = MyLolloMap.LolloMapVM;
-            MyMapsPanel.MainVM = _mainVM;
-            MyMapsPanel.MapsVM = _mapsVM;
             await MyMapsPanel.OpenAsync(args);
-
-            MyCustomMapsPanel.MainVM = _mainVM;
-            MyCustomMapsPanel.MapsVM = _mapsVM;
             await MyCustomMapsPanel.OpenAsync(args);
 
             AddHandlers();

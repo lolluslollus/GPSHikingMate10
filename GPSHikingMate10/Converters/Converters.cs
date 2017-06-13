@@ -1,4 +1,5 @@
-﻿using LolloGPS.Data;
+﻿using LolloGPS.Controlz;
+using LolloGPS.Data;
 using System;
 using System.Linq;
 using System.Collections.ObjectModel;
@@ -8,7 +9,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using System.Diagnostics;
-using Utilz.Controlz;
+using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Converters
 {
@@ -401,6 +402,20 @@ namespace LolloGPS.Converters
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             throw new Exception("this is a one-way bonding, it should never come here");
+        }
+    }
+
+    public class BoolToSelectionModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null || !(value is bool) || !(bool)value) return ListViewSelectionMode.Single;
+            return ListViewSelectionMode.Multiple;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 

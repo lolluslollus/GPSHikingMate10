@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Utilz;
-using Utilz.Controlz;
 using Windows.Devices.Sensors;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Data;
@@ -11,7 +10,7 @@ using Windows.UI.Xaml.Media.Imaging;
 
 namespace GPSHikingMate10.Views
 {
-    public sealed partial class CompassControl : OpenableObservableControl
+    public sealed partial class CompassControl : Utilz.Controlz.OpenableObservableControl
     {
         private const int MIN_MIN_REPORT_INTERVAL = 16;
         private Compass _compass;
