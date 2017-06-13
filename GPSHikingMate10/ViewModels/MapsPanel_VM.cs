@@ -147,9 +147,8 @@ namespace GPSHikingMate10.ViewModels
         }
         private void UpdateIsChangeMapStyleEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
-            var currentBaseTileSource = currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
-            if (currentBaseTileSource == null) return;
-            IsChangeMapStyleEnabled = currentBaseTileSource?.IsDefault != true;
+            if (currentTileSources.Count == 1) IsChangeMapStyleEnabled = !currentTileSources.ElementAt(0).IsDefault;
+            else IsChangeMapStyleEnabled = true;
         }
         private void UpdateTileSourceChoices(ICollection<TileSourceRecord> allTileSources)
         {

@@ -13,82 +13,86 @@
 	d:DesignHeight="600"
 	d:DesignWidth="400">
 
-	<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
+    <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
             <RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="1*"/>
-			<ColumnDefinition Width="1*"/>
-			<ColumnDefinition Width="1*"/>
-			<ColumnDefinition Width="1*"/>
-			<ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
-		</Grid.ColumnDefinitions>
-		<TextBlock Grid.Row="1" Grid.Column="0" Text="Name: "
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
+        </Grid.ColumnDefinitions>
+        <!-- captions -->
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<TextBlock Grid.Row="2" Grid.Column="0" Text="Uri: "
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Uri: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<TextBlock Grid.Row="3" Grid.Column="0" Text="Min zoom: "
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Min zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<TextBlock Grid.Row="3" Grid.Column="2" Text="Max zoom: "
+        <TextBlock Grid.Row="3" Grid.Column="2" Text="Max zoom: "
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"			
+			VerticalAlignment="Center"
+            Margin="8,2,2,2"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Tile size (px): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
-			Margin="8,2,2,2"
 			VerticalAlignment="Center"/>
-		<TextBlock Grid.Row="4" Grid.Column="0" Text="Tile size (px): "
-			TextWrapping="Wrap"
+        <TextBlock Grid.Row="4" Grid.Column="2" Text="Overlay layer:"
+            TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
-			VerticalAlignment="Center"/>
-		<!-- LOLLO TODO the following works with the old binding but not with the new one -->
-		<TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" 
+            VerticalAlignment="Center"
+            Margin="8,2,2,2"/>
+        <!-- LOLLO TODO the following works with the old binding but not with the new one -->
+        <!-- values -->
+        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TechName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
-		<TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" 
+        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			InputScope="Url"
 			VerticalAlignment="Center"/>
-		<TextBox Grid.Row="3" Grid.Column="1" 
+        <TextBox Grid.Row="3" Grid.Column="1" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MinZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-		<TextBox Grid.Row="3" Grid.Column="3" 
+        <TextBox Grid.Row="3" Grid.Column="3" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MaxZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-		<TextBox Grid.Row="4" Grid.Column="1" 
+        <TextBox Grid.Row="4" Grid.Column="1" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TilePixelSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="3"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="4" Grid.Column="3"
-            Text="Overlay layer"
-            VerticalAlignment="Center"/>
-        <CheckBox Grid.Row="4" Grid.Column="4"
+        <CheckBox Grid.Row="4" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{Binding ElementName=me, Path=PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <!-- error message after clicking test -->
-		<TextBlock Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -97,25 +101,25 @@
 			HorizontalAlignment="Center"
 			VerticalAlignment="Center"/>
 
-		<Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="1*"/>
-				<ColumnDefinition Width="3*"/>
-				<ColumnDefinition Width="1*"/>
-			</Grid.ColumnDefinitions>
-			<!-- only allow download when connection is available -->
-			<TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+        <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <!-- only allow download when connection is available -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
 				VerticalAlignment="Center"
 				Style="{StaticResource BaseMessageStyle}"
 				TextWrapping="Wrap"
 				Text="Use this source"/>
-			<AppBarButton Grid.Row="1" Grid.Column="2"
+            <AppBarButton Grid.Row="1" Grid.Column="2"
 				VerticalAlignment="Center"
 				Click="OnTestClicked"
 				IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
@@ -123,7 +127,7 @@
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="View"
 				TabIndex="1"/>
-			<TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
 				VerticalAlignment="Center"
 				HorizontalAlignment="Right"
 				Style="{StaticResource BaseMessageStyle}"
@@ -132,19 +136,19 @@
 				Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 				Text="No connection"/>
 
-			<TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+            <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
 				VerticalAlignment="Center"
 				Style="{StaticResource BaseMessageStyle}"
 				TextWrapping="Wrap"
 				Text="Erase custom sources"/>
-			<AppBarButton Grid.Row="3" Grid.Column="2"
+            <AppBarButton Grid.Row="3" Grid.Column="2"
 				VerticalAlignment="Center"
 				IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
 				Click="OnClearCustomTileSource_Click"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="Delete"/>
-			<mctl:LolloMultipleListChooser Grid.Row="3" Grid.Column="1"
+            <mctl:LolloMultipleListChooser Grid.Row="3" Grid.Column="1"
 				SelectorVisibility="Collapsed"
 				x:Name="ClearCustomCacheChooser"
 				PlaceholderText="Which source do you want to erase?"
@@ -153,6 +157,6 @@
 				ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache, Mode=OneWay}"
 				ItemSelected="OnClearCustomCacheChooser_ItemSelected"
 				BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"/>
-		</Grid>
-	</Grid>
+        </Grid>
+    </Grid>
 </uctl:OpenableObservableControl>

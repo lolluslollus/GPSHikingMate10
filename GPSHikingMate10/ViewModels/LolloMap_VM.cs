@@ -170,6 +170,7 @@ namespace LolloGPS.Core
                 CloseAlternativeMap_Custom(); // unregister events and clear lists
                 foreach (var ts in tileSources)
                 {
+                    if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)
                     var customMapTileDataSource = new CustomMapTileDataSource();
                     var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource);
                     var mapTileSource = new MapTileSource(
@@ -269,12 +270,12 @@ namespace LolloGPS.Core
             {
                 Task reopen = RunFunctionIfOpenAsyncT(async delegate
                 {
-                    await UpdateCurrentTileSourceAsync().ConfigureAwait(false);
                     // cancel current download
                     _ctsManager.Reset(CancToken);
                     await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
                     //await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
                     //await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
+                    await UpdateCurrentTileSourceAsync().ConfigureAwait(false);
                 });
             }
             //else if (e.PropertyName == nameof(PersistentData.IsMapCached))

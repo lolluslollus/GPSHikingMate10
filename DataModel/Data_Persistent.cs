@@ -1256,23 +1256,7 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync();
                 IsTileSourcezBusy = true;
 
-                if (newTileSource == null) return;
-                if (CurrentTileSources.Any(ts => ts.CompareTo(newTileSource) == 0)) return;
-
-                await RunInUiThreadAsync(delegate
-                {
-                    if (newTileSource.IsOverlay)
-                    {
-                        CurrentTileSources.Add(newTileSource);
-                    }
-                    else
-                    {
-                        var existingBaseTileSource = CurrentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
-                        if (existingBaseTileSource != null) CurrentTileSources.Remove(existingBaseTileSource);
-                        CurrentTileSources.Add(newTileSource);
-                    }
-                    RaisePropertyChanged_UI(nameof(CurrentTileSources));
-                }).ConfigureAwait(false);
+                await AddCurrentTileSource2Async(newTileSource).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -1284,34 +1268,21 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        public async Task RemoveCurrentTileSourceAsync(TileSourceRecord tileSource)
+        private Task AddCurrentTileSource2Async(TileSourceRecord newTileSource)
         {
-            if (tileSource == null) return;
-            try
+            if (newTileSource == null) return Task.CompletedTask;
+            if (_currentTileSources.Any(ts => ts.TechName.Equals(newTileSource.TechName))) return Task.CompletedTask;
+
+            return RunInUiThreadAsync(delegate
             {
-                await _tileSourcezSemaphore.WaitAsync();
-                IsTileSourcezBusy = true;
-
-                if (tileSource == null) return;
-                var cots = CurrentTileSources.FirstOrDefault(ts => ts.CompareTo(tileSource) == 0);
-                if (cots == null) return;
-
-                await RunInUiThreadAsync(delegate
+                if (!newTileSource.IsOverlay)
                 {
-                    CurrentTileSources.Remove(cots);
-                    if (!tileSource.IsOverlay) CurrentTileSources.Add(TileSourceRecord.GetDefaultTileSource());
-                    RaisePropertyChanged_UI(nameof(CurrentTileSources));
-                }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-            }
-            finally
-            {
-                IsTileSourcezBusy = false;
-                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-            }
+                    var existingBaseTileSource = _currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+                    if (existingBaseTileSource != null) _currentTileSources.Remove(existingBaseTileSource);
+                }
+                _currentTileSources.Add(newTileSource);
+                RaisePropertyChanged_UI(nameof(CurrentTileSources));
+            });
         }
 
         /// <summary>
@@ -1328,16 +1299,19 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync();
                 IsTileSourcezBusy = true;
 
-                if (_testTileSource == null) return Tuple.Create(false, "Record not found");
-                if (string.IsNullOrWhiteSpace(_testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
+                // exit if wrong data
+                var testTileSource = _testTileSource;
+                if (testTileSource == null) return Tuple.Create(false, "Record not found");
+                if (string.IsNullOrWhiteSpace(testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
                 // set non-screen properties
-                _testTileSource.FolderName = _testTileSource.DisplayName = _testTileSource.TechName; // we always set it automatically
-                _testTileSource.IsDeletable = true;
-                string errorMsg = _testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
-
-                Tuple<bool, string> result = null;
-                await RunInUiThreadAsync(() => TryInsertTestTileSourceIntoTileSourcezUIAsync(ref result)).ConfigureAwait(false);
-                return result;
+                testTileSource.FolderName = testTileSource.DisplayName = testTileSource.TechName; // we always set it automatically
+                testTileSource.IsDeletable = true;
+                // some more checks
+                string errorMsg = testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                // try the insertion
+                Task<Tuple<bool, string>> tryInsert = null;
+                await RunInUiThreadAsync(() => tryInsert = TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
+                return await tryInsert.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -1351,45 +1325,42 @@ namespace LolloGPS.Data
             }
         }
 
-        private void TryInsertTestTileSourceIntoTileSourcezUIAsync(ref Tuple<bool, string> result)
+        private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(TileSourceRecord testTileSource)
         {
-            var recordsWithSameName = _tileSourcez.Where(tileSource => tileSource.TechName == _testTileSource.TechName || tileSource.DisplayName == _testTileSource.TechName || tileSource.FolderName == _testTileSource.TechName);
+            if (testTileSource == null) return Tuple.Create(false, "Tile source cannot be changed");
+
+            Tuple<bool, string> result = null;
+            var recordsWithSameName = _tileSourcez.Where(tileSource =>
+                tileSource.TechName == testTileSource.TechName || tileSource.DisplayName == testTileSource.TechName || tileSource.FolderName == testTileSource.TechName);
             if (recordsWithSameName?.Count() == 1)
             {
                 var recordWithSameName = recordsWithSameName.First();
-                if (recordWithSameName?.IsDeletable == true)
-                {
-                    _tileSourcez.Remove(recordWithSameName); // LOLLO TODO check this
-                    Logger.Add_TPL(recordWithSameName.ToString() + " removed from _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                    Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
-                    result = Tuple.Create(true, $"Source {_testTileSource.DisplayName} changed");
-                }
+                if (await RemoveTileSource2Async(recordWithSameName.TechName))
+                    result = Tuple.Create(true, $"Source {testTileSource.DisplayName} changed");
                 else
-                {
-                    result = Tuple.Create(false, $"Tile source {_testTileSource.DisplayName} cannot be changed");
-                }
+                    result = Tuple.Create(false, $"Tile source {testTileSource.DisplayName} cannot be changed");
             }
             else if (recordsWithSameName?.Count() > 1)
             {
-                result = Tuple.Create(false, $"Tile source {_testTileSource.DisplayName} cannot be changed");
+                result = Tuple.Create(false, $"Tile source {testTileSource.DisplayName} cannot be changed");
             }
+
             if (result == null || result.Item1)
             {
                 TileSourceRecord newRecord = null;
-                TileSourceRecord.Clone(_testTileSource, ref newRecord); // do not overwrite the current instance
+                TileSourceRecord.Clone(testTileSource, ref newRecord); // do not overwrite the current instance
                 _tileSourcez.Add(newRecord);
+                RaisePropertyChanged(nameof(TileSourcez));
 
                 Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
                 Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-                RaisePropertyChanged(nameof(TileSourcez));
-                if (!CurrentTileSources.Any(ts => ts.CompareTo(newRecord) == 0))
-                {
-                    CurrentTileSources.Add(newRecord);
-                    RaisePropertyChanged_UI(nameof(CurrentTileSources));
-                }
-                if (result == null) result = Tuple.Create(true, $"Source {_testTileSource.DisplayName} added");
+                await AddCurrentTileSource2Async(newRecord);
+
+                TestTileSource = testTileSource;
+                if (result == null) result = Tuple.Create(true, $"Source {testTileSource.DisplayName} added");
             }
+            return result;
         }
         public enum ClearCacheResult { Ok, Error, Cancelled }
 
@@ -1414,12 +1385,12 @@ namespace LolloGPS.Data
                     {
                         if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
 
-                        var imageFolder = await tileSourcesFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
-                        if (imageFolder == null) continue;
-
+                        var tileSourceFolder = await tileSourcesFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
+                        if (tileSourceFolder == null) continue;
+                        // recreate the folder instead of deleting it: there may be someone waiting for this folder, like a TileCacheReaderWriter.
                         await tileSourcesFolder.CreateFolderAsync(folderName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
                         // remove tile source from collection last.
-                        if (isAlsoRemoveSources) await RemoveTileSourceAsync(folderName).ConfigureAwait(false);
+                        if (isAlsoRemoveSources) await RemoveTileSource2Async(folderName).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { return ClearCacheResult.Cancelled; }
                     catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
@@ -1435,7 +1406,61 @@ namespace LolloGPS.Data
             }
         }
 
-        private async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource, CancellationToken cancToken)
+        private async Task<bool> RemoveTileSource2Async(string tileSourceTechName)
+        {
+            if (string.IsNullOrWhiteSpace(tileSourceTechName)) return false;
+
+            await RemoveCurrentTileSource2Async(tileSourceTechName).ConfigureAwait(false);
+
+            var tileSourceToBeDeleted = _tileSourcez.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
+            if (tileSourceToBeDeleted?.IsDeletable != true) return false;
+
+            await RunInUiThreadAsync(delegate
+            {
+                _tileSourcez.Remove(tileSourceToBeDeleted);
+                RaisePropertyChanged(nameof(TileSourcez));
+            }).ConfigureAwait(false);
+
+            return true;
+        }
+        private Task RemoveCurrentTileSource2Async(string tileSourceTechName)
+        {
+            if (string.IsNullOrWhiteSpace(tileSourceTechName)) return Task.CompletedTask;
+
+            var tileSourceToBeDeleted = _currentTileSources.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
+            if (tileSourceToBeDeleted == null) return Task.CompletedTask;
+
+            return RunInUiThreadAsync(delegate
+            {
+                // restore default if removing current tile source
+                if (!tileSourceToBeDeleted.IsOverlay) _currentTileSources.Add(TileSourceRecord.GetDefaultTileSource());
+                _currentTileSources.Remove(tileSourceToBeDeleted);
+                RaisePropertyChanged(nameof(CurrentTileSources));
+            });
+        }
+
+        public async Task RemoveCurrentTileSourceAsync(TileSourceRecord tileSource)
+        {
+            if (tileSource == null) return;
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync();
+                IsTileSourcezBusy = true;
+
+                await RemoveCurrentTileSource2Async(tileSource?.TechName).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+
+        private static async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource, CancellationToken cancToken)
         {
             var result = new List<string>();
             if (tileSource == null) return result;
@@ -1461,32 +1486,6 @@ namespace LolloGPS.Data
                 //}
             }
             return result;
-        }
-        private async Task RemoveTileSourceAsync(string tileSourceTechName)
-        {
-            try
-            {
-                var tileSourceToBeDeleted = _tileSourcez.FirstOrDefault(ts => ts.TechName == tileSourceTechName);
-                if (tileSourceToBeDeleted?.IsDeletable != true) return;
-
-                await RunInUiThreadAsync(delegate
-                {
-                    // restore default if removing current tile source
-                    var existingCurrentTileSource = CurrentTileSources.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
-                    if (existingCurrentTileSource != null)
-                    {
-                        CurrentTileSources.Remove(existingCurrentTileSource);
-                        if (!existingCurrentTileSource.IsOverlay) CurrentTileSources.Add(TileSourceRecord.GetDefaultTileSource());
-                    }
-
-                    _tileSourcez.Remove(tileSourceToBeDeleted);
-                    RaisePropertyChanged(nameof(TileSourcez));
-                }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-            }
         }
         #endregion tileSourcesMethods
 
@@ -1529,7 +1528,7 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
                 if (tileSource == null)
                 {
-                    var currentBaseTileSource = CurrentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+                    var currentBaseTileSource = _currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
                     TileSourceRecord.Clone(currentBaseTileSource, ref result);
                 }
                 else TileSourceRecord.Clone(tileSource, ref result);
