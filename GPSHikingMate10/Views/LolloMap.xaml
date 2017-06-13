@@ -119,13 +119,13 @@
 			Tapped="OnAim_Tapped"
 			Holding="OnAim_Holding"
 			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
-        <!-- tile source -->
+        <!-- base tile source -->
         <Border Canvas.ZIndex="300"
 				HorizontalAlignment="Right" VerticalAlignment="Top"
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				CornerRadius="10,10,0,0"
 				RenderTransformOrigin="1, 1"
-				Visibility="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToVisibleConverter}, Mode=OneWay}"
+				Visibility="{x:Bind LolloMapVM.IsShowCurrentBaseTileSource, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnProvider_Tapped">
             <Border.RenderTransform>
                 <RotateTransform Angle="-90"/>
@@ -135,7 +135,7 @@
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>-->
-                <TextBlock Text="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
+                <TextBlock Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
 					Style="{StaticResource BaseMessageStyle}"
 					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 					Margin="6,2,6,2"/>

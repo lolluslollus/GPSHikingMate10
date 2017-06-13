@@ -118,8 +118,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controlz\Converters.cs" />
-    <Compile Include="Controlz\LolloListChooser.xaml.cs">
-      <DependentUpon>LolloListChooser.xaml</DependentUpon>
+    <Compile Include="Controlz\LolloMultipleListChooser.xaml.cs">
+      <DependentUpon>LolloMultipleListChooser.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -238,7 +238,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controlz\LolloListChooser.xaml">
+    <Page Include="Controlz\LolloMultipleListChooser.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

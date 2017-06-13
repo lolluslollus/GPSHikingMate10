@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
-using static LolloGPS.Controlz.LolloListChooser;
+using static LolloGPS.Controlz.LolloMultipleListChooser;
 
 namespace GPSHikingMate10.ViewModels
 {
@@ -77,17 +77,30 @@ namespace GPSHikingMate10.ViewModels
 
             AddHandlers_DataChanged();
 
-            UpdateIsClearCacheEnabled();
-            UpdateIsClearCustomCacheEnabled();
-            UpdateIsCacheBtnEnabled();
-            UpdateIsLeechingEnabled();
-            UpdateIsChangeTileSourceEnabled();
-            UpdateIsTestCustomTileSourceEnabled();
-            Task upd1 = UpdateIsChangeMapStyleEnabledAsync();
-            Task upd2 = UpdateTileSourceChoicesAsync();
-            Task upd3 = UpdateSelectedBaseTileAsync();
-            Task upd4 = UpdateSelectedOverlayTilesAsync();
-            await Task.WhenAll(upd1, upd2, upd3, upd4).ConfigureAwait(false);
+            //Task allTileSourcesTask = Task.CompletedTask;
+            //Task currentTileSourcesTask = Task.CompletedTask;
+
+            ICollection<TileSourceRecord> allTileSources = null;
+            ICollection<TileSourceRecord> currentTileSources = null;
+            await Task.Run(async () =>
+            {
+                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync(true, true);
+                currentTileSources = await PersistentData.GetCurrentTileSourcezCloneAsync();
+            });
+
+            await RunInUiThreadAsync(delegate
+            {
+                UpdateIsClearCacheEnabled();
+                UpdateIsClearCustomCacheEnabled(allTileSources);
+                UpdateIsCacheBtnEnabled(currentTileSources);
+                UpdateIsLeechingEnabled(currentTileSources);
+                UpdateIsChangeTileSourceEnabled();
+                UpdateIsTestCustomTileSourceEnabled();
+                UpdateIsChangeMapStyleEnabled(currentTileSources);
+                UpdateTileSourceChoices(allTileSources);
+                UpdateSelectedBaseTile(currentTileSources);
+                UpdateSelectedOverlayTiles(currentTileSources);
+            }).ConfigureAwait(false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
@@ -98,106 +111,75 @@ namespace GPSHikingMate10.ViewModels
         #endregion lifecycle
 
         #region updaters
-        internal void UpdateIsClearCustomCacheEnabled()
+        private void UpdateIsClearCustomCacheEnabled(ICollection<TileSourceRecord> allTileSources)
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsClearCustomCacheEnabled =
-                PersistentData.TileSourcez.FirstOrDefault(ts => ts.IsDeletable) != null && // not atomic, not volatile, not critical
-                !_tileCacheClearer.IsClearingScheduled
-                && !PersistentData.IsTileSourcezBusy;
-            });
+            IsClearCustomCacheEnabled = allTileSources.Any(ts => ts.IsDeletable)
+            && !_tileCacheClearer.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy;
         }
-        internal void UpdateIsClearCacheEnabled()
+        private void UpdateIsClearCacheEnabled()
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsClearCacheEnabled = !_tileCacheClearer.IsClearingScheduled
-                && !PersistentData.IsTileSourcezBusy;
-            });
+            IsClearCacheEnabled = !_tileCacheClearer.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy;
         }
-        internal void UpdateIsCacheBtnEnabled()
+        private void UpdateIsCacheBtnEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsCacheBtnEnabled =
-                    PersistentData.CurrentTileSource?.IsDefault == false;
-                // && !TileCacheProcessingQueue.GetInstance().IsClearingScheduled;
-            });
+            IsCacheBtnEnabled = currentTileSources.Any(ts => !ts.IsDefault);
         }
-        internal void UpdateIsLeechingEnabled()
+        private void UpdateIsLeechingEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
-                && PersistentData.CurrentTileSource?.IsDefault == false
-                && RuntimeData.IsConnectionAvailable
-                && !_tileCacheClearer.IsClearingScheduled
-                && !PersistentData.IsTileSourcezBusy;
-            });
+            IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
+            && currentTileSources.Any(ts => !ts.IsDefault)
+            && RuntimeData.IsConnectionAvailable
+            && !_tileCacheClearer.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy;
         }
-        internal void UpdateIsChangeTileSourceEnabled()
+        private void UpdateIsChangeTileSourceEnabled()
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsChangeTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
-                && !PersistentData.IsTileSourcezBusy;
-            });
+            IsChangeTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy;
         }
-        internal void UpdateIsTestCustomTileSourceEnabled()
+        private void UpdateIsTestCustomTileSourceEnabled()
         {
-            Task ui = RunInUiThreadAsync(delegate
-            {
-                IsTestCustomTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
-                && !PersistentData.IsTileSourcezBusy
-                && RuntimeData.IsConnectionAvailable;
-            });
+            IsTestCustomTileSourceEnabled = !_tileCacheClearer.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy
+            && RuntimeData.IsConnectionAvailable;
         }
-        internal async Task UpdateIsChangeMapStyleEnabledAsync()
+        private void UpdateIsChangeMapStyleEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
-            var ts = await Task.Run(PersistentData.GetCurrentBaseTileSourceCloneAsync).ConfigureAwait(false);
-            await RunInUiThreadAsync(delegate
-            {
-                IsChangeMapStyleEnabled = !ts.IsDefault;
-            }).ConfigureAwait(false);
+            var currentBaseTileSource = currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+            if (currentBaseTileSource == null) return;
+            IsChangeMapStyleEnabled = currentBaseTileSource?.IsDefault != true;
         }
-        internal async Task UpdateTileSourceChoicesAsync()
+        private void UpdateTileSourceChoices(ICollection<TileSourceRecord> allTileSources)
         {
-            var tss = await Task.Run(() =>
-            {
-                return PersistentData.GetTileSourcezCloneAsync(true, true);
-            }).ConfigureAwait(false);
-
             List<TextAndTag> baseTileSources = new List<TextAndTag>();
             List<TextAndTag> overlayTileSources = new List<TextAndTag>();
 
-            await RunInUiThreadAsync(delegate
+            foreach (var ts in allTileSources)
             {
-                foreach (var ts in tss)
-                {
-                    if (ts.IsOverlay) overlayTileSources.Add(new TextAndTag(ts.DisplayName, ts));
-                    else baseTileSources.Add(new TextAndTag(ts.DisplayName, ts));
-                }
-                _baseTileSourceChoices.ReplaceAll(baseTileSources);
-                _overlayTileSourceChoices.ReplaceAll(overlayTileSources);
-            }).ConfigureAwait(false);
+                if (ts.IsOverlay) overlayTileSources.Add(new TextAndTag(ts.DisplayName, ts));
+                else baseTileSources.Add(new TextAndTag(ts.DisplayName, ts));
+            }
+            _baseTileSourceChoices.ReplaceAll(baseTileSources);
+            _overlayTileSourceChoices.ReplaceAll(overlayTileSources);
         }
-        internal async Task UpdateSelectedBaseTileAsync()
+        private void UpdateSelectedBaseTile(ICollection<TileSourceRecord> currentTileSources)
         {
-            var selectedBaseTile = await Task.Run(PersistentData.GetCurrentBaseTileSourceCloneAsync).ConfigureAwait(false);
-            var selectedBaseTiles2 = (new TextAndTag[] { new TextAndTag(selectedBaseTile.DisplayName, selectedBaseTile) }).ToList();
-            SelectedBaseTiles = selectedBaseTiles2;
+            var currentBaseTileSource = currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+            if (currentBaseTileSource == null) return;
+            var selectedBaseTiles = (new TextAndTag[] { new TextAndTag(currentBaseTileSource.DisplayName, currentBaseTileSource) }).ToList();
+            SelectedBaseTiles = selectedBaseTiles;
         }
-        internal async Task UpdateSelectedOverlayTilesAsync()
+        private void UpdateSelectedOverlayTiles(ICollection<TileSourceRecord> currentTileSources)
         {
-            var selectedOverlayTiles = await Task.Run(PersistentData.GetCurrentTileSourcezCloneAsync).ConfigureAwait(false);
-            var selectedOverlayTiles2 = new List<TextAndTag>();
-            foreach (var item in selectedOverlayTiles)
+            var selectedOverlayTiles = new List<TextAndTag>();
+            foreach (var item in currentTileSources)
             {
                 if (!item.IsOverlay) continue;
-                selectedOverlayTiles2.Add(new TextAndTag(item.DisplayName, item));
+                selectedOverlayTiles.Add(new TextAndTag(item.DisplayName, item));
             }
-            SelectedOverlayTiles = selectedOverlayTiles2;
+            SelectedOverlayTiles = selectedOverlayTiles;
         }
         #endregion updaters
 
@@ -230,63 +212,73 @@ namespace GPSHikingMate10.ViewModels
         {
             if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
             {
-                await RunInUiThreadAsync(UpdateIsLeechingEnabled).ConfigureAwait(false);
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                await RunInUiThreadAsync(() =>
+                {
+                    UpdateIsLeechingEnabled(currentTileSources);
+                }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
             {
-                Task upd1 = Task.CompletedTask;
-                Task upd2 = Task.CompletedTask;
-                Task upd3 = Task.CompletedTask;
-
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
-                    UpdateIsLeechingEnabled();
-                    UpdateIsCacheBtnEnabled();
-                    upd1 = UpdateIsChangeMapStyleEnabledAsync();
-                    upd2 = UpdateSelectedBaseTileAsync();
-                    upd3 = UpdateSelectedOverlayTilesAsync();
+                    UpdateIsLeechingEnabled(currentTileSources);
+                    UpdateIsCacheBtnEnabled(currentTileSources);
+                    UpdateIsChangeMapStyleEnabled(currentTileSources);
+                    UpdateSelectedBaseTile(currentTileSources);
+                    UpdateSelectedOverlayTiles(currentTileSources);
                 }).ConfigureAwait(false);
-
-                await Task.WhenAll(upd1, upd2, upd3).ConfigureAwait(false);
-            }            
+            }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
-                Task upd1 = RunInUiThreadAsync(UpdateIsClearCustomCacheEnabled);
-                Task upd2 = UpdateTileSourceChoicesAsync();
-                await Task.WhenAll(upd1, upd2).ConfigureAwait(false);
+                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+                await RunInUiThreadAsync(delegate
+                {
+                    UpdateIsClearCustomCacheEnabled(allTileSources);
+                    UpdateTileSourceChoices(allTileSources);
+                }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
             {
+                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsClearCacheEnabled();
-                    UpdateIsClearCustomCacheEnabled();
-                    UpdateIsLeechingEnabled();
+                    UpdateIsClearCustomCacheEnabled(allTileSources);
+                    UpdateIsLeechingEnabled(currentTileSources);
                     UpdateIsChangeTileSourceEnabled();
                     UpdateIsTestCustomTileSourceEnabled();
                 }).ConfigureAwait(false);
             }
         }
 
-        private void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
             {
-                Task gt = RunInUiThreadAsync(delegate
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                await RunInUiThreadAsync(delegate
                 {
-                    UpdateIsLeechingEnabled();
+                    UpdateIsLeechingEnabled(currentTileSources);
                     UpdateIsTestCustomTileSourceEnabled();
-                });
+                }).ConfigureAwait(false);
             }
         }
 
-        private void OnTileCache_IsClearingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void OnTileCache_IsClearingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            UpdateIsClearCacheEnabled();
-            UpdateIsClearCustomCacheEnabled();
-            UpdateIsLeechingEnabled();
-            UpdateIsChangeTileSourceEnabled();
-            UpdateIsTestCustomTileSourceEnabled();
+            var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+            var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+            await RunInUiThreadAsync(delegate
+            {
+                UpdateIsClearCacheEnabled();
+                UpdateIsClearCustomCacheEnabled(allTileSources);
+                UpdateIsLeechingEnabled(currentTileSources);
+                UpdateIsChangeTileSourceEnabled();
+                UpdateIsTestCustomTileSourceEnabled();
+            }).ConfigureAwait(false);
         }
         private void OnTileCache_CacheCleared(object sender, TileCacheClearer.CacheClearedEventArgs args)
         {
@@ -371,7 +363,7 @@ namespace GPSHikingMate10.ViewModels
                 PersistentData.IsShowingPivot = false;
             });
         }
-        
+
         public Task AddMapSource(TileSourceRecord ts)
         {
             return RunFunctionIfOpenAsyncT(() =>

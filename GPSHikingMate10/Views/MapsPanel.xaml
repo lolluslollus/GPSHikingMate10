@@ -76,7 +76,7 @@
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
-            <mctl:LolloListChooser Grid.Column="1"
+            <mctl:LolloMultipleListChooser Grid.Column="1"
 				x:Name="BaseMapSourceChooser"
 				PlaceholderText="Select a map tile source"
 				ListHeaderText="Select a map tile source"
@@ -100,7 +100,7 @@
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
-            <mctl:LolloListChooser Grid.Column="1"
+            <mctl:LolloMultipleListChooser Grid.Column="1"
 				x:Name="OverlayMapSourceChooser"
                 IsMultiSelectCheckBoxEnabled="True"
 				PlaceholderText="Select map tile sources"
@@ -144,7 +144,7 @@
 			Foreground="{StaticResource FlashyForeground}"
 			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 			Text="No connection"/>
-        <mctl:LolloListChooser Grid.Row="6" Grid.Column="0"
+        <mctl:LolloMultipleListChooser Grid.Row="6" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ZoomLevelChooser"
 			PlaceholderText="Select max zoom level to download"
@@ -165,7 +165,7 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Icon="Delete"/>
-        <mctl:LolloListChooser Grid.Row="7" Grid.Column="0"
+        <mctl:LolloMultipleListChooser Grid.Row="7" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ClearCacheChooser"
 			PlaceholderText="Which cache do you want to clear?"

@@ -1562,7 +1562,7 @@
 		</Setter>
 	</Style>
 
-    <Style TargetType="mctl:LolloListChooser">
+    <Style TargetType="mctl:LolloMultipleListChooser">
         <Setter Property="AppBarButtonStyle" Value="{StaticResource AppBarButtonRecoloured}"/>
         <Setter Property="TextBlockStyle" Value="{StaticResource ListDescriptorTextStyle}"/>
         <Setter Property="TextItemStyle" Value="{StaticResource ListItemTextStyle}"/>

@@ -1,5 +1,5 @@
 ﻿<uctl:BackOrientOpenObservControl
-    x:Class="LolloGPS.Controlz.LolloListChooser"
+    x:Class="LolloGPS.Controlz.LolloMultipleListChooser"
     x:Name="me"
     xmlns:uctl="using:Utilz.Controlz"
     xmlns:mctl="using:LolloGPS.Controlz"

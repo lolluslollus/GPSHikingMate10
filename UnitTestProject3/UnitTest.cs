@@ -154,9 +154,12 @@ namespace UnitTestProject3
 			public List<TileCacheRecord> GetTileData_RespondingToCancelTest()
 			{
 				GeoboundingBox nw_se = _gbbProvider.GetMinMaxLatLonAsync().Result;
-				var dummyTileSource = TileSourceRecord.GetDefaultTileSource();
-				dummyTileSource.TechName = "lolloTest";
-				var ds = new DownloadSession(MinZoom, MaxZoom, nw_se, dummyTileSource);
+				var dummyTileSources = TileSourceRecord.GetStockTileSources();
+                foreach (var ts in dummyTileSources)
+                {
+                    ts.TechName = "lolloTest";
+                }
+				var ds = new DownloadSession(MinZoom, MaxZoom, nw_se, dummyTileSources);
 				return GetTileData_RespondingToCancel(ds);
 			}
 		}

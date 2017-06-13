@@ -294,7 +294,7 @@ namespace LolloGPS.Data
                 && comp._isOverlay == _isOverlay
                 && comp._requestHeaders.OrderBy(kvp => kvp.Key).SequenceEqual(_requestHeaders.OrderBy(kvp => kvp.Key));
         }
-        public static List<TileSourceRecord> GetDefaultTileSources()
+        public static List<TileSourceRecord> GetStockTileSources()
         {
             var output = new List<TileSourceRecord>
             {
@@ -515,6 +515,12 @@ namespace LolloGPS.Data
         public static TileSourceRecord GetDefaultTileSource()
         {
             return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
+        }
+        public static List<TileSourceRecord> GetDefaultTileSourceList()
+        {
+            var result = new List<TileSourceRecord>();
+            result.Add(GetDefaultTileSource());
+            return result;
         }
         //public static TileSourceRecord GetDefaultOverlayTileSource()
         //{

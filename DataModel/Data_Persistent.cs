@@ -531,7 +531,7 @@ namespace LolloGPS.Data
         public PointRecord Target { get { lock (_targetLocker) { return _target; } } private set { lock (_targetLocker) { _target = value; RaisePropertyChanged(); } } }
 
         // I cannot make this property readonly coz I need a setter for the deserializer
-        private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSources());
+        private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetStockTileSources());
         [DataMember]
         public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } private set { _tileSourcez = value; RaisePropertyChanged(); } }
 
@@ -543,7 +543,7 @@ namespace LolloGPS.Data
         //[DataMember]
         //public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } private set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged_UI(); } } }
 
-        private volatile SwitchableObservableCollection<TileSourceRecord> _currentTileSources = new SwitchableObservableCollection<TileSourceRecord>();
+        private volatile SwitchableObservableCollection<TileSourceRecord> _currentTileSources = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSourceList());
         [DataMember]
         public SwitchableObservableCollection<TileSourceRecord> CurrentTileSources { get { return _currentTileSources; } private set { _currentTileSources = value; RaisePropertyChanged_UI(); } }
 
@@ -1527,8 +1527,6 @@ namespace LolloGPS.Data
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                IsTileSourcezBusy = true;
-
                 if (tileSource == null)
                 {
                     var currentBaseTileSource = CurrentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
@@ -1542,49 +1540,51 @@ namespace LolloGPS.Data
             }
             finally
             {
-                IsTileSourcezBusy = false;
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
 
             return result;
         }
 
-        public async Task<ICollection<TileSourceRecord>> GetTileSourcezCloneAsync(bool doBase, bool doOverlays)
+        public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync(bool doBase, bool doOverlays)
         {
             ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
 
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                IsTileSourcezBusy = true;
 
-                foreach (var ts in _tileSourcez)
-                {
-                    if (ts == null || (!doOverlays && !ts.IsOverlay) || (!doBase && !ts.IsOverlay)) continue;
-                    TileSourceRecord tsClone = null;
-                    TileSourceRecord.Clone(ts, ref tsClone);
-                    result.Add(tsClone);
-                }
+                return GetAllTileSourcezClone2(doBase, doOverlays);
             }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return new Collection<TileSourceRecord>();
             }
             finally
             {
-                IsTileSourcezBusy = false;
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        private ICollection<TileSourceRecord> GetAllTileSourcezClone2(bool doBase, bool doOverlays)
+        {
+            var result = new Collection<TileSourceRecord>();
+
+            foreach (var ts in _tileSourcez)
+            {
+                if (ts == null || (!doOverlays && !ts.IsOverlay) || (!doBase && !ts.IsOverlay)) continue;
+                TileSourceRecord tsClone = null;
+                TileSourceRecord.Clone(ts, ref tsClone);
+                result.Add(tsClone);
             }
 
             return result;
         }
-
         public async Task<ICollection<TileSourceRecord>> GetCurrentTileSourcezCloneAsync()
         {
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                IsTileSourcezBusy = true;
 
                 return GetCurrentTileSourcezClone2();
             }
@@ -1595,7 +1595,6 @@ namespace LolloGPS.Data
             }
             finally
             {
-                IsTileSourcezBusy = false;
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
@@ -1613,40 +1612,7 @@ namespace LolloGPS.Data
 
             return result;
         }
-        public async Task<ICollection<TileSourceRecord>> GetTileSourcezCloneAsync()
-        {
-            try
-            {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                IsTileSourcezBusy = true;
-
-                return GetTileSourcezClone2();
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                return new Collection<TileSourceRecord>();
-            }
-            finally
-            {
-                IsTileSourcezBusy = false;
-                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
-            }
-        }
-        private ICollection<TileSourceRecord> GetTileSourcezClone2()
-        {
-            var result = new Collection<TileSourceRecord>();
-
-            foreach (var ts in _tileSourcez)
-            {
-                if (ts == null) continue;
-                TileSourceRecord tsClone = null;
-                TileSourceRecord.Clone(ts, ref tsClone);
-                result.Add(tsClone);
-            }
-
-            return result;
-        }
+                
         public Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync()
         {
             return GetTileSourceClone(null);
@@ -1681,7 +1647,7 @@ namespace LolloGPS.Data
                     {
                         try
                         {
-                            var allTssClone = GetTileSourcezClone2();
+                            var allTssClone = GetAllTileSourcezClone2(true, true);
                             var lastDownloadTileSources = new Collection<TileSourceRecord>();
                             foreach (var techName in _lastDownloadSession.TileSourceTechNames)
                             {

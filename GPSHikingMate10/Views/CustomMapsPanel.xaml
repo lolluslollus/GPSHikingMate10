@@ -19,6 +19,7 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 			<RowDefinition Height="Auto"/>
@@ -80,8 +81,14 @@
 			MaxLength="3"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-		<!-- error message after clicking test -->
-		<TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="4" Grid.Column="3"
+            Text="Overlay layer"
+            VerticalAlignment="Center"/>
+        <CheckBox Grid.Row="4" Grid.Column="4"
+            VerticalAlignment="Center"
+            IsChecked="{Binding ElementName=me, Path=PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <!-- error message after clicking test -->
+		<TextBlock Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -90,7 +97,7 @@
 			HorizontalAlignment="Center"
 			VerticalAlignment="Center"/>
 
-		<Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4">
+		<Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 				<RowDefinition Height="Auto"/>
@@ -137,7 +144,7 @@
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
 				Icon="Delete"/>
-			<mctl:LolloListChooser Grid.Row="3" Grid.Column="1"
+			<mctl:LolloMultipleListChooser Grid.Row="3" Grid.Column="1"
 				SelectorVisibility="Collapsed"
 				x:Name="ClearCustomCacheChooser"
 				PlaceholderText="Which source do you want to erase?"

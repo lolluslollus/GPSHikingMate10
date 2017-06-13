@@ -36,6 +36,11 @@ namespace LolloGPS.Core
         private HttpMapTileDataSource _httpMapTileDataSource = null;
         private LocalMapTileDataSource _localMapTileDataSource = null;
 
+        private bool _isShowCurrentBaseTileSource = false;
+        public bool IsShowCurrentBaseTileSource { get { return _isShowCurrentBaseTileSource; } private set { _isShowCurrentBaseTileSource = value; RaisePropertyChanged_UI(); } }
+        private TileSourceRecord _currentBaseTileSource = TileSourceRecord.GetDefaultTileSource();
+        public TileSourceRecord CurrentBaseTileSource { get { return _currentBaseTileSource; } private set { _currentBaseTileSource = value; RaisePropertyChanged_UI(); } }
+
         #region construct and dispose
         public LolloMapVM(IList<MapTileSource> mapTileSources, IGeoBoundingBoxProvider gbbProvider)
         {
@@ -48,6 +53,7 @@ namespace LolloGPS.Core
             await _tileDownloader.OpenAsync(args);
             AddHandler_DataChanged();
             Task download = Task.Run(UpdateDownloadTilesAfterConditionsChangedAsync);
+            await UpdateCurrentTileSourceAsync();
 
             _ctsManager.Open(CancToken);
             await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
@@ -249,6 +255,7 @@ namespace LolloGPS.Core
             {
                 Task reopen = RunFunctionIfOpenAsyncT(async delegate
                 {
+                    await UpdateCurrentTileSourceAsync().ConfigureAwait(false);
                     // cancel current download
                     _ctsManager.Reset(CancToken);
                     await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
@@ -343,6 +350,12 @@ namespace LolloGPS.Core
         #endregion event handling
 
         #region services
+        private async Task UpdateCurrentTileSourceAsync()
+        {
+            var currentBaseTs = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
+            IsShowCurrentBaseTileSource = currentBaseTs?.IsDefault != true;
+            CurrentBaseTileSource = currentBaseTs;
+        }
         /// <summary>
         /// Start or resume downloading tiles if so desired
         /// run this on the threadpool because it can last forever

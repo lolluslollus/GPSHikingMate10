@@ -957,11 +957,10 @@ namespace LolloGPS.Core
             {
                 try
                 {
-                    string uriString = PersistentData.CurrentTileSource.ProviderUriString;
-                    if (!string.IsNullOrWhiteSpace(uriString) && RuntimeData.IsConnectionAvailable)
-                    {
-                        await Launcher.LaunchUriAsync(new Uri(uriString, UriKind.Absolute));
-                    }
+                    var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync();                    
+                    string uriString = baseTileSource?.ProviderUriString;
+                    if (string.IsNullOrWhiteSpace(uriString) || RuntimeData.IsConnectionAvailable) return;
+                    await Launcher.LaunchUriAsync(new Uri(uriString, UriKind.Absolute));
                 }
                 catch (Exception) { }
             });

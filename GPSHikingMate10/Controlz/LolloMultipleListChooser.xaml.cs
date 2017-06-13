@@ -16,7 +16,7 @@ using Windows.UI.Xaml.Input;
 
 namespace LolloGPS.Controlz
 {
-    public sealed partial class LolloListChooser : Utilz.Controlz.BackOrientOpenObservControl
+    public sealed partial class LolloMultipleListChooser : Utilz.Controlz.BackOrientOpenObservControl
     {
         #region properties
         private const string DefaultPlaceholderText = "Select an item";
@@ -28,7 +28,7 @@ namespace LolloGPS.Controlz
             set { SetValue(PopupContainerProperty, value); }
         }
         public static readonly DependencyProperty PopupContainerProperty =
-            DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(LolloListChooser), new PropertyMetadata(Window.Current.Content));
+            DependencyProperty.Register("PopupContainer", typeof(FrameworkElement), typeof(LolloMultipleListChooser), new PropertyMetadata(Window.Current.Content));
 
         public Visibility SelectorVisibility
         {
@@ -36,7 +36,7 @@ namespace LolloGPS.Controlz
             set { SetValue(SelectorVisibilityProperty, value); }
         }
         public static readonly DependencyProperty SelectorVisibilityProperty =
-            DependencyProperty.Register("SelectorVisibility", typeof(Visibility), typeof(LolloListChooser), new PropertyMetadata(Visibility.Visible));
+            DependencyProperty.Register("SelectorVisibility", typeof(Visibility), typeof(LolloMultipleListChooser), new PropertyMetadata(Visibility.Visible));
 
         public bool IsPopupOpen
         {
@@ -44,10 +44,10 @@ namespace LolloGPS.Controlz
             set { SetValue(IsPopupOpenProperty, value); }
         }
         public static readonly DependencyProperty IsPopupOpenProperty =
-            DependencyProperty.Register("IsPopupOpen", typeof(bool), typeof(LolloListChooser), new PropertyMetadata(false, OnIsPopupOpen_PropertyChanged));
+            DependencyProperty.Register("IsPopupOpen", typeof(bool), typeof(LolloMultipleListChooser), new PropertyMetadata(false, OnIsPopupOpen_PropertyChanged));
         private static void OnIsPopupOpen_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
         {
-            var me = obj as LolloListChooser;
+            var me = obj as LolloMultipleListChooser;
             if (me == null) return;
 
             bool newValue = (bool)(e.NewValue);
@@ -61,10 +61,10 @@ namespace LolloGPS.Controlz
             set { SetValue(PlaceholderTextProperty, value); }
         }
         public static readonly DependencyProperty PlaceholderTextProperty =
-            DependencyProperty.Register("PlaceholderText", typeof(string), typeof(LolloListChooser), new PropertyMetadata(DefaultPlaceholderText, OnPlaceholderText_PropertyChanged));
+            DependencyProperty.Register("PlaceholderText", typeof(string), typeof(LolloMultipleListChooser), new PropertyMetadata(DefaultPlaceholderText, OnPlaceholderText_PropertyChanged));
         private static void OnPlaceholderText_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
         {
-            LolloListChooser me = obj as LolloListChooser;
+            LolloMultipleListChooser me = obj as LolloMultipleListChooser;
             if (me == null) return;
 
             string newValue = e.NewValue as string;
@@ -77,7 +77,7 @@ namespace LolloGPS.Controlz
             set { SetValue(ListHeaderTextProperty, value); }
         }
         public static readonly DependencyProperty ListHeaderTextProperty =
-            DependencyProperty.Register("ListHeaderText", typeof(string), typeof(LolloListChooser), new PropertyMetadata(DefaultListHeaderText));
+            DependencyProperty.Register("ListHeaderText", typeof(string), typeof(LolloMultipleListChooser), new PropertyMetadata(DefaultListHeaderText));
 
         public Style TextBlockStyle
         {
@@ -85,7 +85,7 @@ namespace LolloGPS.Controlz
             set { SetValue(TextBlockStyleProperty, value); }
         }
         public static readonly DependencyProperty TextBlockStyleProperty =
-            DependencyProperty.Register("TextBlockStyle", typeof(Style), typeof(LolloListChooser), new PropertyMetadata(null));
+            DependencyProperty.Register("TextBlockStyle", typeof(Style), typeof(LolloMultipleListChooser), new PropertyMetadata(null));
 
         public Style AppBarButtonStyle
         {
@@ -93,7 +93,7 @@ namespace LolloGPS.Controlz
             set { SetValue(AppBarButtonStyleProperty, value); }
         }
         public static readonly DependencyProperty AppBarButtonStyleProperty =
-            DependencyProperty.Register("AppBarButtonStyle", typeof(Style), typeof(LolloListChooser), new PropertyMetadata(null));
+            DependencyProperty.Register("AppBarButtonStyle", typeof(Style), typeof(LolloMultipleListChooser), new PropertyMetadata(null));
 
         public Style TextItemStyle
         {
@@ -101,7 +101,7 @@ namespace LolloGPS.Controlz
             set { SetValue(TextItemStyleProperty, value); }
         }
         public static readonly DependencyProperty TextItemStyleProperty =
-            DependencyProperty.Register("TextItemStyle", typeof(Style), typeof(LolloListChooser), new PropertyMetadata(null));
+            DependencyProperty.Register("TextItemStyle", typeof(Style), typeof(LolloMultipleListChooser), new PropertyMetadata(null));
 
         public Style ListHeaderStyle
         {
@@ -109,7 +109,7 @@ namespace LolloGPS.Controlz
             set { SetValue(ListHeaderStyleProperty, value); }
         }
         public static readonly DependencyProperty ListHeaderStyleProperty =
-            DependencyProperty.Register("ListHeaderStyle", typeof(Style), typeof(LolloListChooser), new PropertyMetadata(null));
+            DependencyProperty.Register("ListHeaderStyle", typeof(Style), typeof(LolloMultipleListChooser), new PropertyMetadata(null));
 
         public Collection<TextAndTag> ItemsSource
         {
@@ -117,7 +117,7 @@ namespace LolloGPS.Controlz
             set { SetValue(ItemsSourceProperty, value); }
         }
         public static readonly DependencyProperty ItemsSourceProperty =
-            DependencyProperty.Register("ItemsSource", typeof(Collection<TextAndTag>), typeof(LolloListChooser), new PropertyMetadata(null)); //, OnItemsSource_PropertyChanged));
+            DependencyProperty.Register("ItemsSource", typeof(Collection<TextAndTag>), typeof(LolloMultipleListChooser), new PropertyMetadata(null)); //, OnItemsSource_PropertyChanged));
 
         public List<TextAndTag> SelectedItems
         {
@@ -125,10 +125,10 @@ namespace LolloGPS.Controlz
             set { SetValue(SelectedItemsProperty, value); }
         }
         public static readonly DependencyProperty SelectedItemsProperty =
-            DependencyProperty.Register("SelectedItems", typeof(List<TextAndTag>), typeof(LolloListChooser), new PropertyMetadata(new List<TextAndTag>(), OnSelectedItems_PropertyChanged));
+            DependencyProperty.Register("SelectedItems", typeof(List<TextAndTag>), typeof(LolloMultipleListChooser), new PropertyMetadata(new List<TextAndTag>(), OnSelectedItems_PropertyChanged));
         private static void OnSelectedItems_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
         {
-            var me = obj as LolloListChooser;
+            var me = obj as LolloMultipleListChooser;
             if (me == null) return;
 
             me.UpdateDescriptor();
@@ -141,7 +141,7 @@ namespace LolloGPS.Controlz
             set { SetValue(IsMultiSelectCheckBoxEnabledProperty, value); }
         }
         public static readonly DependencyProperty IsMultiSelectCheckBoxEnabledProperty =
-            DependencyProperty.Register("IsMultiSelectCheckBoxEnabled", typeof(bool), typeof(LolloListChooser), new PropertyMetadata(false));
+            DependencyProperty.Register("IsMultiSelectCheckBoxEnabled", typeof(bool), typeof(LolloMultipleListChooser), new PropertyMetadata(false));
         #endregion properties
 
         #region events
@@ -150,7 +150,7 @@ namespace LolloGPS.Controlz
         #endregion events
 
         #region construct and dispose
-        public LolloListChooser()
+        public LolloMultipleListChooser()
             : base()
         {
             InitializeComponent();
