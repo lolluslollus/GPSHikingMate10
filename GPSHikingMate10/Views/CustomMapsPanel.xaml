@@ -142,12 +142,7 @@
 				x:Name="ClearCustomCacheChooser"
 				PlaceholderText="Which source do you want to erase?"
 				ListHeaderText="Which source do you want to erase?"
-				ListHeaderStyle="{StaticResource HeaderTextStyle}"
 				PopupContainer="{x:Bind me, Mode=OneWay}"
-				VerticalAlignment="Center"
-				TextBlockStyle="{StaticResource BaseMessageStyle}"
-				AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-				TextItemStyle="{StaticResource ListItemTextStyle}"
 				ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache, Mode=OneWay}"
 				ItemSelected="OnClearCustomCacheChooser_ItemSelected"
 				BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"/>

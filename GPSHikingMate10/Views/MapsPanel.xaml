@@ -72,24 +72,19 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <TextBlock
-				Text="Map source "
+				Text="Base layer "
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
             <mctl:LolloListChooser Grid.Column="1"
 				x:Name="BaseMapSourceChooser"
-				PlaceholderText="Select a source for map tiles"
-				ListHeaderText="Select a source for map tiles"
-				ListHeaderStyle="{StaticResource HeaderTextStyle}"
+				PlaceholderText="Select a map tile source"
+				ListHeaderText="Select a map tile source"
 				PopupContainer="{x:Bind me, Mode=OneWay}"
 				BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
-				VerticalAlignment="Center"
 				Margin="{StaticResource Thickness2}"
-				TextBlockStyle="{StaticResource BaseMessageStyle}"
-				AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-				TextItemStyle="{StaticResource BaseMessageStyle}"
 				ItemsSource="{x:Bind MapsPanelVM.BaseTileSourceChoices, Mode=OneWay}"
-                SelectionRequested="OnBaseMapSourceChooser_SelectionRequested"
+                SelectedItems="{x:Bind MapsPanelVM.SelectedBaseTiles, Mode=OneWay}"
 				IsEnabled="{x:Bind MapsPanelVM.IsChangeTileSourceEnabled, Mode=OneWay}"		
                 ItemDeselected="OnBaseMapSourceChooser_ItemDeselected"
 				ItemSelected="OnBaseMapSourceChooser_ItemSelected"/>
@@ -101,25 +96,20 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
             <TextBlock
-				Text="Map source "
+				Text="Overlays "
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
             <mctl:LolloListChooser Grid.Column="1"
 				x:Name="OverlayMapSourceChooser"
                 IsMultiSelectCheckBoxEnabled="True"
-				PlaceholderText="Select a source for map tiles"
-				ListHeaderText="Select a source for map tiles"
-				ListHeaderStyle="{StaticResource HeaderTextStyle}"
+				PlaceholderText="Select map tile sources"
+				ListHeaderText="Select map tile sources"
 				PopupContainer="{x:Bind me, Mode=OneWay}"
 				BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
-				VerticalAlignment="Center"
 				Margin="{StaticResource Thickness2}"
-				TextBlockStyle="{StaticResource BaseMessageStyle}"
-				AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-				TextItemStyle="{StaticResource BaseMessageStyle}"
 				ItemsSource="{x:Bind MapsPanelVM.OverlayTileSourceChoices, Mode=OneWay}"
-                SelectionsRequested="OnOverlayMapSourceChooser_SelectionsRequested"
+                SelectedItems="{x:Bind MapsPanelVM.SelectedOverlayTiles, Mode=OneWay}"
 				IsEnabled="{x:Bind MapsPanelVM.IsChangeTileSourceEnabled, Mode=OneWay}"
                 ItemDeselected="OnOverlayMapSourceChooser_ItemDeselected"
 				ItemSelected="OnOverlayMapSourceChooser_ItemSelected"/>
@@ -159,13 +149,8 @@
 			x:Name="ZoomLevelChooser"
 			PlaceholderText="Select max zoom level to download"
 			ListHeaderText="Select max zoom level to download"
-			ListHeaderStyle="{StaticResource HeaderTextStyle}"
 			PopupContainer="{x:Bind me, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
-			VerticalAlignment="Center"
-			TextBlockStyle="{StaticResource BaseMessageStyle}"
-			AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-			TextItemStyle="{StaticResource ListItemTextStyle}"
             IsPopupOpen="{x:Bind MapsPanelVM.IsShowZoomLevelChoices, Mode=OneWay}"
             ItemsSource="{x:Bind MapsPanelVM.ZoomLevelChoices, Mode=OneWay}"
 			ItemSelected="OnZoomLevelChooser_ItemSelected"/>
@@ -185,13 +170,8 @@
 			x:Name="ClearCacheChooser"
 			PlaceholderText="Which cache do you want to clear?"
 			ListHeaderText="Which cache do you want to clear?"
-			ListHeaderStyle="{StaticResource HeaderTextStyle}"
 			PopupContainer="{x:Bind me, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
-			VerticalAlignment="Center"
-			TextBlockStyle="{StaticResource BaseMessageStyle}"
-			AppBarButtonStyle="{StaticResource AppBarButtonRecoloured}"
-			TextItemStyle="{StaticResource ListItemTextStyle}"
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
         <!--<TextBlock Grid.Row="7" Grid.Column="0" 

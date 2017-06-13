@@ -7,9 +7,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Windows.UI.Xaml;
 using System.Threading.Tasks;
-using Utilz;
 using GPSHikingMate10.ViewModels;
-using static LolloGPS.Controlz.LolloListChooser;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -89,16 +87,6 @@ namespace LolloGPS.Core
             if (!(e?.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
             MapsPanelVM?.Download_ChooseZoomLevel(maxZoom);
-        }
-
-        private void OnBaseMapSourceChooser_SelectionRequested(object sender, SelectionRequestedEventArgs args)
-        {
-            MapsPanelVM?.SetBaseTileSourceSelection(args);
-        }
-
-        private void OnOverlayMapSourceChooser_SelectionsRequested(object sender, SelectionRequestedEventArgs args)
-        {
-            MapsPanelVM?.SetOverlayTileSourcesSelection(args);
         }
 
         private void OnBaseMapSourceChooser_ItemDeselected(object sender, TextAndTag args)

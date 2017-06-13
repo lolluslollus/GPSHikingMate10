@@ -9,7 +9,6 @@ using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -69,27 +68,7 @@ namespace LolloGPS.Controlz
             if (me == null) return;
 
             string newValue = e.NewValue as string;
-            if (string.IsNullOrEmpty(me.Text))
-            {
-                me.MyTextBlock.Text = newValue ?? string.Empty;
-            }
-        }
-
-        public string Text
-        {
-            get { return (string)GetValue(TextProperty); }
-            set { SetValue(TextProperty, value); }
-        }
-        public static readonly DependencyProperty TextProperty =
-            DependencyProperty.Register("Text", typeof(string), typeof(LolloListChooser), new PropertyMetadata(null, OnText_PropertyChanged));
-        private static void OnText_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
-        {
-            LolloListChooser me = obj as LolloListChooser;
-            string newValue = e.NewValue as string;
-            if (me != null)
-            {
-                me.MyTextBlock.Text = newValue ?? me.PlaceholderText;
-            }
+            me.ClosedDescriptorTextBlock.Text = newValue ?? string.Empty;
         }
 
         public string ListHeaderText
@@ -140,6 +119,22 @@ namespace LolloGPS.Controlz
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register("ItemsSource", typeof(Collection<TextAndTag>), typeof(LolloListChooser), new PropertyMetadata(null)); //, OnItemsSource_PropertyChanged));
 
+        public List<TextAndTag> SelectedItems
+        {
+            get { return (List<TextAndTag>)GetValue(SelectedItemsProperty); }
+            set { SetValue(SelectedItemsProperty, value); }
+        }
+        public static readonly DependencyProperty SelectedItemsProperty =
+            DependencyProperty.Register("SelectedItems", typeof(List<TextAndTag>), typeof(LolloListChooser), new PropertyMetadata(new List<TextAndTag>(), OnSelectedItems_PropertyChanged));
+        private static void OnSelectedItems_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            var me = obj as LolloListChooser;
+            if (me == null) return;
+
+            me.UpdateDescriptor();
+            me.UpdateSelection();
+        }
+
         public bool IsMultiSelectCheckBoxEnabled
         {
             get { return (bool)GetValue(IsMultiSelectCheckBoxEnabledProperty); }
@@ -149,14 +144,45 @@ namespace LolloGPS.Controlz
             DependencyProperty.Register("IsMultiSelectCheckBoxEnabled", typeof(bool), typeof(LolloListChooser), new PropertyMetadata(false));
         #endregion properties
 
+        #region events
+        public event EventHandler<TextAndTag> ItemDeselected;
+        public event EventHandler<TextAndTag> ItemSelected;
+        #endregion events
+
         #region construct and dispose
         public LolloListChooser()
             : base()
         {
             InitializeComponent();
-            MyTextBlock.Text = PlaceholderText;
+            ClosedDescriptorTextBlock.Text = PlaceholderText;
         }
         #endregion construct and dispose
+
+        #region updaters
+        private void UpdateSelection()
+        {
+            var mlvItems = MyListView.Items;
+            if (mlvItems == null || SelectedItems == null) return;
+
+            foreach (var item in mlvItems)
+            {
+                var stt = item as SelectedAndTextAndTag;
+                if (stt?.TextAndTag?.Tag == null) continue;
+
+                if (SelectedItems.Any(si => si.Tag.CompareTo(stt.TextAndTag.Tag) == 0)) stt.IsSelected = true;
+                else stt.IsSelected = false;
+            }
+        }
+        private void UpdateDescriptor()
+        {
+            if (SelectedItems == null) return;
+
+            int howManySelectedItems = SelectedItems.Count;
+            if (howManySelectedItems == 0) ClosedDescriptorTextBlock.Text = PlaceholderText;
+            else if (howManySelectedItems == 1) ClosedDescriptorTextBlock.Text = SelectedItems[0].Text;
+            else ClosedDescriptorTextBlock.Text = $"{howManySelectedItems} items";
+        }
+        #endregion updaters
 
         #region popup
         protected override void OnHardwareOrSoftwareButtons_BackPressed_MayOverride(object sender, BackOrHardSoftKeyPressedEventArgs e)
@@ -242,52 +268,20 @@ namespace LolloGPS.Controlz
             IsPopupOpen = false;
         }
 
-        public sealed class SelectionRequestedEventArgs : EventArgs
-        {
-            private readonly LolloListChooser _owner;
-            private readonly IReadOnlyCollection<TextAndTag> _items;
-            public IReadOnlyCollection<TextAndTag> Items { get { return _items; } }
-            private List<int> _indexes = new List<int>();
-            public List<int> Indexes { get { return _indexes; } set { _indexes = value; _owner.SelectionReceived(_indexes); } }
-            internal SelectionRequestedEventArgs(LolloListChooser owner, ItemCollection items) : base()
-            {
-                _owner = owner;
-                _items = items.Select(item => (item as SelectedAndTextAndTag).TextAndTag).ToList().AsReadOnly();
-            }
-        }
-        public event EventHandler<TextAndTag> ItemDeselected;
-        public event EventHandler<TextAndTag> ItemSelected;
-        public event EventHandler<SelectionRequestedEventArgs> SelectionRequested;
-        public event EventHandler<SelectionRequestedEventArgs> SelectionsRequested;
-
-        private void SelectionReceived(List<int> indexes)
-        {
-            foreach (var item in MyListView.Items)
-            {
-                (item as SelectedAndTextAndTag).IsSelected = false;
-            }
-
-            foreach (var index in indexes)
-            {
-                (MyListView.Items.ElementAt(index) as SelectedAndTextAndTag).IsSelected = true;
-            }
-        }
-
         private volatile bool _isMyListViewEventHandlersActive = false;
         private void OnMyListViewLoaded(object sender, RoutedEventArgs e)
         {
             MyListView.ItemsSource = ItemsSource.Select(nv => new SelectedAndTextAndTag() { IsSelected = false, TextAndTag = nv }).ToList();
-            if (IsMultiSelectCheckBoxEnabled)
-            {
-                SelectionsRequested?.Invoke(this, new SelectionRequestedEventArgs(this, MyListView.Items));
-            }
-            else
-            {
-                SelectionRequested?.Invoke(this, new SelectionRequestedEventArgs(this, MyListView.Items));
-            }
+            UpdateDescriptor();
+            UpdateSelection();
 
             var myLVItems = MyListView.Items;
-            if (_isMyListViewEventHandlersActive || myLVItems == null) return;
+            if (myLVItems == null) return;
+
+            var firstSelectedItem = myLVItems.FirstOrDefault(si => (si as SelectedAndTextAndTag)?.IsSelected == true);
+            if (firstSelectedItem != null) MyListView.ScrollIntoView(firstSelectedItem);
+
+            if (_isMyListViewEventHandlersActive) return;
             _isMyListViewEventHandlersActive = true;
             myLVItems.VectorChanged += OnMyListViewItems_VectorChanged;
         }
@@ -306,27 +300,27 @@ namespace LolloGPS.Controlz
             var stt = (sender as FrameworkElement)?.DataContext as SelectedAndTextAndTag;
             if (stt == null) return;
             stt.IsSelected = !stt.IsSelected; // undo the checkbox tick
-            OnItemClicked(stt);
+            ToggleItemIsSelected(stt);
         }
 
         private void OnMyListView_ItemClick(object sender, ItemClickEventArgs e)
         {
-            OnItemClicked(e?.ClickedItem as SelectedAndTextAndTag);
+            ToggleItemIsSelected(e?.ClickedItem as SelectedAndTextAndTag);
         }
-        private void OnItemClicked(SelectedAndTextAndTag clickedItem)
+        private void ToggleItemIsSelected(SelectedAndTextAndTag clickedItem)
         {
             // toggle selection
             if (clickedItem == null) return;
 
-            if (clickedItem.IsSelected)
-            {
-                clickedItem.IsSelected = false;
-                ItemDeselected?.Invoke(this, clickedItem.TextAndTag);
-            }
-            else
+            if (!clickedItem.IsSelected)
             {
                 clickedItem.IsSelected = true;
                 ItemSelected?.Invoke(this, clickedItem.TextAndTag);
+            }
+            else if (IsMultiSelectCheckBoxEnabled)
+            {
+                clickedItem.IsSelected = false;
+                ItemDeselected?.Invoke(this, clickedItem.TextAndTag);
             }
         }
 
@@ -334,14 +328,8 @@ namespace LolloGPS.Controlz
         {
             Task updSelIdx = RunInUiThreadAsync(delegate
             {
-                if (IsMultiSelectCheckBoxEnabled)
-                {
-                    SelectionsRequested?.Invoke(this, new SelectionRequestedEventArgs(this, MyListView.Items));
-                }
-                else
-                {
-                    SelectionRequested?.Invoke(this, new SelectionRequestedEventArgs(this, MyListView.Items));
-                }
+                UpdateDescriptor();
+                UpdateSelection();
             });
         }
         #endregion event handlers
@@ -381,8 +369,11 @@ namespace LolloGPS.Controlz
             get { return _isSelected; }
             set
             {
-                _isSelected = value;
-                RaisePropertyChanged();
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    RaisePropertyChanged();
+                }
             }
         }
 
@@ -397,21 +388,4 @@ namespace LolloGPS.Controlz
             }
         }
     }
-    //public class MyListView : ListView
-    //{
-    //    protected override void PrepareContainerForItemOverride(Windows.UI.Xaml.DependencyObject element, object item)
-    //    {
-    //        base.PrepareContainerForItemOverride(element, item);
-    //        // ...
-    //        ListViewItem listItem = element as ListViewItem;
-    //        Binding binding = new Binding();
-    //        binding.Mode = BindingMode.TwoWay;
-    //        binding.Source = item;
-    //        binding.Path = new PropertyPath("Selected");
-    //        listItem.SetBinding(ListViewItem.IsSelectedProperty, binding);
-
-    //        var tt = new ListView();
-
-    //    }
-    //}
 }

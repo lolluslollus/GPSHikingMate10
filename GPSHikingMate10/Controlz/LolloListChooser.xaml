@@ -7,36 +7,39 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:conv="using:Utilz.Converters"
     UseLayoutRounding="True"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400">
-    <!--<UserControl.Resources>
-        <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>
-    </UserControl.Resources>-->
-
+    <UserControl.Resources>
+        <Style TargetType="ListViewItem" BasedOn="{StaticResource ListViewItemExpanded}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        </Style>
+        <mctl:IsSelectedToBackgroundConverter x:Key="IsSelectedToBackgroundConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Border BorderThickness="0" 
             BorderBrush="{ThemeResource ButtonBorderThemeBrush}"
             Tapped="OnMyTextBlock_Tapped"
             Background="Transparent"
             Visibility="{Binding ElementName=me, Path=SelectorVisibility}">
-            <uctl:UniversalWrapPanel Orientation="Horizontal">
-                <TextBlock x:Name="MyTextBlock"
+            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                <TextBlock x:Name="ClosedDescriptorTextBlock"
                     Style="{Binding ElementName=me, Path=TextBlockStyle}"
                     TextWrapping="Wrap"
                     IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
                     Tapped="OnMyTextBlock_Tapped"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"/>
-                <AppBarButton IsCompact="True" Icon="Edit"
+                <AppBarButton
+                    IsCompact="True" 
+                    Icon="Edit"
                     Style="{Binding ElementName=me, Path=AppBarButtonStyle}"
                     IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
                     Tapped="OnMyTextBlock_Tapped"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Right"/>
-            </uctl:UniversalWrapPanel>
+            </StackPanel>
         </Border>
         <Canvas>
             <Popup x:Name="MyPopup" IsOpen="False" 
@@ -64,25 +67,28 @@
                             Unloaded="OnMyListViewUnloaded">
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <ItemsStackPanel Orientation="Vertical" />
+                                <ItemsStackPanel Orientation="Vertical"/>
                             </ItemsPanelTemplate>
                         </ListView.ItemsPanel>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Border BorderThickness="0"
-                                        Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-                                        IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-                                        Tapped="OnItemBorder_Tapped">
-                                    <StackPanel Orientation="Horizontal">
-                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                  Click="OnCheckBox_Click"
-                                                  Visibility="{Binding ElementName=me, Path=IsMultiSelectCheckBoxEnabled, Converter={StaticResource BooleanToVisibleConverter}}"/>
-                                        <TextBlock Text="{Binding TextAndTag.Text, Mode=OneWay}"
-											TextWrapping="Wrap"
-                                            Style="{Binding ElementName=me, Path=TextItemStyle}"
-                                            Margin="10"/>
-                                    </StackPanel>
-                                </Border>
+                                <Grid BorderThickness="0"
+                                    Background="{Binding IsSelected, Mode=OneWay, Converter={StaticResource IsSelectedToBackgroundConverter}}"
+                                    IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                                    Tapped="OnItemBorder_Tapped">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="4*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox HorizontalAlignment="Center"
+                                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                        Click="OnCheckBox_Click"/>
+                                    <TextBlock Grid.Column="1"
+                                        Text="{Binding TextAndTag.Text, Mode=OneWay}"
+										TextWrapping="Wrap"
+                                        Style="{Binding ElementName=me, Path=TextItemStyle}"
+                                        Margin="10"/>
+                                </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>

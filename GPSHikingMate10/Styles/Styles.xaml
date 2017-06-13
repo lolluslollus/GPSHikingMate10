@@ -3,6 +3,7 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
+    xmlns:mctl="using:LolloGPS.Controlz"
 	xmlns:media="using:Windows.UI.Xaml.Media">
 
 	
@@ -59,9 +60,23 @@
 		<Setter Property="TextWrapping" Value="Wrap"/>
 	</Style>
 
-	<Style x:Key="ListItemTextStyle" TargetType="TextBlock">
+    <Style x:Key="ListDescriptorTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+        <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
+        <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="ListHeaderTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
 		<Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
-		<Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontSize" Value="{StaticResource BaseMessageStyleFontSize}"/>
 		<Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
 		<Setter Property="TextWrapping" Value="Wrap"/>
 	</Style>
@@ -1547,6 +1562,13 @@
 		</Setter>
 	</Style>
 
+    <Style TargetType="mctl:LolloListChooser">
+        <Setter Property="AppBarButtonStyle" Value="{StaticResource AppBarButtonRecoloured}"/>
+        <Setter Property="TextBlockStyle" Value="{StaticResource ListDescriptorTextStyle}"/>
+        <Setter Property="TextItemStyle" Value="{StaticResource ListItemTextStyle}"/>
+        <Setter Property="ListHeaderStyle" Value="{StaticResource ListHeaderTextStyle}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
     <!-- Resources for Windows.UI.Xaml.Controls.ListViewHeaderItem -->
     <StaticResource x:Key="ListViewHeaderItemBackground" ResourceKey="SystemControlTransparentBrush" />
     <StaticResource x:Key="ListViewHeaderItemDividerStroke" ResourceKey="SystemControlForegroundBaseLowBrush" />
@@ -1718,9 +1740,9 @@
             </Setter.Value>
         </Setter>
     </Style>
-
+    
     <!-- Style for Windows.UI.Xaml.Controls.ListViewItem -->
-    <Style TargetType="ListViewItem" x:Key="ListViewItemExpanded">
+    <!--<Style TargetType="ListViewItem" x:Key="ListViewItemExpanded">
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
         <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
         <Setter Property="Background" Value="Transparent" />
@@ -1728,7 +1750,7 @@
         <Setter Property="TabNavigation" Value="Local" />
         <Setter Property="IsHoldingEnabled" Value="True" />
         <Setter Property="Padding" Value="12,0,12,0" />
-        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="MinWidth" Value="{ThemeResource ListViewItemMinWidth}" />
         <Setter Property="MinHeight" Value="{ThemeResource ListViewItemMinHeight}" />
@@ -1982,8 +2004,6 @@
                                 <VisualState x:Name="DraggingTarget" />
                                 <VisualState x:Name="MultipleDraggingPrimary">
                                     <Storyboard>
-                                        <!-- These two Opacity animations are required - the FadeInThemeAnimations
-                                             on the same elements animate an internal Opacity. -->
                                         <DoubleAnimation Storyboard.TargetName="MultiArrangeOverlayText"
                                             Storyboard.TargetProperty="Opacity"
                                             Duration="0"
@@ -2037,8 +2057,6 @@
                                 </VisualState>
                                 <VisualState x:Name="MultipleReorderingPrimary">
                                     <Storyboard>
-                                        <!-- These two Opacity animations are required - the FadeInThemeAnimations
-                                             on the same elements animate an internal Opacity. -->
                                         <DoubleAnimation Storyboard.TargetName="MultiArrangeOverlayText"
                                             Storyboard.TargetProperty="Opacity"
                                             Duration="0"
@@ -2101,10 +2119,7 @@
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                 Margin="{TemplateBinding Padding}" />
-                        </Grid>
-                        <!-- The 'Xg' text simulates the amount of space one line of text will occupy.
-                             In the DataPlaceholder state, the Content is not loaded yet so we
-                             approximate the size of the item using placeholder text. -->
+                        </Grid>                        
                         <TextBlock x:Name="PlaceholderTextBlock"
                             Opacity="0"
                             Text="Xg"
@@ -2164,6 +2179,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
+    </Style>-->
 
 </ResourceDictionary>

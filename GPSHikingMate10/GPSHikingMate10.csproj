@@ -117,6 +117,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\Converters.cs" />
     <Compile Include="Controlz\LolloListChooser.xaml.cs">
       <DependentUpon>LolloListChooser.xaml</DependentUpon>
     </Compile>

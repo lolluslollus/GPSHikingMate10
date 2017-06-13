@@ -56,7 +56,9 @@ namespace GPSHikingMate10.ViewModels
         }
 
         private List<TextAndTag> _selectedBaseTiles = new List<TextAndTag>();
+        public List<TextAndTag> SelectedBaseTiles { get { return _selectedBaseTiles; } private set { _selectedBaseTiles = value; RaisePropertyChanged_UI(); } }
         private List<TextAndTag> _selectedOverlayTiles = new List<TextAndTag>();
+        public List<TextAndTag> SelectedOverlayTiles { get { return _selectedOverlayTiles; } private set { _selectedOverlayTiles = value; RaisePropertyChanged_UI(); } }
         private readonly SwitchableObservableCollection<TextAndTag> _baseTileSourceChoices = new SwitchableObservableCollection<TextAndTag>();
         public SwitchableObservableCollection<TextAndTag> BaseTileSourceChoices { get { return _baseTileSourceChoices; } }
         private readonly SwitchableObservableCollection<TextAndTag> _overlayTileSourceChoices = new SwitchableObservableCollection<TextAndTag>();
@@ -184,7 +186,7 @@ namespace GPSHikingMate10.ViewModels
         {
             var selectedBaseTile = await Task.Run(PersistentData.GetCurrentTileSourceCloneAsync).ConfigureAwait(false);
             var selectedBaseTiles2 = (new TextAndTag[] { new TextAndTag(selectedBaseTile.DisplayName, selectedBaseTile) }).ToList();
-            _selectedBaseTiles = selectedBaseTiles2;
+            SelectedBaseTiles = selectedBaseTiles2;
         }
         internal async Task UpdateSelectedOverlayTilesAsync()
         {
@@ -194,7 +196,7 @@ namespace GPSHikingMate10.ViewModels
             {
                 selectedOverlayTiles2.Add(new TextAndTag(item.DisplayName, item));
             }
-            _selectedOverlayTiles = selectedOverlayTiles2;
+            SelectedOverlayTiles = selectedOverlayTiles2;
         }
         #endregion updaters
 
@@ -223,44 +225,54 @@ namespace GPSHikingMate10.ViewModels
                 _isDataChangedHandlerActive = false;
             }
         }
-        private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
             {
-                Task gt = RunInUiThreadAsync(UpdateIsLeechingEnabled);
+                await RunInUiThreadAsync(UpdateIsLeechingEnabled).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
             {
-                Task gt = RunInUiThreadAsync(delegate
+                Task upd1 = Task.CompletedTask;
+                Task upd2 = Task.CompletedTask;
+
+                await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled();
                     UpdateIsCacheBtnEnabled();
-                    Task upd1 = UpdateIsChangeMapStyleEnabledAsync();
-                    Task upd2 = UpdateSelectedBaseTileAsync();
-                });
+                    upd1 = UpdateIsChangeMapStyleEnabledAsync();
+                    upd2 = UpdateSelectedBaseTileAsync();
+                }).ConfigureAwait(false);
+
+                await Task.WhenAll(upd1, upd2).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentOverlayTileSources))
             {
-                Task gt = RunInUiThreadAsync(delegate
+                Task upd1 = Task.CompletedTask;
+                await RunInUiThreadAsync(delegate
                 {
-                    Task upd1 = UpdateSelectedOverlayTilesAsync();
-                });
+                    upd1 = UpdateSelectedOverlayTilesAsync();
+                }).ConfigureAwait(false);
+                await upd1.ConfigureAwait(false);
+                await UpdateSelectedBaseTileAsync().ConfigureAwait(false);
+                await UpdateSelectedOverlayTilesAsync().ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
                 Task upd1 = RunInUiThreadAsync(UpdateIsClearCustomCacheEnabled);
                 Task upd2 = UpdateTileSourceChoicesAsync();
+                await Task.WhenAll(upd1, upd2).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
             {
-                Task gt = RunInUiThreadAsync(delegate
+                await RunInUiThreadAsync(delegate
                 {
                     UpdateIsClearCacheEnabled();
                     UpdateIsClearCustomCacheEnabled();
                     UpdateIsLeechingEnabled();
                     UpdateIsChangeTileSourceEnabled();
                     UpdateIsTestCustomTileSourceEnabled();
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -323,49 +335,6 @@ namespace GPSHikingMate10.ViewModels
         #endregion event handlers
 
         #region services
-        public void SetBaseTileSourceSelection(SelectionRequestedEventArgs args)
-        {
-            if (args == null || args.Items == null) return;
-
-            var indexes = new List<int>();
-            if (_selectedBaseTiles.Count < 1)
-            {
-                args.Indexes = indexes;
-                return;
-            }
-
-            for (var i = 0; i < args.Items.Count; i++)
-            {
-                if (_selectedBaseTiles[0].Tag.CompareTo(args.Items.ElementAt(i).Tag) == 0)
-                {
-                    indexes.Add(i);
-                    break;
-                }
-            }
-
-            args.Indexes = indexes;
-        }
-        public void SetOverlayTileSourcesSelection(SelectionRequestedEventArgs args)
-        {
-            if (args == null || args.Items == null) return;
-
-            var indexes = new List<int>();
-            if (_selectedOverlayTiles.Count < 1)
-            {
-                args.Indexes = indexes;
-                return;
-            }
-
-            for (var i = 0; i < args.Items.Count; i++)
-            {
-                if (_selectedOverlayTiles.Any(sel => sel.Tag.CompareTo(args.Items.ElementAt(i).Tag) == 0))
-                {
-                    indexes.Add(i);
-                }
-            }
-
-            args.Indexes = indexes;
-        }
         public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
         {
             bool isScheduled = await Task.Run(() => _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
