@@ -155,7 +155,7 @@ namespace GPSHikingMate10.ViewModels
         }
         internal async Task UpdateIsChangeMapStyleEnabledAsync()
         {
-            var ts = await Task.Run(PersistentData.GetCurrentTileSourceCloneAsync).ConfigureAwait(false);
+            var ts = await Task.Run(PersistentData.GetCurrentBaseTileSourceCloneAsync).ConfigureAwait(false);
             await RunInUiThreadAsync(delegate
             {
                 IsChangeMapStyleEnabled = !ts.IsDefault;
@@ -184,16 +184,17 @@ namespace GPSHikingMate10.ViewModels
         }
         internal async Task UpdateSelectedBaseTileAsync()
         {
-            var selectedBaseTile = await Task.Run(PersistentData.GetCurrentTileSourceCloneAsync).ConfigureAwait(false);
+            var selectedBaseTile = await Task.Run(PersistentData.GetCurrentBaseTileSourceCloneAsync).ConfigureAwait(false);
             var selectedBaseTiles2 = (new TextAndTag[] { new TextAndTag(selectedBaseTile.DisplayName, selectedBaseTile) }).ToList();
             SelectedBaseTiles = selectedBaseTiles2;
         }
         internal async Task UpdateSelectedOverlayTilesAsync()
         {
-            var selectedOverlayTiles = await Task.Run(PersistentData.GetCurrentOverlayTileSourcezCloneAsync).ConfigureAwait(false);
+            var selectedOverlayTiles = await Task.Run(PersistentData.GetCurrentTileSourcezCloneAsync).ConfigureAwait(false);
             var selectedOverlayTiles2 = new List<TextAndTag>();
             foreach (var item in selectedOverlayTiles)
             {
+                if (!item.IsOverlay) continue;
                 selectedOverlayTiles2.Add(new TextAndTag(item.DisplayName, item));
             }
             SelectedOverlayTiles = selectedOverlayTiles2;
@@ -231,10 +232,11 @@ namespace GPSHikingMate10.ViewModels
             {
                 await RunInUiThreadAsync(UpdateIsLeechingEnabled).ConfigureAwait(false);
             }
-            else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
+            else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
             {
                 Task upd1 = Task.CompletedTask;
                 Task upd2 = Task.CompletedTask;
+                Task upd3 = Task.CompletedTask;
 
                 await RunInUiThreadAsync(delegate
                 {
@@ -242,21 +244,11 @@ namespace GPSHikingMate10.ViewModels
                     UpdateIsCacheBtnEnabled();
                     upd1 = UpdateIsChangeMapStyleEnabledAsync();
                     upd2 = UpdateSelectedBaseTileAsync();
+                    upd3 = UpdateSelectedOverlayTilesAsync();
                 }).ConfigureAwait(false);
 
-                await Task.WhenAll(upd1, upd2).ConfigureAwait(false);
-            }
-            else if (e.PropertyName == nameof(PersistentData.CurrentOverlayTileSources))
-            {
-                Task upd1 = Task.CompletedTask;
-                await RunInUiThreadAsync(delegate
-                {
-                    upd1 = UpdateSelectedOverlayTilesAsync();
-                }).ConfigureAwait(false);
-                await upd1.ConfigureAwait(false);
-                await UpdateSelectedBaseTileAsync().ConfigureAwait(false);
-                await UpdateSelectedOverlayTilesAsync().ConfigureAwait(false);
-            }
+                await Task.WhenAll(upd1, upd2, upd3).ConfigureAwait(false);
+            }            
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
                 Task upd1 = RunInUiThreadAsync(UpdateIsClearCustomCacheEnabled);
@@ -379,38 +371,24 @@ namespace GPSHikingMate10.ViewModels
                 PersistentData.IsShowingPivot = false;
             });
         }
-        public Task SetMapSource(TileSourceRecord ts)
+        
+        public Task AddMapSource(TileSourceRecord ts)
         {
             return RunFunctionIfOpenAsyncT(() =>
             {
                 if (ts == null) return Task.CompletedTask;
-                return PersistentData.SetCurrentTileSourceAsync(ts, true);
+                return PersistentData.AddCurrentTileSourceAsync(ts);
             });
         }
-        public Task UnsetMapSource(TileSourceRecord ts)
+        public Task RemoveMapSource(TileSourceRecord ts)
         {
             return RunFunctionIfOpenAsyncT(() =>
             {
                 if (ts == null) return Task.CompletedTask;
-                return PersistentData.UnsetCurrentTileSourceAsync(true);
+                return PersistentData.RemoveCurrentTileSourceAsync(ts);
             });
         }
-        public Task AddOverlayMapSources(TileSourceRecord ts)
-        {
-            return RunFunctionIfOpenAsyncT(() =>
-            {
-                if (ts == null) return Task.CompletedTask;
-                return PersistentData.SetCurrentTileSourceAsync(ts, false);
-            });
-        }
-        public Task RemoveOverlayMapSources(TileSourceRecord ts)
-        {
-            return RunFunctionIfOpenAsyncT(() =>
-            {
-                if (ts == null) return Task.CompletedTask;
-                return PersistentData.UnsetCurrentTileSourceAsync(ts, false);
-            });
-        }
+
         public Task StartUserTestingTileSourceAsync()
         {
             return RunFunctionIfOpenAsyncT(async delegate

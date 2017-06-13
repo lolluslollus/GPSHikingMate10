@@ -4,6 +4,7 @@ using LolloGPS.Data.TileCache;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
@@ -55,7 +56,7 @@ namespace LolloGPS.Core
         }
         private async Task OpenAlternativeMap_Local_Async()
         {
-            var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+            var tileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
             if (tileSource == null) return;
 
             if (tileSource.IsDefault)
@@ -99,7 +100,7 @@ namespace LolloGPS.Core
         }
         private async Task OpenAlternativeMap_Http_Async()
         {
-            var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+            var tileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
             if (tileSource == null) return;
 
             if (tileSource.IsDefault)
@@ -144,7 +145,7 @@ namespace LolloGPS.Core
         }
         private async Task OpenAlternativeMap_Custom_Async()
         {
-            var tileSource = await PersistentData.GetCurrentTileSourceCloneAsync().ConfigureAwait(false);
+            var tileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
             if (tileSource == null) return;
 
             if (tileSource.IsDefault)
@@ -244,7 +245,7 @@ namespace LolloGPS.Core
             {
                 Task down = RunFunctionIfOpenAsyncT_MT(UpdateDownloadTilesAfterConditionsChangedAsync);
             }
-            else if (e.PropertyName == nameof(PersistentData.CurrentTileSource))
+            else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
             {
                 Task reopen = RunFunctionIfOpenAsyncT(async delegate
                 {
@@ -355,13 +356,19 @@ namespace LolloGPS.Core
                 {
                     KeepAlive.UpdateKeepAlive(true);
                 }).ConfigureAwait(false);
-                Tuple<int, int> downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+                var downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
                 await RunInUiThreadAsync(delegate
                 {
                     KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
                 }).ConfigureAwait(false);
                 var pd = PersistentData;
-                if (downloadResult != null && pd != null) pd.LastMessage = $"{downloadResult.Item1} of {downloadResult.Item2} tiles downloaded";
+                if (downloadResult != null && pd != null)
+                {
+                    int n = 0; int m = 0;
+                    n = downloadResult.Sum(dr => dr.Item1);
+                    m = downloadResult.Sum(dr => dr.Item2);
+                    pd.LastMessage = $"{n} of {m} tiles downloaded";
+                }
             }
         }
         public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()

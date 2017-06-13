@@ -516,10 +516,10 @@ namespace LolloGPS.Data
         {
             return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
         }
-        public static TileSourceRecord GetDefaultOverlayTileSource()
-        {
-            return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, true, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
-        }
+        //public static TileSourceRecord GetDefaultOverlayTileSource()
+        //{
+        //    return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, true, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
+        //}
         public static TileSourceRecord GetAllTileSource()
         {
             return new TileSourceRecord(AllTileSourceTechName, AllTileSourceDisplayName, "", "", DummyTileSourceProviderUriString, DummyTileSourceMinZoom, DummyTileSourceMaxZoom, DummyTileSourceTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DummyTileSourceUriString);

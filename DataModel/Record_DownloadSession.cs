@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using Utilz;
 using Windows.Devices.Geolocation;
@@ -41,12 +43,12 @@ namespace LolloGPS.Data.Leeching
 			private set { _maxZoom = value; }
 		}
 
-		private string _tileSourceTechName;
+		private IReadOnlyList<string> _tileSourceTechNames;
 		[DataMember]
-		public string TileSourceTechName
+		public IReadOnlyList<string> TileSourceTechNames
 		{
-			get { return _tileSourceTechName; }
-			private set { _tileSourceTechName = value; }
+			get { return _tileSourceTechNames; }
+			private set { _tileSourceTechNames = value; }
 		}
 
         public bool IsZoomsValid()
@@ -64,20 +66,20 @@ namespace LolloGPS.Data.Leeching
 		/// <param name="gbb"></param>
 		/// <param name="tileSource"></param>
 		/// <exception cref="ArgumentException"/>
-		public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, TileSourceRecord tileSource)
+		public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources)
 		{
-			if (tileSource == null) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+			if (tileSources == null || tileSources.Count == 0) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
 
 			MinZoom = minZoom;
 			MaxZoom = maxZoom;
 			NWCorner = gbb.NorthwestCorner;
 			SECorner = gbb.SoutheastCorner;
-			TileSourceTechName = tileSource.TechName;            
+            TileSourceTechNames = tileSources.Select(ts => ts.TechName).ToList().AsReadOnly();
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
 
-			MinZoom = Math.Max(_minZoom, tileSource.MinZoom);
-			MaxZoom = Math.Min(_maxZoom, tileSource.MaxZoom);
+			//MinZoom = Math.Max(_minZoom, tileSource.MinZoom);
+			//MaxZoom = Math.Min(_maxZoom, tileSource.MaxZoom);
 
 			if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom); // maniman
 
@@ -95,7 +97,7 @@ namespace LolloGPS.Data.Leeching
 				target.SECorner = source.SECorner;
 				target.MinZoom = source.MinZoom;
 				target.MaxZoom = source.MaxZoom;
-				target.TileSourceTechName = source.TileSourceTechName;
+				target.TileSourceTechNames = source.TileSourceTechNames;
 			}
 		}
 	}

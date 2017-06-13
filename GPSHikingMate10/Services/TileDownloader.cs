@@ -162,43 +162,45 @@ namespace LolloGPS.Core
         #endregion event handlers
 
         #region save services
-        public async Task<Tuple<int, int>> StartOrResumeDownloadTilesAsync()
+        public async Task<List<Tuple<int, int>>> StartOrResumeDownloadTilesAsync()
         {
-            var result = Tuple.Create(0, 0);
+            var results = new List<Tuple<int, int>>();
             await RunFunctionIfOpenAsyncT(async delegate
             {
                 var persistentData = PersistentData.GetInstance();
-                if (persistentData.IsTilesDownloadDesired && _runtimeData.IsConnectionAvailable)
-                // if persistentData.IsTilesDownloadDesired changes in the coming ticks, tough! Not atomic, but not critical at all.
-                {
-                    try
-                    {
-                        IsCancelledByUser = false;
+                if (!persistentData.IsTilesDownloadDesired || !_runtimeData.IsConnectionAvailable) return;
 
-                        var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
-                        if (gbb != null)
+                // if persistentData.IsTilesDownloadDesired changes in the coming ticks, tough! Not atomic, but not critical at all.                
+                try
+                {
+                    IsCancelledByUser = false;
+
+                    var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
+                    if (gbb != null)
+                    {
+                        var tileSourcesAndSession = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
+                        if (tileSourcesAndSession != null)
                         {
-                            var tileCacheAndSession = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
-                            if (tileCacheAndSession != null)
+                            // result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
+                            foreach (var ts in tileSourcesAndSession.Item1)
                             {
-                                // result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
-                                result = await Task.Run(
-                                    () => SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2), CancToken).ConfigureAwait(false);
+                                results.Add(await Task.Run(() =>
+                                    SaveTiles_RespondingToCancel(ts, tileSourcesAndSession.Item2), CancToken).ConfigureAwait(false));
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                    }
-                    finally
-                    {
-                        // even if something went wrong (maybe the new session is not valid), do not leave the download open!
-                        await CloseDownloadAsync(persistentData, true).ConfigureAwait(false);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                }
+                finally
+                {
+                    // even if something went wrong (maybe the new session is not valid), do not leave the download open!
+                    await CloseDownloadAsync(persistentData, true).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
-            return result;
+            return results;
         }
         private async Task CloseDownloadAsync(PersistentData persistentData, bool isSuccess)
         {
@@ -213,7 +215,7 @@ namespace LolloGPS.Core
                 if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
             }
         }
-        private Tuple<int, int> SaveTiles_RespondingToCancel(TileCacheReaderWriter tileCache, DownloadSession session)
+        private Tuple<int, int> SaveTiles_RespondingToCancel(TileSourceRecord ts, DownloadSession session)
         {
             RaiseSaveProgressChanged(0.0);
 
@@ -221,7 +223,8 @@ namespace LolloGPS.Core
             int currentOkCnt = 0;
             int currentCnt = 0;
 
-            if (tileCache != null && session != null && _runtimeData.IsConnectionAvailable)
+            var tileCache = new TileCacheReaderWriter(ts, false, false);
+            if (session != null && _runtimeData.IsConnectionAvailable)
             {
                 List<TileCacheRecord> requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session);
                 totalCnt = requiredTilesOrderedByZoom.Count;
@@ -302,7 +305,7 @@ namespace LolloGPS.Core
                     if (gbb != null)
                     {
                         // now I have a geobounding box that certainly encloses the screen.
-                        var session = await PersistentData.GetInstance().GetDownloadSession4CurrentTileSourceAsync(gbb).ConfigureAwait(false);
+                        var session = await PersistentData.GetInstance().GetDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
                         if (session != null)
                         {
                             List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
