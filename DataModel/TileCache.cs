@@ -27,11 +27,20 @@ namespace LolloGPS.Data.TileCache
         public static readonly string[] AllowedExtensionsTolerant = AllowedExtensions.Concat(AllowedExtensions.Select(ext => $".{ext}")).ToArray();
         public const int MaxRecords = 65535;
         public const int WebRequestTimeoutMsec = 65535;
+        private static readonly Uri _tileMustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
+        private static readonly Uri _tileMustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
+        private static readonly Uri _tileEmptyUri = new Uri("ms-appx:///Assets/TileEmpty-256.png", UriKind.Absolute);
 
+        private readonly Uri _mustZoomInTileUri;
+        private readonly Uri _mustZoomOutTileUri;
         private readonly TileSourceRecord _tileSource = TileSourceRecord.GetDefaultTileSource(); //TileSources.Nokia;
         private readonly StorageFolder _imageFolder = null;
         private readonly MapTileDataSource _mapTileDataSource = null;
         public MapTileDataSource MapTileDataSource { get { return _mapTileDataSource; } }
+
+        private int _webUriFormatIndex = 0;
+        private readonly IReadOnlyList<string> _webUriFormats;
+        private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
         //private readonly object _isCachingLocker = new object();
         //private volatile bool _isCaching = false;
@@ -46,10 +55,6 @@ namespace LolloGPS.Data.TileCache
         // this is only for testing
         private readonly bool _isReturnLocalUris = false;
         public bool IsReturnLocalUris { get { return _isReturnLocalUris; } }
-
-        private int _webUriFormatIndex = 0;
-        private readonly IReadOnlyList<string> _webUriFormats;
-        private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
         #region lifecycle
         /// <summary>
@@ -87,6 +92,9 @@ namespace LolloGPS.Data.TileCache
             _imageFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
 
             _mapTileDataSource = mapTileDataSource;
+
+            _mustZoomInTileUri = _tileSource.IsOverlay ? _tileEmptyUri : _tileMustZoomInUri;
+            _mustZoomOutTileUri = _tileSource.IsOverlay ? _tileEmptyUri : _tileMustZoomOutUri;
         }
         #endregion lifecycle
 
@@ -157,10 +165,6 @@ namespace LolloGPS.Data.TileCache
 
 
         #region services
-        private static readonly Uri _tileMustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
-        private static readonly Uri _tileMustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
-        private static readonly Uri _emptyTileUri = new Uri("ms-appx:///Assets/TileEmpty-256.png", UriKind.Absolute);
-
         private string GetFileNameFromFileCache(string fileNameNoExtension, StorageFolder folder)
         {
             try
@@ -258,9 +262,8 @@ namespace LolloGPS.Data.TileCache
 
             // out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
             // To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
-            //if (zoom < GetMinZoom() || zoom > GetMaxZoom()) return null;
-            if (zoom < GetMinZoom()) { if (_tileSource.IsOverlay) return _emptyTileUri; else return _tileMustZoomInUri; }
-            else if (zoom > GetMaxZoom()) { if (_tileSource.IsOverlay) return _emptyTileUri; else return _tileMustZoomOutUri; }
+            if (zoom < GetMinZoom()) return _mustZoomInTileUri;
+            else if (zoom > GetMaxZoom()) return _mustZoomOutTileUri;
 
             // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
             string fileNameNoExtension = GetFileNameNoExtension(x, y, z, zoom);
