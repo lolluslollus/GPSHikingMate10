@@ -1612,7 +1612,7 @@ namespace LolloGPS.Data
 
             return result;
         }
-                
+
         public Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync()
         {
             return GetTileSourceClone(null);
@@ -1690,11 +1690,22 @@ namespace LolloGPS.Data
 
             try
             {
-                int minZoom = 99; int maxZoom = 0;
+                int minZoom = 99; int maxZoom = -1;
+                // first try to find the min and max zooms from the base layer tile source
                 foreach (var ts in currentTss)
                 {
+                    if (ts.IsOverlay) continue;
                     maxZoom = Math.Max(ts.MaxZoom, maxZoom);
                     minZoom = Math.Min(ts.MinZoom, minZoom);
+                }
+                // no base layer tile source: check all tile sources
+                if (minZoom == 99 || maxZoom == -1)
+                {
+                    foreach (var ts in currentTss)
+                    {
+                        maxZoom = Math.Max(ts.MaxZoom, maxZoom);
+                        minZoom = Math.Min(ts.MinZoom, minZoom);
+                    }
                 }
 
                 var session = new DownloadSession(minZoom, maxZoom, gbb, currentTss);

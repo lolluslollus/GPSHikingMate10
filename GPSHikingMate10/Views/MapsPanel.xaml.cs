@@ -8,6 +8,7 @@ using System.Linq;
 using Windows.UI.Xaml;
 using System.Threading.Tasks;
 using GPSHikingMate10.ViewModels;
+using System.Diagnostics;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -73,7 +74,7 @@ namespace LolloGPS.Core
             }
             else PersistentData.LastMessage = "Cache busy";
         }
-        private void OnClearCacheChooser_ItemSelected(object sender, Controlz.TextAndTag e)
+        private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
             Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
         }
@@ -82,7 +83,7 @@ namespace LolloGPS.Core
         {
             MapsPanelVM?.DownloadMapAsync();
         }
-        private void OnZoomLevelChooser_ItemSelected(object sender, Controlz.TextAndTag e)
+        private void OnZoomLevelChooser_ItemSelected(object sender, TextAndTag e)
         {
             if (!(e?.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
@@ -91,6 +92,7 @@ namespace LolloGPS.Core
 
         private void OnBaseMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
         {
+            Debugger.Break(); // this should not happen
             if (args == null) return;
             Task set = MapsPanelVM?.RemoveMapSource(args?.Tag as TileSourceRecord);
         }
