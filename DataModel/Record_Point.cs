@@ -176,6 +176,23 @@ namespace LolloGPS.Data
             UpdateDb(whichSeries);
         }
 
+        public async Task UpdateSymbolAsync(string newValue, PersistentData.Tables whichSeries)
+        {
+            //if (_symbol == newValue) return;
+            if (!_symbol.Equals(PersistentData.CheckpointSymbols.Circle)
+                && !_symbol.Equals(PersistentData.CheckpointSymbols.Cross)
+                && !_symbol.Equals(PersistentData.CheckpointSymbols.Ecs)
+                && !_symbol.Equals(PersistentData.CheckpointSymbols.Square)
+                && !_symbol.Equals(PersistentData.CheckpointSymbols.Triangle)) return;
+            await RunInUiThreadAsync(delegate
+            {
+                Symbol = newValue;
+                PersistentData.GetInstance().RefreshSeries(whichSeries);
+            }).ConfigureAwait(false);
+
+            UpdateDb(whichSeries);
+        }
+
         public async Task UpdateHyperlinkAsync(string newValue, PersistentData.Tables whichSeries)
         {
             if (_hyperLink == newValue) return;

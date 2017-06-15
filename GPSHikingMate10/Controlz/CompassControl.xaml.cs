@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Media.Imaging;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
-namespace GPSHikingMate10.Views
+namespace LolloGPS.Controlz
 {
     public sealed partial class CompassControl : Utilz.Controlz.OpenableObservableControl
     {

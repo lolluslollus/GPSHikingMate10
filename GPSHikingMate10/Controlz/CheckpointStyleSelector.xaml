@@ -1,0 +1,57 @@
+﻿<ctl:ObservableControl
+	x:Class="LolloGPS.Controlz.CheckpointStyleSelector"
+	x:Name="me"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ctl="using:Utilz.Controlz"
+	mc:Ignorable="d"
+	d:DesignHeight="800"
+	d:DesignWidth="400">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ToggleButton
+                Click="OnSymbolCircle_Click"
+                Foreground="{StaticResource CheckpointBrushOpaque}"
+                IsChecked="{x:Bind Checkpoint.Symbol, Mode=OneWay, Converter={StaticResource CheckpointSymbolConverter}, ConverterParameter=Circle}"
+                Style="{StaticResource ToggleButtonRecoloured}">
+            <BitmapIcon UriSource="ms-appx:///Assets/pointer_checkpoint-circle-20.png" Width="20" Height="20"/>
+        </ToggleButton>
+        <ToggleButton Grid.Column="1"
+                Click="OnSymbolCross_Click"
+                Foreground="{StaticResource CheckpointBrushOpaque}"
+                IsChecked="{x:Bind Checkpoint.Symbol, Mode=OneWay, Converter={StaticResource CheckpointSymbolConverter}, ConverterParameter=Cross}"
+                Style="{StaticResource ToggleButtonRecoloured}">
+            <BitmapIcon UriSource="ms-appx:///Assets/pointer_checkpoint-cross-20.png" Width="20" Height="20"/>
+        </ToggleButton>
+        <ToggleButton Grid.Column="2"
+                Click="OnSymbolEcs_Click"
+                Foreground="{StaticResource CheckpointBrushOpaque}"
+                IsChecked="{x:Bind Checkpoint.Symbol, Mode=OneWay, Converter={StaticResource CheckpointSymbolConverter}, ConverterParameter=Ecs}"
+                Style="{StaticResource ToggleButtonRecoloured}">
+            <BitmapIcon UriSource="ms-appx:///Assets/pointer_checkpoint-ecs-20.png" Width="20" Height="20"/>
+        </ToggleButton>
+        <ToggleButton Grid.Column="3"
+                Click="OnSymbolSquare_Click"
+                Foreground="{StaticResource CheckpointBrushOpaque}"
+                IsChecked="{x:Bind Checkpoint.Symbol, Mode=OneWay, Converter={StaticResource CheckpointSymbolConverter}, ConverterParameter=Square}"
+                Style="{StaticResource ToggleButtonRecoloured}">
+            <BitmapIcon UriSource="ms-appx:///Assets/pointer_checkpoint-square-20.png" Width="20" Height="20"/>
+        </ToggleButton>
+        <ToggleButton Grid.Column="4"
+                Click="OnSymbolTriangle_Click"
+                Foreground="{StaticResource CheckpointBrushOpaque}"
+                IsChecked="{x:Bind Checkpoint.Symbol, Mode=OneWay, Converter={StaticResource CheckpointSymbolConverter}, ConverterParameter=Triangle}"
+                Style="{StaticResource ToggleButtonRecoloured}">
+            <BitmapIcon UriSource="ms-appx:///Assets/pointer_checkpoint-triangle-20.png" Width="20" Height="20"/>
+        </ToggleButton>
+    </Grid>
+</ctl:ObservableControl>

@@ -89,6 +89,7 @@ namespace LolloGPS.Data
 
         #region events
         public event EventHandler CurrentChanged;
+        public event EventHandler<Tables> Refreshrequired;
         #endregion events
 
         #region lifecycle
@@ -584,6 +585,11 @@ namespace LolloGPS.Data
         #endregion properties
 
         #region all series methods
+        public void RefreshSeries(Tables whichSeries)
+        {
+            if (whichSeries == Tables.Nil) return;
+            Refreshrequired?.Invoke(this, whichSeries);
+        }
         public async Task<IReadOnlyCollection<PointRecord>> GetSeriesCloneAsync(Tables whichSeries)
         {
             switch (whichSeries)

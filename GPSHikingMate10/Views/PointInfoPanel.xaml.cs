@@ -79,6 +79,11 @@ namespace LolloGPS.Core
             await PersistentData.DeleteSelectedPointFromSeriesAsync();
             SetPointProperties();
         }
+        private void OnSymbolChanged(object sender, string newSymbol)
+        {
+            Task upd = PersistentData?.Selected?.UpdateSymbolAsync(newSymbol, PersistentData.SelectedSeries);
+        }
+
         private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             string currentText = (sender as TextBox).Text;

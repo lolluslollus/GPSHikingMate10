@@ -133,7 +133,7 @@
     <Compile Include="ViewModels\MapsPanel_VM.cs" />
     <Compile Include="Views\AboutPanel.xaml.cs" />
     <Compile Include="Views\AltitudeProfiles.xaml.cs" />
-    <Compile Include="Views\CompassControl.xaml.cs">
+    <Compile Include="Controlz\CompassControl.xaml.cs">
       <DependentUpon>CompassControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\CustomMapsPanel.xaml.cs" />
@@ -145,6 +145,9 @@
     <Compile Include="Views\Main.xaml.cs" />
     <Compile Include="Views\MapsPanel.xaml.cs" />
     <Compile Include="Views\PointInfoPanel.xaml.cs" />
+    <Compile Include="Controlz\CheckpointStyleSelector.xaml.cs">
+      <DependentUpon>CheckpointStyleSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\PointsPanel.xaml.cs">
       <DependentUpon>PointsPanel.xaml</DependentUpon>
     </Compile>
@@ -266,7 +269,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\CompassControl.xaml">
+    <Page Include="Controlz\CompassControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -295,6 +298,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\PointInfoPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controlz\CheckpointStyleSelector.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -1022,6 +1022,7 @@ namespace LolloGPS.Core
         {
             if (PersistentData != null)
             {
+                PersistentData.Refreshrequired += OnPersistentData_Refreshrequired;
                 PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
                 PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
                 PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
@@ -1034,6 +1035,7 @@ namespace LolloGPS.Core
         {
             if (PersistentData != null)
             {
+                PersistentData.Refreshrequired -= OnPersistentData_Refreshrequired;
                 PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
                 PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
                 PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
@@ -1042,6 +1044,20 @@ namespace LolloGPS.Core
             }
         }
 
+        private async void OnPersistentData_Refreshrequired(object sender, PersistentData.Tables whichTable)
+        {
+            switch (whichTable)
+            {
+                case PersistentData.Tables.Checkpoints:
+                    await DrawCheckpointsMapIconsAsync().ConfigureAwait(false); break;
+                case PersistentData.Tables.History:
+                    await DrawHistoryAsync().ConfigureAwait(false); break;
+                case PersistentData.Tables.Route0:
+                    await DrawRoute0Async().ConfigureAwait(false); break;
+                default:
+                    break;
+            }
+        }
         private void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(PersistentData.MapStyle))

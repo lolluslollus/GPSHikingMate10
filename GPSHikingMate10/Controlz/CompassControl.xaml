@@ -1,5 +1,5 @@
 ﻿<uctl:OpenableObservableControl
-	x:Class="GPSHikingMate10.Views.CompassControl"
+	x:Class="LolloGPS.Controlz.CompassControl"
 	xmlns:uctl="using:Utilz.Controlz"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

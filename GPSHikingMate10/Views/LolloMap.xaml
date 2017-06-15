@@ -3,6 +3,7 @@
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:uctl="using:Utilz.Controlz"
+    xmlns:mctl="using:LolloGPS.Controlz"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:local="using:LolloGPS.Core"
 	xmlns:views="using:GPSHikingMate10.Views"
@@ -23,7 +24,7 @@
         <Canvas Canvas.ZIndex="200"
 				IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				VerticalAlignment="Top" HorizontalAlignment="Left">
-            <views:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
+            <mctl:CompassControl x:Name="CompassControl" Canvas.Top="103" Canvas.Left="10"/>
             <Image Canvas.Top="120" Canvas.Left="30"
 				 IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 				 RenderTransformOrigin="0.5,0.56" Source="ms-appx:///Assets/compass-50.png" Stretch="None" HorizontalAlignment="Center">
