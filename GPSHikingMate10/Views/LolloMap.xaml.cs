@@ -1022,7 +1022,7 @@ namespace LolloGPS.Core
         {
             if (PersistentData != null)
             {
-                PersistentData.Refreshrequired += OnPersistentData_Refreshrequired;
+                PersistentData.RefreshRequired += OnPersistentData_RefreshRequired;
                 PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
                 PersistentData.CurrentChanged += OnPersistentData_CurrentChanged;
                 PersistentData.History.CollectionChanged += OnHistory_CollectionChanged;
@@ -1035,7 +1035,7 @@ namespace LolloGPS.Core
         {
             if (PersistentData != null)
             {
-                PersistentData.Refreshrequired -= OnPersistentData_Refreshrequired;
+                PersistentData.RefreshRequired -= OnPersistentData_RefreshRequired;
                 PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
                 PersistentData.CurrentChanged -= OnPersistentData_CurrentChanged;
                 PersistentData.History.CollectionChanged -= OnHistory_CollectionChanged;
@@ -1044,7 +1044,7 @@ namespace LolloGPS.Core
             }
         }
 
-        private async void OnPersistentData_Refreshrequired(object sender, PersistentData.Tables whichTable)
+        private async void OnPersistentData_RefreshRequired(object sender, PersistentData.Tables whichTable)
         {
             switch (whichTable)
             {
