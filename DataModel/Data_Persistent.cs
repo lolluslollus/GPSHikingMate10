@@ -44,6 +44,8 @@ namespace LolloGPS.Data
                     return "";
             }
         }
+
+        #region constants
         public const int MaxRecordsInRoute = short.MaxValue;
         public const int MaxRecordsInHistory = short.MaxValue;
         private const int MaxCheckpoints1 = 500; // was 100
@@ -74,12 +76,13 @@ namespace LolloGPS.Data
         private static readonly SemaphoreSlimSafeRelease _route0Semaphore = new SemaphoreSlimSafeRelease(1, 1);
         private static readonly SemaphoreSlimSafeRelease _checkpointsSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         private static readonly SemaphoreSlimSafeRelease _tileSourcezSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+        #endregion constants
 
         #region events
         public event EventHandler CurrentChanged;
         #endregion events
 
-        #region construct dispose and clone
+        #region lifecycle
         private static PersistentData _instance;
         private static readonly object _instanceLocker = new object();
         public static PersistentData GetInstance()
@@ -217,6 +220,7 @@ namespace LolloGPS.Data
         }
         private PersistentData()
         {
+            // initialise non-serialised properties
             _checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
             _history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
             _route0 = new SwitchableObservableCollection<PointRecord>(MaxRecordsInRoute);
@@ -244,7 +248,7 @@ namespace LolloGPS.Data
         {
             LolloSQLiteConnectionPoolMT.Close();
         }
-        #endregion construct dispose and clone
+        #endregion lifecycle
 
         #region properties
         private volatile bool _isShowingPivot = false;
@@ -263,8 +267,8 @@ namespace LolloGPS.Data
         [DataMember]
         public bool IsShowingAltitudeProfiles { get { return _isShowingAltitudeProfiles; } set { if (_isShowingAltitudeProfiles != value) { _isShowingAltitudeProfiles = value; RaisePropertyChanged_UI(); } } }
 
-        private volatile PointRecord _current = new PointRecord();
-        [IgnoreDataMember] // we pick Current from History
+        private volatile PointRecord _current = null;
+        [IgnoreDataMember] // we pick Current from History, which we also don't serialise, and we also init in the ctor
         public PointRecord Current
         {
             get { return _current; }
@@ -299,15 +303,15 @@ namespace LolloGPS.Data
         [DataMember]
         public int SelectedIndex_Base1 { get { return _selectedIndex_Base1; } private set { _selectedIndex_Base1 = value; RaisePropertyChanged(); } }
 
+        private SwitchableObservableCollection<PointRecord> _checkpoints = null;
+        [IgnoreDataMember] // we save the checkpoints into the DB so we don't serialise it, and we init it in the ctor
+        public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } }
         private SwitchableObservableCollection<PointRecord> _history = null;
-        [IgnoreDataMember] // we save the history into the DB 
+        [IgnoreDataMember] // we save the history into the DB so we don't serialise it, and we init it in the ctor
         public SwitchableObservableCollection<PointRecord> History { get { return _history; } }
         private SwitchableObservableCollection<PointRecord> _route0 = null;
-        [IgnoreDataMember] // we save the route into the DB 
+        [IgnoreDataMember] // we save the route into the DB so we don't serialise it, and we init it in the ctor
         public SwitchableObservableCollection<PointRecord> Route0 { get { return _route0; } }
-        private SwitchableObservableCollection<PointRecord> _checkpoints = null;
-        [IgnoreDataMember] // we save the checkpoints into the DB 
-        public SwitchableObservableCollection<PointRecord> Checkpoints { get { return _checkpoints; } }
 
         private volatile uint _backgroundUpdatePeriodInMinutes = DefaultBackgroundUpdatePeriodInMinutes;
         [DataMember]
@@ -530,22 +534,17 @@ namespace LolloGPS.Data
         [DataMember]
         public PointRecord Target { get { lock (_targetLocker) { return _target; } } private set { lock (_targetLocker) { _target = value; RaisePropertyChanged(); } } }
 
-        // I cannot make this property readonly coz I need a setter for the deserializer
-        private volatile SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetStockTileSources());
         [DataMember]
-        public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } private set { _tileSourcez = value; RaisePropertyChanged(); } }
+        private readonly SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetStockTileSources());
+        public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } }
 
         private volatile TestTileSourceRecord _testTileSource = TestTileSourceRecord.GetSampleTileSource();
         [DataMember]
         public TestTileSourceRecord TestTileSource { get { return _testTileSource; } private set { _testTileSource = value; RaisePropertyChanged_UI(); } }
 
-        //private volatile TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
-        //[DataMember]
-        //public TileSourceRecord CurrentTileSource { get { return _currentTileSource; } private set { if (_currentTileSource == null || !_currentTileSource.IsEqualTo(value)) { _currentTileSource = value; RaisePropertyChanged_UI(); } } }
-
-        private volatile SwitchableObservableCollection<TileSourceRecord> _currentTileSources = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSourceList());
         [DataMember]
-        public SwitchableObservableCollection<TileSourceRecord> CurrentTileSources { get { return _currentTileSources; } private set { _currentTileSources = value; RaisePropertyChanged_UI(); } }
+        private readonly SwitchableObservableCollection<TileSourceRecord> _currentTileSources = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSourceList());
+        public SwitchableObservableCollection<TileSourceRecord> CurrentTileSources { get { return _currentTileSources; } }
 
         private volatile bool _isTileSourcezBusy = false;
         [IgnoreDataMember]
@@ -585,22 +584,16 @@ namespace LolloGPS.Data
         #endregion properties
 
         #region all series methods
-        /*
-        public Task LoadSeriesFromDbAsync(Tables whichTable, bool isResetAltitideI0I1, bool inUIThread)
+        public async Task<IReadOnlyCollection<PointRecord>> GetSeriesCloneAsync(Tables whichSeries)
         {
-            switch (whichTable)
+            switch (whichSeries)
             {
-                case Tables.History:
-                    return LoadHistoryFromDbAsync(isResetAltitideI0I1, inUIThread);
-                case Tables.Route0:
-                    return LoadRoute0FromDbAsync(isResetAltitideI0I1, inUIThread);
-                case Tables.Checkpoints:
-                    return LoadCheckpointsFromDbAsync(isResetAltitideI0I1, inUIThread);
-                default:
-                    return Task.CompletedTask;
+                case Tables.Checkpoints: return (await DBManager.GetCheckpointsAsync().ConfigureAwait(false)).AsReadOnly();
+                case Tables.History: return (await DBManager.GetHistoryAsync().ConfigureAwait(false)).AsReadOnly();
+                case Tables.Route0: return (await DBManager.GetRoute0Async().ConfigureAwait(false)).AsReadOnly();
+                default: return null;
             }
         }
-        */
         /// <summary>
         /// Deletes the selected point from the series it belongs to.
         /// </summary>
@@ -921,7 +914,7 @@ namespace LolloGPS.Data
             var history = _history;
             if (history != null && history.Any())
             {
-                PointRecord newCurrent = history.LastOrDefault();
+                var newCurrent = history.LastOrDefault();
                 Current = newCurrent;
             }
             else if (Current == null)
@@ -1719,23 +1712,6 @@ namespace LolloGPS.Data
         #endregion download session methods
 
         #region otherMethods
-        //private SemaphoreSlimSafeRelease GetSemaphoreForSeries(Tables whichSeries)
-        //{
-        //	switch (whichSeries)
-        //	{
-        //		case Tables.History: return _historySemaphore;
-        //		case Tables.Route0: return _route0Semaphore;
-        //		case Tables.Checkpoints: return _checkpointsSemaphore;
-        //		default: return null;
-        //	}
-        //}
-        public SwitchableObservableCollection<PointRecord> GetSeries(Tables whichSeries)
-        {
-            if (whichSeries == Tables.History) return _history;
-            else if (whichSeries == Tables.Route0) return _route0;
-            else if (whichSeries == Tables.Checkpoints) return _checkpoints;
-            else return null;
-        }
         public void CycleMapStyle()
         {
             switch (MapStyle)
@@ -1746,35 +1722,6 @@ namespace LolloGPS.Data
                     MapStyle = MapStyle.None; break;
             }
         }
-        //private static int GetIndexCheckingDateAscending(PointRecord dataRecord, PersistentData myData)
-        //{
-        //    int index = 0;
-        //    if (myData.History.Any())
-        //    {
-        //        try
-        //        {
-        //            index = myData.History.IndexOf(myData.History.Last(a => a.TimePoint < dataRecord.TimePoint)) + 1;
-        //        }
-        //        catch (Exception)
-        //        {
-        //            index = 0;
-        //            Logger.Add_TPL("ERROR: IndexOf could not find anything prior to the current record", Logger.PersistentDataLogFilename);
-        //        }
-        //    }
-        //    if (index < 0)
-        //    {
-        //        Logger.Add_TPL("ERROR: index = " + index + " but it cannot be < 0", Logger.PersistentDataLogFilename);
-        //        Debug.WriteLine("ERROR: index = " + index + " but it cannot be < 0");
-        //        index = 0;
-        //    }
-        //    if (index > myData.History.Count)
-        //    {
-        //        Logger.Add_TPL("ERROR: index = " + index + " but it cannot be > History.Count = ", Logger.PersistentDataLogFilename);
-        //        Debug.WriteLine("ERROR: index = " + index + " but it cannot be > History.Count = " + myData.History.Count);
-        //        index = myData.History.Count;
-        //    }
-        //    return index;
-        //}
         #endregion otherMethods
     }
 

@@ -611,7 +611,7 @@ namespace LolloGPS.Core
             SetLastMessage_UI("saving GPX file...");
             Logger.Add_TPL($"PickSaveSeriesToFileAsync will open a picker for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
-            SwitchableObservableCollection<PointRecord> series = PersistentData.GetSeries(whichSeries);
+            var series = await PersistentData.GetSeriesCloneAsync(whichSeries);
             DateTime fileCreationDateTime = DateTime.Now;
             // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
             // It will then resume and come back here, but with a new instance, since I have IOpenable.
