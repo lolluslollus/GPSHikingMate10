@@ -81,7 +81,10 @@ namespace LolloGPS.Core
         }
         private void OnSymbolChanged(object sender, string newSymbol)
         {
-            Task upd = PersistentData?.Selected?.UpdateSymbolAsync(newSymbol, PersistentData.SelectedSeries);
+            var whichSeries = PersistentData.SelectedSeries;
+            if (whichSeries == PersistentData.Tables.Nil) return;
+            PersistentData?.Selected?.UpdateDatabase(whichSeries);
+            PersistentData?.RefreshSeries(whichSeries);
         }
 
         private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)

@@ -176,21 +176,8 @@ namespace LolloGPS.Data
             UpdateDb(whichSeries);
         }
 
-        public async Task UpdateSymbolAsync(string newValue, PersistentData.Tables whichSeries)
+        public void UpdateDatabase(PersistentData.Tables whichSeries)
         {
-            //if (_symbol == newValue) return; // breaks things coz, when I call this method, symbol is already == newValue
-            // not required, we leave it for tidyness
-            if (!_symbol.Equals(PersistentData.CheckpointSymbols.Circle)
-                && !_symbol.Equals(PersistentData.CheckpointSymbols.Cross)
-                && !_symbol.Equals(PersistentData.CheckpointSymbols.Ecs)
-                && !_symbol.Equals(PersistentData.CheckpointSymbols.Square)
-                && !_symbol.Equals(PersistentData.CheckpointSymbols.Triangle)) return;
-            await RunInUiThreadAsync(delegate
-            {
-                Symbol = newValue; // not required, we leave it for tidyness
-                PersistentData.GetInstance().RefreshSeries(whichSeries);
-            }).ConfigureAwait(false);
-
             UpdateDb(whichSeries);
         }
 
