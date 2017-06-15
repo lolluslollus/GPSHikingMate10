@@ -123,6 +123,7 @@
     </Compile>
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\CheckpointSymbolsHelper.cs" />
     <Compile Include="Services\GPX.cs" />
     <Compile Include="Services\Licenser.cs" />
     <Compile Include="Services\SuspensionManager.cs" />
@@ -172,6 +173,18 @@
     <Content Include="Assets\Icon.targetsize-48.png" />
     <Content Include="Assets\mobius-500.png" />
     <Content Include="Assets\pointer_base-36.png" />
+    <Content Include="Assets\pointer_checkpoint-cross-80.png" />
+    <Content Include="Assets\pointer_checkpoint-cross-40.png" />
+    <Content Include="Assets\pointer_checkpoint-ecs-40.png" />
+    <Content Include="Assets\pointer_checkpoint-ecs-80.png" />
+    <Content Include="Assets\pointer_checkpoint-ecs-20.png" />
+    <Content Include="Assets\pointer_checkpoint-cross-20.png" />
+    <Content Include="Assets\pointer_checkpoint-square-80.png" />
+    <Content Include="Assets\pointer_checkpoint-square-40.png" />
+    <Content Include="Assets\pointer_checkpoint-square-20.png" />
+    <Content Include="Assets\pointer_checkpoint-triangle-80.png" />
+    <Content Include="Assets\pointer_checkpoint-triangle-40.png" />
+    <Content Include="Assets\pointer_checkpoint-triangle-20.png" />
     <Content Include="Assets\pointer_checkpoint-circle-80.png" />
     <Content Include="Assets\pointer_checkpoint-circle-40.png" />
     <Content Include="Assets\pointer_current-72.png" />
@@ -180,7 +193,6 @@
     <Content Include="Assets\pointer_end-72.png" />
     <Content Include="Assets\pointer_end-144.png" />
     <Content Include="Assets\pointer_end-36.png" />
-    <Content Include="Assets\pointer_checkpoint_cross-20.png" />
     <Content Include="Assets\pointer_checkpoint-circle-20.png" />
     <Content Include="Assets\pointer_checkpoint_simple-16.png" />
     <Content Include="Assets\pointer_start-72.png" />

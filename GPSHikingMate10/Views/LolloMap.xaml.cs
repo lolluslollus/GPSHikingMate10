@@ -100,6 +100,10 @@ namespace LolloGPS.Core
         //private static List<Image> _checkpointImages = new List<Image>();
         //private static BitmapImage _checkpointCircleImageSource = null;
         private readonly RandomAccessStreamReference _checkpointCircleIconStreamReference;
+        private readonly RandomAccessStreamReference _checkpointCrossIconStreamReference;
+        private readonly RandomAccessStreamReference _checkpointEcsIconStreamReference;
+        private readonly RandomAccessStreamReference _checkpointSquareIconStreamReference;
+        private readonly RandomAccessStreamReference _checkpointTriangleIconStreamReference;
         //private readonly BitmapSource _checkpointCircleImageSource;
 
         private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
@@ -149,6 +153,10 @@ namespace LolloGPS.Core
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
                     //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-20.png"));
                     _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-20.png", UriKind.Absolute));
+                    _checkpointCrossIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-cross-20.png", UriKind.Absolute));
+                    _checkpointEcsIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-ecs-20.png", UriKind.Absolute));
+                    _checkpointSquareIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-square-20.png", UriKind.Absolute));
+                    _checkpointTriangleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-triangle-20.png", UriKind.Absolute));
                     break;
                 case ElementsSize.Large:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
@@ -161,6 +169,10 @@ namespace LolloGPS.Core
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
                     //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-80.png"));
                     _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-80.png", UriKind.Absolute));
+                    _checkpointCrossIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-cross-80.png", UriKind.Absolute));
+                    _checkpointEcsIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-ecs-80.png", UriKind.Absolute));
+                    _checkpointSquareIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-square-80.png", UriKind.Absolute));
+                    _checkpointTriangleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-triangle-80.png", UriKind.Absolute));
                     break;
                 default:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_MediumScreen"]);
@@ -173,6 +185,10 @@ namespace LolloGPS.Core
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
                     //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-40.png"));
                     _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-40.png", UriKind.Absolute));
+                    _checkpointCrossIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-cross-40.png", UriKind.Absolute));
+                    _checkpointEcsIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-ecs-40.png", UriKind.Absolute));
+                    _checkpointSquareIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-square-40.png", UriKind.Absolute));
+                    _checkpointTriangleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-triangle-40.png", UriKind.Absolute));
                     break;
             }
 

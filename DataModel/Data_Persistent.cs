@@ -1,6 +1,5 @@
 ﻿using LolloGPS.Data.Leeching;
 using LolloGPS.Data.Runtime;
-using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -392,25 +391,18 @@ namespace LolloGPS.Data
             }
         }
         [IgnoreDataMember]
-        [Ignore]
         public uint MinReportIntervalInMilliSecProp { get { return MinReportIntervalInMilliSec; } }
         [IgnoreDataMember]
-        [Ignore]
         public uint MaxReportIntervalInMilliSecProp { get { return MaxReportIntervalInMilliSec; } }
         [IgnoreDataMember]
-        [Ignore]
         public uint MinBackgroundUpdatePeriodInMinutesProp { get { return MinBackgroundUpdatePeriodInMinutes; } }
         [IgnoreDataMember]
-        [Ignore]
         public uint MaxBackgroundUpdatePeriodInMinutesProp { get { return MaxBackgroundUpdatePeriodInMinutes; } }
         [IgnoreDataMember]
-        [Ignore]
         public uint MinDesiredAccuracyInMetresProp { get { return MinDesiredAccuracyInMetres; } }
         [IgnoreDataMember]
-        [Ignore]
         public uint MaxDesiredAccuracyInMetresProp { get { return MaxDesiredAccuracyInMetres; } }
         [IgnoreDataMember]
-        [Ignore]
         public int MaxRecordsInCheckpointsProp { get { return MaxRecordsInCheckpoints; } }
 
         private volatile string _lastMessage = string.Empty;
@@ -439,10 +431,8 @@ namespace LolloGPS.Data
             }
         }
         [IgnoreDataMember]
-        [Ignore]
         public double MinTapToleranceProp { get { return MinTapTolerance; } }
         [IgnoreDataMember]
-        [Ignore]
         public double MaxTapToleranceProp { get { return MaxTapTolerance; } }
 
         private bool _isShowDegrees = true;

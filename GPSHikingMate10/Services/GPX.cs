@@ -169,6 +169,10 @@ namespace GPX
                             var src = xe.Descendants(xn + "src").FirstOrDefault();
                             if (src != null) positionSource = src.Value;
 
+                            string symbol = string.Empty;
+                            var sym = xe.Descendants(xn + "sym").FirstOrDefault();
+                            if (sym != null) symbol = sym.Value;
+
                             DateTime timePoint = default(DateTime);                   // Date and time in are in Univeral Coordinated Time (UTC), not local time! Conforms to ISO 8601 specification for date/time representation. 
                             var time = xe.Descendants(xn + "time").FirstOrDefault(); // Creation/modification timestamp for element. 
                             if (time != null) DateTime.TryParse(time.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timePoint);                     //Fractional seconds are allowed for millisecond timing in tracklogs. 
@@ -214,6 +218,7 @@ namespace GPX
                                 Latitude = latitude,
                                 Longitude = longitude,
                                 PositionSource = positionSource,
+                                Symbol = symbol,
                                 TimePoint = timePoint,
                                 HowManySatellites = howManySatellites,
                                 SpeedInMetreSec = speedInMetreSec,
@@ -373,6 +378,13 @@ namespace GPX
             XmlElement nodeTrkptTime = gpxDoc.CreateElementNS(nameSpaceUri, "time");
             nodeTrkptTime.InnerText = dataRecord.TimePoint.ToUniversalTime().ToString(ConstantData.GPX_DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
             nodeTrkpt.AppendChild(nodeTrkptTime);
+
+            if (!string.IsNullOrWhiteSpace(dataRecord.Symbol))
+            {
+                XmlElement nodeTrkptSym = gpxDoc.CreateElementNS(nameSpaceUri, "sym");
+                nodeTrkptSym.InnerText = dataRecord.Symbol;
+                nodeTrkpt.AppendChild(nodeTrkptSym);
+            }
 
             if (!string.IsNullOrWhiteSpace(dataRecord.PositionSource))
             {
