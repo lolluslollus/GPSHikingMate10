@@ -98,9 +98,9 @@ namespace LolloGPS.Core
         };
 
         //private static List<Image> _checkpointImages = new List<Image>();
-        //private static BitmapImage _checkpointImageSource = null;
-        private readonly RandomAccessStreamReference _checkpointIconStreamReference;
-        //private readonly BitmapSource _checkpointImageSource;
+        //private static BitmapImage _checkpointCircleImageSource = null;
+        private readonly RandomAccessStreamReference _checkpointCircleIconStreamReference;
+        //private readonly BitmapSource _checkpointCircleImageSource;
 
         private static readonly Point _checkpointsAnchorPoint = new Point(0.5, 0.5);
         private static readonly Point _pointersAnchorPoint = new Point(0.5, 0.625);
@@ -147,8 +147,8 @@ namespace LolloGPS.Core
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-36.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-36.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-36.png", UriKind.Absolute));
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png"));
-                    _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-20.png", UriKind.Absolute));
+                    //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-20.png"));
+                    _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-20.png", UriKind.Absolute));
                     break;
                 case ElementsSize.Large:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_LargeScreen"]);
@@ -159,8 +159,8 @@ namespace LolloGPS.Core
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-144.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-144.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-144.png", UriKind.Absolute));
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png"));
-                    _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-80.png", UriKind.Absolute));
+                    //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-80.png"));
+                    _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-80.png", UriKind.Absolute));
                     break;
                 default:
                     _mapPolylineRoute0.StrokeThickness = (double)(Application.Current.Resources["Route0Thickness_MediumScreen"]);
@@ -171,8 +171,8 @@ namespace LolloGPS.Core
                     _iconEndHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_end-72.png", UriKind.Absolute));
                     _iconFlyoutPoint.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_current-72.png", UriKind.Absolute));
                     _iconStartHistory.Image = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_start-72.png", UriKind.Absolute));
-                    //_checkpointImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png"));
-                    _checkpointIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-40.png", UriKind.Absolute));
+                    //_checkpointCircleImageSource = new BitmapImage(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-40.png"));
+                    _checkpointCircleIconStreamReference = RandomAccessStreamReference.CreateFromUri(new Uri("ms-appx:///Assets/pointer_checkpoint-circle-40.png", UriKind.Absolute));
                     break;
             }
 
@@ -552,7 +552,7 @@ namespace LolloGPS.Core
                     MapIcon newIcon = new MapIcon()
                     {
                         CollisionBehaviorDesired = MapElementCollisionBehavior.RemainVisible,
-                        Image = _checkpointIconStreamReference,
+                        Image = _checkpointCircleIconStreamReference,
                         MapTabIndex = CHECKPOINT_TAB_INDEX,
                         NormalizedAnchorPoint = _checkpointsAnchorPoint,
                         Visible = false
@@ -644,7 +644,7 @@ namespace LolloGPS.Core
                 for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
                 {
                     //MyMap.Children.Add(_checkpointBaseImage);
-                    MyMap.Children.Add(new Image() { Source = _checkpointImageSource, Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed });
+                    MyMap.Children.Add(new Image() { Source = _checkpointCircleImageSource, Stretch = Stretch.None, Tag = CheckpointTag, Visibility = Visibility.Collapsed });
                 }
                 isInit = true;
                 Debug.WriteLine("Checkpoints were initialised");
@@ -677,7 +677,7 @@ namespace LolloGPS.Core
 
                 List<PointOfInterest> checkpoints = PersistentData.Checkpoints.Select(item => new PointOfInterest()
                 {
-                    ImageSource = _checkpointImageSource,
+                    ImageSource = _checkpointCircleImageSource,
                     Location = new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }),
                     NormalizedAnchorPoint = _checkpointsAnchorPoint
 
@@ -957,7 +957,7 @@ namespace LolloGPS.Core
             {
                 try
                 {
-                    var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync();                    
+                    var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync();
                     string uriString = baseTileSource?.ProviderUriString;
                     if (string.IsNullOrWhiteSpace(uriString) || !RuntimeData.IsConnectionAvailable) return;
 

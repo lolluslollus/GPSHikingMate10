@@ -172,8 +172,8 @@
     <Content Include="Assets\Icon.targetsize-48.png" />
     <Content Include="Assets\mobius-500.png" />
     <Content Include="Assets\pointer_base-36.png" />
-    <Content Include="Assets\pointer_checkpoint-80.png" />
-    <Content Include="Assets\pointer_checkpoint-40.png" />
+    <Content Include="Assets\pointer_checkpoint-circle-80.png" />
+    <Content Include="Assets\pointer_checkpoint-circle-40.png" />
     <Content Include="Assets\pointer_current-72.png" />
     <Content Include="Assets\pointer_current-144.png" />
     <Content Include="Assets\pointer_current-36.png" />
@@ -181,7 +181,7 @@
     <Content Include="Assets\pointer_end-144.png" />
     <Content Include="Assets\pointer_end-36.png" />
     <Content Include="Assets\pointer_checkpoint_cross-20.png" />
-    <Content Include="Assets\pointer_checkpoint-20.png" />
+    <Content Include="Assets\pointer_checkpoint-circle-20.png" />
     <Content Include="Assets\pointer_checkpoint_simple-16.png" />
     <Content Include="Assets\pointer_start-72.png" />
     <Content Include="Assets\pointer_start-144.png" />
