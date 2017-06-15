@@ -19,7 +19,7 @@ namespace LolloGPS.Core
         Task<GeoboundingBox> GetMinMaxLatLonAsync();
         Task<BasicGeoposition> GetCentreAsync();
     }
-    public class TileDownloader : OpenableObservableData
+    public class TileDownloader : OpenableObservableData // not sealed to help unit tests
     {
         #region properties
         public const int MaxProgressStepsToReport = 25;
@@ -305,7 +305,7 @@ namespace LolloGPS.Core
                     if (gbb != null)
                     {
                         // now I have a geobounding box that certainly encloses the screen.
-                        var session = await PersistentData.GetInstance().GetDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
+                        var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
                         if (session != null)
                         {
                             List<TileCacheRecord> tilesOrderedByZoom = GetTileData_RespondingToCancel(session);

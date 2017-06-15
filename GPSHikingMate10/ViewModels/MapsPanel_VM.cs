@@ -323,7 +323,7 @@ namespace GPSHikingMate10.ViewModels
             bool isScheduled = await Task.Run(() => _tileCacheClearer.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
             PersistentData.LastMessage = isScheduled ? "cache will be cleared asap" : "cache unchanged";
         }
-        public Task DownloadMapAsync()
+        public Task ShowDownloadZooms()
         {
             return RunFunctionIfOpenAsyncT(async () =>
             {
@@ -354,11 +354,12 @@ namespace GPSHikingMate10.ViewModels
                 }
             });
         }
-        public Task Download_ChooseZoomLevel(int maxZoom)
+        public Task ChooseDownloadZoomLevelAsync(int maxZoom)
         {
             return RunFunctionIfOpenAsyncT(async () =>
             {
                 await PersistentData.SetTilesDownloadPropsAsync(true, maxZoom, false);
+                // LolloMapVM will detect the property changes and take over from here
                 PersistentData.IsShowingPivot = false;
             });
         }

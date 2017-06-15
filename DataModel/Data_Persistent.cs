@@ -1284,7 +1284,6 @@ namespace LolloGPS.Data
                 RaisePropertyChanged_UI(nameof(CurrentTileSources));
             });
         }
-
         /// <summary>
         /// Checks TestTileSource and, if good, adds it to TileSourcez and sets CurrentTileSource to it.
         /// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
@@ -1324,7 +1323,6 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-
         private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(TileSourceRecord testTileSource)
         {
             if (testTileSource == null) return Tuple.Create(false, "Tile source cannot be changed");
@@ -1363,7 +1361,6 @@ namespace LolloGPS.Data
             return result;
         }
         public enum ClearCacheResult { Ok, Error, Cancelled }
-
         public async Task<ClearCacheResult> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
         {
             if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return ClearCacheResult.Error;
@@ -1405,7 +1402,6 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-
         private async Task<bool> RemoveTileSource2Async(string tileSourceTechName)
         {
             if (string.IsNullOrWhiteSpace(tileSourceTechName)) return false;
@@ -1438,7 +1434,6 @@ namespace LolloGPS.Data
                 RaisePropertyChanged(nameof(CurrentTileSources));
             });
         }
-
         public async Task RemoveCurrentTileSourceAsync(TileSourceRecord tileSource)
         {
             if (tileSource == null) return;
@@ -1459,61 +1454,6 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-
-        private static async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource, CancellationToken cancToken)
-        {
-            var result = new List<string>();
-            if (tileSource == null) return result;
-            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName))
-            {
-                result.Add(tileSource.FolderName);
-            }
-            else if (tileSource.IsAll)
-            {
-                var tileSourcesFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
-                if (tileSourcesFolder == null) return result;
-                // clean everything, even old folders, which were created for tile sources, which are no more available.
-                // The folder names are the tile source tech names.
-                var subFolders = await tileSourcesFolder.GetFoldersAsync().AsTask(cancToken).ConfigureAwait(false);
-                result = subFolders.Select(sf => sf.Name).ToList();
-
-                //foreach (var item in _tileSourcez)
-                //{
-                //    if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.FolderName))
-                //    {
-                //        result.Add(item.FolderName);
-                //    }
-                //}
-            }
-            return result;
-        }
-        #endregion tileSourcesMethods
-
-        #region download session methods
-        public Task SetTilesDownloadPropsAsync(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
-        {
-            return RunInUiThreadAsync(delegate
-            {
-                lock (_lastDownloadLocker)
-                {
-                    // we must handle these two variables together because they belong together.
-                    // an event handler registered on one and reading both may catch the change in the first before the second has changed.
-                    bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-                    bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
-
-                    _isTilesDownloadDesired = isTilesDownloadDesired;
-                    _maxDesiredZoomForDownloadingTiles = maxZoom;
-
-                    //if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
-                    //if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
-                    if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
-                    if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
-
-                    if (resetLastDownloadSession) _lastDownloadSession = null;
-                }
-            });
-        }
-
         /// <summary>
         /// provide null to get a clone of the current base tile source
         /// </summary>
@@ -1522,16 +1462,12 @@ namespace LolloGPS.Data
         public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource)
         {
             TileSourceRecord result = null;
+            if (tileSource == null) return result;
 
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                if (tileSource == null)
-                {
-                    var currentBaseTileSource = _currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
-                    TileSourceRecord.Clone(currentBaseTileSource, ref result);
-                }
-                else TileSourceRecord.Clone(tileSource, ref result);
+                TileSourceRecord.Clone(tileSource, ref result);
             }
             catch (Exception ex)
             {
@@ -1544,7 +1480,6 @@ namespace LolloGPS.Data
 
             return result;
         }
-
         public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync(bool doBase, bool doOverlays)
         {
             ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
@@ -1611,11 +1546,86 @@ namespace LolloGPS.Data
 
             return result;
         }
-
-        public Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync()
+        public async Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync()
         {
-            return GetTileSourceClone(null);
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                var allTileSources = GetCurrentTileSourcezClone2();
+                return allTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+            }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return null;
+            }
+            finally
+            {
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
         }
+        private static async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource, CancellationToken cancToken)
+        {
+            var result = new List<string>();
+            if (tileSource == null) return result;
+            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName))
+            {
+                result.Add(tileSource.FolderName);
+            }
+            else if (tileSource.IsAll)
+            {
+                var tileSourcesFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
+                if (tileSourcesFolder == null) return result;
+                // clean everything, even old folders, which were created for tile sources, which are no more available.
+                // The folder names are the tile source tech names.
+                var subFolders = await tileSourcesFolder.GetFoldersAsync().AsTask(cancToken).ConfigureAwait(false);
+                result = subFolders.Select(sf => sf.Name).ToList();
+
+                //foreach (var item in _tileSourcez)
+                //{
+                //    if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.FolderName))
+                //    {
+                //        result.Add(item.FolderName);
+                //    }
+                //}
+            }
+            return result;
+        }
+        #endregion tileSourcesMethods
+
+        #region download session methods
+        /// <summary>
+        /// Sets props to create a download session
+        /// </summary>
+        /// <param name="isTilesDownloadDesired"></param>
+        /// <param name="maxZoom"></param>
+        /// <param name="resetLastDownloadSession"></param>
+        /// <returns></returns>
+        public Task SetTilesDownloadPropsAsync(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
+        {
+            return RunInUiThreadAsync(delegate
+            {
+                lock (_lastDownloadLocker)
+                {
+                    // we must handle these two variables together because they belong together.
+                    // an event handler registered on one and reading both may catch the change in the first before the second has changed.
+                    bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
+                    bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
+
+                    _isTilesDownloadDesired = isTilesDownloadDesired;
+                    _maxDesiredZoomForDownloadingTiles = maxZoom;
+
+                    //if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
+                    //if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
+                    if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
+                    if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
+
+                    if (resetLastDownloadSession) _lastDownloadSession = null;
+                }
+            });
+        }
+
+
         public async Task<Tuple<ICollection<TileSourceRecord>, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
         {
             if (gbb == null) return null;
@@ -1633,9 +1643,8 @@ namespace LolloGPS.Data
                         try
                         {
                             var currentTssClone = GetCurrentTileSourcezClone2();
-                            _lastDownloadSession = GetDownloadSession4CurrentTileSources2(gbb, currentTssClone);
-                            DownloadSession sessionClone = null;
-                            DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
+                            _lastDownloadSession = GetDownloadSession4CurrentTileSources2(gbb, currentTssClone, _maxDesiredZoomForDownloadingTiles);
+                            var sessionClone = DownloadSession.Clone(_lastDownloadSession);
                             return Tuple.Create(currentTssClone, sessionClone);
                         }
                         catch (Exception) { }
@@ -1655,9 +1664,8 @@ namespace LolloGPS.Data
                             }
                             if (lastDownloadTileSources.Count > 0 && _lastDownloadSession.IsZoomsValid())
                             {
-                                DownloadSession sessionClone = null;
-                                DownloadSession.Clone(_lastDownloadSession, ref sessionClone);
-                                return Tuple.Create(allTssClone, sessionClone);
+                                var sessionClone = DownloadSession.Clone(_lastDownloadSession);
+                                return Tuple.Create(lastDownloadTileSources as ICollection<TileSourceRecord>, sessionClone);
                             }
                         }
                         catch (Exception) { }
@@ -1676,13 +1684,13 @@ namespace LolloGPS.Data
             return Tuple.Create<ICollection<TileSourceRecord>, DownloadSession>(null, null);
         }
 
-        public async Task<DownloadSession> GetDownloadSession4CurrentTileSourcesAsync(GeoboundingBox gbb)
+        public async Task<DownloadSession> GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(GeoboundingBox gbb)
         {
             if (gbb == null) return null;
             var currentTss = await GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
-            return GetDownloadSession4CurrentTileSources2(gbb, currentTss);
+            return GetDownloadSession4CurrentTileSources2(gbb, currentTss, 99);
         }
-        private DownloadSession GetDownloadSession4CurrentTileSources2(GeoboundingBox gbb, ICollection<TileSourceRecord> currentTss)
+        private DownloadSession GetDownloadSession4CurrentTileSources2(GeoboundingBox gbb, ICollection<TileSourceRecord> currentTss, int maxMaxZoom)
         {
             if (gbb == null) return null;
             DownloadSession result = null;
@@ -1706,6 +1714,7 @@ namespace LolloGPS.Data
                         minZoom = Math.Min(ts.MinZoom, minZoom);
                     }
                 }
+                maxZoom = Math.Min(maxZoom, maxMaxZoom);
 
                 var session = new DownloadSession(minZoom, maxZoom, gbb, currentTss);
                 // If the session is invalid, it throws in the ctor so I won't get here.

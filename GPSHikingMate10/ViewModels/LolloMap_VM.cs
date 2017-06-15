@@ -380,25 +380,24 @@ namespace LolloGPS.Core
         /// <returns></returns>
         private async Task UpdateDownloadTilesAfterConditionsChangedAsync()
         {
-            if (PersistentData.IsTilesDownloadDesired && RuntimeData.IsConnectionAvailable)
+            if (!PersistentData.IsTilesDownloadDesired || !RuntimeData.IsConnectionAvailable) return;
+
+            await RunInUiThreadAsync(delegate
             {
-                await RunInUiThreadAsync(delegate
-                {
-                    KeepAlive.UpdateKeepAlive(true);
-                }).ConfigureAwait(false);
-                var downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
-                await RunInUiThreadAsync(delegate
-                {
-                    KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
-                }).ConfigureAwait(false);
-                var pd = PersistentData;
-                if (downloadResult != null && pd != null)
-                {
-                    int n = 0; int m = 0;
-                    n = downloadResult.Sum(dr => dr.Item1);
-                    m = downloadResult.Sum(dr => dr.Item2);
-                    pd.LastMessage = $"{n} of {m} tiles downloaded";
-                }
+                KeepAlive.UpdateKeepAlive(true);
+            }).ConfigureAwait(false);
+            var downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+            await RunInUiThreadAsync(delegate
+            {
+                KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
+            }).ConfigureAwait(false);
+            var pd = PersistentData;
+            if (downloadResult != null && pd != null)
+            {
+                int n = 0; int m = 0;
+                n = downloadResult.Sum(dr => dr.Item1);
+                m = downloadResult.Sum(dr => dr.Item2);
+                pd.LastMessage = $"{n} of {m} tiles downloaded";
             }
         }
         public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZoomsAsync()

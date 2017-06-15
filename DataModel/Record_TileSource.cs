@@ -1,6 +1,7 @@
 ﻿using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
@@ -13,8 +14,9 @@ using Utilz.Data;
 namespace LolloGPS.Data
 {
     [DataContract]
-    [KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(string[]))]
+    [KnownType(typeof(IReadOnlyList<string>))]
+    [KnownType(typeof(ReadOnlyCollection<string>))]
     public sealed class TileSourceRecord : ObservableData, IComparable
     {
         private const string DefaultTileSourceTechName = "Nokia";

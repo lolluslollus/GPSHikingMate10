@@ -81,13 +81,13 @@ namespace LolloGPS.Core
 
         private void OnDownloadMap_Click(object sender, RoutedEventArgs e)
         {
-            MapsPanelVM?.DownloadMapAsync();
+            MapsPanelVM?.ShowDownloadZooms();
         }
         private void OnZoomLevelChooser_ItemSelected(object sender, TextAndTag e)
         {
             if (!(e?.Tag is int)) return;
             int maxZoom = (int)(e.Tag);
-            MapsPanelVM?.Download_ChooseZoomLevel(maxZoom);
+            MapsPanelVM?.ChooseDownloadZoomLevelAsync(maxZoom);
         }
 
         private void OnBaseMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
