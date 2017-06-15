@@ -535,9 +535,9 @@ namespace LolloGPS.Data
         [DataMember]
         public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } private set { _tileSourcez = value; RaisePropertyChanged(); } }
 
-        private volatile TileSourceRecord _testTileSource = TileSourceRecord.GetSampleTileSource();
+        private volatile TestTileSourceRecord _testTileSource = TestTileSourceRecord.GetSampleTileSource();
         [DataMember]
-        public TileSourceRecord TestTileSource { get { return _testTileSource; } private set { _testTileSource = value; RaisePropertyChanged_UI(); } }
+        public TestTileSourceRecord TestTileSource { get { return _testTileSource; } private set { _testTileSource = value; RaisePropertyChanged_UI(); } }
 
         //private volatile TileSourceRecord _currentTileSource = TileSourceRecord.GetDefaultTileSource();
         //[DataMember]
@@ -1298,8 +1298,10 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync();
                 IsTileSourcezBusy = true;
 
-                // exit if wrong data
-                var testTileSource = _testTileSource;
+                // the following is not atomic because there may be concurrent action in the UI thread. 
+                // However, this method is currently called in the UI thread, and this is not critical anyway.
+                var testTileSource = TestTileSourceRecord.Clone(_testTileSource);
+                // exit if wrong data - it should never happen
                 if (testTileSource == null) return Tuple.Create(false, "Record not found");
                 if (string.IsNullOrWhiteSpace(testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
                 // set non-screen properties
@@ -1323,40 +1325,39 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(TileSourceRecord testTileSource)
+        private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(TestTileSourceRecord testTs)
         {
-            if (testTileSource == null) return Tuple.Create(false, "Tile source cannot be changed");
+            if (testTs == null) return Tuple.Create(false, "Tile source cannot be changed");
 
             Tuple<bool, string> result = null;
             var recordsWithSameName = _tileSourcez.Where(tileSource =>
-                tileSource.TechName == testTileSource.TechName || tileSource.DisplayName == testTileSource.TechName || tileSource.FolderName == testTileSource.TechName);
+                tileSource.TechName == testTs.TechName || tileSource.DisplayName == testTs.TechName || tileSource.FolderName == testTs.TechName);
             if (recordsWithSameName?.Count() == 1)
             {
                 var recordWithSameName = recordsWithSameName.First();
                 if (await RemoveTileSource2Async(recordWithSameName.TechName))
-                    result = Tuple.Create(true, $"Source {testTileSource.DisplayName} changed");
+                    result = Tuple.Create(true, $"Source {testTs.DisplayName} changed");
                 else
-                    result = Tuple.Create(false, $"Tile source {testTileSource.DisplayName} cannot be changed");
+                    result = Tuple.Create(false, $"Tile source {testTs.DisplayName} cannot be changed");
             }
             else if (recordsWithSameName?.Count() > 1)
             {
-                result = Tuple.Create(false, $"Tile source {testTileSource.DisplayName} cannot be changed");
+                result = Tuple.Create(false, $"Tile source {testTs.DisplayName} cannot be changed");
             }
 
             if (result == null || result.Item1)
             {
-                TileSourceRecord newRecord = null;
-                TileSourceRecord.Clone(testTileSource, ref newRecord); // do not overwrite the current instance
-                _tileSourcez.Add(newRecord);
+                var newTs = TileSourceRecord.Clone(testTs); // do not overwrite the current instance
+                _tileSourcez.Add(newTs);
                 RaisePropertyChanged(nameof(TileSourcez));
 
-                Logger.Add_TPL(newRecord.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
+                Logger.Add_TPL(newTs.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
                 Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-                await AddCurrentTileSource2Async(newRecord);
+                await AddCurrentTileSource2Async(newTs);
 
-                TestTileSource = testTileSource;
-                if (result == null) result = Tuple.Create(true, $"Source {testTileSource.DisplayName} added");
+                TestTileSource = testTs;
+                if (result == null) result = Tuple.Create(true, $"Source {testTs.DisplayName} added");
             }
             return result;
         }
@@ -1454,33 +1455,26 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        /// <summary>
-        /// provide null to get a clone of the current base tile source
-        /// </summary>
-        /// <param name="tileSource"></param>
-        /// <returns></returns>
         public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource)
         {
-            TileSourceRecord result = null;
-            if (tileSource == null) return result;
+            if (tileSource == null) return null;
 
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                TileSourceRecord.Clone(tileSource, ref result);
+                return TileSourceRecord.Clone(tileSource);
             }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return null;
             }
             finally
             {
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
-
-            return result;
         }
-        public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync(bool doBase, bool doOverlays)
+        public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync()
         {
             ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
 
@@ -1488,7 +1482,7 @@ namespace LolloGPS.Data
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
 
-                return GetAllTileSourcezClone2(doBase, doOverlays);
+                return GetAllTileSourcezClone2();
             }
             catch (Exception ex)
             {
@@ -1500,15 +1494,14 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        private ICollection<TileSourceRecord> GetAllTileSourcezClone2(bool doBase, bool doOverlays)
+        private ICollection<TileSourceRecord> GetAllTileSourcezClone2()
         {
             var result = new Collection<TileSourceRecord>();
 
             foreach (var ts in _tileSourcez)
             {
-                if (ts == null || (!doOverlays && !ts.IsOverlay) || (!doBase && !ts.IsOverlay)) continue;
-                TileSourceRecord tsClone = null;
-                TileSourceRecord.Clone(ts, ref tsClone);
+                if (ts == null) continue;
+                var tsClone = TileSourceRecord.Clone(ts);
                 result.Add(tsClone);
             }
 
@@ -1539,8 +1532,7 @@ namespace LolloGPS.Data
             foreach (var ts in _currentTileSources)
             {
                 if (ts == null) continue;
-                TileSourceRecord tsClone = null;
-                TileSourceRecord.Clone(ts, ref tsClone);
+                var tsClone = TileSourceRecord.Clone(ts);
                 result.Add(tsClone);
             }
 
@@ -1551,8 +1543,8 @@ namespace LolloGPS.Data
             try
             {
                 await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
-                var allTileSources = GetCurrentTileSourcezClone2();
-                return allTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+                var currentTileSources = GetCurrentTileSourcezClone2();
+                return currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
             }
             catch (Exception ex)
             {
@@ -1624,8 +1616,6 @@ namespace LolloGPS.Data
                 }
             });
         }
-
-
         public async Task<Tuple<ICollection<TileSourceRecord>, DownloadSession>> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
         {
             if (gbb == null) return null;
@@ -1655,7 +1645,7 @@ namespace LolloGPS.Data
                     {
                         try
                         {
-                            var allTssClone = GetAllTileSourcezClone2(true, true);
+                            var allTssClone = GetAllTileSourcezClone2();
                             var lastDownloadTileSources = new Collection<TileSourceRecord>();
                             foreach (var techName in _lastDownloadSession.TileSourceTechNames)
                             {
@@ -1683,7 +1673,6 @@ namespace LolloGPS.Data
             }
             return Tuple.Create<ICollection<TileSourceRecord>, DownloadSession>(null, null);
         }
-
         public async Task<DownloadSession> GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(GeoboundingBox gbb)
         {
             if (gbb == null) return null;

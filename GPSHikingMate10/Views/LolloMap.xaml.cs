@@ -959,7 +959,8 @@ namespace LolloGPS.Core
                 {
                     var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync();                    
                     string uriString = baseTileSource?.ProviderUriString;
-                    if (string.IsNullOrWhiteSpace(uriString) || RuntimeData.IsConnectionAvailable) return;
+                    if (string.IsNullOrWhiteSpace(uriString) || !RuntimeData.IsConnectionAvailable) return;
+
                     await Launcher.LaunchUriAsync(new Uri(uriString, UriKind.Absolute));
                 }
                 catch (Exception) { }

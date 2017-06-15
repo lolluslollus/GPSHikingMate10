@@ -15,34 +15,35 @@ namespace LolloGPS.Data
 {
     [DataContract]
     [KnownType(typeof(string[]))]
-    [KnownType(typeof(IReadOnlyList<string>))]
+    //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
-    public sealed class TileSourceRecord : ObservableData, IComparable
+    public class TileSourceRecord : ObservableData, IComparable
     {
-        private const string DefaultTileSourceTechName = "Nokia";
-        private const string AllTileSourceTechName = "All";
-        private const string NoTileSourceTechName = "None";
-        private const string SampleTileSourceTechName = "YourOwnTileSource";
+        #region constants
+        protected const string DefaultTileSourceTechName = "Nokia";
+        protected const string AllTileSourceTechName = "All";
+        protected const string NoTileSourceTechName = "None";
+        protected const string SampleTileSourceTechName = "YourOwnTileSource";
 
-        private const string DefaultTileSourceDisplayName = "Built in";
-        private const string AllTileSourceDisplayName = "All";
-        private const string NoTileSourceDisplayName = "None";
+        protected const string DefaultTileSourceDisplayName = "Built in";
+        protected const string AllTileSourceDisplayName = "All";
+        protected const string NoTileSourceDisplayName = "None";
 
-        private static readonly string[] DefaultTileSourceUriString = { };
-        private static readonly string DefaultTileSourceProviderUriString = string.Empty;
-        private static readonly string[] DummyTileSourceUriString = { };
-        private static readonly string DummyTileSourceProviderUriString = string.Empty;
-        private static readonly string[] SampleUriString = { $"http://tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png" };
+        protected static readonly string[] DefaultTileSourceUriString = { };
+        protected static readonly string DefaultTileSourceProviderUriString = string.Empty;
+        protected static readonly string[] DummyTileSourceUriString = { };
+        protected static readonly string DummyTileSourceProviderUriString = string.Empty;
+        protected static readonly string[] SampleUriString = { $"http://tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png" };
 
         public const int MinMinZoom = 0;
-        private const int DummyTileSourceMinZoom = 0;
+        protected const int DummyTileSourceMinZoom = 0;
 
         public const int MaxMaxZoom = 20;
-        private const int DummyTileSourceMaxZoom = 0;
-        private const int SampleMaxZoom = 16;
+        protected const int DummyTileSourceMaxZoom = 0;
+        protected const int SampleMaxZoom = 16;
 
-        private const int DefaultTilePixelSize = 256;
-        private const int DummyTileSourceTilePixelSize = 0;
+        protected const int DefaultTilePixelSize = 256;
+        protected const int DummyTileSourceTilePixelSize = 0;
 
         public const string ZoomLevelPlaceholder = "{zoomlevel}";
         public const string XPlaceholder = "{x}";
@@ -55,7 +56,7 @@ namespace LolloGPS.Data
         public const int MaxTilePixelSize = 1024;
         public const int MaxTechNameLength = 25;
 
-        private static Dictionary<string, string> GetDefaultWebHeaderCollection()
+        protected static Dictionary<string, string> GetDefaultWebHeaderCollection()
         {
             return new Dictionary<string, string>();
         }
@@ -65,55 +66,57 @@ namespace LolloGPS.Data
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = TileCache.TileCacheReaderWriter.MimeTypeImageAny;
             return headers;
         }
+        #endregion constants
 
-        private string _techName = DefaultTileSourceTechName;
+        #region properties
         [DataMember]
-        public string TechName { get { return _techName; } set { _techName = value; RaisePropertyChanged(); } }
+        protected string _techName = DefaultTileSourceTechName;
+        public string TechName { get { return _techName; } }
 
-        private string _folderName = DefaultTileSourceTechName;
         [DataMember]
-        public string FolderName { get { return _folderName; } set { _folderName = value; RaisePropertyChanged(); } }
+        protected string _folderName = DefaultTileSourceTechName;
+        public string FolderName { get { return _folderName; } }
 
-        private string _displayName = DefaultTileSourceDisplayName;
         [DataMember]
-        public string DisplayName { get { return _displayName; } set { _displayName = value; RaisePropertyChanged(); } }
+        protected string _displayName = DefaultTileSourceDisplayName;
+        public string DisplayName { get { return _displayName; } }
 
-        private string _copyrightNotice = DefaultTileSourceDisplayName;
         [DataMember]
-        public string CopyrightNotice { get { return _copyrightNotice; } set { _copyrightNotice = value; RaisePropertyChanged(); } }
+        protected string _copyrightNotice = DefaultTileSourceDisplayName;
+        public string CopyrightNotice { get { return _copyrightNotice; } }
 
-        private IReadOnlyList<string> _uriStrings = SampleUriString;
         [DataMember]
-        public IReadOnlyList<string> UriStrings { get { return _uriStrings; } set { _uriStrings = value; RaisePropertyChanged(); } }
+        protected IReadOnlyList<string> _uriStrings = SampleUriString;
+        public IReadOnlyList<string> UriStrings { get { return _uriStrings; } }
 
-        private string _providerUriString = string.Empty;
         [DataMember]
-        public string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged(); } }
+        protected string _providerUriString = string.Empty;
+        public string ProviderUriString { get { return _providerUriString; } }
 
-        private int _minZoom = MinMinZoom;
         [DataMember]
-        public int MinZoom { get { return _minZoom; } set { _minZoom = value; RaisePropertyChanged(); } }
+        protected int _minZoom = MinMinZoom;
+        public int MinZoom { get { return _minZoom; } }
 
-        private int _maxZoom = MaxMaxZoom;
         [DataMember]
-        public int MaxZoom { get { return _maxZoom; } set { _maxZoom = value; RaisePropertyChanged(); } }
+        protected int _maxZoom = MaxMaxZoom;
+        public int MaxZoom { get { return _maxZoom; } }
 
-        private int _tilePixelSize = DefaultTilePixelSize;
         [DataMember]
-        public int TilePixelSize { get { return _tilePixelSize; } set { _tilePixelSize = value; RaisePropertyChanged(); } }
+        protected int _tilePixelSize = DefaultTilePixelSize;
+        public int TilePixelSize { get { return _tilePixelSize; } }
 
-        private bool _isDeletable = false;
         [DataMember]
-        public bool IsDeletable { get { return _isDeletable; } set { _isDeletable = value; RaisePropertyChanged(); } }
+        protected bool _isDeletable = false;
+        public bool IsDeletable { get { return _isDeletable; } }
 
         // WebHeaderCollection cannot be serialised and deserialised, so we use a dictionary
-        private Dictionary<string, string> _requestHeaders = new Dictionary<string, string>();
         [DataMember]
-        public Dictionary<string, string> RequestHeaders { get { return _requestHeaders; } set { _requestHeaders = value; RaisePropertyChanged(); } }
+        protected Dictionary<string, string> _requestHeaders = new Dictionary<string, string>();
+        public Dictionary<string, string> RequestHeaders { get { return _requestHeaders; } }
 
-        private bool _isOverlay = false;
         [DataMember]
-        public bool IsOverlay { get { return _isOverlay; } set { _isOverlay = value; RaisePropertyChanged(); } }
+        protected bool _isOverlay = false;
+        public bool IsOverlay { get { return _isOverlay; } }
 
         [IgnoreDataMember]
         public bool IsDefault { get { return _techName == DefaultTileSourceTechName; } }
@@ -126,21 +129,25 @@ namespace LolloGPS.Data
 
         [IgnoreDataMember]
         public int MaxTechNameLengthProp { get { return MaxTechNameLength; } }
+        #endregion properties
 
-        public TileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice, string providerUri, int minZoom, int maxZoom, int tilePixelSize, bool isDeletable, bool isOverlay, Dictionary<string, string> headers, params string[] uriString)
+        public TileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice,
+            string providerUri, int minZoom, int maxZoom, int tilePixelSize,
+            bool isDeletable, bool isOverlay,
+            Dictionary<string, string> headers, params string[] uriStrings)
         {
-            TechName = techName;
-            FolderName = folderName;
-            DisplayName = displayName;
-            CopyrightNotice = copyrightNotice;
-            ProviderUriString = providerUri;
-            MinZoom = minZoom;
-            MaxZoom = maxZoom;
-            TilePixelSize = tilePixelSize;
-            IsDeletable = isDeletable;
-            IsOverlay = isOverlay;
-            RequestHeaders = headers;
-            UriStrings = uriString;
+            _techName = techName;
+            _folderName = folderName;
+            _displayName = displayName;
+            _copyrightNotice = copyrightNotice;
+            _providerUriString = providerUri;
+            _minZoom = minZoom;
+            _maxZoom = maxZoom;
+            _tilePixelSize = tilePixelSize;
+            _isDeletable = isDeletable;
+            _isOverlay = isOverlay;
+            _requestHeaders = headers;
+            _uriStrings = uriStrings;
         }
 
         #region checks
@@ -260,24 +267,15 @@ namespace LolloGPS.Data
         }
         #endregion checks
 
-        public static void Clone(TileSourceRecord source, ref TileSourceRecord target)
+        public static TileSourceRecord Clone(TileSourceRecord source)
         {
-            if (source == null) return;
+            if (source == null) return null;
 
-            if (target == null) target = GetDefaultTileSource();
-
-            target.TechName = source._techName;
-            target.FolderName = source._folderName;
-            target.DisplayName = source._displayName;
-            target.CopyrightNotice = source._copyrightNotice;
-            target.UriStrings = source._uriStrings;
-            target.ProviderUriString = source._providerUriString;
-            target.MinZoom = source._minZoom;
-            target.MaxZoom = source._maxZoom;
-            target.TilePixelSize = source._tilePixelSize;
-            target.IsDeletable = source._isDeletable;
-            target.IsOverlay = source._isOverlay;
-            target.RequestHeaders = new Dictionary<string, string>(source._requestHeaders);
+            return new TileSourceRecord(source._techName, source._displayName, source._folderName, source._copyrightNotice,
+                source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
+                source._isDeletable, source._isOverlay,
+                // LOLLO TODO check that the clones below really clone
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public bool IsEqualTo(TileSourceRecord comp)
         {
@@ -296,6 +294,14 @@ namespace LolloGPS.Data
                 && comp._isOverlay == _isOverlay
                 && comp._requestHeaders.OrderBy(kvp => kvp.Key).SequenceEqual(_requestHeaders.OrderBy(kvp => kvp.Key));
         }
+        public int CompareTo(object obj)
+        {
+            var ts = obj as TileSourceRecord;
+            if (ts == null) return -1;
+            if (IsEqualTo(ts)) return 0;
+            return 1;
+        }
+
         public static List<TileSourceRecord> GetStockTileSources()
         {
             var output = new List<TileSourceRecord>
@@ -524,10 +530,6 @@ namespace LolloGPS.Data
             result.Add(GetDefaultTileSource());
             return result;
         }
-        //public static TileSourceRecord GetDefaultOverlayTileSource()
-        //{
-        //    return new TileSourceRecord(DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, true, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
-        //}
         public static TileSourceRecord GetAllTileSource()
         {
             return new TileSourceRecord(AllTileSourceTechName, AllTileSourceDisplayName, "", "", DummyTileSourceProviderUriString, DummyTileSourceMinZoom, DummyTileSourceMaxZoom, DummyTileSourceTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DummyTileSourceUriString);
@@ -536,10 +538,10 @@ namespace LolloGPS.Data
         {
             return new TileSourceRecord(NoTileSourceTechName, NoTileSourceDisplayName, "", "", DummyTileSourceProviderUriString, DummyTileSourceMinZoom, DummyTileSourceMaxZoom, DummyTileSourceTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DummyTileSourceUriString);
         }
-        public static TileSourceRecord GetSampleTileSource()
-        {
-            return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
-        }
+        //public static TileSourceRecord GetSampleTileSource()
+        //{
+        //    return new TileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
+        //}
 
         public void ApplyHeadersToWebRequest(WebRequest request)
         {
@@ -556,13 +558,88 @@ namespace LolloGPS.Data
             }
 
         }
-
-        public int CompareTo(object obj)
-        {
-            var ts = obj as TileSourceRecord;
-            if (ts == null) return -1;
-            if (IsEqualTo(ts)) return 0;
-            return 1;
-        }
     }
+
+    [DataContract]
+    //[KnownType(typeof(string[]))]
+    //[KnownType(typeof(IReadOnlyList<string>))]
+    [KnownType(typeof(ReadOnlyCollection<string>))]
+    public sealed class TestTileSourceRecord : TileSourceRecord
+    {
+        public new string TechName { get { return _techName; } set { _techName = value; RaisePropertyChanged_UI(); } }
+
+        public new string FolderName { get { return _folderName; } set { _folderName = value; RaisePropertyChanged_UI(); } }
+
+        public new string DisplayName { get { return _displayName; } set { _displayName = value; RaisePropertyChanged_UI(); } }
+
+        public new string CopyrightNotice { get { return _copyrightNotice; } set { _copyrightNotice = value; RaisePropertyChanged_UI(); } }
+
+        public new IReadOnlyList<string> UriStrings { get { return _uriStrings; } set { _uriStrings = value; RaisePropertyChanged_UI(); } }
+
+        public new string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged_UI(); } }
+
+        public new int MinZoom { get { return _minZoom; } set { _minZoom = value; RaisePropertyChanged_UI(); } }
+
+        public new int MaxZoom { get { return _maxZoom; } set { _maxZoom = value; RaisePropertyChanged_UI(); } }
+
+        public new int TilePixelSize { get { return _tilePixelSize; } set { _tilePixelSize = value; RaisePropertyChanged_UI(); } }
+
+        public new bool IsDeletable { get { return _isDeletable; } set { _isDeletable = value; RaisePropertyChanged_UI(); } }
+
+        public new Dictionary<string, string> RequestHeaders { get { return _requestHeaders; } set { _requestHeaders = value; RaisePropertyChanged_UI(); } }
+
+        public new bool IsOverlay { get { return _isOverlay; } set { _isOverlay = value; RaisePropertyChanged_UI(); } }
+
+        public TestTileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice,
+            string providerUri, int minZoom, int maxZoom, int tilePixelSize,
+            bool isDeletable, bool isOverlay,
+            Dictionary<string, string> headers, params string[] uriStrings) : base(techName, displayName, folderName, copyrightNotice,
+                providerUri, minZoom, maxZoom, tilePixelSize,
+                isDeletable, isOverlay,
+                headers, uriStrings)
+        { }
+
+        public static TestTileSourceRecord Clone(TestTileSourceRecord source)
+        {
+            if (source == null) return null;
+
+            return new TestTileSourceRecord(source._techName, source._displayName, source._folderName, source._copyrightNotice,
+                source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
+                source._isDeletable, source._isOverlay,
+                // LOLLO TODO check that the clones below really clone
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
+        }
+        //public bool IsEqualTo(TestTileSourceRecord comp)
+        //{
+        //    if (comp == null) return false;
+
+        //    return comp._techName == _techName
+        //        && comp._folderName == _folderName
+        //        && comp._displayName == _displayName
+        //        && comp._copyrightNotice == _copyrightNotice
+        //        && comp._uriStrings.OrderBy(str => str).SequenceEqual(_uriStrings.OrderBy(str => str))
+        //        && comp._providerUriString == _providerUriString
+        //        && comp._minZoom == _minZoom
+        //        && comp._maxZoom == _maxZoom
+        //        && comp._tilePixelSize == _tilePixelSize
+        //        && comp._isDeletable == _isDeletable
+        //        && comp._isOverlay == _isOverlay
+        //        && comp._requestHeaders.OrderBy(kvp => kvp.Key).SequenceEqual(_requestHeaders.OrderBy(kvp => kvp.Key));
+        //}
+
+        //public new int CompareTo(object obj)
+        //{
+        //    var ts = obj as TestTileSourceRecord;
+        //    if (ts == null) return -1;
+        //    if (IsEqualTo(ts)) return 0;
+        //    return 1;
+        //}
+
+        public static TestTileSourceRecord GetSampleTileSource()
+        {
+            return new TestTileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
+        }
+
+    }
+
 }

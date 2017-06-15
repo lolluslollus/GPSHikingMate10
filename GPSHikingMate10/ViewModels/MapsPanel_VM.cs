@@ -84,7 +84,7 @@ namespace GPSHikingMate10.ViewModels
             ICollection<TileSourceRecord> currentTileSources = null;
             await Task.Run(async () =>
             {
-                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync(true, true);
+                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync();
                 currentTileSources = await PersistentData.GetCurrentTileSourcezCloneAsync();
             });
 
@@ -231,7 +231,7 @@ namespace GPSHikingMate10.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
-                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsClearCustomCacheEnabled(allTileSources);
@@ -240,7 +240,7 @@ namespace GPSHikingMate10.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
             {
-                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
                 var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
@@ -268,7 +268,7 @@ namespace GPSHikingMate10.ViewModels
 
         private async void OnTileCache_IsClearingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(true, true));
+            var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
             var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
             await RunInUiThreadAsync(delegate
             {
