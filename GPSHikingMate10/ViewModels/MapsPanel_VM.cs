@@ -366,10 +366,11 @@ namespace GPSHikingMate10.ViewModels
 
         public Task AddMapSource(TileSourceRecord ts)
         {
-            return RunFunctionIfOpenAsyncT(() =>
+            return RunFunctionIfOpenAsyncT(async () =>
             {
-                if (ts == null) return Task.CompletedTask;
-                return PersistentData.AddCurrentTileSourceAsync(ts);
+                if (ts == null) return;
+                var result = await PersistentData.AddCurrentTileSourceAsync(ts).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(result)) PersistentData.LastMessage = result;
             });
         }
         public Task RemoveMapSource(TileSourceRecord ts)

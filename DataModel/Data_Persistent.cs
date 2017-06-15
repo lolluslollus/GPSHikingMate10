@@ -64,6 +64,7 @@ namespace LolloGPS.Data
 
         public static readonly int MaxRecordsInCheckpoints = MaxCheckpoints4;
 
+        public const int MaxCurrentTileSources = 8;
         public const uint MinBackgroundUpdatePeriodInMinutes = 15u;
         public const uint MaxBackgroundUpdatePeriodInMinutes = 120u;
         public const uint DefaultBackgroundUpdatePeriodInMinutes = 15u;
@@ -1247,19 +1248,22 @@ namespace LolloGPS.Data
         #endregion selectedRecordMethods
 
         #region tileSourcesMethods
-        public async Task AddCurrentTileSourceAsync(TileSourceRecord newTileSource)
+        public async Task<string> AddCurrentTileSourceAsync(TileSourceRecord newTileSource)
         {
-            if (newTileSource == null) return;
+            if (newTileSource == null) return $"Error adding tile source";
             try
             {
                 await _tileSourcezSemaphore.WaitAsync();
                 IsTileSourcezBusy = true;
 
+                if (_currentTileSources.Count >= MaxCurrentTileSources) return $"Too many tile sources, max {MaxCurrentTileSources}";
                 await AddCurrentTileSource2Async(newTileSource).ConfigureAwait(false);
+                return null;
             }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return $"Error adding tile source";
             }
             finally
             {
