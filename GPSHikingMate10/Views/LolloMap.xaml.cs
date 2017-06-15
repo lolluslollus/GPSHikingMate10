@@ -486,13 +486,38 @@ namespace LolloGPS.Core
             }
         }
 
+        private class GeopointAndSymbol
+        {
+            private readonly Geopoint _gp;
+
+            public Geopoint GP
+            {
+                get { return _gp; }
+                //set { _gp = value; }
+            }
+            private readonly string _sym;
+
+            public string Sym
+            {
+                get { return _sym; }
+                //set { _sym = value; }
+            }
+            public GeopointAndSymbol(Geopoint gp, string sym)
+            {
+                _gp = gp;
+                _sym = sym;
+            }
+        }
         private async Task DrawCheckpointsMapIconsAsync()
         {
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-                List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude })).ToList();
+                List<GeopointAndSymbol> geoPointsAndSymbols = PersistentData.Checkpoints.Select(item => new GeopointAndSymbol(
+                    new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }),
+                    item.Symbol
+                    )).ToList();
 
                 if (CancToken.IsCancellationRequested) return;
 
@@ -508,7 +533,7 @@ namespace LolloGPS.Core
 
                     int j = 0;
                     int howManyMapElements = MyMap.MapElements.Count;
-                    int howManyGeopoints = geoPoints.Count;
+                    int howManyGeopoints = geoPointsAndSymbols.Count;
                     for (int i = 0; i < howManyGeopoints; i++)
                     {
                         while (j < howManyMapElements && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
@@ -519,7 +544,14 @@ namespace LolloGPS.Core
                         var mapIcon = MyMap.MapElements[j] as MapIcon;
                         if (mapIcon != null)
                         {
-                            mapIcon.Location = geoPoints[i];
+                            var gpsy = geoPointsAndSymbols[i];
+                            mapIcon.Location = gpsy.GP;
+                            if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Cross)) mapIcon.Image = _checkpointCrossIconStreamReference;
+                            else if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Ecs)) mapIcon.Image = _checkpointEcsIconStreamReference;
+                            else if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Square)) mapIcon.Image = _checkpointSquareIconStreamReference;
+                            else if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Triangle)) mapIcon.Image = _checkpointTriangleIconStreamReference;
+                            else mapIcon.Image = _checkpointCircleIconStreamReference;
+
                             //(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
                             //mapIcon.Title = "LOLLO TODO"; // style the titles
                             mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed

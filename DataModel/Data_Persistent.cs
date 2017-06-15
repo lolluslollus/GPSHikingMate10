@@ -26,6 +26,7 @@ namespace LolloGPS.Data
     [DataContract]
     public sealed class PersistentData : ObservableData, IGpsDataModel //, INotifyDataErrorInfo //does not work
     {
+        #region enums
         public enum Tables { History, Route0, Checkpoints, Nil }
         public static string GetTextForSeries(Tables whichSeries)
         {
@@ -43,6 +44,15 @@ namespace LolloGPS.Data
                     return "";
             }
         }
+        public static class CheckpointSymbols
+        {
+            public static string Circle { get { return "Circle"; } }
+            public static string Cross { get { return "Cross"; } }
+            public static string Ecs { get { return "Ecs"; } }
+            public static string Square { get { return "Square"; } }
+            public static string Triangle { get { return "Triangle"; } }
+        }
+        #endregion enums
 
         #region constants
         public const int MaxRecordsInRoute = short.MaxValue;
