@@ -201,9 +201,9 @@ namespace LolloGPS.Core
             MyMap.LandmarksVisible = false;
             MyMap.MapServiceToken = "xeuSS1khfrzYWD2AMjHz~nlORxc1UiNhK4lHJ8e4L4Q~AuehF7PQr8xsMsMLfbH3LgNQSRPIV8nrjjF0MgFOByiWhJHqeQNFChUUqChPyxW6";
             MyMap.ColorScheme = MapColorScheme.Light; //.Dark
-            if (RuntimeData.IsTouchDevicePresent) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
+            if (RuntimeData.IsProperTouchDevice) MyMap.ZoomInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.ZoomInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
-            if (RuntimeData.IsTouchDevicePresent) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
+            if (RuntimeData.IsProperTouchDevice) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             //MyMap.MapElements.Clear(); // no!

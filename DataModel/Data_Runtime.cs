@@ -34,9 +34,10 @@ namespace LolloGPS.Data.Runtime
 
         #region hardware
         private static readonly bool _isVibrationDevicePresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
-
-        private static readonly bool _isTouchDevicePresent = new TouchCapabilities().TouchPresent == 1;
-        public static bool IsTouchDevicePresent { get { return _isTouchDevicePresent; } }
+        // if you only check the touch device, a little trackpad will return a positive. We really want to know if we have a proper touch screen,
+        // so we check that the device can vibrate, too; essentially, if it is a phone or similar.
+        private static readonly bool _isProperTouchDevice = new TouchCapabilities().TouchPresent == 1 && Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.Devices.Notification.VibrationDevice");
+        public static bool IsProperTouchDevice { get { return _isProperTouchDevice; } }
 
         private readonly bool _isHardwareButtonsAPIPresent = Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.Phone.UI.Input.HardwareButtons");
         public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
