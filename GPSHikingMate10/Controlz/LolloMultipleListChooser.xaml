@@ -77,12 +77,13 @@
                                     IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
                                     Tapped="OnItemBorder_Tapped">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*"/>
-                                        <ColumnDefinition Width="4*"/>
+                                        <ColumnDefinition Width="1*" MinWidth="30"/>
+                                        <ColumnDefinition Width="10*"/>
                                     </Grid.ColumnDefinitions>
-                                    <CheckBox HorizontalAlignment="Center"
+                                    <CheckBox
                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                        Click="OnCheckBox_Click"/>
+                                        Click="OnCheckBox_Click"
+                                        Margin="10,0,0,0"/>
                                     <TextBlock Grid.Column="1"
                                         Text="{Binding TextAndTag.Text, Mode=OneWay}"
 										TextWrapping="Wrap"
