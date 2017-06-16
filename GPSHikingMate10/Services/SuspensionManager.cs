@@ -70,9 +70,15 @@ namespace LolloGPS.Suspension
                     }
                 }
             }
+            catch (DataAlreadyBoundException exc)
+            {
+                // no error message: the app has probably come out of suspension, so go ahead with the current instance
+                await Logger.AddAsync(exc?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
+                newPersistentData = PersistentData.GetInstance();
+            }
             catch (System.Xml.XmlException exc)
             {
-                errorMessage = $"XmlException: could not restore the settings: {exc?.Message}";
+                errorMessage = $"XmlException: could not restore the settings: settings reset";
                 await Logger.AddAsync(exc?.ToString(), Logger.FileErrorLogFilename).ConfigureAwait(false);
                 newPersistentData = PersistentData.GetInstance();
             }

@@ -90,7 +90,7 @@ namespace LolloGPS.Data
 
         #region events
         public event EventHandler CurrentChanged;
-        public event EventHandler<Tables> RefreshRequired;
+        public event EventHandler<Tables> RefreshSeriesRequested;
         #endregion events
 
         #region lifecycle
@@ -106,10 +106,12 @@ namespace LolloGPS.Data
 
         /// <summary>
         /// This method is not thread safe: it must be called before any UI or any property changed handlers start.
-        /// In particular, it may trick the <see cref="PropertyChanged"/> subscribers to the properties that are set here.
+        /// In particular, it may trick the <see cref="PropertyChanged"/> subscribers away from the properties that are set here.
+        /// If any such subscribers are active, this method throws <see cref="DataAlreadyBoundException"/>.
+        /// If the supplied <paramref name="source"/> argument is null, this method throws <see cref="ArgumentException"/>.
         /// </summary>
         /// <param name="source"></param>
-        /// <returns></returns>
+        /// <returns></returns>        
         public static PersistentData GetInstanceWithProperties(PersistentData source)
         {
             if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
@@ -117,8 +119,8 @@ namespace LolloGPS.Data
             {
                 if (_instance == null) _instance = new PersistentData();
                 // make sure no UI has been initialised yet
-                if (source.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
-                if (_instance.IsAnyoneListening()) throw new InvalidOperationException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
+                if (source.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
+                if (_instance.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
                 // initialise non-serialised properties
                 source._checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
                 source._history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
@@ -589,7 +591,7 @@ namespace LolloGPS.Data
         public void RefreshSeries(Tables whichSeries)
         {
             if (whichSeries == Tables.Nil) return;
-            RefreshRequired?.Invoke(this, whichSeries);
+            RefreshSeriesRequested?.Invoke(this, whichSeries);
         }
         public async Task<IReadOnlyCollection<PointRecord>> GetSeriesCloneAsync(Tables whichSeries)
         {
@@ -1748,5 +1750,12 @@ namespace LolloGPS.Data
         string LastMessage { get; set; }
 
         Task<bool> AddHistoryRecordAsync(PointRecord dataRecord, bool checkMaxEntries);
+    }
+
+
+    public class DataAlreadyBoundException : Exception
+    {
+        public DataAlreadyBoundException() : base() { }
+        public DataAlreadyBoundException(string message) : base(message) { }
     }
 }
