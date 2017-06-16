@@ -167,7 +167,7 @@
 						Style="{StaticResource AppBarButtonRecoloured}"
                         Visibility="{x:Bind PersistentData.Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"/>
                 </uctl:UniversalWrapPanel>
-                <mctl:CheckpointStyleSelector 
+                <mctl:CheckpointStyleSelector
                     Checkpoint="{x:Bind PersistentData.Selected, Mode=OneWay}"
                     SymbolChanged="OnSymbolChanged"
                     Visibility="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Checkpoints, Mode=OneWay}"/>

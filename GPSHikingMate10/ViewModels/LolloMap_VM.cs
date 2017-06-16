@@ -417,12 +417,13 @@ namespace LolloGPS.Core
         public async Task<bool> AddMapCentreToCheckpoints()
         {
             var gbbProvider = _gbbProvider;
-            if (gbbProvider == null || PersistentData == null) return false;
+            var pd = PersistentData;
+            if (gbbProvider == null || pd == null) return false;
 
             var centre = await gbbProvider.GetCentreAsync();
             // this stupid control does not know the altitude, it gives crazy high numbers
             centre.Altitude = MainVM.RoundAndRangeAltitude(centre.Altitude, false);
-            return await PersistentData.TryAddPointToCheckpointsAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, }).ConfigureAwait(false);
+            return await pd.TryAddPointToCheckpointsAsync(new PointRecord() { Altitude = centre.Altitude, Latitude = centre.Latitude, Longitude = centre.Longitude, Symbol = pd.Target?.Symbol ?? PersistentData.CheckpointSymbols.Circle }).ConfigureAwait(false);
         }
         #endregion services
 

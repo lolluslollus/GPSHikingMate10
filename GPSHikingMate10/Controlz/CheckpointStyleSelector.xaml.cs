@@ -6,8 +6,9 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using Windows.UI;
 using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -26,6 +27,14 @@ namespace LolloGPS.Controlz
         public static readonly DependencyProperty MainVMProperty =
             DependencyProperty.Register("MainVM", typeof(MainVM), typeof(PointsPanel), new PropertyMetadata(null));
 
+        public Brush AlternativeForeground
+        {
+            get { return (Brush)GetValue(AlternativeForegroundProperty); }
+            set { SetValue(AlternativeForegroundProperty, value); }
+        }
+        public static readonly DependencyProperty AlternativeForegroundProperty =
+            DependencyProperty.Register("AlternativeForeground", typeof(Brush), typeof(CheckpointStyleSelector), new PropertyMetadata(new SolidColorBrush(Colors.Gray)));
+
         public PointRecord Checkpoint
         {
             get { return (PointRecord)GetValue(CheckpointProperty); }
@@ -42,7 +51,7 @@ namespace LolloGPS.Controlz
         #region lifecycle
         public CheckpointStyleSelector()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
         #endregion lifecycle
 

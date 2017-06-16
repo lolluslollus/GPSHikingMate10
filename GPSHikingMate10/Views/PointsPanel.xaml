@@ -235,10 +235,11 @@
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
         <!-- symbol -->
         <TextBlock Grid.Row="6" Grid.Column="0"
-			Text="Choose a symbol"
+			Text="Symbol"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
         <mctl:CheckpointStyleSelector Grid.Row="7" Grid.Column="0"
+            Foreground="{StaticResource CheckpointBrushOpaque}"
             Checkpoint="{x:Bind PersistentData.Target, Mode=OneWay}"/>
 
         <!-- hyperlink name -->
