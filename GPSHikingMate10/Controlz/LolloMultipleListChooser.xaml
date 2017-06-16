@@ -72,23 +72,37 @@
                         </ListView.ItemsPanel>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid BorderThickness="0"
-                                    Background="{Binding IsSelected, Mode=OneWay, Converter={StaticResource IsSelectedToBackgroundConverter}}"
-                                    IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
-                                    Tapped="OnItemBorder_Tapped">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1*" MinWidth="30"/>
-                                        <ColumnDefinition Width="10*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox
-                                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                        Click="OnCheckBox_Click"
-                                        Margin="10,0,0,0"/>
-                                    <TextBlock Grid.Column="1"
-                                        Text="{Binding TextAndTag.Text, Mode=OneWay}"
-										TextWrapping="Wrap"
-                                        Style="{Binding ElementName=me, Path=TextItemStyle}"
-                                        Margin="10"/>
+                                <Grid>
+                                    <Grid BorderThickness="0"
+                                        Background="{Binding IsSelected, Mode=OneWay, Converter={StaticResource IsSelectedToBackgroundConverter}}"
+                                        IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                                        Tapped="OnItemBorder_Tapped"
+                                        Visibility="{Binding ElementName=me, Path=IsMultiSelectCheckBoxEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*" MinWidth="30"/>
+                                            <ColumnDefinition Width="10*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            Click="OnCheckBox_Click"
+                                            Margin="10,0,0,0"/>
+                                        <TextBlock Grid.Column="1"
+                                            Text="{Binding TextAndTag.Text, Mode=OneWay}"
+										    TextWrapping="Wrap"
+                                            Style="{Binding ElementName=me, Path=TextItemStyle}"
+                                            Margin="10"/>
+                                    </Grid>
+                                    <Grid BorderThickness="0"
+                                        Background="{Binding IsSelected, Mode=OneWay, Converter={StaticResource IsSelectedToBackgroundConverter}}"
+                                        IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+                                        Tapped="OnItemBorder_Tapped"
+                                        Visibility="{Binding ElementName=me, Path=IsMultiSelectCheckBoxEnabled, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}">
+                                        <TextBlock
+                                            Text="{Binding TextAndTag.Text, Mode=OneWay}"
+										    TextWrapping="Wrap"
+                                            Style="{Binding ElementName=me, Path=TextItemStyle}"
+                                            Margin="10"/>
+                                </Grid>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
