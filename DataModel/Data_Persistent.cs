@@ -482,8 +482,8 @@ namespace LolloGPS.Data
         public double MapLastPitch { get { return _mapLastPitch; } set { _mapLastPitch = value; } }
 
         private static readonly object _lastDownloadLocker = new object();
-        private bool _isTilesDownloadDesired = false; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         [DataMember]
+        private bool _isTilesDownloadDesired = false; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         public bool IsTilesDownloadDesired
         {
             get
@@ -493,13 +493,9 @@ namespace LolloGPS.Data
                     return _isTilesDownloadDesired;
                 }
             }
-            private set // this lockless setter is only used by the serialiser
-            {
-                if (_isTilesDownloadDesired != value) { _isTilesDownloadDesired = value; RaisePropertyChanged_UI(); }
-            }
         }
-        private int _maxDesiredZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         [DataMember]
+        private int _maxDesiredZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         public int MaxDesiredZoomForDownloadingTiles
         {
             get
@@ -509,14 +505,10 @@ namespace LolloGPS.Data
                     return _maxDesiredZoomForDownloadingTiles;
                 }
             }
-            private set // this lockless setter is only used by the serialiser
-            {
-                if (_maxDesiredZoomForDownloadingTiles != value) { _maxDesiredZoomForDownloadingTiles = value; RaisePropertyChanged_UI(); }
-            }
         }
 
-        private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         [DataMember]
+        private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
         public DownloadSession LastDownloadSession
         {
             get
@@ -526,17 +518,12 @@ namespace LolloGPS.Data
                     return _lastDownloadSession;
                 }
             }
-            private set // this lockless setter is only used by the serialiser
-            {
-                _lastDownloadSession = value;
-            }
         }
 
         private static readonly object _targetLocker = new object();
-        private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
-        // this setter is only used by the serialiser
         [DataMember]
-        public PointRecord Target { get { lock (_targetLocker) { return _target; } } private set { lock (_targetLocker) { _target = value; RaisePropertyChanged(); } } }
+        private PointRecord _target = new PointRecord() { PositionSource = DefaultPositionSource };
+        public PointRecord Target { get { lock (_targetLocker) { return _target; } } }
 
         [DataMember]
         private readonly SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetStockTileSources());
