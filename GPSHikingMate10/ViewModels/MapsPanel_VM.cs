@@ -325,10 +325,13 @@ namespace GPSHikingMate10.ViewModels
         }
         public Task ShowDownloadZooms()
         {
+            if (!_isLeechingEnabled)
+            {
+                _mainVM?.SetLastMessage_UI("Download busy");
+                return Task.CompletedTask;
+            }
             return RunFunctionIfOpenAsyncT(async () =>
             {
-                if (!_isLeechingEnabled) _mainVM.SetLastMessage_UI("Download busy"); // this is redundant safety
-
                 // present a choice of zoom levels
                 List<Tuple<int, int>> howManyTiles4DifferentZooms = await _lolloMapVM.GetHowManyTiles4DifferentZoomsAsync().ConfigureAwait(true);
 
