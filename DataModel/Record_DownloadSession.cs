@@ -77,7 +77,8 @@ namespace LolloGPS.Data.Leeching
                 }
             }
             maxZoom = Math.Min(maxZoom, maxMaxZoom);
-            if (minZoom > maxZoom) LolloMath.Swap(ref minZoom, ref maxZoom);
+            //if (minZoom > maxZoom) LolloMath.Swap(ref minZoom, ref maxZoom);
+            //if (minZoom > maxZoom) minZoom = maxZoom = 0;
 
             string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
             if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
@@ -85,13 +86,7 @@ namespace LolloGPS.Data.Leeching
             _maxZoom = maxZoom;
             _minZoom = minZoom;
 
-            _tileSources = tileSources.Select(ts =>
-            {
-                var tsClone = WritableTileSourceRecord.Clone(ts);
-                tsClone.MaxZoom = Math.Min(tsClone.MaxZoom, maxZoom);
-                tsClone.MinZoom = Math.Max(tsClone.MinZoom, minZoom);
-                return tsClone as TileSourceRecord;
-            }).ToList().AsReadOnly();
+            _tileSources = GetTileSourcesWithReducedZooms(tileSources, maxZoom, minZoom);
         }
         // ctor for cloning
         public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<TileSourceRecord> tileSources)
@@ -101,17 +96,24 @@ namespace LolloGPS.Data.Leeching
             string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
             if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
 
-            _tileSources = tileSources.Select(ts =>
-            {
-                var tsClone = WritableTileSourceRecord.Clone(ts);
-                tsClone.MaxZoom = Math.Min(tsClone.MaxZoom, maxZoom);
-                tsClone.MinZoom = Math.Max(tsClone.MinZoom, minZoom);
-                return tsClone as TileSourceRecord;
-            }).ToList().AsReadOnly();
+            _tileSources = GetTileSourcesWithReducedZooms(tileSources, maxZoom, minZoom);
             _nwCorner = nwCorner;
             _seCorner = seCorner;
             _minZoom = minZoom;
             _maxZoom = maxZoom;
+        }
+        private IReadOnlyList<TileSourceRecord> GetTileSourcesWithReducedZooms(IEnumerable<TileSourceRecord> tileSources, int maxZoom, int minZoom)
+        {
+            return tileSources.Select(ts =>
+            {
+                var tsClone = WritableTileSourceRecord.Clone(ts);
+                var maxZoomReduced = Math.Min(tsClone.MaxZoom, maxZoom);
+                var minZoomReduced = Math.Max(tsClone.MinZoom, minZoom);
+                //if (minZoomReduced > maxZoomReduced) maxZoomReduced = minZoomReduced = 0;
+                tsClone.MaxZoom = maxZoomReduced;
+                tsClone.MinZoom = minZoomReduced;
+                return tsClone as TileSourceRecord;
+            }).ToList().AsReadOnly();
         }
     }
 }
