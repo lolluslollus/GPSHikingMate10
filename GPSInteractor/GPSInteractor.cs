@@ -43,7 +43,7 @@ namespace LolloGPS.GPSInteraction
         {
             AddHandlers_DataModelPropertyChanged();
             await TryUpdateBackgroundPropsAfterPropsChanged().ConfigureAwait(false);
-            UpdateForegroundTrkProps(false);
+            UpdateForegroundTrkProps2(false);
         }
 
         protected override Task CloseMayOverrideAsync(object args = null)
@@ -78,11 +78,11 @@ namespace LolloGPS.GPSInteraction
                 {
                     RemoveHandlers_GeoLocator(); // must reinit the geolocator whenever I change these props
                     _geolocator = null;
-                    UpdateForegroundTrkProps(true);
+                    UpdateForegroundTrkProps2(true);
                 }
                 else if (e.PropertyName == nameof(PersistentData.IsTracking))
                 {
-                    UpdateForegroundTrkProps(true);
+                    UpdateForegroundTrkProps2(true);
                 }
                 else if (e.PropertyName == nameof(PersistentData.BackgroundUpdatePeriodInMinutes))
                 {
@@ -159,16 +159,16 @@ namespace LolloGPS.GPSInteraction
         #endregion event handling
 
         #region foreground tracking
-        private void OnGeolocator_PositionChangedAsync(Geolocator sender, PositionChangedEventArgs e)
+        private void OnGeolocator_PositionChangedAsync(Geolocator sender, PositionChangedEventArgs args)
         {
             Task ooo = RunFunctionIfOpenAsyncT(async delegate
             {
                 try
                 {
                     if (CancToken.IsCancellationRequested) return;
-                    if (e != null)
+                    if (args != null)
                     {
-                        var newDataRecord = GetNewHistoryRecord(e.Position);
+                        var newDataRecord = GetNewHistoryRecord(args.Position);
                         await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false);
                     }
                 }
@@ -180,7 +180,7 @@ namespace LolloGPS.GPSInteraction
             });
         }
 
-        private void UpdateForegroundTrkProps(bool setUserMessage)
+        private void UpdateForegroundTrkProps2(bool setUserMessage)
         {
             if (_geolocator == null)
             {
@@ -429,23 +429,21 @@ namespace LolloGPS.GPSInteraction
 
         public static PointRecord GetNewHistoryRecord(Geoposition pos)
         {
-            PointRecord newDataRecord = null;
-            if (pos != null)
+            var coo = pos?.Coordinate;
+            if (coo?.Point?.Position == null) return null;
+            var result = new PointRecord
             {
-                newDataRecord = new PointRecord
-                {
-                    Latitude = pos.Coordinate.Point.Position.Latitude,
-                    Longitude = pos.Coordinate.Point.Position.Longitude,
-                    Altitude = pos.Coordinate.Point.Position.Altitude,
-                    Accuracy = pos.Coordinate.Accuracy,
-                    AltitudeAccuracy = pos.Coordinate.AltitudeAccuracy.GetValueOrDefault(),
-                    PositionSource = pos.Coordinate.PositionSource.ToString(),
-                    TimePoint = pos.Coordinate.Timestamp.DateTime,
-                    SpeedInMetreSec = pos.Coordinate.Speed ?? default(double)
-                };
-                // == null ? default(double) : pos.Coordinate.AltitudeAccuracy;
-            }
-            return newDataRecord;
+                Latitude = coo.Point.Position.Latitude,
+                Longitude = coo.Point.Position.Longitude,
+                Altitude = coo.Point.Position.Altitude,
+                Accuracy = coo.Accuracy,
+                AltitudeAccuracy = coo.AltitudeAccuracy.GetValueOrDefault(),
+                PositionSource = coo.PositionSource.ToString(),
+                TimePoint = coo.Timestamp.DateTime,
+                SpeedInMetreSec = coo.Speed ?? default(double)
+            };
+            if (result.IsEmpty()) return null;
+            return result;
         }
 
         private void SetLastMessage_UI(string message)

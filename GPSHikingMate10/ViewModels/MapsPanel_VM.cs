@@ -337,7 +337,7 @@ namespace GPSHikingMate10.ViewModels
                 {
                     if (item.Item2 <= ConstantData.MAX_TILES_TO_LEECH && item.Item1 > 0 && item.Item2 > 0)
                     {
-                        string message = "Zoom  " + item.Item1 + " gets up to " + item.Item2 + " tiles";
+                        string message = "Zoom  " + item.Item1 + " gets up to " + item.Item2 + " tiles each layer";
                         tts.Add(new TextAndTag(message, item.Item1));
                     }
 
