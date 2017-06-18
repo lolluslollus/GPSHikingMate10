@@ -43,15 +43,10 @@ namespace LolloGPS.Data.Leeching
         }
 
         [DataMember]
-        private readonly IReadOnlyList<string> _tileSourceTechNames;
-        public IReadOnlyList<string> TileSourceTechNames
+        private readonly IReadOnlyList<TileSourceRecord> _tileSources;
+        public IReadOnlyList<TileSourceRecord> TileSources
         {
-            get { return _tileSourceTechNames; }
-        }
-
-        public bool IsZoomsValid()
-        {
-            return string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom));
+            get { return _tileSources; }
         }
 
         public DownloadSession(GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources, int maxMaxZoom)
@@ -63,7 +58,6 @@ namespace LolloGPS.Data.Leeching
 
             _nwCorner = gbb.NorthwestCorner;
             _seCorner = gbb.SoutheastCorner;
-            _tileSourceTechNames = tileSources.Select(ts => ts.TechName).ToList().AsReadOnly();
 
             int minZoom = 99; int maxZoom = -1;
             // first try to find the min and max zooms from the base layer tile source
@@ -90,26 +84,34 @@ namespace LolloGPS.Data.Leeching
 
             _maxZoom = maxZoom;
             _minZoom = minZoom;
+
+            _tileSources = tileSources.Select(ts =>
+            {
+                var tsClone = WritableTileSourceRecord.Clone(ts);
+                tsClone.MaxZoom = Math.Min(tsClone.MaxZoom, maxZoom);
+                tsClone.MinZoom = Math.Max(tsClone.MinZoom, minZoom);
+                return tsClone as TileSourceRecord;
+            }).ToList().AsReadOnly();
         }
         // ctor for cloning
-        public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<string> tileSourcesTechNames)
+        public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<TileSourceRecord> tileSources)
         {
-            if (tileSourcesTechNames?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+            if (tileSources?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
             if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude) throw new ArgumentException("DownloadSession ctor: NW corner same as SE corner");
             string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
             if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
 
-            _tileSourceTechNames = tileSourcesTechNames.ToList(); // clone // LOLLO TODO check if this really clones
+            _tileSources = tileSources.Select(ts =>
+            {
+                var tsClone = WritableTileSourceRecord.Clone(ts);
+                tsClone.MaxZoom = Math.Min(tsClone.MaxZoom, maxZoom);
+                tsClone.MinZoom = Math.Max(tsClone.MinZoom, minZoom);
+                return tsClone as TileSourceRecord;
+            }).ToList().AsReadOnly();
             _nwCorner = nwCorner;
             _seCorner = seCorner;
             _minZoom = minZoom;
             _maxZoom = maxZoom;
-        }
-
-        public static DownloadSession Clone(DownloadSession source)
-        {
-            if (source == null) return null;
-            return new DownloadSession(source._minZoom, source._maxZoom, source._nwCorner, source._seCorner, source._tileSourceTechNames);
         }
     }
 }

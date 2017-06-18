@@ -561,10 +561,8 @@ namespace LolloGPS.Data
     }
 
     [DataContract]
-    //[KnownType(typeof(string[]))]
-    //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
-    public sealed class TestTileSourceRecord : TileSourceRecord
+    public sealed class WritableTileSourceRecord : TileSourceRecord
     {
         public new string TechName { get { return _techName; } set { _techName = value; RaisePropertyChanged_UI(); } }
 
@@ -590,7 +588,7 @@ namespace LolloGPS.Data
 
         public new bool IsOverlay { get { return _isOverlay; } set { _isOverlay = value; RaisePropertyChanged_UI(); } }
 
-        public TestTileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice,
+        public WritableTileSourceRecord(string techName, string displayName, string folderName, string copyrightNotice,
             string providerUri, int minZoom, int maxZoom, int tilePixelSize,
             bool isDeletable, bool isOverlay,
             Dictionary<string, string> headers, params string[] uriStrings) : base(techName, displayName, folderName, copyrightNotice,
@@ -599,16 +597,27 @@ namespace LolloGPS.Data
                 headers, uriStrings)
         { }
 
-        public static TestTileSourceRecord Clone(TestTileSourceRecord source)
+        public static WritableTileSourceRecord Clone(WritableTileSourceRecord source)
         {
             if (source == null) return null;
 
-            return new TestTileSourceRecord(source._techName, source._displayName, source._folderName, source._copyrightNotice,
+            return new WritableTileSourceRecord(source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isDeletable, source._isOverlay,
                 // LOLLO TODO check that the clones below really clone
                 new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
+        public new static WritableTileSourceRecord Clone(TileSourceRecord source)
+        {
+            if (source == null) return null;
+
+            return new WritableTileSourceRecord(source.TechName, source.DisplayName, source.FolderName, source.CopyrightNotice,
+                source.ProviderUriString, source.MinZoom, source.MaxZoom, source.TilePixelSize,
+                source.IsDeletable, source.IsOverlay,
+                // LOLLO TODO check that the clones below really clone
+                new Dictionary<string, string>(source.RequestHeaders), source.UriStrings.ToArray());
+        }
+
         //public bool IsEqualTo(TestTileSourceRecord comp)
         //{
         //    if (comp == null) return false;
@@ -635,9 +644,9 @@ namespace LolloGPS.Data
         //    return 1;
         //}
 
-        public static TestTileSourceRecord GetSampleTileSource()
+        public static WritableTileSourceRecord GetSampleTileSource()
         {
-            return new TestTileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
+            return new WritableTileSourceRecord(SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
         }
 
     }

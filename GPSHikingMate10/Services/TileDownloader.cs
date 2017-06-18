@@ -178,13 +178,13 @@ namespace LolloGPS.Core
                     var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
                     if (gbb == null) return;
 
-                    var tileSourcesAndSession = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
-                    if (tileSourcesAndSession == null) return;
+                    var session = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
+                    if (session == null) return;
                     // result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
-                    foreach (var ts in tileSourcesAndSession.Item1)
+                    foreach (var ts in session.TileSources)
                     {
                         results.Add(await Task.Run(() =>
-                            SaveTiles_RespondingToCancel2(ts, tileSourcesAndSession.Item2), CancToken).ConfigureAwait(false));
+                            SaveTiles_RespondingToCancel2(session, ts), CancToken).ConfigureAwait(false));
                     }
                 }
                 catch (Exception ex)
@@ -212,7 +212,7 @@ namespace LolloGPS.Core
                 if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
             }
         }
-        private Tuple<int, int> SaveTiles_RespondingToCancel2(TileSourceRecord ts, DownloadSession session)
+        private Tuple<int, int> SaveTiles_RespondingToCancel2(DownloadSession session, TileSourceRecord tileSource)
         {
             RaiseSaveProgressChanged(0.0);
 
@@ -222,7 +222,7 @@ namespace LolloGPS.Core
 
             if (session != null && _runtimeData.IsConnectionAvailable)
             {
-                var requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session);
+                var requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session, tileSource.MaxZoom, tileSource.MinZoom);
                 totalCnt = requiredTilesOrderedByZoom.Count;
 
                 if (totalCnt > 0)
@@ -251,7 +251,7 @@ namespace LolloGPS.Core
                     CancellationTokenSource cancTokenSourceLinked = null;
                     try
                     {
-                        var tileCache = new TileCacheReaderWriter(ts, false, false);
+                        var tileCache = new TileCacheReaderWriter(tileSource, false, false);
 
                         cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
                             CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);
@@ -304,7 +304,8 @@ namespace LolloGPS.Core
                     // now I have a geobounding box that certainly encloses the screen.
                     var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
                     if (session == null) return;
-                    var tilesOrderedByZoom = GetTileData_RespondingToCancel(session);
+                    // we want this method to be quick, so we don't loop over the layers, but only use the session data once
+                    var tilesOrderedByZoom = GetTileData_RespondingToCancel(session, session.MaxZoom, session.MinZoom);
                     if (tilesOrderedByZoom == null) return;
                     for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
                     {
@@ -321,7 +322,7 @@ namespace LolloGPS.Core
             return output;
         }
 
-        protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
+        protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session, int maxZoom, int minZoom)
         {
             var output = new List<TileCacheRecord>();
             if (session == null
@@ -337,7 +338,7 @@ namespace LolloGPS.Core
                 if (cancToken.IsCancellationRequested) return output;
 
                 int totalCnt = 0;
-                for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+                for (int zoom = minZoom; zoom <= maxZoom; zoom++)
                 {
                     var topLeftTile = new TileCacheRecord(Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
                     var bottomRightTile = new TileCacheRecord(Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
