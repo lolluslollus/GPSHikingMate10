@@ -324,61 +324,61 @@ namespace LolloGPS.Core
         protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session)
         {
             var output = new List<TileCacheRecord>();
-            CancellationTokenSource cancTokenSourceLinked = null;
+            if (session == null
+                || (session.NWCorner.Latitude == session.SECorner.Latitude && session.NWCorner.Longitude == session.SECorner.Longitude))
+                return output;
 
+            CancellationTokenSource cancTokenSourceLinked = null;
             try
             {
                 cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
                 var cancToken = cancTokenSourceLinked.Token;
 
-                if (!cancToken.IsCancellationRequested
-                    && session != null
-                    && (session.NWCorner.Latitude != session.SECorner.Latitude || session.NWCorner.Longitude != session.SECorner.Longitude))
+                if (cancToken.IsCancellationRequested) return output;
+
+                int totalCnt = 0;
+                for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
                 {
-                    int totalCnt = 0;
-                    for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
+                    var topLeftTile = new TileCacheRecord(Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
+                    var bottomRightTile = new TileCacheRecord(Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
+                    int maxX4Zoom = MaxTilexX4Zoom(zoom);
+                    Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
+
+                    bool exit = false;
+                    bool hasJumpedDateLine = false;
+
+                    int x = topLeftTile.X;
+                    while (!exit)
                     {
-                        var topLeftTile = new TileCacheRecord(Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
-                        var bottomRightTile = new TileCacheRecord(Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
-                        int maxX4Zoom = MaxTilexX4Zoom(zoom);
-                        Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
-
-                        bool exit = false;
-                        bool hasJumpedDateLine = false;
-
-                        int x = topLeftTile.X;
-                        while (!exit)
+                        for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
                         {
-                            for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
+                            output.Add(new TileCacheRecord(x, y, 0, zoom));
+                            totalCnt++;
+                            if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested)
                             {
-                                output.Add(new TileCacheRecord(x, y, 0, zoom));
-                                totalCnt++;
-                                if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested)
-                                {
-                                    exit = true;
-                                    break;
-                                }
-                            }
-
-                            x++;
-                            if (x > bottomRightTile.X)
-                            {
-                                if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
-                                {
-                                    if (x > maxX4Zoom)
-                                    {
-                                        x = 0;
-                                        hasJumpedDateLine = true;
-                                    }
-                                }
-                                else
-                                {
-                                    exit = true;
-                                }
+                                exit = true;
+                                break;
                             }
                         }
-                        if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested) break;
+
+                        x++;
+                        if (x > bottomRightTile.X)
+                        {
+                            if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
+                            {
+                                if (x > maxX4Zoom)
+                                {
+                                    x = 0;
+                                    hasJumpedDateLine = true;
+                                }
+                            }
+                            else
+                            {
+                                exit = true;
+                            }
+                        }
                     }
+                    if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested) break;
                 }
             }
             catch (OperationCanceledException) { }
