@@ -1638,7 +1638,7 @@ namespace LolloGPS.Data
                         try
                         {
                             var currentTssClone = GetCurrentTileSourcezClone2();
-                            _lastDownloadSession = GetDownloadSession4CurrentTileSources2(gbb, currentTssClone, _maxDesiredZoomForDownloadingTiles);
+                            _lastDownloadSession = new DownloadSession(gbb, currentTssClone, _maxDesiredZoomForDownloadingTiles);
                             var sessionClone = DownloadSession.Clone(_lastDownloadSession);
                             return Tuple.Create(currentTssClone, sessionClone);
                         }
@@ -1651,16 +1651,16 @@ namespace LolloGPS.Data
                         try
                         {
                             var allTssClone = GetAllTileSourcezClone2();
-                            var lastDownloadTileSources = new Collection<TileSourceRecord>();
+                            var lastDownloadTileSources_StillAvailable = new Collection<TileSourceRecord>();
                             foreach (var techName in _lastDownloadSession.TileSourceTechNames)
                             {
                                 var tileSource = allTssClone.FirstOrDefault(ts => ts.TechName.Equals(techName));
-                                if (tileSource != null) lastDownloadTileSources.Add(tileSource);
+                                if (tileSource != null) lastDownloadTileSources_StillAvailable.Add(tileSource);
                             }
-                            if (lastDownloadTileSources.Count > 0 && _lastDownloadSession.IsZoomsValid())
+                            if (lastDownloadTileSources_StillAvailable.Any())
                             {
-                                var sessionClone = DownloadSession.Clone(_lastDownloadSession);
-                                return Tuple.Create(lastDownloadTileSources as ICollection<TileSourceRecord>, sessionClone);
+                                var sessionClone = new DownloadSession(_lastDownloadSession.MinZoom, _lastDownloadSession.MaxZoom, _lastDownloadSession.NWCorner, _lastDownloadSession.SECorner, lastDownloadTileSources_StillAvailable.Select(ts => ts.TechName));
+                                return Tuple.Create(lastDownloadTileSources_StillAvailable as ICollection<TileSourceRecord>, sessionClone);
                             }
                         }
                         catch (Exception) { }
@@ -1682,44 +1682,7 @@ namespace LolloGPS.Data
         {
             if (gbb == null) return null;
             var currentTss = await GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
-            return GetDownloadSession4CurrentTileSources2(gbb, currentTss, 99);
-        }
-        private DownloadSession GetDownloadSession4CurrentTileSources2(GeoboundingBox gbb, ICollection<TileSourceRecord> currentTss, int maxMaxZoom)
-        {
-            if (gbb == null) return null;
-            DownloadSession result = null;
-
-            try
-            {
-                int minZoom = 99; int maxZoom = -1;
-                // first try to find the min and max zooms from the base layer tile source
-                foreach (var ts in currentTss)
-                {
-                    if (ts.IsOverlay) continue;
-                    maxZoom = Math.Max(ts.MaxZoom, maxZoom);
-                    minZoom = Math.Min(ts.MinZoom, minZoom);
-                }
-                // no base layer tile source: check all tile sources
-                if (minZoom == 99 || maxZoom == -1)
-                {
-                    foreach (var ts in currentTss)
-                    {
-                        maxZoom = Math.Max(ts.MaxZoom, maxZoom);
-                        minZoom = Math.Min(ts.MinZoom, minZoom);
-                    }
-                }
-                maxZoom = Math.Min(maxZoom, maxMaxZoom);
-
-                var session = new DownloadSession(minZoom, maxZoom, gbb, currentTss);
-                // If the session is invalid, it throws in the ctor so I won't get here.
-                result = session;
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-            }
-
-            return result;
+            return new DownloadSession(gbb, currentTss, 99);
         }
         #endregion download session methods
 

@@ -36,7 +36,7 @@ namespace LolloGPS.Data.Leeching
         }
 
         [DataMember]
-        private int _maxZoom;
+        private readonly int _maxZoom;
         public int MaxZoom
         {
             get { return _maxZoom; }
@@ -54,33 +54,58 @@ namespace LolloGPS.Data.Leeching
             return string.IsNullOrEmpty(TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom));
         }
 
-        public DownloadSession(int minZoom, int maxZoom, GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources) : this(minZoom, maxZoom)
+        public DownloadSession(GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources, int maxMaxZoom)
         {
             if (gbb == null) throw new ArgumentException("DownloadSession ctor: gbb is null");
-            if (tileSources == null || tileSources.Count == 0) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+            if (gbb.NorthwestCorner.Latitude == gbb.SoutheastCorner.Latitude
+                && gbb.NorthwestCorner.Longitude == gbb.SoutheastCorner.Longitude) throw new ArgumentException("DownloadSession ctor: NW corner same as SE corner");
+            if (tileSources?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
 
             _nwCorner = gbb.NorthwestCorner;
             _seCorner = gbb.SoutheastCorner;
             _tileSourceTechNames = tileSources.Select(ts => ts.TechName).ToList().AsReadOnly();
+
+            int minZoom = 99; int maxZoom = -1;
+            // first try to find the min and max zooms from the base layer tile source
+            foreach (var ts in tileSources)
+            {
+                if (ts.IsOverlay) continue;
+                maxZoom = Math.Max(ts.MaxZoom, maxZoom);
+                minZoom = Math.Min(ts.MinZoom, minZoom);
+            }
+            // no base layer tile source: check all tile sources
+            if (minZoom == 99 || maxZoom == -1)
+            {
+                foreach (var ts in tileSources)
+                {
+                    maxZoom = Math.Max(ts.MaxZoom, maxZoom);
+                    minZoom = Math.Min(ts.MinZoom, minZoom);
+                }
+            }
+            maxZoom = Math.Min(maxZoom, maxMaxZoom);
+            if (minZoom > maxZoom) LolloMath.Swap(ref minZoom, ref maxZoom);
+
+            string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
+            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
+
+            _maxZoom = maxZoom;
+            _minZoom = minZoom;
         }
         // ctor for cloning
-        private DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<string> tileSourcesTechNames) : this(minZoom, maxZoom)
+        public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<string> tileSourcesTechNames)
         {
+            if (tileSourcesTechNames?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+            if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude) throw new ArgumentException("DownloadSession ctor: NW corner same as SE corner");
+            string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
+            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
+
+            _tileSourceTechNames = tileSourcesTechNames.ToList(); // clone // LOLLO TODO check if this really clones
             _nwCorner = nwCorner;
             _seCorner = seCorner;
-            _tileSourceTechNames = tileSourcesTechNames.ToList(); // clone // LOLLO TODO check if this really clones
-        }
-
-        private DownloadSession(int minZoom, int maxZoom)
-        {
             _minZoom = minZoom;
             _maxZoom = maxZoom;
-
-            if (_minZoom > _maxZoom) LolloMath.Swap(ref _minZoom, ref _maxZoom);
-
-            string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(_minZoom, _maxZoom);
-            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
         }
+
         public static DownloadSession Clone(DownloadSession source)
         {
             if (source == null) return null;
