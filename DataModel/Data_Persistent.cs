@@ -462,6 +462,17 @@ namespace LolloGPS.Data
         private MapStyle _mapStyle = MapStyle.Terrain;
         [DataMember]
         public MapStyle MapStyle { get { return _mapStyle; } set { if (_mapStyle != value) { _mapStyle = value; RaisePropertyChanged_UI(); } } }
+        public void CycleMapStyle()
+        {
+            switch (MapStyle)
+            {
+                case MapStyle.None:
+                    MapStyle = MapStyle.Terrain; break;
+                default:
+                    MapStyle = MapStyle.None; break;
+            }
+        }
+
         private volatile bool _isMapCached = true; //false;
         [DataMember]
         public bool IsMapCached { get { return _isMapCached; } set { if (_isMapCached != value) { _isMapCached = value; RaisePropertyChanged_UI(); } } }
@@ -1652,19 +1663,6 @@ namespace LolloGPS.Data
             return new DownloadSession(gbb, currentTss, 99);
         }
         #endregion download session methods
-
-        #region otherMethods
-        public void CycleMapStyle()
-        {
-            switch (MapStyle)
-            {
-                case MapStyle.None:
-                    MapStyle = MapStyle.Terrain; break;
-                default:
-                    MapStyle = MapStyle.None; break;
-            }
-        }
-        #endregion otherMethods
     }
 
 
