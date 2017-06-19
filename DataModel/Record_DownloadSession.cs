@@ -50,17 +50,17 @@ namespace LolloGPS.Data.Leeching
         }
         /// <summary>
         /// Initialises an instance starting from scratch.
-        /// Throws <see cref="ArgumentException"/> if parameters are no good.
+        /// Throws <see cref="InvalidDownloadSessionArgumentsException"/> if parameters are no good.
         /// </summary>
         /// <param name="gbb"></param>
         /// <param name="tileSources"></param>
         /// <param name="maxMaxZoom"></param>
         public DownloadSession(GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources, int maxMaxZoom)
         {
-            if (gbb == null) throw new ArgumentException("DownloadSession ctor: gbb is null");
+            if (gbb == null) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: gbb is null");
             if (gbb.NorthwestCorner.Latitude == gbb.SoutheastCorner.Latitude
-                && gbb.NorthwestCorner.Longitude == gbb.SoutheastCorner.Longitude) throw new ArgumentException("DownloadSession ctor: NW corner same as SE corner");
-            if (tileSources?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
+                && gbb.NorthwestCorner.Longitude == gbb.SoutheastCorner.Longitude) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: NW corner same as SE corner");
+            if (tileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: cannot find a tile source with the given name");
 
             _nwCorner = gbb.NorthwestCorner;
             _seCorner = gbb.SoutheastCorner;
@@ -87,7 +87,7 @@ namespace LolloGPS.Data.Leeching
             //if (minZoom > maxZoom) minZoom = maxZoom = 0;
 
             string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
-            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
+            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: " + zoomErrorMsg);
 
             _maxZoom = maxZoom;
             _minZoom = minZoom;
@@ -96,7 +96,7 @@ namespace LolloGPS.Data.Leeching
         }
         /// <summary>
         /// Initialises an instance starting from another instance.
-        /// Throws <see cref="ArgumentException"/> if params are no good.
+        /// Throws <see cref="InvalidDownloadSessionArgumentsException"/> if params are no good.
         /// </summary>
         /// <param name="minZoom"></param>
         /// <param name="maxZoom"></param>
@@ -105,10 +105,10 @@ namespace LolloGPS.Data.Leeching
         /// <param name="tileSources"></param>
         public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<TileSourceRecord> tileSources)
         {
-            if (tileSources?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
-            if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude) throw new ArgumentException("DownloadSession ctor: NW corner same as SE corner");
+            if (tileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: cannot find a tile source with the given name");
+            if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: NW corner same as SE corner");
             string zoomErrorMsg = TileSourceRecord.CheckMinMaxZoom(minZoom, maxZoom);
-            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new ArgumentException("DownloadSession ctor: " + zoomErrorMsg);
+            if (!string.IsNullOrEmpty(zoomErrorMsg)) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: " + zoomErrorMsg);
 
             _tileSources = GetTileSourcesWithReducedZooms(tileSources, maxZoom, minZoom);
             _nwCorner = nwCorner;
@@ -129,5 +129,10 @@ namespace LolloGPS.Data.Leeching
                 return tsClone as TileSourceRecord;
             }).ToList().AsReadOnly();
         }
+    }
+    public sealed class InvalidDownloadSessionArgumentsException : ArgumentException
+    {
+        public InvalidDownloadSessionArgumentsException() : base() { }
+        public InvalidDownloadSessionArgumentsException(string message) : base(message) { }
     }
 }

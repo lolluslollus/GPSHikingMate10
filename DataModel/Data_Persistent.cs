@@ -189,7 +189,7 @@ namespace LolloGPS.Data
             target.MapLastZoom = source.MapLastZoom;
             target.IsMapCached = source.IsMapCached;
             target.IsTilesDownloadDesired = source.IsTilesDownloadDesired;
-            target.MaxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
+            //target.MaxDesiredZoomForDownloadingTiles = source.MaxDesiredZoomForDownloadingTiles;
             target.TapTolerance = source.TapTolerance;
             target.IsShowDegrees = source.IsShowDegrees;
             target.IsKeepAlive = source.IsKeepAlive;
@@ -496,29 +496,9 @@ namespace LolloGPS.Data
         }
         [DataMember]
         private int _maxDesiredZoomForDownloadingTiles = -1; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
-        public int MaxDesiredZoomForDownloadingTiles
-        {
-            get
-            {
-                lock (_lastDownloadLocker)
-                {
-                    return _maxDesiredZoomForDownloadingTiles;
-                }
-            }
-        }
 
         [DataMember]
         private DownloadSession _lastDownloadSession; // no volatile here: I have a locker so I use it, it's much faster (not that volatile is slow anyway)
-        public DownloadSession LastDownloadSession
-        {
-            get
-            {
-                lock (_lastDownloadLocker)
-                {
-                    return _lastDownloadSession;
-                }
-            }
-        }
 
         private static readonly object _targetLocker = new object();
         [DataMember]
@@ -1597,20 +1577,16 @@ namespace LolloGPS.Data
         }
         private void SetTilesDownloadProps2(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
         {
+            if (resetLastDownloadSession) _lastDownloadSession = null;
+
             // we must handle these two variables together because they belong together.
             // an event handler registered on one and reading both may catch the change in the first before the second has changed.
             bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-            bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
 
             _isTilesDownloadDesired = isTilesDownloadDesired;
             _maxDesiredZoomForDownloadingTiles = maxZoom;
 
-            //if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
-            //if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
             if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
-            if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
-
-            if (resetLastDownloadSession) _lastDownloadSession = null;
         }
         public async Task<DownloadSession> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
         {
@@ -1651,9 +1627,13 @@ namespace LolloGPS.Data
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (InvalidDownloadSessionArgumentsException ex)
                     {
                         SetTilesDownloadProps2(false, 0, true);
+                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                    }
+                    catch (Exception ex)
+                    {
                         Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                     }
                 }
