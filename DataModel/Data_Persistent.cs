@@ -1591,22 +1591,26 @@ namespace LolloGPS.Data
             {
                 lock (_lastDownloadLocker)
                 {
-                    // we must handle these two variables together because they belong together.
-                    // an event handler registered on one and reading both may catch the change in the first before the second has changed.
-                    bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
-                    bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
-
-                    _isTilesDownloadDesired = isTilesDownloadDesired;
-                    _maxDesiredZoomForDownloadingTiles = maxZoom;
-
-                    //if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
-                    //if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
-                    if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
-                    if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
-
-                    if (resetLastDownloadSession) _lastDownloadSession = null;
+                    SetTilesDownloadProps2(isTilesDownloadDesired, maxZoom, resetLastDownloadSession);
                 }
             });
+        }
+        private void SetTilesDownloadProps2(bool isTilesDownloadDesired, int maxZoom, bool resetLastDownloadSession)
+        {
+            // we must handle these two variables together because they belong together.
+            // an event handler registered on one and reading both may catch the change in the first before the second has changed.
+            bool isIsTilesDownloadDesiredChanged = isTilesDownloadDesired != _isTilesDownloadDesired;
+            bool isMaxZoomChanged = maxZoom != _maxDesiredZoomForDownloadingTiles;
+
+            _isTilesDownloadDesired = isTilesDownloadDesired;
+            _maxDesiredZoomForDownloadingTiles = maxZoom;
+
+            //if (isIsTilesDownloadDesiredChanged) IsTilesDownloadDesired = _isTilesDownloadDesired;
+            //if (isMaxZoomChanged) MaxDesiredZoomForDownloadingTiles = _maxDesiredZoomForDownloadingTiles;
+            if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
+            if (isMaxZoomChanged) RaisePropertyChanged(nameof(MaxDesiredZoomForDownloadingTiles));
+
+            if (resetLastDownloadSession) _lastDownloadSession = null;
         }
         public async Task<DownloadSession> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
         {
@@ -1619,23 +1623,19 @@ namespace LolloGPS.Data
 
                 lock (_lastDownloadLocker)
                 {
-                    // last download completed: start a new one with the current tile source
-                    if (_lastDownloadSession == null)
+                    try
                     {
-                        try
+                        // last download completed: start a new one with the current tile source
+                        if (_lastDownloadSession == null)
                         {
                             var currentTssClone = GetCurrentTileSourcezClone2();
                             _lastDownloadSession = new DownloadSession(gbb, currentTssClone, _maxDesiredZoomForDownloadingTiles);
                             // return a clone
                             return new DownloadSession(_lastDownloadSession.MinZoom, _lastDownloadSession.MaxZoom, _lastDownloadSession.NWCorner, _lastDownloadSession.SECorner, _lastDownloadSession.TileSources);
                         }
-                        catch (Exception) { }
-                    }
-                    // last download did not complete: start a new one with the old tile sources
-                    // of course, we don't touch the unfinished download session
-                    else
-                    {
-                        try
+                        // last download did not complete: start a new one with the old tile sources
+                        // of course, we don't touch the unfinished download session
+                        else
                         {
                             var allTssClone = GetAllTileSourcezClone2();
                             var lastDownloadTileSources_StillAvailable = new Collection<TileSourceRecord>();
@@ -1650,13 +1650,13 @@ namespace LolloGPS.Data
                                 return new DownloadSession(_lastDownloadSession.MinZoom, _lastDownloadSession.MaxZoom, _lastDownloadSession.NWCorner, _lastDownloadSession.SECorner, lastDownloadTileSources_StillAvailable);
                             }
                         }
-                        catch (Exception) { }
+                    }
+                    catch (Exception ex)
+                    {
+                        SetTilesDownloadProps2(false, 0, true);
+                        Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
             }
             finally
             {

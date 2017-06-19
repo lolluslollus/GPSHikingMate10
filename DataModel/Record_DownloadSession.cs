@@ -48,7 +48,13 @@ namespace LolloGPS.Data.Leeching
         {
             get { return _tileSources; }
         }
-
+        /// <summary>
+        /// Initialises an instance starting from scratch.
+        /// Throws <see cref="ArgumentException"/> if parameters are no good.
+        /// </summary>
+        /// <param name="gbb"></param>
+        /// <param name="tileSources"></param>
+        /// <param name="maxMaxZoom"></param>
         public DownloadSession(GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources, int maxMaxZoom)
         {
             if (gbb == null) throw new ArgumentException("DownloadSession ctor: gbb is null");
@@ -88,7 +94,15 @@ namespace LolloGPS.Data.Leeching
 
             _tileSources = GetTileSourcesWithReducedZooms(tileSources, maxZoom, minZoom);
         }
-        // ctor for cloning
+        /// <summary>
+        /// Initialises an instance starting from another instance.
+        /// Throws <see cref="ArgumentException"/> if params are no good.
+        /// </summary>
+        /// <param name="minZoom"></param>
+        /// <param name="maxZoom"></param>
+        /// <param name="nwCorner"></param>
+        /// <param name="seCorner"></param>
+        /// <param name="tileSources"></param>
         public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<TileSourceRecord> tileSources)
         {
             if (tileSources?.Any() != true) throw new ArgumentException("DownloadSession ctor: cannot find a tile source with the given name");
