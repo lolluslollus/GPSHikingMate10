@@ -222,7 +222,7 @@ namespace LolloGPS.Core
 
             if (session != null && _runtimeData.IsConnectionAvailable)
             {
-                var requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session, tileSource.MaxZoom, tileSource.MinZoom);
+                var requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session.NWCorner, session.SECorner, tileSource.MaxZoom, tileSource.MinZoom);
                 totalCnt = requiredTilesOrderedByZoom.Count;
 
                 if (totalCnt > 0)
@@ -305,7 +305,7 @@ namespace LolloGPS.Core
                     var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
                     if (session == null) return;
                     // we want this method to be quick, so we don't loop over the layers, but only use the session data once
-                    var tilesOrderedByZoom = GetTileData_RespondingToCancel(session, session.MaxZoom, session.MinZoom);
+                    var tilesOrderedByZoom = GetTileData_RespondingToCancel(session.NWCorner, session.SECorner, session.MaxZoom, session.MinZoom);
                     if (tilesOrderedByZoom == null) return;
                     for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
                     {
@@ -322,12 +322,10 @@ namespace LolloGPS.Core
             return output;
         }
 
-        protected List<TileCacheRecord> GetTileData_RespondingToCancel(DownloadSession session, int maxZoom, int minZoom)
+        protected List<TileCacheRecord> GetTileData_RespondingToCancel(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom)
         {
             var output = new List<TileCacheRecord>();
-            if (session == null
-                || (session.NWCorner.Latitude == session.SECorner.Latitude && session.NWCorner.Longitude == session.SECorner.Longitude))
-                return output;
+            if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude || maxZoom < minZoom) return output;
 
             CancellationTokenSource cancTokenSourceLinked = null;
             try
@@ -340,8 +338,8 @@ namespace LolloGPS.Core
                 int totalCnt = 0;
                 for (int zoom = minZoom; zoom <= maxZoom; zoom++)
                 {
-                    var topLeftTile = new TileCacheRecord(Lon2TileX(session.NWCorner.Longitude, zoom), Lat2TileY(session.NWCorner.Latitude, zoom), 0, zoom); // Alaska
-                    var bottomRightTile = new TileCacheRecord(Lon2TileX(session.SECorner.Longitude, zoom), Lat2TileY(session.SECorner.Latitude, zoom), 0, zoom); // New Zealand
+                    var topLeftTile = new TileCacheRecord(Lon2TileX(nwCorner.Longitude, zoom), Lat2TileY(nwCorner.Latitude, zoom), 0, zoom); // Alaska
+                    var bottomRightTile = new TileCacheRecord(Lon2TileX(seCorner.Longitude, zoom), Lat2TileY(seCorner.Latitude, zoom), 0, zoom); // New Zealand
                     int maxX4Zoom = MaxTilexX4Zoom(zoom);
                     Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
 
