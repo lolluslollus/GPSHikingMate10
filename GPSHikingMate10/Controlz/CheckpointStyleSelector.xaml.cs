@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -51,7 +52,7 @@ namespace LolloGPS.Controlz
         #region lifecycle
         public CheckpointStyleSelector()
         {
-            InitializeComponent();            
+            InitializeComponent();
         }
         #endregion lifecycle
 
@@ -87,5 +88,22 @@ namespace LolloGPS.Controlz
             SymbolChanged?.Invoke(this, PersistentData.CheckpointSymbols.Triangle);
         }
         #endregion event handlers
+    }
+
+    public class CheckpointSymbolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null) return false;
+            var sym = value.ToString();
+            if (string.IsNullOrWhiteSpace(sym)) sym = PersistentData.CheckpointSymbols.Circle;
+            var shouldBeForTrue = parameter.ToString();
+            return sym.Equals(shouldBeForTrue);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
+        }
     }
 }

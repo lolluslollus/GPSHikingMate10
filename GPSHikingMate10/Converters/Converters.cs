@@ -13,21 +13,6 @@ using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Converters
 {
-    public class CheckpointSymbolConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value == null) return false;
-            var sym = value?.ToString() ?? PersistentData.CheckpointSymbols.Circle;
-            var shouldBeForTrue = parameter.ToString();
-            return sym.Equals(shouldBeForTrue);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new Exception("this is a one-way binding, it should never come here");
-        }
-    }
     public class SelectedPivotIndexConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

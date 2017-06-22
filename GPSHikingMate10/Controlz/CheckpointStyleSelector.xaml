@@ -10,7 +10,9 @@
 	mc:Ignorable="d"
 	d:DesignHeight="800"
 	d:DesignWidth="400">
-
+    <UserControl.Resources>
+        <mctl:CheckpointSymbolConverter x:Key="CheckpointSymbolConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>

@@ -63,7 +63,6 @@
 			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
 			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
             <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>
-            <conv:CheckpointSymbolConverter x:Key="CheckpointSymbolConverter"/>
         </ResourceDictionary>
 
 	</Application.Resources>

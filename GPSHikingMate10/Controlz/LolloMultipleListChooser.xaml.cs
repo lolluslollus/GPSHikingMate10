@@ -9,7 +9,9 @@ using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // LOLLO NOTE multiselect has a problem: https://stackoverflow.com/questions/43873431/uwp-how-to-deal-with-multiple-selections
@@ -386,6 +388,22 @@ namespace LolloGPS.Controlz
                 _textAndTag = value;
                 RaisePropertyChanged();
             }
+        }
+    }
+
+    public class IsSelectedToBackgroundConverter : IValueConverter
+    {
+        public static readonly SolidColorBrush SelectedBrush = ((SolidColorBrush)(Application.Current.Resources["SystemControlHighlightListAccentLowBrush"]));
+        public static readonly SolidColorBrush UnselectedBrush = ((SolidColorBrush)(Application.Current.Resources["FlyoutBackgroundThemeBrush"]));
+
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (!(value is bool) || !((bool)value)) return UnselectedBrush;
+            return SelectedBrush;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 }
