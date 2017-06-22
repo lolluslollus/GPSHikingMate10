@@ -62,13 +62,32 @@ namespace LolloGPS.Core
         }
         protected override Task OnLoadedMayOverrideAsync()
         {
-            //MainVM.IsPointInfoPanelOpen = true;
             return OpenAsync();
         }
         protected override Task OnUnloadedMayOverrideAsync()
         {
-            //MainVM.IsPointInfoPanelOpen = false;
             return CloseAsync();
+        }
+        protected override Task OpenMayOverrideAsync(object args = null)
+        {
+            PersistentData.IsShowingPivot = false;
+            PersistentData.IsBackButtonEnabled = true;
+            RuntimeData.GetInstance().IsAllowCentreOnCurrent = false;
+            UpdateWidth();
+            UpdateHeight();
+
+            return base.OpenMayOverrideAsync();
+        }
+        protected override Task CloseMayOverrideAsync(object args = null)
+        {
+            var timer = _holdingTimer;
+            timer?.Dispose();
+            _holdingTimer = null;
+
+            PersistentData.IsBackButtonEnabled = false;
+            RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
+
+            return base.CloseMayOverrideAsync();
         }
         #endregion lifecycle
 
@@ -81,10 +100,13 @@ namespace LolloGPS.Core
         }
         private void OnSymbolChanged(object sender, string newSymbol)
         {
-            var whichSeries = PersistentData.SelectedSeries;
+            var pd = PersistentData;
+            if (pd == null) return;
+
+            var whichSeries = pd.SelectedSeries;
             if (whichSeries == PersistentData.Tables.Nil) return;
-            PersistentData?.Selected?.UpdateDatabase(whichSeries);
-            PersistentData?.RefreshSeries(whichSeries);
+            pd.Selected?.UpdateDatabase(whichSeries);
+            pd.RefreshSeries(whichSeries);
         }
 
         private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
@@ -229,28 +251,10 @@ namespace LolloGPS.Core
             UpdateWidth();
             UpdateHeight();
         }
-        protected override Task OpenMayOverrideAsync(object args = null)
-        {
-            PersistentData.IsShowingPivot = false;
-            PersistentData.IsBackButtonEnabled = true;
-            RuntimeData.GetInstance().IsAllowCentreOnCurrent = false;
-            UpdateWidth();
-            UpdateHeight();
+        #endregion ui event handlers
 
-            return base.OpenMayOverrideAsync();
-        }
-        protected override Task CloseMayOverrideAsync(object args = null)
-        {
-            var timer = _holdingTimer;
-            timer?.Dispose();
-            _holdingTimer = null;
 
-            PersistentData.IsBackButtonEnabled = false;
-            RuntimeData.GetInstance().IsAllowCentreOnCurrent = true;
-
-            return base.CloseMayOverrideAsync();
-        }
-
+        #region updaters
         private void UpdateWidth()
         {
             //    ChooseSeriesGrid.Width = InfoGrid.Width = PopupContainer.ActualWidth;
@@ -271,7 +275,7 @@ namespace LolloGPS.Core
 
             ChooseSeriesGrid.Height = InfoGrid.Height = availableHeight;
         }
-        #endregion ui event handlers
+        #endregion updaters
 
 
         #region services

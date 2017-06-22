@@ -1,7 +1,5 @@
-﻿using LolloGPS.Converters;
-using LolloGPS.Core;
+﻿using LolloGPS.Core;
 using LolloGPS.Data;
-using LolloGPS.Data.Runtime;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -55,7 +53,6 @@ namespace LolloGPS.Controlz
             InitializeComponent();
         }
         #endregion lifecycle
-
 
         #region event handlers
         private void OnSymbolCircle_Click(object sender, RoutedEventArgs e)
