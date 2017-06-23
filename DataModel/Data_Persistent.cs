@@ -1291,13 +1291,10 @@ namespace LolloGPS.Data
                 testTileSource.FolderName = testTileSource.DisplayName = testTileSource.TechName; // we always set it automatically
                 testTileSource.IsDeletable = true;
                 // some more checks
-                string errorMsg = testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                string errorMsg = await testTileSource.CheckAsync(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // try the insertion
                 Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
                 return tryInsert;
-                //Task <Tuple<bool, string>> tryInsert = null;
-                //await RunInUiThreadAsync(() => tryInsert = TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
-                //return await tryInsert.ConfigureAwait(false);
             }
             catch (Exception ex)
             {

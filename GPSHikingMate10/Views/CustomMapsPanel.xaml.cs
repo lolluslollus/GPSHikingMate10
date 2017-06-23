@@ -66,5 +66,10 @@ namespace LolloGPS.Core
 		{
 			Task uuu = MapsPanelVM?.StartUserTestingTileSourceAsync();
 		}
-	}
+
+        private void OnPickFolderClicked(object sender, RoutedEventArgs e)
+        {
+            Task pick = MainVM?.PickCustomTileFolderAsync();
+        }
+    }
 }

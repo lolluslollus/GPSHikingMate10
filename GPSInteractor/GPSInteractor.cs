@@ -460,10 +460,6 @@ namespace LolloGPS.GPSInteraction
         {
             if (_isGeolocatorAllowed) return true;
             var geoLocationAccessStatus = await RunInUiThreadAsyncTT(() => Geolocator.RequestAccessAsync().AsTask(CancToken)).ConfigureAwait(false);
-            //Task<GeolocationAccessStatus> isGeolocatorAllowed = null;
-            //await RunInUiThreadAsync(delegate { isGeolocatorAllowed = Geolocator.RequestAccessAsync().AsTask(CancToken); }).ConfigureAwait(false);
-            //if (isGeolocatorAllowed == null) return false;
-            //return await isGeolocatorAllowed.ConfigureAwait(false) == GeolocationAccessStatus.Allowed;
             return geoLocationAccessStatus == GeolocationAccessStatus.Allowed;
         }
         #endregion services

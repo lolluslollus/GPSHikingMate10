@@ -183,9 +183,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(0, 10, 1, 0, 1, 10, 0, 1);
             var tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 4, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 4, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var aaa = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(aaa.Count, 0);
@@ -193,9 +193,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(0, 10, 1, 0, 1, 10, 0, 2);
             tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var bbb = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(bbb.Count, 1);
@@ -203,9 +203,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(80, 80, -179, 0, -80, 179, 0, 2);
             tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, false, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var ccc = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(ccc.Count, 16);
@@ -218,9 +218,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(0, 10, 1, 0, 1, 10, 0, 1);
             var tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 4, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 4, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var aaa = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(aaa.Count, 0);
@@ -228,9 +228,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(0, 10, 1, 0, 1, 10, 0, 2);
             tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var bbb = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(bbb.Count, 1);
@@ -238,9 +238,9 @@ namespace UnitTestProject3
 
             _tdMock = new TileDownloaderMock(80, 80, -179, 0, -80, 179, 0, 2);
             tileSources = new List<TileSourceRecord>();
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
-            tileSources.Add(new TileSourceRecord("a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 8, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 2, 10, 256, false, true, new Dictionary<string, string>()));
+            tileSources.Add(new TileSourceRecord("", "a", "a", "a", "", "", 8, 20, 256, false, true, new Dictionary<string, string>()));
             dummy = _tdMock.OpenAsync().Result;
             var ccc = _tdMock.GetTileData_RespondingToCancelTest3(tileSources);
             Assert.AreEqual(ccc.Count, 16);

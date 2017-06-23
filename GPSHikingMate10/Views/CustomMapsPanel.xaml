@@ -21,6 +21,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -36,24 +37,28 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Uri: "
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Local folder (if any): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="3" Grid.Column="0" Text="Min zoom: "
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Uri or file name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="3" Grid.Column="2" Text="Max zoom: "
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Min zoom: "
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" Text="Max zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"			
 			VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="4" Grid.Column="0" Text="Tile size (px): "
+        <TextBlock Grid.Row="5" Grid.Column="0" Text="Tile size (px): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="4" Grid.Column="2" Text="Overlay layer:"
+        <TextBlock Grid.Row="5" Grid.Column="2" Text="Overlay layer:"
             TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"
@@ -65,34 +70,45 @@
 			TextWrapping="Wrap"
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" 
+        <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
+			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TileSourceFolderPath, Mode=OneWay}"
+			TextWrapping="Wrap"
+			VerticalAlignment="Center"/>
+        <AppBarButton Grid.Row="2" Grid.Column="3"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+			Click="OnPickFolderClicked"
+			IsCompact="True"
+			Style="{StaticResource AppBarButtonRecoloured}"
+			Icon="OpenFile"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			InputScope="Url"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="3" Grid.Column="1" 
+        <TextBox Grid.Row="4" Grid.Column="1" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MinZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="3" Grid.Column="3" 
+        <TextBox Grid.Row="4" Grid.Column="3" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MaxZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="4" Grid.Column="1" 
+        <TextBox Grid.Row="5" Grid.Column="1" 
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TilePixelSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="3"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <CheckBox Grid.Row="4" Grid.Column="3"
+        <CheckBox Grid.Row="5" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{Binding ElementName=me, Path=PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <!-- error message after clicking test -->
-        <TextBlock Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -101,7 +117,7 @@
 			HorizontalAlignment="Center"
 			VerticalAlignment="Center"/>
 
-        <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
+        <Grid Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
                 <RowDefinition Height="Auto"/>

@@ -639,7 +639,28 @@ namespace LolloGPS.Core
 
         // LOLLO NOTE check https://social.msdn.microsoft.com/Forums/sqlserver/en-US/13002ba6-6e59-47b8-a746-c05525953c5a/uwpfileopenpicker-bugs-in-win-10-mobile-when-not-debugging?forum=wpdevelop
         // and AnalyticsVersionInfo.DeviceFamily
-        // for picker details        
+        // for picker details
+        internal async Task PickCustomTileFolderAsync()
+        {
+            if (!_isOpen || CancToken.IsCancellationRequested) return;
+
+            Logger.Add_TPL($"PickCustomTileFolderAsync will open a picker", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+
+            // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
+            // It will then resume and come back here, but with a new instance, since I have IOpenable.
+            var dir = await Pickers.PickDirectoryAsync(TileCacheReaderWriter.AllowedExtensions.Select(ext => $".{ext}").ToArray());
+            Logger.Add_TPL($"PickCustomTileFolderAsync has picked dir {dir?.Name ?? "NONE"}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+            // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
+            if (dir == null) return;
+
+            var instance = await GetCurrentOpenInstanceAsync().ConfigureAwait(false);
+            if (instance == null) return;
+
+            await instance.RunFunctionIfOpenAsyncA(() =>
+            {
+                instance.PersistentData.TestTileSource.TileSourceFolderPath = dir.Path;
+            }).ConfigureAwait(false);
+        }
         #endregion load and save with picker
 
         #region open app through file

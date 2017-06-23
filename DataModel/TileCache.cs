@@ -34,13 +34,15 @@ namespace LolloGPS.Data.TileCache
         private readonly Uri _mustZoomInTileUri;
         private readonly Uri _mustZoomOutTileUri;
         private readonly TileSourceRecord _tileSource = TileSourceRecord.GetDefaultTileSource(); //TileSources.Nokia;
-        private readonly StorageFolder _imageFolder = null;
+        private readonly StorageFolder _tileCacheFolder = null;
+        private readonly StorageFolder _tileSourceFolder = null;
         private readonly MapTileDataSource _mapTileDataSource = null;
         public MapTileDataSource MapTileDataSource { get { return _mapTileDataSource; } }
 
         private int _webUriFormatIndex = 0;
         private readonly IReadOnlyList<string> _webUriFormats;
         private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
+        private readonly bool _isFileSource = false;
 
         //private readonly object _isCachingLocker = new object();
         //private volatile bool _isCaching = false;
@@ -88,9 +90,18 @@ namespace LolloGPS.Data.TileCache
 
             //_isCaching = isCaching;
             _isReturnLocalUris = isReturnLocalUris;
-            var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
-            _imageFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
 
+            _isFileSource = !string.IsNullOrWhiteSpace(tileSource.TileSourceFolderPath);
+            if (_isFileSource)
+            {
+                if (!_webUriFormats.Any()) throw new ArgumentNullException("TileCache ctor was given invalid parameters for file tile source");
+                _tileSourceFolder = StorageFolder.GetFolderFromPathAsync(tileSource.TileSourceFolderPath).AsTask().Result;
+            }
+            else
+            {
+                var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
+                _tileCacheFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
+            }
             _mapTileDataSource = mapTileDataSource;
 
             _mustZoomInTileUri = _tileSource.IsOverlay ? _tileEmptyUri : _tileMustZoomInUri;
@@ -107,35 +118,34 @@ namespace LolloGPS.Data.TileCache
             {
                 // return new Uri("ms-appx:///Assets/aim-120.png", UriKind.Absolute); // this works
 
-                var address = $"ms-appdata:///localcache/TileSources/{_imageFolder.Name}/{fileName}"; // this fails
+                var address = $"ms-appdata:///localcache/TileSources/{_tileCacheFolder.Name}/{fileName}"; // this fails
                 var localUri = new Uri(address, UriKind.Absolute);
                 return localUri;
             }
 
             // should work when requesting any uri, but it fails after the MapControl was updated in 10.0.15063.
             // this is why I create the bitmaps... when those imbeciles fix it, we can go back to returning uris like before.
-            var filePath = Path.Combine(_imageFolder.Path, fileName);
+            var filePath = Path.Combine(_tileCacheFolder.Path, fileName);
             var uri = new Uri(filePath, UriKind.Absolute);
             return uri;
         }
-        /// <summary>
-        /// gets a web uri of the tile (TileSource, X, Y, Z and Zoom)
-        /// </summary>
-        private string GetWebUri(int x, int y, int z, int zoom)
+        private string GetUriString(int x, int y, int z, int zoom)
         {
             try
             {
-                // this is not critical, so we don#t lock, but mind the multithreading
+                // this is not critical, so we don't lock, but mind the multithreading
                 var newIndex = _webUriFormatIndex;
                 if (newIndex >= _webUriFormats.Count - 1) newIndex = 0;
                 else newIndex++;
                 _webUriFormatIndex = newIndex;
                 return string.Format(_webUriFormats[newIndex], zoom, x, y);
+                //return new Uri(string.Format(_webUriFormats[newIndex], zoom, x, y), UriKind.Absolute);
             }
             catch (Exception exc)
             {
                 Debug.WriteLine("Exception in TileCache.GetWebUri(): " + exc.Message + exc.StackTrace);
                 return string.Empty;
+                //return null;
             }
         }
         /// <summary>
@@ -165,11 +175,11 @@ namespace LolloGPS.Data.TileCache
 
 
         #region services
-        private string GetFileNameFromFileCache(string fileNameNoExtension, StorageFolder folder)
+        private string GetFileNameFromFileCache(string fileNameNoExtension)
         {
             try
             {
-                var fileNames = System.IO.Directory.GetFiles(_imageFolder.Path, fileNameNoExtension + "*");
+                var fileNames = System.IO.Directory.GetFiles(_tileCacheFolder.Path, fileNameNoExtension + "*");
                 //var files = Directory.GetFileSystemEntries(_imageFolder.Path, fileNameNoExtension);
                 if (fileNames?.Length > 0) return Path.GetFileName(fileNames[0]);
             }
@@ -180,22 +190,29 @@ namespace LolloGPS.Data.TileCache
         public async Task<IRandomAccessStreamReference> GetTileStreamRefAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
         {
             if (cancToken.IsCancellationRequested) return null;
-            var uri = await GetTileUriAsync(x, y, z, zoom, cancToken).ConfigureAwait(false);
-            if (uri == null) return null;
-            if (cancToken.IsCancellationRequested) return null;
+            if (_isFileSource)
+            {
+                return await PixelHelper.GetPixelStreamRefFromFile(_tileSourceFolder, Path.GetFileName(GetUriString(x, y, z, zoom)), cancToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var uri = await GetTileUriAsync(x, y, z, zoom, cancToken).ConfigureAwait(false);
+                if (uri == null) return null;
+                if (cancToken.IsCancellationRequested) return null;
 
-            if (uri.Scheme == "file")
-            {
-                if (!uri.Segments.Any()) return null;
-                return await PixelHelper.GetPixelStreamRefFromFile(_imageFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
+                if (uri.Scheme == "file")
+                {
+                    if (!uri.Segments.Any()) return null;
+                    return await PixelHelper.GetPixelStreamRefFromFile(_tileCacheFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
+                }
+                if (uri.Scheme == "ms-appx")
+                {
+                    if (!uri.Segments.Any()) return null;
+                    var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
+                    return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
+                }
+                return null;
             }
-            if (uri.Scheme == "ms-appx")
-            {
-                if (!uri.Segments.Any()) return null;
-                var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
-                return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
-            }
-            return null;
             /*
             // it's a proper web request: do it. However, this will never be required coz every call is now cached!
             return await Task.Run(async () =>
@@ -278,7 +295,7 @@ namespace LolloGPS.Data.TileCache
                 if (cancToken.IsCancellationRequested) return null;
                 // try to get this tile from the cache
                 //var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension, _imageFolder); // this is 6x faster than using the DB, with few records and with thousands
+                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension); // this is 6x faster than using the DB, with few records and with thousands
                 if (cancToken.IsCancellationRequested) return null;
                 // tile is not in cache
                 //if (tileCacheRecordFromDb == null)
@@ -337,7 +354,7 @@ namespace LolloGPS.Data.TileCache
                 if (cancToken.IsCancellationRequested) return false;
                 // try to get this tile from the cache
                 //var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension, _imageFolder); // this is 6x faster than using the DB
+                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension); // this is 6x faster than using the DB
                 if (cancToken.IsCancellationRequested) return false;
 
                 // tile is not in cache
@@ -386,7 +403,7 @@ namespace LolloGPS.Data.TileCache
 
             try
             {
-                string sWebUri = GetWebUri(x, y, z, zoom);
+                string sWebUri = GetUriString(x, y, z, zoom);
                 var request = WebRequest.CreateHttp(sWebUri);
                 _tileSource.ApplyHeadersToWebRequest(request);
                 request.AllowReadStreamBuffering = true;
@@ -413,7 +430,7 @@ namespace LolloGPS.Data.TileCache
                 {
                     if (cancToken.IsCancellationRequested) return null;
 
-                    if ((response as System.Net.HttpWebResponse).StatusCode == HttpStatusCode.OK && response.ContentLength > 0)
+                    if ((response as HttpWebResponse).StatusCode == HttpStatusCode.OK && response.ContentLength > 0)
                     {
                         where = 3;
                         using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
@@ -435,7 +452,7 @@ namespace LolloGPS.Data.TileCache
                                 {
                                     where = 6;
                                     // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
-                                    var newFile = await _imageFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                                    var newFile = await _tileCacheFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
                                     using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
                                     {
                                         where = 7;
@@ -468,7 +485,7 @@ namespace LolloGPS.Data.TileCache
                 Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
             }
             catch (OperationCanceledException) { return null; } // (ex.Response as System.Net.HttpWebResponse).StatusDescription
-            catch (System.Net.WebException ex) { return null; }
+            catch (WebException ex) { return null; }
             catch (Exception ex)
             {
                 Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
@@ -868,6 +885,7 @@ namespace LolloGPS.Data.TileCache
     internal static class PixelHelper
     {
         private static readonly BitmapTransform _bitmapTransform = new BitmapTransform() { InterpolationMode = BitmapInterpolationMode.Linear };
+
         internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName, CancellationToken cancToken)
         {
             try
