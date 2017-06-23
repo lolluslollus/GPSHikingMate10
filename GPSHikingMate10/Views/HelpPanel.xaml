@@ -78,7 +78,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web, open the custom maps menu and input their web addresses yourself. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
+		<TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web or in your machine, open the custom maps menu and input their web addresses yourself. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
