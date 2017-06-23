@@ -154,45 +154,44 @@ namespace LolloGPS.Core
         private async Task OpenAlternativeMap_Custom_Async()
         {
             var tileSources = await PersistentData.GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
-            // default tile source ----------
-            if (tileSources.Count == 1 && tileSources.ElementAt(0).IsDefault)
+            await RunInUiThreadAsync(delegate
             {
-                await RunInUiThreadAsync(delegate
+                // default tile source ----------
+                if (tileSources.Count == 1 && tileSources.ElementAt(0).IsDefault)
                 {
                     CloseAlternativeMap_Custom();
                     PersistentData.MapStyle = MapStyle.Terrain;
-                }).ConfigureAwait(false);
-                return;
-            };
-            // custom tile sources ----------
-            await RunInUiThreadAsync(delegate
-            {
-                CloseAlternativeMap_Custom(); // unregister events and clear lists
-                foreach (var ts in tileSources)
+                }
+                // custom tile sources ----------
+                else
                 {
-                    if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)
-                    var customMapTileDataSource = new CustomMapTileDataSource();
-                    var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource);
-                    var mapTileSource = new MapTileSource(
-                        customMapTileDataSource,
-                        // The MapControl won't request the uri if the zoom is outside its bounds.
-                        // To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
-                        new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+                    CloseAlternativeMap_Custom(); // unregister events and clear lists
+                    foreach (var ts in tileSources)
                     {
-                        AllowOverstretch = true,
-                        IsRetryEnabled = true,
-                        IsFadingEnabled = false,
-                        IsTransparencyEnabled = false,
-                        Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
-                        TilePixelSize = tileCache.GetTilePixelSize(),
-                        ZIndex = 999,
-                        //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
-                    };
+                        if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)
+                        var customMapTileDataSource = new CustomMapTileDataSource();
+                        var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource);
+                        var mapTileSource = new MapTileSource(
+                            customMapTileDataSource,
+                            // The MapControl won't request the uri if the zoom is outside its bounds.
+                            // To force it, I set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds anyway.
+                            new MapZoomLevelRange() { Max = TileSourceRecord.MaxMaxZoom, Min = TileSourceRecord.MinMinZoom })
+                        {
+                            AllowOverstretch = true,
+                            IsRetryEnabled = true,
+                            IsFadingEnabled = false,
+                            IsTransparencyEnabled = false,
+                            Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+                            TilePixelSize = tileCache.GetTilePixelSize(),
+                            ZIndex = 999,
+                            //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
+                        };
 
-                    _tileCaches.Add(tileCache);
-                    _mapTileSources.Add(mapTileSource);
-                    _customMapTileDataSources.Add(customMapTileDataSource);
-                    customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
+                        _tileCaches.Add(tileCache);
+                        _mapTileSources.Add(mapTileSource);
+                        _customMapTileDataSources.Add(customMapTileDataSource);
+                        customMapTileDataSource.BitmapRequested += OnCustomDataSource_BitmapRequested;
+                    }
                 }
             }).ConfigureAwait(false);
         }

@@ -48,7 +48,7 @@
 		<ToggleSwitch Grid.Row="0" Grid.Column="2" 
 					IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 					VerticalAlignment="Center"
-					IsOn="{x:Bind MainVM.PersistentData.IsTracking, Mode=TwoWay}"/>
+					IsOn="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=TwoWay}"/>
 		<ContentControl Grid.Row="1" Grid.Column="1"
 						IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 						VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
@@ -58,7 +58,7 @@
 					HorizontalAlignment="Stretch"
 					Value="{x:Bind MainVM.PersistentData.ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}"
 					IsThumbToolTipEnabled="False"
-					IsEnabled="{x:Bind MainVM.PersistentData.IsTracking, Mode=OneWay}"
+					IsEnabled="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=OneWay}"
 					Minimum="{x:Bind MainVM.PersistentData.MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
 					Maximum="{x:Bind MainVM.PersistentData.MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
 					SmallChange="1" LargeChange="3"/>
@@ -76,7 +76,7 @@
 								VerticalAlignment="Center"/>
 		<ToggleSwitch Grid.Row="3" Grid.Column="2"
 								VerticalAlignment="Center"
-								IsOn="{x:Bind MainVM.PersistentData.IsBackgroundEnabled, Mode=TwoWay}"/>
+								IsOn="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=TwoWay}"/>
 		<Slider Grid.Row="4" Grid.Column="1" 
 				Margin="{StaticResource Thickness2}"
 				Value="{x:Bind MainVM.PersistentData.BackgroundUpdatePeriodInMinutes, Converter={StaticResource UintToDoubleConverter}, Mode=TwoWay}"
@@ -85,7 +85,7 @@
 				LargeChange="5"
 				IsThumbToolTipEnabled="False"
 				VerticalAlignment="Center"
-				IsEnabled="{x:Bind MainVM.PersistentData.IsBackgroundEnabled, Mode=OneWay}"/>
+				IsEnabled="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=OneWay}"/>
 		<TextBlock Grid.Row="4" Grid.Column="2"
 								Text="{x:Bind MainVM.PersistentData.BackgroundUpdatePeriodInMinutes, Mode=OneWay}"
 								VerticalAlignment="Center"

@@ -25,6 +25,7 @@ namespace LolloGPS.GPSInteraction
                 //_backgroundTaskProtectorSemaphore.WaitOne(200);
                 if (_backgroundTaskSemaphore == null) _backgroundTaskSemaphore = new Semaphore(1, 1, BACKGROUND_TASK_SEMAPHORE_NAME);
                 _backgroundTaskSemaphore.WaitOne();
+                Logger.Add_TPL("SetMainAppIsRunningAndActive() ending", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
                 return true;
             }
             catch (Exception ex)
@@ -49,6 +50,7 @@ namespace LolloGPS.GPSInteraction
             SemaphoreExtensions.TryDispose(_backgroundTaskSemaphore);
             _backgroundTaskSemaphore = null;
 
+            Logger.Add_TPL("SetMainAppIsNotRunningOrNotActive() ending", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
             //Semaphore semaphoreOpen = null;
             //bool test = Semaphore.TryOpenExisting(BACKGROUND_TASK_SEMAPHORE_NAME, out semaphoreOpen);
             //}

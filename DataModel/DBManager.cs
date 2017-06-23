@@ -629,7 +629,6 @@ namespace LolloGPS.Data
         /// <returns></returns>
         public static bool RunInOtherTask(Func<bool> dbAction)
         {
-            bool isOk = false;
             bool wasOpen = _isOpen;
             try
             {
@@ -637,12 +636,12 @@ namespace LolloGPS.Data
                 _isOpenSemaphore.WaitOne();
                 wasOpen = _isOpen;
                 _isOpen = true;
-                isOk = dbAction();
+                return dbAction();
             }
             catch (Exception ex)
             {
-                isOk = false;
                 Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+                return false;
             }
             finally
             {
@@ -650,7 +649,6 @@ namespace LolloGPS.Data
                 SemaphoreExtensions.TryRelease(_isOpenSemaphore);
                 //SemaphoreExtensions.TryRelease(_dbActionInOtherTaskSemaphore);
             }
-            return isOk;
         }
     }
 }

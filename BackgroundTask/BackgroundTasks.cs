@@ -24,6 +24,7 @@ namespace BackgroundTasks
         private volatile SafeCancellationTokenSource _cts = null;
         private volatile BackgroundTaskDeferral _deferral = null;
         private volatile IBackgroundTaskInstance _taskInstance = null;
+        private string _msg = string.Empty;
 
         /// <summary>
         /// The Run method is the entry point of a background task.
@@ -49,11 +50,16 @@ namespace BackgroundTasks
 
                 // LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
                 // only in the background task and only if called before GetDeferral and only if awaited
-                Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                //Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                _msg = "GetLocationBackgroundTask starting";
 
-                if (GetLocBackgroundTaskSemaphoreManager.GetMainAppIsRunningAndActive()) return; // the app is running, it will catch the background task running: do nothing
+                if (GetLocBackgroundTaskSemaphoreManager.GetMainAppIsRunningAndActive())
+                {
+                    _msg = "GetLocationBackgroundTask returning coz the app is running and active";
+                    return; // the app is running, it will catch the background task running: do nothing
+                }
 
-                _taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
+                // _taskInstance.Progress = 1; // we don't need this but we leave it in case we change something and we want to check when the bkg task starts.
 
                 // I took away the following to save performance and memory (max 40 MB is allowed in background tasks)
                 //SuspensionManager.LoadDataAsync(_myData, false).Wait(token); //read the last saved settings and the history from the db, skipping the route.
@@ -82,33 +88,27 @@ namespace BackgroundTasks
                 // memory saving process
                 var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
                 var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
-                if (cancToken.IsCancellationRequested) return;
+                if (cancToken.IsCancellationRequested)
+                {
+                    _msg = "GetLocationBackgroundTask returning coz cancellation was requested";
+                    return;
+                }
 
+                _msg = $"GetLocationBackgroundTask is about to save the new geoPosition";
                 bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
-#if DEBUG
-                if (isSaved)
-                {
-                    Debug.WriteLine("GetLocationBackgroundTask has acquired a location and updated the db");
-                    //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                }
-                else
-                {
-                    Debug.WriteLine("GetLocationBackgroundTask has acquired a location and failed to updated the db");
-                    //    await Logger.AddAsync("GetLocationBackgroundTask has acquired a location and failed to updated the db", Logger.BackgroundLogFilename, Logger.Severity.Info).ConfigureAwait(false);
-                }
-#endif
+                _msg = $"GetLocationBackgroundTask has saved the new geoPosition: {isSaved}";
             }
             catch (ObjectDisposedException) // comes from the cts
             {
-                Logger.Add_TPL("ObjectDisposedException", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                _msg = $"GetLocationBackgroundTask ran into ObjectDisposedException";
             }
             catch (OperationCanceledException) // comes from the cts
             {
-                Logger.Add_TPL("OperationCanceledException", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                _msg = $"GetLocationBackgroundTask ran into OperationCanceledException";
             }
             catch (Exception ex)
             {
-                await Logger.AddAsync(ex.ToString(), Logger.BackgroundLogFilename).ConfigureAwait(false);
+                _msg = ex.ToString();
             }
             finally
             {
@@ -116,22 +116,22 @@ namespace BackgroundTasks
                 _cts = null;
                 var ts = _taskInstance;
                 if (ts != null) ts.Canceled -= OnCanceled;
-                Logger.Add_TPL("GetLocationBackgroundTask ended", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                await Logger.AddAsync($"GetLocationBackgroundTask ended {_msg}", Logger.BackgroundLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
                 _deferral?.Complete();
             }
         }
 
-        private async void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+        private void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
+            _msg = $"Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = {reason}";
             _cts?.CancelSafe(true);
-            await Logger.AddAsync("Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = " + reason /*+ "; _isCancellationAllowedNow = " + _isCancellationAllowedNow*/, Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
         }
 
-        private static Task<Geoposition> GetGeopositionAsync(CancellationToken token)
+        private static Task<Geoposition> GetGeopositionAsync(CancellationToken cancToken)
         {
-            Geolocator geolocator = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
-            if (geolocator == null) return null;
-            return geolocator.GetGeopositionAsync().AsTask(token);
+            var gl = new Geolocator() { DesiredAccuracyInMeters = PersistentData.DefaultDesiredAccuracyInMetres }; //, ReportInterval = myDataModel.ReportIntervalInMilliSec };
+            if (gl == null) return null;
+            return gl.GetGeopositionAsync().AsTask(cancToken);
         }
         //
         // Simulate the background task activity.

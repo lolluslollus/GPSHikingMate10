@@ -213,7 +213,7 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
-						Visibility="{x:Bind PersistentData.IsTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+						Visibility="{x:Bind PersistentData.IsForegroundTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
@@ -221,7 +221,7 @@
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
-						Visibility="{x:Bind PersistentData.IsBackgroundEnabled, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
+						Visibility="{x:Bind PersistentData.IsBackgroundTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>

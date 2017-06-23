@@ -77,7 +77,7 @@ namespace LolloGPS.Data
         public uint GetDefaultDesiredAccuracyInMetres { get { return DefaultDesiredAccuracyInMetres; } }
         public const double MinTapTolerance = 1.0;
         public const double MaxTapTolerance = 50.0;
-        public const double DefaultTapTolerance = 20.0;
+        public const double DefaultTapTolerance = 10.0;
 
         public const string DefaultPositionSource = ConstantData.APPNAME;
         private const int DefaultSelectedIndex_Base1 = 0;
@@ -175,8 +175,8 @@ namespace LolloGPS.Data
             target.DesiredAccuracyInMeters = source.DesiredAccuracyInMeters;
             target.ReportIntervalInMilliSec = source.ReportIntervalInMilliSec;
             // target.LastMessage = source.LastMessage; // we don't want to repeat the last message whenever one starts the app
-            target.IsTracking = source.IsTracking;
-            target.IsBackgroundEnabled = source.IsBackgroundEnabled;
+            target.IsForegroundTracking = source.IsForegroundTracking;
+            target.IsBackgroundTracking = source.IsBackgroundTracking;
             target.IsCentreOnCurrent = source.IsCentreOnCurrent;
             target.IsShowAim = source.IsShowAim;
             target.IsShowAimOnce = source.IsShowAimOnce;
@@ -425,12 +425,12 @@ namespace LolloGPS.Data
         private bool _isShowSpeed = false;
         [DataMember]
         public bool IsShowSpeed { get { return _isShowSpeed; } set { _isShowSpeed = value; RaisePropertyChanged_UI(); } }
-        private volatile bool _isTracking = false;
+        private volatile bool _isForegroundTracking = false;
         [DataMember]
-        public bool IsTracking { get { return _isTracking; } set { _isTracking = value; RaisePropertyChanged_UI(); } }
-        private volatile bool _isBackgroundEnabled = false;
+        public bool IsForegroundTracking { get { return _isForegroundTracking; } set { if (_isForegroundTracking != value) { _isForegroundTracking = value; RaisePropertyChanged_UI(); } } }
+        private volatile bool _isBackgroundTracking = false;
         [DataMember]
-        public bool IsBackgroundEnabled { get { return _isBackgroundEnabled; } set { _isBackgroundEnabled = value; RaisePropertyChanged_UI(); } }
+        public bool IsBackgroundTracking { get { return _isBackgroundTracking; } set { if (_isBackgroundTracking != value) { _isBackgroundTracking = value; RaisePropertyChanged_UI(); } } }
         private double _tapTolerance = DefaultTapTolerance;
         [DataMember]
         public double TapTolerance
@@ -750,7 +750,7 @@ namespace LolloGPS.Data
         #endregion all series methods
 
         #region historyMethods
-        public async Task<int> LoadHistoryFromDbAsync(bool isResetAltitideI0I1, bool inUIThread)
+        public async Task<int> LoadHistoryFromDbAsync(bool isResetAltitideI0I1, bool useUIThread)
         {
             int result = -1;
             List<PointRecord> dataRecords = await DBManager.GetHistoryAsync().ConfigureAwait(false);
@@ -759,7 +759,7 @@ namespace LolloGPS.Data
             {
                 await _historySemaphore.WaitAsync().ConfigureAwait(false);
                 if (isResetAltitideI0I1) ResetSeriesAltitudeI0I1(Tables.History);
-                if (inUIThread) await RunInUiThreadAsync(delegate { result = LoadHistoryFromDb2(dataRecords); }).ConfigureAwait(false);
+                if (useUIThread) await RunInUiThreadAsync(delegate { result = LoadHistoryFromDb2(dataRecords); }).ConfigureAwait(false);
                 else result = LoadHistoryFromDb2(dataRecords);
             }
             catch (Exception ex)
@@ -1293,9 +1293,11 @@ namespace LolloGPS.Data
                 // some more checks
                 string errorMsg = testTileSource.Check(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // try the insertion
-                Task<Tuple<bool, string>> tryInsert = null;
-                await RunInUiThreadAsync(() => tryInsert = TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
-                return await tryInsert.ConfigureAwait(false);
+                Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
+                return tryInsert;
+                //Task <Tuple<bool, string>> tryInsert = null;
+                //await RunInUiThreadAsync(() => tryInsert = TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
+                //return await tryInsert.ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -1672,8 +1674,8 @@ namespace LolloGPS.Data
         uint ReportIntervalInMilliSec { get; }
         uint BackgroundUpdatePeriodInMinutes { get; }
         uint GetDefaultDesiredAccuracyInMetres { get; }
-        bool IsTracking { get; }
-        bool IsBackgroundEnabled { get; set; }
+        bool IsForegroundTracking { get; }
+        bool IsBackgroundTracking { get; set; }
 
         string LastMessage { get; set; }
 
