@@ -174,7 +174,7 @@
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
         <TextBlock Grid.Row="8" Grid.Column="0" 
-			Text="Save the cache - it can be very slow"
+			Text="Save the cache - slow on small devices!"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -191,7 +191,7 @@
 			ListHeaderText="Which cache do you want to save?"
 			PopupContainer="{x:Bind me, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
-			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting, Mode=OneWay}"
+			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSavingTiles, Mode=OneWay}"
 			ItemSelected="OnSaveCacheChooser_ItemSelected"/>
     </Grid>
 </uctl:OpenableObservableControl>

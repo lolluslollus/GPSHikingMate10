@@ -34,10 +34,16 @@ namespace LolloGPS.Controlz
             _inclinometer = Inclinometer.GetDefault();
             // Select a report interval that is both suitable for the purposes of the app and supported by the sensor.
             // This value will be used later to activate the sensor.
-            int minCompassReportInterval = (int)_compass.MinimumReportInterval;
-            _desiredCompassReportInterval = minCompassReportInterval > MIN_USEFUL_COMPASS_REPORT_INTERVAL ? minCompassReportInterval : MIN_USEFUL_COMPASS_REPORT_INTERVAL;
-            int minInclinometerReportInterval = (int)_inclinometer.MinimumReportInterval;
-            _desiredInclinometerReportInterval = minInclinometerReportInterval > MIN_USEFUL_INCLINOMETER_REPORT_INTERVAL ? minInclinometerReportInterval : MIN_USEFUL_INCLINOMETER_REPORT_INTERVAL;
+            if (_compass != null)
+            {
+                int minCompassReportInterval = (int)_compass.MinimumReportInterval;
+                _desiredCompassReportInterval = minCompassReportInterval > MIN_USEFUL_COMPASS_REPORT_INTERVAL ? minCompassReportInterval : MIN_USEFUL_COMPASS_REPORT_INTERVAL;
+            }
+            if (_inclinometer != null)
+            {
+                int minInclinometerReportInterval = (int)_inclinometer.MinimumReportInterval;
+                _desiredInclinometerReportInterval = minInclinometerReportInterval > MIN_USEFUL_INCLINOMETER_REPORT_INTERVAL ? minInclinometerReportInterval : MIN_USEFUL_INCLINOMETER_REPORT_INTERVAL;
+            }
         }
 
         protected override Task OpenMayOverrideAsync(object args = null)

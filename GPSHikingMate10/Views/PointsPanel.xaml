@@ -285,7 +285,7 @@
 		</Grid>
 
 		<!-- hyperlink commands -->
-		<AppBarButton Grid.Row="4" Grid.Column="1" Grid.RowSpan="4"
+		<AppBarButton Grid.Row="4" Grid.Column="1" Grid.RowSpan="2"
 			IsEnabled="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}, Mode=OneWay}"
 			VerticalAlignment="Center"
 			Click="OnHyperlink_Click"

@@ -23,7 +23,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -35,30 +35,30 @@
             <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
         </Grid.ColumnDefinitions>
         <!-- captions -->
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name: "
+        <TextBlock Grid.Row="1" Text="Name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="Toggle local / remote source: "
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="Toggle local / remote source: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="3" Grid.Column="0" Text="Local folder: "
+        <TextBlock Grid.Row="3" Text="Local folder: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBlock Grid.Row="4" Grid.Column="0" Text="File name: "
+        <TextBlock Grid.Row="4" Text="File name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBlock Grid.Row="4" Grid.Column="0" Text="Uri: "
+        <TextBlock Grid.Row="4" Text="Uri: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-        <TextBlock Grid.Row="5" Grid.Column="0" Text="Min zoom: "
+        <TextBlock Grid.Row="5" Text="Min zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -67,7 +67,7 @@
 			Style="{StaticResource BaseMessageStyle}"			
 			VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="6" Grid.Column="0" Text="Tile size (px): "
+        <TextBlock Grid.Row="6" Text="Tile size (px): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -76,11 +76,11 @@
 			Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="9" Grid.Column="0" Text="Use this source"
+        <TextBlock Grid.Row="8" Grid.ColumnSpan="3" Text="Use this source"
 			TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="10" Grid.Column="0" Text="Erase custom sources"
+        <TextBlock Grid.Row="10" Grid.ColumnSpan="3" Text="Erase custom sources"
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -92,7 +92,7 @@
 			TextWrapping="Wrap"
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
-        <mctl:ToggleButtonLollo Grid.Row="2" Grid.Column="1"
+        <mctl:ToggleButtonLollo Grid.Row="2" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, FallbackValue=False}"
             Click="OnToggleLocalRemote_Click"
@@ -150,7 +150,7 @@
             VerticalAlignment="Center"
             IsChecked="{Binding ElementName=me, Path=PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <!-- error message after clicking test -->
-        <TextBlock Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="7" Grid.ColumnSpan="4"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -158,7 +158,7 @@
 			Margin="8,2,2,2"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="9" Grid.Column="1"
+        <AppBarButton Grid.Row="8" Grid.Column="3"
 			VerticalAlignment="Center"
 			Click="OnTestClicked"
 			IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
@@ -167,7 +167,7 @@
 			Icon="Accept"
 			TabIndex="1"/>
         <!-- error message: no connection -->
-        <TextBlock Grid.Row="9" Grid.Column="2" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="9" Grid.ColumnSpan="4"
             Text="No connection"
             TextWrapping="Wrap"
             Foreground="{StaticResource FlashyForeground}"
@@ -176,14 +176,14 @@
 			VerticalAlignment="Center"
 			HorizontalAlignment="Right"
 			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-        <AppBarButton Grid.Row="10" Grid.Column="1"
+        <AppBarButton Grid.Row="10" Grid.Column="3"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
 			Click="OnClearCustomTileSource_Click"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Icon="Delete"/>
-        <mctl:LolloMultipleListChooser Grid.Row="10" Grid.Column="2" Grid.ColumnSpan="2"
+        <mctl:LolloMultipleListChooser Grid.Row="10" Grid.Column="3"
 			SelectorVisibility="Collapsed"
 			x:Name="ClearCustomCacheChooser"
 			PlaceholderText="Which source do you want to erase?"

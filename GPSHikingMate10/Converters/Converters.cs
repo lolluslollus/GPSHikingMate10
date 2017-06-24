@@ -833,7 +833,7 @@ namespace LolloGPS.Converters
             Collection<TextAndTag> output = new Collection<TextAndTag>();
             bool isClearingCache = (parameter?.ToString() == "forClearingCache");
             bool isClearingCustomCache = (parameter?.ToString() == "forClearingCustomCache");
-            bool isSelecting = (parameter?.ToString() == "forSelecting");
+            bool isSavingTiles = (parameter?.ToString() == "forSavingTiles");
             // clear none
             if (isClearingCache || isClearingCustomCache)
             {
@@ -863,11 +863,11 @@ namespace LolloGPS.Converters
                 }
             }
             // select all sources one by one
-            else if (isSelecting)
+            else if (isSavingTiles)
             {
                 foreach (var item in tileSources)
                 {
-                    if (item.IsDefault) continue;
+                    if (item.IsDefault || item.IsFileSource) continue;
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
             }
