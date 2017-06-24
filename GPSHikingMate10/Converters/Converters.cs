@@ -863,10 +863,11 @@ namespace LolloGPS.Converters
                 }
             }
             // select all sources one by one
-            else
+            else if (isSelecting)
             {
                 foreach (var item in tileSources)
                 {
+                    if (item.IsDefault) continue;
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
             }

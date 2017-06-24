@@ -1346,7 +1346,7 @@ namespace LolloGPS.Data
         public enum ClearCacheResult { Ok, Error, Cancelled }
         public async Task<ClearCacheResult> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
         {
-            if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return ClearCacheResult.Error;
+            if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsFileSource) return ClearCacheResult.Error;
 
             try
             {
@@ -1378,6 +1378,50 @@ namespace LolloGPS.Data
                     catch (Exception ex) { Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename); }
                 }
                 return ClearCacheResult.Ok;
+            }
+            catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
+            catch (OperationCanceledException) { return ClearCacheResult.Cancelled; }
+            catch (Exception exc)
+            {
+                Logger.Add_TPL(exc.ToString(), Logger.FileErrorLogFilename);
+                return ClearCacheResult.Error;
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        public async Task<int> TrySaveCacheAsync(TileSourceRecord tileSource, StorageFolder destinationFolder, CancellationToken cancToken)
+        {
+            if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsAll || tileSource.IsFileSource || destinationFolder == null) return 0;
+
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
+                IsTileSourcezBusy = true;
+
+                if (cancToken.IsCancellationRequested) return 0;
+                var tileSourcesRootFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
+                if (tileSourcesRootFolder == null) return 0;
+                var tileSourceFolder = await tileSourcesRootFolder.TryGetItemAsync(tileSource.TechName).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
+                if (tileSourceFolder == null) return 0;
+
+                var files = await tileSourceFolder.GetFilesAsync().AsTask(cancToken).ConfigureAwait(false);
+                // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
+                Parallel.ForEach(files, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, file =>
+                {
+                    var copiedFile = file.CopyAsync(destinationFolder, file.Name, NameCollisionOption.ReplaceExisting).AsTask(cancToken).Result;
+                });
+
+                return files.Count;
+            }
+            catch (ObjectDisposedException) { return 0; }
+            catch (OperationCanceledException) { return 0; }
+            catch (Exception exc)
+            {
+                Logger.Add_TPL(exc.ToString(), Logger.FileErrorLogFilename);
+                return 0;
             }
             finally
             {

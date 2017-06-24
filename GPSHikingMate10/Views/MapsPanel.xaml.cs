@@ -41,6 +41,7 @@ namespace LolloGPS.Core
             await OverlayMapSourceChooser.OpenAsync(args).ConfigureAwait(false);
             await ZoomLevelChooser.OpenAsync(args).ConfigureAwait(false);
             await ClearCacheChooser.OpenAsync(args).ConfigureAwait(false);
+            await SaveCacheChooser.OpenAsync(args).ConfigureAwait(false);
             await base.OpenMayOverrideAsync(args).ConfigureAwait(false);
         }
 
@@ -50,6 +51,7 @@ namespace LolloGPS.Core
             await OverlayMapSourceChooser.CloseAsync(args).ConfigureAwait(false);
             await ZoomLevelChooser.CloseAsync(args).ConfigureAwait(false);
             await ClearCacheChooser.CloseAsync(args).ConfigureAwait(false);
+            await SaveCacheChooser.CloseAsync(args).ConfigureAwait(false);
             await base.CloseMayOverrideAsync(args).ConfigureAwait(false);
         }
 
@@ -64,7 +66,7 @@ namespace LolloGPS.Core
 
         private void OnClearMapCache_Click(object sender, RoutedEventArgs e)
         {
-            if (MapsPanelVM?.IsClearCacheEnabled == true) // this is redundant safety
+            if (MapsPanelVM?.IsClearOrSaveCacheEnabled == true) // this is redundant safety
             {
                 ClearCacheChooser.IsPopupOpen = true;
             }
@@ -73,6 +75,20 @@ namespace LolloGPS.Core
         private void OnClearCacheChooser_ItemSelected(object sender, TextAndTag e)
         {
             Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, false);
+        }
+
+        private void OnSaveMapCache_Click(object sender, RoutedEventArgs e)
+        {
+            if (MapsPanelVM?.IsClearOrSaveCacheEnabled == true) // this is redundant safety
+            {
+                SaveCacheChooser.IsPopupOpen = true;
+            }
+            else PersistentData.LastMessage = "Cache busy";
+        }
+
+        private void OnSaveCacheChooser_ItemSelected(object sender, TextAndTag e)
+        {
+            Task sch = MapsPanelVM?.ScheduleSaveCacheAsync(e?.Tag as TileSourceRecord);
         }
 
         private void OnDownloadMap_Click(object sender, RoutedEventArgs e)

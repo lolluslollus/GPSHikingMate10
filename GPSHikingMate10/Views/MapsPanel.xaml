@@ -22,8 +22,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <!--<RowDefinition Height="Auto"/>-->
-            <!--<RowDefinition Height="Auto"/>-->
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="4*"/>
@@ -160,7 +159,7 @@
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
         <AppBarButton Grid.Row="7" Grid.Column="1"
-			IsEnabled="{x:Bind MapsPanelVM.IsClearCacheEnabled, Mode=OneWay}"
+			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
 			Click="OnClearMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
@@ -174,15 +173,25 @@
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
-        <!--<TextBlock Grid.Row="7" Grid.Column="0" 
-			Text="Keep the app alive, never mind the lock screen settings."
+        <TextBlock Grid.Row="8" Grid.Column="0" 
+			Text="Save the cache"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<AppBarToggleButton Grid.Row="7" Grid.Column="1"
-			IsChecked="{x:Bind PersistentData.IsKeepAlive, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
-			Style="{StaticResource AppBarToggleButtonRecoloured}"
+        <AppBarButton Grid.Row="8" Grid.Column="1"
+			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
+			Click="OnSaveMapCache_Click"
+			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
-			Icon="Pin"/>-->
+			Icon="Save"/>
+        <mctl:LolloMultipleListChooser Grid.Row="8" Grid.Column="0"
+			SelectorVisibility="Collapsed"
+			x:Name="SaveCacheChooser"
+			PlaceholderText="Which cache do you want to save?"
+			ListHeaderText="Which cache do you want to save?"
+			PopupContainer="{x:Bind me, Mode=OneWay}"
+			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
+			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSelecting, Mode=OneWay}"
+			ItemSelected="OnSaveCacheChooser_ItemSelected"/>
     </Grid>
 </uctl:OpenableObservableControl>

@@ -55,7 +55,7 @@ namespace LolloGPS.Core
 
             _mainVM = new MainVM(MyLolloMap, MyAltitudeProfiles, this);
             RaisePropertyChanged_UI(nameof(MainVM));
-            _mapsPanelVM = new MapsPanelVM(MyLolloMap.LolloMapVM, _mainVM);
+            _mapsPanelVM = new MapsPanelVM(MyLolloMap.LolloMapVM, _mainVM, this);
             RaisePropertyChanged_UI(nameof(MapsPanelVM));
         }
 
