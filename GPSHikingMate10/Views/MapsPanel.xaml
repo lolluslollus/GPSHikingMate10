@@ -174,7 +174,7 @@
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
         <TextBlock Grid.Row="8" Grid.Column="0" 
-			Text="Save the cache"
+			Text="Save the cache - it can be very slow"
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
