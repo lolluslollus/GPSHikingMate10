@@ -1,4 +1,5 @@
-﻿using LolloGPS.Data;
+﻿using LolloGPS.Core;
+using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using System;
@@ -19,7 +20,7 @@ using Windows.UI.Xaml.Controls.Maps;
   but the app is less fluid and there is extra code to convert bytes to bitmaps and then to stream references.
  */
 
-namespace LolloGPS.Core
+namespace LolloGPS.ViewModels
 {
     public sealed class LolloMapVM : OpenableObservableData
     {

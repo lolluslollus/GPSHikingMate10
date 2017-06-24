@@ -1,5 +1,6 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

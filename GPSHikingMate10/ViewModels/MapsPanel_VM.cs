@@ -13,7 +13,7 @@ using Utilz;
 using Utilz.Data;
 using static LolloGPS.Controlz.LolloMultipleListChooser;
 
-namespace GPSHikingMate10.ViewModels
+namespace LolloGPS.ViewModels
 {
     public class MapsPanelVM : OpenableObservableData
     {
@@ -47,6 +47,8 @@ namespace GPSHikingMate10.ViewModels
         public bool IsChangeMapStyleEnabled { get { return _isChangeMapStyleEnabled; } private set { if (_isChangeMapStyleEnabled != value) { _isChangeMapStyleEnabled = value; RaisePropertyChanged_UI(); } } }
         private string _testTileSourceErrorMsg = "";
         public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
+        //private bool? _isFileSource = false;
+        //public bool? IsFileSource { get { return _isFileSource; } private set { if (_isFileSource != value) { _isFileSource = value; RaisePropertyChanged_UI(); } } }
 
         public class TileSourceChoiceRecord
         {
@@ -77,9 +79,6 @@ namespace GPSHikingMate10.ViewModels
 
             AddHandlers_DataChanged();
 
-            //Task allTileSourcesTask = Task.CompletedTask;
-            //Task currentTileSourcesTask = Task.CompletedTask;
-
             ICollection<TileSourceRecord> allTileSources = null;
             ICollection<TileSourceRecord> currentTileSources = null;
             await Task.Run(async () =>
@@ -100,6 +99,7 @@ namespace GPSHikingMate10.ViewModels
                 UpdateTileSourceChoices(allTileSources);
                 UpdateSelectedBaseTile(currentTileSources);
                 UpdateSelectedOverlayTiles(currentTileSources);
+                //UpdateIsFileSource();
             }).ConfigureAwait(false);
         }
 
@@ -180,6 +180,10 @@ namespace GPSHikingMate10.ViewModels
             }
             SelectedOverlayTiles = selectedOverlayTiles;
         }
+        //private void UpdateIsFileSource()
+        //{
+        //    IsFileSource = PersistentData?.TestTileSource?.IsFileSource;
+        //}
         #endregion updaters
 
         #region event handlers
@@ -251,6 +255,10 @@ namespace GPSHikingMate10.ViewModels
                     UpdateIsTestCustomTileSourceEnabled();
                 }).ConfigureAwait(false);
             }
+            //else if (e.PropertyName == nameof(PersistentData.TestTileSource))
+            //{
+            //    UpdateIsFileSource();
+            //}
         }
 
         private async void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -398,7 +406,18 @@ namespace GPSHikingMate10.ViewModels
                 }
                 else TestTileSourceErrorMsg = result?.Item2; // error
 
+                //UpdateIsFileSource();
                 _mainVM?.SetLastMessage_UI(result?.Item2);
+            });
+        }
+
+        public Task ToggleIsFileSourceAsync()
+        {
+            return RunFunctionIfOpenAsyncA(() =>
+            {
+                var tts = PersistentData?.TestTileSource;
+                if (tts == null) return;
+                tts.IsFileSource = !tts.IsFileSource;
             });
         }
         #endregion services

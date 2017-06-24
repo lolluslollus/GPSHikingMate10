@@ -1,14 +1,10 @@
-﻿using LolloGPS.Data;
+﻿using LolloGPS.Controlz;
+using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
-using LolloGPS.Controlz;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using Windows.UI.Xaml;
-using System.Threading.Tasks;
-using GPSHikingMate10.ViewModels;
+using LolloGPS.ViewModels;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Windows.UI.Xaml;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 

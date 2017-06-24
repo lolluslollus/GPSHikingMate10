@@ -1,6 +1,7 @@
 ﻿using LolloGPS.Converters;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.ViewModels;
 using System;
 using System.Diagnostics;
 using System.Globalization;

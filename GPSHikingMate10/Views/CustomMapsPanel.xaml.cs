@@ -1,16 +1,14 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.ViewModels;
 using System.Threading.Tasks;
 using Windows.UI.Xaml;
-using Windows.UI.Core;
-using GPSHikingMate10.ViewModels;
-
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-	public sealed partial class CustomMapsPanel : Utilz.Controlz.OpenableObservableControl
+    public sealed partial class CustomMapsPanel : Utilz.Controlz.OpenableObservableControl
     {
 		public PersistentData PersistentData { get { return App.PersistentData; } }
 		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
@@ -30,7 +28,7 @@ namespace LolloGPS.Core
         }
         public static readonly DependencyProperty MapsPanelVMProperty =
             DependencyProperty.Register("MapsPanelVM", typeof(MapsPanelVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
-
+        
         public CustomMapsPanel()
 		{
 			InitializeComponent();
@@ -70,6 +68,11 @@ namespace LolloGPS.Core
         private void OnPickFolderClicked(object sender, RoutedEventArgs e)
         {
             Task pick = MainVM?.PickCustomTileFolderAsync();
+        }
+
+        private void OnToggleLocalRemote_Click(object sender, RoutedEventArgs e)
+        {
+            Task toggle = MapsPanelVM?.ToggleIsFileSourceAsync();
         }
     }
 }

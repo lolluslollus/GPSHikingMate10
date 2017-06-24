@@ -1,11 +1,13 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Devices.Geolocation;
@@ -16,10 +18,6 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Controls;
-using Utilz.Data;
-using System.Threading;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 

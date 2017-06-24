@@ -34,7 +34,8 @@
 			<conv:MetreSecToKmHConverter x:Key="MetreSecToKmHConverter"/>
             <conv:StringToStringArrayConverter x:Key="StringToStringArrayConverter"/>
             <conv:StringNotEmptyToVisibleConverter x:Key="StringNotEmptyToVisibleConverter"/>
-			<conv:StringNotEmptyToTrueConverter x:Key="StringNotEmptyToTrueConverter"/>
+            <conv:StringNotEmptyToCollapsedConverter x:Key="StringNotEmptyToCollapsedConverter"/>
+            <conv:StringNotEmptyToTrueConverter x:Key="StringNotEmptyToTrueConverter"/>
 			<conv:FloatNotNullToVisibleConverter x:Key="FloatNotNullToVisibleConverter"/>
 			<conv:DateNotNullToVisibilityConverter x:Key="DateNotNullToVisibilityConverter"/>
 			<conv:TrueToFalseConverter x:Key="TrueToFalseConverter"/>

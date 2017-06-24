@@ -105,7 +105,7 @@ namespace LolloGPS.Suspension
         {
             if (persistentData == null || persistentData.TileSourcez == null) return false;
 
-            if (persistentData.TestTileSource.TileSourceFolderPath == null) return false;
+            if (persistentData.TestTileSource.IsFileSource == null) return false;
             if (persistentData.CurrentTileSources == null) return false;
 
             foreach (var ts in persistentData.TileSourcez)

@@ -1,5 +1,6 @@
 ﻿using LolloGPS.Core;
 using LolloGPS.Data;
+using LolloGPS.ViewModels;
 using System;
 using System.Diagnostics;
 using System.Globalization;

@@ -762,7 +762,7 @@
     </Style>
 
     <Style x:Key="ToggleButtonRecoloured" TargetType="mctl:ToggleButtonLollo">
-        <Setter Property="AlternativeForeground" Value="{ThemeResource SystemControlBackgroundBaseLowBrush}"/>
+        <Setter Property="AlternativeForeground" Value="{ThemeResource SystemControlForegroundChromeBlackHighBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}"/>
         <Setter Property="BorderBrush" Value="{ThemeResource SystemControlForegroundTransparentBrush}"/>
@@ -974,9 +974,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-
-
-
 
     <!-- Default style for Windows.UI.Xaml.Controls.CheckBox -->
     <Style TargetType="CheckBox">

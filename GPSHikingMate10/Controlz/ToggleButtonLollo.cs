@@ -19,5 +19,51 @@ namespace LolloGPS.Controlz
         }
         public static readonly DependencyProperty AlternativeForegroundProperty =
             DependencyProperty.Register("AlternativeForeground", typeof(Brush), typeof(ToggleButtonLollo), new PropertyMetadata(new SolidColorBrush(Colors.Gray)));
+
+        public object CheckedContent
+        {
+            get { return (object)GetValue(CheckedContentProperty); }
+            set { SetValue(CheckedContentProperty, value); }
+        }
+        public static readonly DependencyProperty CheckedContentProperty =
+            DependencyProperty.Register("CheckedContent", typeof(object), typeof(ToggleButtonLollo), new PropertyMetadata(null));
+
+        public object UncheckedContent
+        {
+            get { return (object)GetValue(UncheckedContentProperty); }
+            set { SetValue(UncheckedContentProperty, value); }
+        }
+        public static readonly DependencyProperty UncheckedContentProperty =
+            DependencyProperty.Register("UncheckedContent", typeof(object), typeof(ToggleButtonLollo), new PropertyMetadata(null));
+
+        public new bool IsChecked
+        {
+            get { return (bool)GetValue(IsCheckedProperty); }
+            set { SetValue(IsCheckedProperty, value); }
+        }
+        public new static readonly DependencyProperty IsCheckedProperty =
+            DependencyProperty.Register("IsChecked", typeof(bool), typeof(ToggleButtonLollo), new PropertyMetadata(false, OnIsChecked_PropertyChanged));
+        private static void OnIsChecked_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            (obj as ToggleButtonLollo)?.UpdateAfterIsCheckedChanged();
+        }
+
+        public ToggleButtonLollo() : base()
+        {
+            Loaded += OnLoaded;
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            UpdateAfterIsCheckedChanged();
+        }
+
+        private void UpdateAfterIsCheckedChanged()
+        {
+            bool isChecked = IsChecked;
+            if (isChecked && CheckedContent != null) Content = CheckedContent;
+            else if (!isChecked && UncheckedContent != null) Content = UncheckedContent;
+            base.IsChecked = isChecked;
+        }
     }
 }

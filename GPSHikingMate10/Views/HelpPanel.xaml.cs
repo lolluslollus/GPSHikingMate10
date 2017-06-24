@@ -1,5 +1,6 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 

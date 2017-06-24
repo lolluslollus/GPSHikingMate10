@@ -13,6 +13,7 @@ using Windows.UI.Xaml;
 using System.Collections;
 using System.Globalization;
 using Windows.UI.Xaml.Controls;
+using LolloGPS.ViewModels;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // Multithreading documentation:

@@ -333,6 +333,20 @@ namespace LolloGPS.Converters
         }
     }
 
+    public class StringNotEmptyToCollapsedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null) return Visibility.Visible;
+            if (string.IsNullOrWhiteSpace(value.ToString())) return Visibility.Visible;
+            else return Visibility.Collapsed;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
+        }
+    }
+
     public class StringNotEmptyToTrueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

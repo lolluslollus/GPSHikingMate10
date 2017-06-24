@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
 
-namespace LolloGPS.Core
+namespace LolloGPS.ViewModels
 {
 	public sealed class AltitudeProfilesVM : ObservableData
 	{

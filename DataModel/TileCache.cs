@@ -36,13 +36,13 @@ namespace LolloGPS.Data.TileCache
         private readonly TileSourceRecord _tileSource = TileSourceRecord.GetDefaultTileSource(); //TileSources.Nokia;
         private readonly StorageFolder _tileCacheFolder = null;
         private readonly StorageFolder _tileSourceFolder = null;
+        private readonly StorageFolder _assetsFolder = null;
         private readonly MapTileDataSource _mapTileDataSource = null;
         public MapTileDataSource MapTileDataSource { get { return _mapTileDataSource; } }
 
         private int _webUriFormatIndex = 0;
         private readonly IReadOnlyList<string> _webUriFormats;
         private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
-        private readonly bool _isFileSource = false;
 
         //private readonly object _isCachingLocker = new object();
         //private volatile bool _isCaching = false;
@@ -66,39 +66,59 @@ namespace LolloGPS.Data.TileCache
         /// <param name="isCaching"></param>
         public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching, bool isReturnLocalUris, MapTileDataSource mapTileDataSource = null)
         {
-            if (tileSource == null) throw new ArgumentNullException("TileCache ctor was given tileSource == null");
+            _tileSource = tileSource ?? throw new ArgumentNullException("TileCache ctor was given tileSource == null");
 
-            //TileSourceRecord.Clone(tileSource, ref _tileSource);
-            _tileSource = tileSource;
+            //_isCaching = isCaching;
+            _isReturnLocalUris = isReturnLocalUris;
+            _assetsFolder = Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().Result;
 
-            var webUriFormats = new List<string>();
-            foreach (var uriString in _tileSource.UriStrings)
+            if (GetIsFileSource())
             {
+                if (string.IsNullOrWhiteSpace(tileSource.TileSourceFileName)) throw new ArgumentNullException("TileCache ctor was given no file names for file tile source");
+                var webUriFormats = new List<string>();
                 try
                 {
-                    string webUriFormat = uriString.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
+                    string webUriFormat = tileSource.TileSourceFileName.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
                     webUriFormat = webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
                     webUriFormat = webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
                     webUriFormats.Add(webUriFormat);
                 }
                 catch (Exception exc)
                 {
-                    Debug.WriteLine("Exception in TileCache.ctor: " + exc.Message + exc.StackTrace);
+                    Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+                    throw new ArgumentNullException("TileCache ctor was given an invalid TileSourceFileName");
                 }
-            }
-            _webUriFormats = webUriFormats.AsReadOnly();
+                _webUriFormats = webUriFormats.AsReadOnly();
 
-            //_isCaching = isCaching;
-            _isReturnLocalUris = isReturnLocalUris;
-
-            _isFileSource = !string.IsNullOrWhiteSpace(tileSource.TileSourceFolderPath);
-            if (_isFileSource)
-            {
-                if (!_webUriFormats.Any()) throw new ArgumentNullException("TileCache ctor was given invalid parameters for file tile source");
-                _tileSourceFolder = StorageFolder.GetFolderFromPathAsync(tileSource.TileSourceFolderPath).AsTask().Result;
+                try
+                {
+                    _tileSourceFolder = Pickers.GetLastPickedFolderAsync(tileSource.TileSourceFolderPath).Result;
+                }
+                catch (Exception exc)
+                {
+                    Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+                    throw new ArgumentNullException("TileCache ctor was given an invalid directory for file tile source");
+                }
             }
             else
             {
+                var webUriFormats = new List<string>();
+                foreach (var uriString in _tileSource.UriStrings)
+                {
+                    try
+                    {
+                        string webUriFormat = uriString.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
+                        webUriFormat = webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
+                        webUriFormat = webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
+                        webUriFormats.Add(webUriFormat);
+                    }
+                    catch (Exception exc)
+                    {
+                        Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
+                    }
+                }
+                _webUriFormats = webUriFormats.AsReadOnly();
+
                 var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
                 _tileCacheFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
             }
@@ -171,6 +191,10 @@ namespace LolloGPS.Data.TileCache
         {
             return _tileSource.MaxZoom;
         }
+        public bool GetIsFileSource()
+        {
+            return _tileSource.IsFileSource == true;
+        }
         #endregion getters
 
 
@@ -190,8 +214,10 @@ namespace LolloGPS.Data.TileCache
         public async Task<IRandomAccessStreamReference> GetTileStreamRefAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
         {
             if (cancToken.IsCancellationRequested) return null;
-            if (_isFileSource)
+            if (GetIsFileSource())
             {
+                if (zoom < GetMinZoom()) return await PixelHelper.GetPixelStreamRefFromFile(_assetsFolder, _mustZoomInTileUri.Segments.Last(), cancToken).ConfigureAwait(false);
+                if (zoom > GetMaxZoom()) return await PixelHelper.GetPixelStreamRefFromFile(_assetsFolder, _mustZoomOutTileUri.Segments.Last(), cancToken).ConfigureAwait(false);
                 return await PixelHelper.GetPixelStreamRefFromFile(_tileSourceFolder, Path.GetFileName(GetUriString(x, y, z, zoom)), cancToken).ConfigureAwait(false);
             }
             else
@@ -208,8 +234,7 @@ namespace LolloGPS.Data.TileCache
                 if (uri.Scheme == "ms-appx")
                 {
                     if (!uri.Segments.Any()) return null;
-                    var assetsFolder = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().ConfigureAwait(false);
-                    return await PixelHelper.GetPixelStreamRefFromFile(assetsFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
+                    return await PixelHelper.GetPixelStreamRefFromFile(_assetsFolder, uri.Segments.Last(), cancToken).ConfigureAwait(false);
                 }
                 return null;
             }
@@ -280,7 +305,7 @@ namespace LolloGPS.Data.TileCache
             // out of range? get out, no more thoughts. The MapControl won't request the uri if the zoom is outside its bounds, so it won't get here.
             // To force it here, I always set the widest possible bounds, which is OK coz the map control does not limit the zoom to its tile source bounds.
             if (zoom < GetMinZoom()) return _mustZoomInTileUri;
-            else if (zoom > GetMaxZoom()) return _mustZoomOutTileUri;
+            if (zoom > GetMaxZoom()) return _mustZoomOutTileUri;
 
             // get the filename that uniquely identifies TileSource, X, Y, Z and Zoom
             string fileNameNoExtension = GetFileNameNoExtension(x, y, z, zoom);
@@ -886,13 +911,13 @@ namespace LolloGPS.Data.TileCache
     {
         private static readonly BitmapTransform _bitmapTransform = new BitmapTransform() { InterpolationMode = BitmapInterpolationMode.Linear };
 
-        internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder imageFolder, string fileName, CancellationToken cancToken)
+        internal static async Task<RandomAccessStreamReference> GetPixelStreamRefFromFile(StorageFolder folder, string fileName, CancellationToken cancToken)
         {
             try
             {
                 if (cancToken.IsCancellationRequested) return null;
                 byte[] pixels = null;
-                using (var readStream = await imageFolder.OpenStreamForReadAsync(fileName).ConfigureAwait(false))
+                using (var readStream = await folder.OpenStreamForReadAsync(fileName).ConfigureAwait(false))
                 {
                     if (cancToken.IsCancellationRequested) return null;
                     //pixels = await GetPixelArrayFromByteStream(readStream.AsRandomAccessStream()).ConfigureAwait(false);
@@ -903,7 +928,7 @@ namespace LolloGPS.Data.TileCache
             }
             catch (Exception ex)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
+                //Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
                 return null;
             }
         }
