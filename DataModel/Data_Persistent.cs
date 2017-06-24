@@ -1404,10 +1404,13 @@ namespace LolloGPS.Data
                 if (cancToken.IsCancellationRequested) return 0;
                 var tileSourcesRootFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
                 if (tileSourcesRootFolder == null) return 0;
+                if (cancToken.IsCancellationRequested) return 0;
                 var tileSourceFolder = await tileSourcesRootFolder.TryGetItemAsync(tileSource.TechName).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
                 if (tileSourceFolder == null) return 0;
 
+                if (cancToken.IsCancellationRequested) return 0;
                 var files = await tileSourceFolder.GetFilesAsync().AsTask(cancToken).ConfigureAwait(false);
+                if (cancToken.IsCancellationRequested) return 0;
                 // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
                 Parallel.ForEach(files, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, file =>
                 {
