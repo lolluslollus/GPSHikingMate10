@@ -101,6 +101,7 @@
     <Content Include="Assets\aimOnce-36.png" />
     <Content Include="Assets\compass-200.png" />
     <Content Include="Assets\compass-outer-bad-90.png" />
+    <Content Include="Assets\bubble-90.png" />
     <Content Include="Assets\compass-outer-medium-90.png" />
     <Content Include="Assets\compass-outer-good-90.png" />
     <Content Include="Assets\Empty_trk_trkseg_trkpt.gpx" />

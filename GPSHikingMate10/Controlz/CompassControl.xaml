@@ -14,12 +14,19 @@
 		Background="Transparent"
 		Visibility="Visible">
 
-		<Image x:Name="MyImage"
+        <Image x:Name="CompassImage"
             IsTapEnabled="False" IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
 			RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/compass-outer-good-90.png" Stretch="None" HorizontalAlignment="Center">
 			<Image.RenderTransform>
 				<CompositeTransform x:Name="Heading"/>
 			</Image.RenderTransform>
 		</Image>
-	</Grid>
+        <Image x:Name="InclinometerImage"
+            IsTapEnabled="False" IsDoubleTapEnabled="False" IsHitTestVisible="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
+			RenderTransformOrigin="0.5,0.5" Source="ms-appx:///Assets/bubble-90.png" Stretch="None" HorizontalAlignment="Center">
+            <Image.RenderTransform>
+                <CompositeTransform x:Name="RollPitch"/>
+            </Image.RenderTransform>
+        </Image>
+    </Grid>
 </uctl:OpenableObservableControl>

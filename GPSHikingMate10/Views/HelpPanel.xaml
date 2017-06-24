@@ -114,10 +114,14 @@
 		<TextBlock Text="Compass"
 			Style="{StaticResource HeaderTextStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is approximate, the overlay will be dashed. If it is unreliable, the overlay will be grey and dashed: to fix this, you can wait a bit, move a bit or try to calibrate the device. To do so, move the device about like in the following picture (courtesy of Microsoft)."
+		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is approximate, the overlay will be dashed. If it is unreliable, the overlay will be grey and dashed: to fix this, you can wait a bit, move a bit or try to calibrate the device. To do so, move it about like in the following picture (courtesy of Microsoft)."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
         <Image Source="ms-appx:///Assets/mobius-500.png" MaxWidth="500"/>
+        <TextBlock Text="If your device has an inclinometer, you will see a circular overlay, which will be centred when the device is horizontal, like a water bubble level."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"/>
     </StackPanel>
 </UserControl>
