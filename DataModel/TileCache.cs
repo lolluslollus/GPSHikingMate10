@@ -716,9 +716,10 @@ namespace LolloGPS.Data.TileCache
         }
         private async Task SaveCacheAsync(TileSourceRecord tileSource, StorageFolder destinationFolder)
         {
-            Debug.WriteLine("SaveCacheAsync() started");
+            Logger.Add_TPL("SaveCacheAsync() started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
 
             var trySaveResult = await PersistentData.GetInstance().TrySaveCacheAsync(tileSource, destinationFolder, CancToken).ConfigureAwait(false);
+            Logger.Add_TPL($"SaveCacheAsync() ended with result = {trySaveResult}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             IsSavingScheduled = false;
             CacheSaved?.Invoke(null, new CacheSavedEventArgs(tileSource, trySaveResult > 0, trySaveResult));
         }
