@@ -31,9 +31,10 @@
                     Tapped="OnMyTextBlock_Tapped"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Left"/>
-                <AppBarButton
+                <mctl:AppBarButtonReallyCompact
                     IsCompact="True" 
                     Icon="Edit"
+                    Margin="10,0,0,0"
                     Style="{Binding ElementName=me, Path=AppBarButtonStyle}"
                     IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False"
                     Tapped="OnMyTextBlock_Tapped"

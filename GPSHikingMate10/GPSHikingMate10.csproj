@@ -118,6 +118,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\AppBarButtonLollo.cs" />
     <Compile Include="Controlz\LolloMultipleListChooser.xaml.cs">
       <DependentUpon>LolloMultipleListChooser.xaml</DependentUpon>
     </Compile>

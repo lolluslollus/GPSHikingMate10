@@ -6,7 +6,6 @@
     xmlns:mctl="using:LolloGPS.Controlz"
 	xmlns:media="using:Windows.UI.Xaml.Media">
 
-
     <SolidColorBrush x:Key="HistoryBrush" Color="#80FF8B00"/>
     <SolidColorBrush x:Key="HistoryBrushOpaque" Color="#FFFF8B00"/>
     <SolidColorBrush x:Key="Route0Brush" Color="#803300FF"/>
@@ -149,7 +148,7 @@
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="60"/>
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -298,7 +297,7 @@
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Width">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="60" />
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>
@@ -434,7 +433,7 @@
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="60"/>
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </VisualState>

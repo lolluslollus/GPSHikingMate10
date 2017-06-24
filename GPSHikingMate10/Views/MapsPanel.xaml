@@ -34,7 +34,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarToggleButton Grid.Row="0" Grid.Column="1"
+        <mctl:AppBarToggleButtonReallyCompact Grid.Row="0" Grid.Column="1"
 			IsChecked="{x:Bind PersistentData.IsAllowMeteredConnection, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
@@ -44,7 +44,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="1" Grid.Column="1" 
+        <mctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1" 
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Click="OnGoto2D_Click"
@@ -54,16 +54,16 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="2" Grid.Column="1"
+        <mctl:AppBarButtonReallyCompact Grid.Row="2" Grid.Column="1"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 			Click="OnMapStyleButton_Click">
-            <AppBarButton.Icon>
+            <mctl:AppBarButtonReallyCompact.Icon>
                 <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 					Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-            </AppBarButton.Icon>
-        </AppBarButton>
+            </mctl:AppBarButtonReallyCompact.Icon>
+        </mctl:AppBarButtonReallyCompact>
 
         <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
@@ -118,7 +118,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-		<AppBarToggleButton Grid.Row="4" Grid.Column="1"
+		<mctl:AppBarToggleButtonReallyCompact Grid.Row="4" Grid.Column="1"
 			IsChecked="{x:Bind PersistentData.IsMapCached, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			IsEnabled="{x:Bind MapsPanelVM.IsCacheBtnEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
@@ -129,7 +129,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="5" Grid.Column="1"
+        <mctl:AppBarButtonReallyCompact Grid.Row="5" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsLeechingEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
@@ -158,7 +158,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="7" Grid.Column="1"
+        <mctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
 			Click="OnClearMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
@@ -178,7 +178,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="8" Grid.Column="1"
+        <mctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
 			Click="OnSaveMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
