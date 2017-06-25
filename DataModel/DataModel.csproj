@@ -111,7 +111,9 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <None Include="ch1903wgs84en.pdf" />
     <None Include="project.json" />
+    <None Include="swissprojectionen.pdf" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data_Constants.cs" />
@@ -119,11 +121,13 @@
     <Compile Include="Data_Runtime.cs" />
     <Compile Include="DBManager.cs" />
     <Compile Include="DBManager_TileCache.cs" />
+    <Compile Include="Mercator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Record_DownloadSession.cs" />
     <Compile Include="Record_Point.cs" />
     <Compile Include="Record_TileSource.cs" />
     <Compile Include="TileCache.cs" />
+    <Compile Include="wgs84_ch1903.cs" />
     <Content Include="Properties\DataModel.rd.xml" />
   </ItemGroup>
   <ItemGroup>

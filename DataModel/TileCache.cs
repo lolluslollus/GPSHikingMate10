@@ -1,4 +1,5 @@
-﻿using LolloGPS.Data.Runtime;
+﻿using LolloGPS.Calcs;
+using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -41,7 +42,7 @@ namespace LolloGPS.Data.TileCache
         public MapTileDataSource MapTileDataSource { get { return _mapTileDataSource; } }
 
         private int _webUriFormatIndex = 0;
-        private readonly IReadOnlyList<string> _webUriFormats;
+        private readonly IReadOnlyList<string> _sourceUriFormats;
         private const string _tileFileFormat = "{3}_{0}_{1}_{2}";
 
         //private readonly object _isCachingLocker = new object();
@@ -75,20 +76,20 @@ namespace LolloGPS.Data.TileCache
             if (GetIsFileSource())
             {
                 if (string.IsNullOrWhiteSpace(tileSource.TileSourceFileName)) throw new ArgumentNullException("TileCache ctor was given no file names for file tile source");
-                var webUriFormats = new List<string>();
+                var fileUriFormats = new List<string>();
                 try
                 {
-                    string webUriFormat = tileSource.TileSourceFileName.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
-                    webUriFormat = webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
-                    webUriFormat = webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
-                    webUriFormats.Add(webUriFormat);
+                    string fileUriFormat = tileSource.TileSourceFileName.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
+                    fileUriFormat = fileUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
+                    fileUriFormat = fileUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
+                    fileUriFormats.Add(fileUriFormat);
                 }
                 catch (Exception exc)
                 {
                     Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
                     throw new ArgumentNullException("TileCache ctor was given an invalid TileSourceFileName");
                 }
-                _webUriFormats = webUriFormats.AsReadOnly();
+                _sourceUriFormats = fileUriFormats.AsReadOnly(); // this list will always have 1 item only
 
                 try
                 {
@@ -117,7 +118,7 @@ namespace LolloGPS.Data.TileCache
                         Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
                     }
                 }
-                _webUriFormats = webUriFormats.AsReadOnly();
+                _sourceUriFormats = webUriFormats.AsReadOnly();
 
                 var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
                 _tileCacheFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
@@ -130,7 +131,7 @@ namespace LolloGPS.Data.TileCache
         #endregion lifecycle
 
         #region getters
-        private Uri GetUriForFile(string fileName)
+        private Uri GetUriForLocalTile(string fileName)
         {
             // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source.
             // Fortunately, we still have the custom tile source, which works fine.
@@ -149,23 +150,49 @@ namespace LolloGPS.Data.TileCache
             var uri = new Uri(filePath, UriKind.Absolute);
             return uri;
         }
-        private string GetUriString(int x, int y, int z, int zoom)
+        /// <summary>
+        /// Similar to GetWebUriString4Tile, which you could also use, 
+        /// but this is faster and does not do any coordinate conversions.
+        /// </summary>
+        private string GetFileNameWithExtensionFromFileSource(int x, int y, int z, int zoom)
+        {
+            try
+            {
+                return string.Format(_sourceUriFormats[0], zoom, x, y);
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine("Exception in TileCacheReaderWriter.GetFileUriString(): " + exc.Message + exc.StackTrace);
+                return string.Empty;
+            }
+        }
+        /// <summary>
+        /// Gets the web uri to retrieve a tile. You can convert the coordinates here, in future.
+        /// </summary>
+        private string GetWebUriString4Tile(int x, int y, int z, int zoom)
         {
             try
             {
                 // this is not critical, so we don't lock, but mind the multithreading
                 var newIndex = _webUriFormatIndex;
-                if (newIndex >= _webUriFormats.Count - 1) newIndex = 0;
+                if (newIndex >= _sourceUriFormats.Count - 1) newIndex = 0;
                 else newIndex++;
                 _webUriFormatIndex = newIndex;
-                return string.Format(_webUriFormats[newIndex], zoom, x, y);
-                //return new Uri(string.Format(_webUriFormats[newIndex], zoom, x, y), UriKind.Absolute);
+                //if (_tileSource.TechName.Equals("Schweizmobil"))
+                //{
+                //    double xx = 0; double yy = 0; double zz = 0;
+                //    double lat = PseudoMercator.TileY2Lat(y, zoom);
+                //    double lon = PseudoMercator.TileX2Lon(x, zoom);
+                //    // LOLLO TODO make conversion
+                //    swisstopo.geodesy.gpsref.ApproxSwissProj.WGS84toLV03(lat, lon, 6378137.0, ref xx, ref yy, ref zz);
+                //    return string.Format(_webUriFormats[newIndex], zoom, xx, yy);
+                //}
+                return string.Format(_sourceUriFormats[newIndex], zoom, x, y);
             }
             catch (Exception exc)
             {
-                Debug.WriteLine("Exception in TileCache.GetWebUri(): " + exc.Message + exc.StackTrace);
+                Debug.WriteLine("Exception in TileCacheReaderWriter.GetWebUriString(): " + exc.Message + exc.StackTrace);
                 return string.Empty;
-                //return null;
             }
         }
         /// <summary>
@@ -199,7 +226,7 @@ namespace LolloGPS.Data.TileCache
 
 
         #region services
-        private string GetFileNameFromFileCache(string fileNameNoExtension)
+        private string GetFileNameWithExtensionFromCache(string fileNameNoExtension)
         {
             try
             {
@@ -218,7 +245,7 @@ namespace LolloGPS.Data.TileCache
             {
                 if (zoom < GetMinZoom()) return await PixelHelper.GetPixelStreamRefFromFile(_assetsFolder, _mustZoomInTileUri.Segments.Last(), cancToken).ConfigureAwait(false);
                 if (zoom > GetMaxZoom()) return await PixelHelper.GetPixelStreamRefFromFile(_assetsFolder, _mustZoomOutTileUri.Segments.Last(), cancToken).ConfigureAwait(false);
-                return await PixelHelper.GetPixelStreamRefFromFile(_tileSourceFolder, Path.GetFileName(GetUriString(x, y, z, zoom)), cancToken).ConfigureAwait(false);
+                return await PixelHelper.GetPixelStreamRefFromFile(_tileSourceFolder, GetFileNameWithExtensionFromFileSource(x, y, z, zoom), cancToken).ConfigureAwait(false);
             }
             else
             {
@@ -320,7 +347,7 @@ namespace LolloGPS.Data.TileCache
                 if (cancToken.IsCancellationRequested) return null;
                 // try to get this tile from the cache
                 //var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension); // this is 6x faster than using the DB, with few records and with thousands
+                var fileNameWithExtension = GetFileNameWithExtensionFromCache(fileNameNoExtension); // this is 6x faster than using the DB, with few records and with thousands
                 if (cancToken.IsCancellationRequested) return null;
                 // tile is not in cache
                 //if (tileCacheRecordFromDb == null)
@@ -333,7 +360,7 @@ namespace LolloGPS.Data.TileCache
                     //if (_isCaching)
                     //{
                     fileNameWithExtension = await TrySaveTile2Async(x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
-                    if (fileNameWithExtension != null) return GetUriForFile(fileNameWithExtension);
+                    if (fileNameWithExtension != null) return GetUriForLocalTile(fileNameWithExtension);
                     //}
                     //// tile not in cache and cache off: return the web uri of the tile
                     //else
@@ -345,7 +372,7 @@ namespace LolloGPS.Data.TileCache
                 else
                 {
                     //result = GetUriForFile(tileCacheRecordFromDb.FileName);
-                    return GetUriForFile(fileNameWithExtension);
+                    return GetUriForLocalTile(fileNameWithExtension);
                 }
             }
             catch (OperationCanceledException) { }
@@ -379,7 +406,7 @@ namespace LolloGPS.Data.TileCache
                 if (cancToken.IsCancellationRequested) return false;
                 // try to get this tile from the cache
                 //var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
-                var fileNameWithExtension = GetFileNameFromFileCache(fileNameNoExtension); // this is 6x faster than using the DB
+                var fileNameWithExtension = GetFileNameWithExtensionFromCache(fileNameNoExtension); // this is 6x faster than using the DB
                 if (cancToken.IsCancellationRequested) return false;
 
                 // tile is not in cache
@@ -428,7 +455,7 @@ namespace LolloGPS.Data.TileCache
 
             try
             {
-                string sWebUri = GetUriString(x, y, z, zoom);
+                string sWebUri = GetWebUriString4Tile(x, y, z, zoom);
                 var request = WebRequest.CreateHttp(sWebUri);
                 _tileSource.ApplyHeadersToWebRequest(request);
                 request.AllowReadStreamBuffering = true;
@@ -463,7 +490,7 @@ namespace LolloGPS.Data.TileCache
                             where = 4;
                             // read response stream into a new record. 
                             // This extra step is the price to pay if we want to check the stream content
-                            var fileNameWithExtension = GetFileNameWithGuessedExtension(fileNameNoExtension, response);
+                            var fileNameWithExtension = Path.ChangeExtension(fileNameNoExtension, GetExtension(fileNameNoExtension, response));
                             var imgBytes = new byte[response.ContentLength];
                             var newRecord = new TileCacheRecord(x, y, z, zoom);
                             if (cancToken.IsCancellationRequested) return null;
@@ -485,29 +512,32 @@ namespace LolloGPS.Data.TileCache
                                         await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
                                         where = 8;
                                         writeStream.Flush();
-                                        // check file vs stream
-                                        var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
-                                        //var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-                                        //var fileSize = fileProps.Size;
-                                        where = 9;
-                                        if ((long)fileSize == writeStream.Length && writeStream.Length > 0)
+                                        if (writeStream.Length > 0)
                                         {
+                                            where = 9;
+                                            // check file vs stream
+                                            var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
+                                            //var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+                                            //var fileSize = fileProps.Size;
                                             where = 10;
-                                            //bool isInserted = await DBManager.TryInsertOrIgnoreIntoTileCacheAsync(newRecord).ConfigureAwait(false);
-                                            //if (isInserted)
-                                            //{
-                                            return fileNameWithExtension;
-                                            //	where = 11;
+                                            if ((long)fileSize == writeStream.Length)
+                                            {
+                                                where = 11;
+                                                //bool isInserted = await DBManager.TryInsertOrIgnoreIntoTileCacheAsync(newRecord).ConfigureAwait(false);
+                                                //if (isInserted)
+                                                //{
+                                                return fileNameWithExtension;
+                                                //	where = 11;
+                                                //}
+                                            }
                                             //}
                                         }
-                                        //}
                                     }
                                 }
                             }
                         }
                     }
                 }
-                Debug.WriteLine("TrySaveTileAsync() could not save; it made it to where = " + where);
             }
             catch (OperationCanceledException) { return null; } // (ex.Response as System.Net.HttpWebResponse).StatusDescription
             catch (WebException ex) { return null; }
@@ -515,6 +545,12 @@ namespace LolloGPS.Data.TileCache
             {
                 Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
             }
+#if DEBUG
+            finally
+            {
+                Debug.WriteLine("TrySaveTileAsync() made it to where = " + where);
+            }
+#endif
             return null;
         }
         private static bool IsWebResponseContentOk(byte[] img)
@@ -543,7 +579,7 @@ namespace LolloGPS.Data.TileCache
             return false;
         }
 
-        private static string GetFileNameWithGuessedExtension(string fileNameNoExtension, WebResponse response)
+        private static string GetExtension(string fileNameNoExtension, WebResponse response)
         {
             if (response == null || response.ContentType == null) return null;
 
@@ -565,13 +601,9 @@ namespace LolloGPS.Data.TileCache
                 extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
             }
 
-            if (AllowedExtensionsTolerant.Any(ext => ext == extension))
-            {
-                return Path.ChangeExtension(fileNameNoExtension, extension);
-            }
-            return null;
+            if (!AllowedExtensionsTolerant.Any(ext => ext == extension)) extension = null;
+            return extension;
         }
-
         #endregion  services
     }
     // LOLLO TODO MAYBE before and after clearing, say how much disk space you saved

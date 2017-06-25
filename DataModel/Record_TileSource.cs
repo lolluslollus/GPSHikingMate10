@@ -69,6 +69,12 @@ namespace LolloGPS.Data
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = TileCache.TileCacheReaderWriter.MimeTypeImageAny;
             return headers;
         }
+        private static Dictionary<string, string> GetSchweizmobilWebHeaderCollection()
+        {
+            var headers = new Dictionary<string, string>();
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Referer)] = "https://map.schweizmobil.ch/?lang=en&bgLayer=pk&resolution=256";
+            return headers;
+        }
         #endregion constants
 
         #region properties
@@ -461,12 +467,13 @@ namespace LolloGPS.Data
                     "http://ut.no/", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "https://tilesprod.ut.no/tilestache/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"),
 
+                // this is tricky, it needs a prior request to https://kso.etjanster.lantmateriet.se/ to get two cookies, and the following requests will use those cookies, 
+                // and return new cookies (which happen to be the same, at least for a while).
                 //new TileSourceRecord(false, "", "", "Lantmateriet", "Lantmateriet (Sweden)", "Lantmateriet", "",
                 //    "http://www.lantmateriet.se/", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 //    "http://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX={zoomlevel}&TILEROW={y}&TILECOL={x}&FORMAT=image/png"),
                 // "http://kso.etjanster.lantmateriet.se/karta/topowebb/v1/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3006&TILEMATRIX=13&TILEROW=14371&TILECOL=13384&FORMAT=image/png"
-                // this is tricky, maybe because it returns HttpRequestHeader.TransferEncoding = chunked (but that should be all right), 
-                // maybe because it makes a call within the call and it needs special headers, cookies etc.
+                // this is tricky, it needs a prior request to get a cookie, and the following request will use those cookies.
                 //new TileSourceRecord(false, "", "", "LanskartaSe", "Lanskarta (Sweden)","LanskartaSe", "",
                 //    "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/proxy/proxy.ashx?http://maps.lantmateriet.se/topowebb/v1/wmts/1.0.0/topowebb/default/3006/{zoomlevel}/{y}/{x}.png",
                 //    "http://www.lansstyrelsen.se/", 3, 17, 256, false, false, GetAcceptImageWebHeaderCollection()),
@@ -537,7 +544,10 @@ namespace LolloGPS.Data
                 "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif
-            // This has its own coordinates
+            // This has its own coordinates. The first request is like https://www.mapplus.ch/?lang=en&basemap=osm&blop=1
+            // and it returns an html body and some headers, among which a cookie like name: {PHPSESSID; value: vfhohrdc9ni59tjbb4e1g1pju1; domain: www.mapplus.ch}
+            // The tile requests are like https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/9/1785/2347.png
+            // with extra headers like {Referer: https://www.mapplus.ch; Cookie: PHPSESSID=vfhohrdc9ni59tjbb4e1g1pju1}
             //output.Add(new TileSourceRecord(false, "", "", "OSMSchweizTopo", "OSM Schweiz Topo (CH)", "OSMSchweizTopo", "",
             //    "http://www.mapplus.ch", 7, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
             //    "http://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/{zoomlevel}/{x}/{y}.png"));
@@ -545,7 +555,21 @@ namespace LolloGPS.Data
 #if NOSTORE
             // also try http://wmts109.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/18/12/18.jpeg
             // with Referer = "https://map.schweizmobil.ch/" in the header.
-            // Occhio che ha le sue coordinate particolari!
+            // Occhio che ha le sue coordinate particolari! https://github.com/ValentinMinder/Swisstopo-WGS84-LV03 è un convertitore.
+            //output.Add(new TileSourceRecord(false, "", "", "Schweizmobil", "Schweizmobil (CH)", "Swisstopo", "",
+            //    "", 7, 16, 256, false, false, GetSchweizmobilWebHeaderCollection(),
+            //    "http://wmts100.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts101.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts102.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts103.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts104.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts105.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts106.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts107.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts108.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
+            //    "http://wmts109.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg"));
+#endif
+#if NOSTORE
             output.Add(new TileSourceRecord(false, "", "", "Swisstopo", "Swisstopo (CH)", "Swisstopo", "",
                 "", 7, 16, 256, false, false, GetDefaultWebHeaderCollection(),
                 "http://mpa1.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg",

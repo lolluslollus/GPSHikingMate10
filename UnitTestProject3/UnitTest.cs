@@ -8,6 +8,7 @@ using Windows.Devices.Geolocation;
 using LolloGPS.Data;
 using LolloGPS.Data.Leeching;
 using System.Threading.Tasks;
+using LolloGPS.Calcs;
 
 namespace UnitTestProject3
 {
@@ -257,15 +258,15 @@ namespace UnitTestProject3
             }
             public static int Lon2TileX_Test(double lonDeg, int z)
             {
-                return Lon2TileX(lonDeg, z);
+                return PseudoMercator.Lon2TileX(lonDeg, z);
             }
             public static int Lat2TileY_Test(double latDeg, int z)
             {
-                return Lat2TileY(latDeg, z);
+                return PseudoMercator.Lat2TileY(latDeg, z);
             }
             public static int MaxTilexX4Zoom_Test(int z)
             {
-                return MaxTilexX4Zoom(z);
+                return PseudoMercator.MaxTilexX4Zoom(z);
             }
             public List<TileCacheRecord> GetTileData_RespondingToCancelTest()
             {
