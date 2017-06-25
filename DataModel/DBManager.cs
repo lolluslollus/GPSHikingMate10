@@ -530,7 +530,7 @@ namespace LolloGPS.Data
         private static readonly Dictionary<string, ConnectionEntry> _connectionsDict = new Dictionary<string, ConnectionEntry>();
         private static readonly Semaphore _connectionsDictSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteConnectionEntriesSemaphore");
 
-        private static volatile bool _isOpen = true;
+        private static volatile bool _isOpen = false;
         public static bool IsOpen { get { return _isOpen; } }
         private static readonly Semaphore _isOpenSemaphore = new Semaphore(1, 1, "GPSHikingMate10_SQLiteIsOpenSemaphore");
 

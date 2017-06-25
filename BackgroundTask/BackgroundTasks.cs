@@ -2,6 +2,7 @@
 using LolloGPS.GPSInteraction;
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
@@ -24,13 +25,13 @@ namespace BackgroundTasks
         private volatile SafeCancellationTokenSource _cts = null;
         private volatile BackgroundTaskDeferral _deferral = null;
         private volatile IBackgroundTaskInstance _taskInstance = null;
-        private string _msg = string.Empty;
+        private volatile StringBuilder _stringBuilder = null;
 
         /// <summary>
         /// The Run method is the entry point of a background task.
         /// </summary>
         /// <param name="taskInstance"></param>
-        public async void Run(IBackgroundTaskInstance taskInstance)
+        public void Run(IBackgroundTaskInstance taskInstance)
         {
             try
             {
@@ -47,15 +48,16 @@ namespace BackgroundTasks
                 _taskInstance.Canceled += OnCanceled;
                 _cts = new SafeCancellationTokenSource();
                 var cancToken = _cts.Token;
+                _stringBuilder = new StringBuilder();
 
                 // LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
                 // only in the background task and only if called before GetDeferral and only if awaited
                 //Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
-                _msg = "GetLocationBackgroundTask starting";
+                _stringBuilder.AppendLine($"GetLocationBackgroundTask starting at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
 
                 if (GetLocBackgroundTaskSemaphoreManager.GetMainAppIsRunningAndActive())
                 {
-                    _msg = "GetLocationBackgroundTask returning coz the app is running and active";
+                    _stringBuilder.AppendLine($"GetLocationBackgroundTask returning coz the app is running and active at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
                     return; // the app is running, it will catch the background task running: do nothing
                 }
 
@@ -86,44 +88,44 @@ namespace BackgroundTasks
                 //}
 
                 // memory saving process
-                var pos = await GetGeopositionAsync(cancToken).ConfigureAwait(false);
+                var pos = GetGeopositionAsync(cancToken).Result;
                 var newDataRecord = GPSInteractor.GetNewHistoryRecord(pos);
                 if (cancToken.IsCancellationRequested)
                 {
-                    _msg = "GetLocationBackgroundTask returning coz cancellation was requested";
+                    _stringBuilder.AppendLine($"GetLocationBackgroundTask returning coz cancellation was requested at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
                     return;
                 }
 
-                _msg = $"GetLocationBackgroundTask is about to save the new geoPosition";
+                _stringBuilder.AppendLine("GetLocationBackgroundTask is about to save the new geoPosition");
                 bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
-                _msg = $"GetLocationBackgroundTask has saved the new geoPosition: {isSaved}";
+                _stringBuilder.AppendLine($"GetLocationBackgroundTask has saved the new geoPosition: {isSaved}");
             }
             catch (ObjectDisposedException) // comes from the cts
             {
-                _msg = $"GetLocationBackgroundTask ran into ObjectDisposedException";
+                _stringBuilder.AppendLine($"GetLocationBackgroundTask ran into ObjectDisposedException at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
             }
             catch (OperationCanceledException) // comes from the cts
             {
-                _msg = $"GetLocationBackgroundTask ran into OperationCanceledException";
+                _stringBuilder.AppendLine($"GetLocationBackgroundTask ran into OperationCanceledException at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
             }
             catch (Exception ex)
             {
-                _msg = ex.ToString();
+                _stringBuilder.AppendLine(ex.ToString());
             }
             finally
             {
-                _cts?.Dispose();
-                _cts = null;
                 var ts = _taskInstance;
                 if (ts != null) ts.Canceled -= OnCanceled;
-                await Logger.AddAsync($"GetLocationBackgroundTask ended {_msg}", Logger.BackgroundLogFilename, Logger.Severity.Info, false).ConfigureAwait(false);
+                _cts?.Dispose();
+                _cts = null;
+                Logger.AddAsync($"GetLocationBackgroundTask ended {_stringBuilder.ToString()}", Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).Wait();
                 _deferral?.Complete();
             }
         }
 
         private void OnCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
-            _msg = $"Ending method GetLocationBackgroundTask.OnCanceledAsync() with reason = {reason}";
+            _stringBuilder.AppendLine($"GetLocationBackgroundTask.OnCanceled() fired with reason = {reason}");
             _cts?.CancelSafe(true);
         }
 

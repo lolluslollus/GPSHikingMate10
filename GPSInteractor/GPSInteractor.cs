@@ -331,7 +331,7 @@ namespace LolloGPS.GPSInteraction
             }
         }
 
-        private void OnGetLocBackgroundTaskCompleted(IBackgroundTaskRegistration sender, BackgroundTaskCompletedEventArgs e)
+        private void OnGetLocBackgroundTaskCompleted(IBackgroundTaskRegistration sender, BackgroundTaskCompletedEventArgs args)
         {
             Logger.Add_TPL("OnGetLocBackgroundTaskCompleted() started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
             Task getLoc = GetGeoLocationAppendingHistoryAsync();

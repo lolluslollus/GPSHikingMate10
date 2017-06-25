@@ -65,9 +65,16 @@ namespace LolloGPS.GPSInteraction
         }
         public static bool GetMainAppIsRunningAndActive()
         {
-            Semaphore semaphoreOpen = null;
-            bool result = Semaphore.TryOpenExisting(BACKGROUND_TASK_SEMAPHORE_NAME, out semaphoreOpen);
-            return result;
+            try
+            {
+                Semaphore semaphoreOpen = null;
+                bool result = Semaphore.TryOpenExisting(BACKGROUND_TASK_SEMAPHORE_NAME, out semaphoreOpen);
+                return result;
+            }
+            catch
+            {
+                return true;
+            }
         }
     }
 }
