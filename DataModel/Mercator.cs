@@ -9,6 +9,10 @@ namespace LolloGPS.Calcs
 {
     public static class PseudoMercator
     {
+        /*
+         GlobalMercator (based on EPSG:900913 = EPSG:3857) (deprecated EPSG:3785) is for Google Maps, Yahoo Maps, Microsoft Maps compatible tiles
+         GlobalGeodetic (based on EPSG:4326) is for OpenLayers Base Map and Google Earth compatible tiles 
+        */
         // LOLLO NOTE check the mercator formulas at http://wiki.openstreetmap.org/wiki/Mercator
         // and http://wiki.openstreetmap.org/wiki/EPSG:3857
         // and http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/

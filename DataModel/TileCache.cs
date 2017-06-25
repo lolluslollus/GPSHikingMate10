@@ -180,12 +180,40 @@ namespace LolloGPS.Data.TileCache
                 _webUriFormatIndex = newIndex;
                 //if (_tileSource.TechName.Equals("Schweizmobil"))
                 //{
-                //    double xx = 0; double yy = 0; double zz = 0;
-                //    double lat = PseudoMercator.TileY2Lat(y, zoom);
-                //    double lon = PseudoMercator.TileX2Lon(x, zoom);
-                //    // LOLLO TODO make conversion
-                //    swisstopo.geodesy.gpsref.ApproxSwissProj.WGS84toLV03(lat, lon, 6378137.0, ref xx, ref yy, ref zz);
-                //    return string.Format(_webUriFormats[newIndex], zoom, xx, yy);
+                //    int zoomHalf = zoom / 2;
+                //    double zoomDouble = zoom;
+                //    double sqrt2 = Math.Sqrt(2.0);
+                //    //int newZoom = Convert.ToInt32(zoomDouble / 2.0 + 9.0);
+                //    int newZoom = zoom + zoom - 2; // zoomHalf + 9;
+                //    // the northmost point seems to be at 48.3 N
+                //    // the southernmost at 45.4 N
+                //    // at level 8, there is one row and one column.
+                //    // at newZoom = 9 to 11, there are 1 row and 2 columns.
+                //    // at newZoom = 12, there are 2 rows and 2 columns.
+                //    // at newZoom = 13 to 14, there are 2 rows and 3 columns.
+                //    // at newZoom = 15, there are 3 rows and 4 columns.
+                //    // at 16, there are 5 rows and 8 columns. The look changes.
+                //    // -> Between 16 and 17 there is a jump: the coordinates increase more than double.
+                //    // at 17, there are 13 rows and 19 columns.
+                //    // at 18, 23 rows and 35 columns. There are in fact 25 rows, the bottom two are white. This happens often.
+                //    // -> Between 18 at 19 there is a funny jump: the coordinates don't double, they go up a bit more!!
+                //    // at 19, 59 rows and 84 columns. There are in fact 63 rows, the bottom 4 are white.
+                //    // at 20, 113 rows and 133 columns.
+                //    // at 21, 207 rows and 266 columns.
+                //    // at 22, 432 rows and 286 columns.
+                //    // -> Between 22 and 23 there is another jump: the coordinates increase only about 27%.
+                //    // at 23, 516 rows and 458 columns.
+                //    // at 24, 719 rows and 476 columns.
+                //    // at 25, https://wmts105.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/25/996/681.png takes over. 
+                //    // It doubles regularly.
+                //    // 27 is the top level.
+                //    // All this applies to both swisstopo maps.
+
+                //    int newX = x - Convert.ToInt32(Math.Pow(2.0, Math.Sqrt(zoomDouble)));
+                //    int newY = y - Convert.ToInt32(Math.Pow(2.0, Math.Sqrt(zoomDouble)));
+                //    // LOLLO TODO make conversion work
+                //    //swisstopo.geodesy.gpsref.ApproxSwissProj.WGS84toLV03(lat, lon, 6378137.0, ref xx, ref yy, ref zz);
+                //    return string.Format(_sourceUriFormats[newIndex], newZoom, newX, newY);
                 //}
                 return string.Format(_sourceUriFormats[newIndex], zoom, x, y);
             }

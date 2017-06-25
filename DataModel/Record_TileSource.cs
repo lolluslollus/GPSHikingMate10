@@ -544,20 +544,50 @@ namespace LolloGPS.Data
                 "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif
-            // This has its own coordinates. The first request is like https://www.mapplus.ch/?lang=en&basemap=osm&blop=1
+            // This one has its own coordinates. y=0 is south, y=max is north. Zoom 0 accepts 0<=y<=8 and 0<=x<=7.
+            // Zoom 1 accepts y max = 16, x max = 15
+            // https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/2/31/33.png
+            // https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/3/63/67.png
+            // Max zoom is 9
+            // The top coordinates are https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/9/4049/4295.png
+            // lon and lat for x = y = 0 are 3.49378 E, 42.69590 N (SW)
+            // lon and lat for x = y = max are 14.53994 E, 50.45367 N (NE)
+            // The first request is like https://www.mapplus.ch/?lang=en&basemap=osm&blop=1
             // and it returns an html body and some headers, among which a cookie like name: {PHPSESSID; value: vfhohrdc9ni59tjbb4e1g1pju1; domain: www.mapplus.ch}
             // The tile requests are like https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/9/1785/2347.png
+            // https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/9/2185/1673.png
             // with extra headers like {Referer: https://www.mapplus.ch; Cookie: PHPSESSID=vfhohrdc9ni59tjbb4e1g1pju1}
             //output.Add(new TileSourceRecord(false, "", "", "OSMSchweizTopo", "OSM Schweiz Topo (CH)", "OSMSchweizTopo", "",
             //    "http://www.mapplus.ch", 7, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
             //    "http://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/{zoomlevel}/{x}/{y}.png"));
 
 #if NOSTORE
+            // there is also this:
+            // https://mapproxy.retorte.ch/service?LAYERS=swisstopo&FORMAT=image/jpeg&SRS=EPSG:4326&transparent=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&BBOX=7.9376220703125,46.53619267489863,7.943115234375,46.53997127029103&WIDTH=256&HEIGHT=256
+            // you get it from https://tools.retorte.ch/map/?swissgrid=2660300,1185186&zoom=16&map=swisstopo 
+            // and it needs a referer like https://tools.retorte.ch/map/?swissgrid=2660300,1185186&zoom=16&map=swisstopo
+            // very far south:
+            // https://wmts103.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/26/2146/2363.png
+            // very far north:
+            // https://wmts108.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/26/423/2066.png
+            // very far west:
+            // https://wmts108.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/26/1877/511.png
+            // very far east:
+            // https://wmts107.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/26/1428/3233.png
+            // it goes to 27, but it seems rather useless
+
+            // the x = 0 of the leftmost tile is at ~5°5'E (~ Dijon)
+            // the top of the topmost tile is at ~48°18'N (~St Dié de Vosges)
+            // the bottom of the bottommost tile is at ~45°25'N (~Corsico)
+            // the right of the rightmost tile is at ~11°20'E (~Bolzano)
+            // https://wmts102.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/16/3/1.png
+            // https://wmts105.geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/19/18/43.png
+            // https://wmts108.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-karte-farbe/default/current/21781/21/81/185.png
             // also try http://wmts109.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/18/12/18.jpeg
             // with Referer = "https://map.schweizmobil.ch/" in the header.
             // Occhio che ha le sue coordinate particolari! https://github.com/ValentinMinder/Swisstopo-WGS84-LV03 è un convertitore.
             //output.Add(new TileSourceRecord(false, "", "", "Schweizmobil", "Schweizmobil (CH)", "Swisstopo", "",
-            //    "", 7, 16, 256, false, false, GetSchweizmobilWebHeaderCollection(),
+            //    "", 4, 16, 256, false, false, GetSchweizmobilWebHeaderCollection(),
             //    "http://wmts100.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
             //    "http://wmts101.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
             //    "http://wmts102.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg",
@@ -589,6 +619,17 @@ namespace LolloGPS.Data
                 "", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://s3-us-west-1.amazonaws.com/caltopo/topo/{zoomlevel}/{x}/{y}.png?v=1"));
 #endif
+
+#if NOSTORE
+            // referer https://viewer.nationalmap.gov/viewer/
+            output.Add(new TileSourceRecord(false, "", "", "USGSTopo", "USGSTopo (USA)", "USGSTopo", "",
+                "", 3, 15, 256, false, false, GetAcceptImageWebHeaderCollection(),
+                "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{zoomlevel}/{y}/{x}"));
+#endif
+
+            // geoportail fr ? http://depot.ign.fr/geoportail/api/develop/tech-docs-js/developpeur/wmts.html
+            // to get a key: http://professionnels.ign.fr/ign/contrats
+            // or study https://www.geoportail.gouv.fr/carte
             return output;
         }
         public static TileSourceRecord GetDefaultTileSource()
