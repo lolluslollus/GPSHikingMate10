@@ -56,6 +56,7 @@
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="1" Grid.Column="4"
+            HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
             <mctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
@@ -102,6 +103,7 @@
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="4" Grid.Column="3"
+            HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<mctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
@@ -111,6 +113,7 @@
 				Icon="OpenFile"/>
 		</ContentControl>
 		<ContentControl Grid.Row="4" Grid.Column="4"
+            HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<mctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
@@ -151,6 +154,7 @@
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="7" Grid.Column="3"
+            HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<mctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
@@ -160,6 +164,7 @@
 				Icon="OpenFile" />
 		</ContentControl>
 		<ContentControl Grid.Row="7" Grid.Column="4"
+            HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
 			<mctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"

@@ -1405,7 +1405,7 @@ namespace LolloGPS.Data
                 var tileSourcesRootFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
                 if (tileSourcesRootFolder == null) return 0;
                 if (cancToken.IsCancellationRequested) return 0;
-                var tileSourceFolder = await tileSourcesRootFolder.TryGetItemAsync(tileSource.TechName).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
+                var tileSourceFolder = await tileSourcesRootFolder.TryGetItemAsync(tileSource.FolderName).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
                 if (tileSourceFolder == null) return 0;
 
                 if (cancToken.IsCancellationRequested) return 0;
