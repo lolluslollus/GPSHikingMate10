@@ -229,13 +229,8 @@ namespace LolloGPS.Core
                 if (totalCnt > 0)
                 {
                     int[] stepsWhenIWantToRaiseProgress = GetStepsToReport(totalCnt);
-                    // LOLLO TODO check if this parallelisation bothers certain providers. It is faster than without, by 1.2 to 2 x. 
-                    // Otherwise, see if you can download the tiles in the background. 
-                    // Let's see: a background task would mean using named semaphores in the tile cache db.
-                    // Then we need to share the processing queue between bkg and frg. How? If we can't, that may work anyway,
-                    // but we risk double-downloading certain tiles. If we stick to the new CollisionBehaviour
-                    // in the tile cache, which seems better, we also risk double-saving them.
-
+                    // LOLLO NOTE this parallelisation is faster than without, by 1.2 to 2 x.
+                    // This cannot be done in a background task because it is too memory consuming (June 2017).
 #if DEBUG
                     Stopwatch sw0 = new Stopwatch();
                     sw0.Start();

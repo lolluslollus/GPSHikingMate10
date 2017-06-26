@@ -551,7 +551,7 @@ namespace LolloGPS.Core
                             else mapIcon.Image = _checkpointCircleIconStreamReference;
 
                             //(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
-                            //mapIcon.Title = "LOLLO TODO"; // style the titles
+                            //mapIcon.Title = "LOLLO TODO"; // style the titles, not possible as of June 2017.
                             mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed
                         }
                         j++;

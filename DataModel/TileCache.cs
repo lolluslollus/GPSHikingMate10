@@ -133,7 +133,8 @@ namespace LolloGPS.Data.TileCache
         #region getters
         private Uri GetUriForLocalTile(string fileName)
         {
-            // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source.
+            // LOLLO TODO check this method, it never seems to satisfy the local and the http tile source as of June 2017.
+            // The old MapControl was more tolerant.
             // Fortunately, we still have the custom tile source, which works fine.
             if (_isReturnLocalUris)
             {

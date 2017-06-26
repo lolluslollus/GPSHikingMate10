@@ -145,24 +145,6 @@
 				Style="{StaticResource HugeTextStyle}">
             </TextBlock>
         </Grid>
-        <!-- download progress bar -->
-        <mctl:LolloProgressBar Grid.Column="1"
-            Canvas.ZIndex="800"
-            IsProgressHindered="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-            Cancel="OnCancelDownload_Click"
-            ProgressHinderedNotice="Download will resume when back online"
-            ProgressUnhinderedNotice="Downloading..."
-            Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"
-			VerticalAlignment="Bottom"
-            Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
-        <!-- save tiles progress bar -->
-        <mctl:LolloProgressBar Grid.Column="1"
-            Canvas.ZIndex="800"
-            Cancel="OnCancelSaveTiles_Click"
-            ProgressUnhinderedNotice="Saving..."
-            Value="{x:Bind RuntimeData.SaveProgressValue, Mode=OneWay}"
-			VerticalAlignment="Bottom"
-            Visibility="{x:Bind PersistentData.IsSavingTiles, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
         <!-- Map, altitude, menu, user info and their overlays -->
         <Grid Grid.Row="0" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -250,6 +232,25 @@
 						IsEnabled="False"
 						Icon="Pin" Label="Keeping alive"/>
                 </StackPanel>
+            </StackPanel>
+            <!-- map, altitude, menu overlays -->
+            <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Bottom" Canvas.ZIndex="800">
+                <!-- download progress bar -->
+                <mctl:LolloProgressBar
+                    IsProgressHindered="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+                    Cancel="OnCancelDownload_Click"
+                    ProgressHinderedNotice="Download will resume when back online"
+                    ProgressUnhinderedNotice="Downloading..."
+                    Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"
+			        VerticalAlignment="Bottom"
+                    Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
+                <!-- save tiles progress bar -->
+                <mctl:LolloProgressBar
+                    Cancel="OnCancelSaveTiles_Click"
+                    ProgressUnhinderedNotice="Saving..."
+                    Value="{x:Bind RuntimeData.SaveProgressValue, Mode=OneWay}"
+			        VerticalAlignment="Bottom"
+                    Visibility="{x:Bind PersistentData.IsSavingTiles, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
             </StackPanel>
             <!-- map and altitude-->
             <Grid Grid.Row="0" Canvas.ZIndex="0">

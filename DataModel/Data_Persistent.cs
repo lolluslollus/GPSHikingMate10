@@ -534,7 +534,7 @@ namespace LolloGPS.Data
 
         private volatile bool _isSavingTiles = false;
         [IgnoreDataMember]
-        public bool IsSavingTiles { get { return _isSavingTiles; } private set { if (_isSavingTiles != value) { _isSavingTiles = true; /* LOLLO TODO restore after testing value*/; RaisePropertyChanged_UI(); } } }
+        public bool IsSavingTiles { get { return _isSavingTiles; } private set { if (_isSavingTiles != value) { _isSavingTiles = value; RaisePropertyChanged_UI(); } } }
 
         private double _lastAltitudeLastVScroll = 0.0;
         [DataMember]
@@ -1276,8 +1276,6 @@ namespace LolloGPS.Data
         /// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
         /// </summary>
         /// <returns></returns>
-        // LOLLO TODO add a custom tile source, then use it and download a few tiles. Repeat. 
-        // The custom tile source will appear multiple times in the maps - available sources list: this is wrong. Very difficult to reproduce!
         public async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcezAsync()
         {
             try

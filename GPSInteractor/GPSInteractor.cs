@@ -352,8 +352,7 @@ namespace LolloGPS.GPSInteraction
                     // the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
                     // it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
                     // In any case, this change must take place on the UI thread, so no issue really.
-                    Task setToFalse = Task.Run(() => RunInUiThreadIdleAsync(() => _persistentData.IsBackgroundTracking = false)); // LOLLO TODO check this
-                    //IAsyncAction qqq = CoreApplication.MainView.CoreWindow.Dispatcher.RunIdleAsync(a => _persistentData.IsBackgroundTracking = false);
+                    Task setToFalse = Task.Run(() => RunInUiThreadIdleAsync(() => _persistentData.IsBackgroundTracking = false));
                 }
                 else
                 {
