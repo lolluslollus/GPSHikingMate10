@@ -637,7 +637,8 @@ namespace LolloGPS.Data.TileCache
     }
     // LOLLO TODO MAYBE before and after clearing, say how much disk space you saved
     /// <summary>
-    /// Cache clearer and cache reader writer cannot be the same thing because they have different purposes and properties. The former is a singleton.
+    /// CacheClearerSaver and CacheReaderWriter cannot be the same thing because they have different purposes and properties. 
+    /// The former is a singleton.
     /// </summary>
     public sealed class TileCacheClearerSaver : OpenableObservableData
     {
@@ -719,7 +720,7 @@ namespace LolloGPS.Data.TileCache
         #endregion events
 
 
-        #region ctor
+        #region lifecycle
         public static TileCacheClearerSaver GetInstance()
         {
             lock (_instanceLocker)
@@ -729,10 +730,7 @@ namespace LolloGPS.Data.TileCache
         }
 
         private TileCacheClearerSaver() { }
-        #endregion ctor
-
-
-        #region lifecycle
+        
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
             // resume clearing cache if it was interrupted

@@ -99,15 +99,6 @@ namespace LolloGPS.Core
         protected readonly IGeoBoundingBoxProvider _gbbProvider = null;
         #endregion properties
 
-        #region events
-        public event EventHandler<double> SaveProgressChanged;
-        private void RaiseSaveProgressChanged(double progress)
-        {
-            _runtimeData.SetDownloadProgressValue_UI(progress);
-            SaveProgressChanged?.Invoke(this, progress);
-        }
-        #endregion events
-
         #region lifecycle
         public TileDownloader(IGeoBoundingBoxProvider gbbProvider)
         {
@@ -215,7 +206,7 @@ namespace LolloGPS.Core
         }
         private Tuple<int, int> SaveTiles_RespondingToCancel2(DownloadSession session, TileSourceRecord tileSource)
         {
-            RaiseSaveProgressChanged(0.0);
+            _runtimeData.SetDownloadProgressValue_UI(0.0);
 
             int totalCnt = 0;
             int currentOkCnt = 0;
@@ -253,7 +244,7 @@ namespace LolloGPS.Core
                                 if (isOk) currentOkCnt++;
 
                                 currentCnt++;
-                                if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseSaveProgressChanged((double)currentCnt / (double)totalCnt);
+                                if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetDownloadProgressValue_UI((double)currentCnt / (double)totalCnt);
                             });
                         }
                     }
@@ -270,7 +261,7 @@ namespace LolloGPS.Core
 #endif
                 }
             }
-            RaiseSaveProgressChanged(1.0);
+            _runtimeData.SetDownloadProgressValue_UI(1.0);
             return Tuple.Create(currentOkCnt, totalCnt);
         }
         private static int[] GetStepsToReport(int totalCnt)

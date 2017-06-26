@@ -382,15 +382,22 @@ namespace LolloGPS.ViewModels
         {
             if (!PersistentData.IsTilesDownloadDesired || !RuntimeData.IsConnectionAvailable) return;
 
-            await RunInUiThreadAsync(delegate
+            List<Tuple<int, int>> downloadResult;
+            try
             {
-                KeepAlive.UpdateKeepAlive(true);
-            }).ConfigureAwait(false);
-            var downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
-            await RunInUiThreadAsync(delegate
+                await RunInUiThreadAsync(delegate
+                {
+                    KeepAlive.UpdateKeepAlive(true);
+                }).ConfigureAwait(false);
+                downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+            }
+            finally
             {
-                KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
-            }).ConfigureAwait(false);
+                await RunInUiThreadAsync(delegate
+                {
+                    KeepAlive.UpdateKeepAlive(PersistentData.IsKeepAlive);
+                }).ConfigureAwait(false);
+            }
             var pd = PersistentData;
             if (downloadResult != null && pd != null)
             {

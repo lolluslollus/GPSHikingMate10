@@ -209,7 +209,7 @@ namespace LolloGPS.ViewModels
                 PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
                 RuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
                 TileCacheClearerSaver.IsClearingScheduledChanged += OnTileCache_IsClearingOrSavingScheduledChanged;
-                TileCacheClearerSaver.CacheCleared += OnTileCache_CacheCleared;
+                TileCacheClearerSaver.CacheCleared += OnTileCacheClearerSaver_CacheCleared;
                 TileCacheClearerSaver.IsSavingScheduledChanged += OnTileCache_IsClearingOrSavingScheduledChanged;
                 TileCacheClearerSaver.CacheSaved += OnTileCacheClearerSaver_CacheSaved;
             }
@@ -222,7 +222,7 @@ namespace LolloGPS.ViewModels
                 PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
                 RuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
                 TileCacheClearerSaver.IsClearingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
-                TileCacheClearerSaver.CacheCleared -= OnTileCache_CacheCleared;
+                TileCacheClearerSaver.CacheCleared -= OnTileCacheClearerSaver_CacheCleared;
                 TileCacheClearerSaver.IsSavingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
                 TileCacheClearerSaver.CacheSaved -= OnTileCacheClearerSaver_CacheSaved;
                 _isDataChangedHandlerActive = false;
@@ -317,7 +317,7 @@ namespace LolloGPS.ViewModels
                 UpdateIsTestCustomTileSourceEnabled();
             }).ConfigureAwait(false);
         }
-        private void OnTileCache_CacheCleared(object sender, TileCacheClearerSaver.CacheClearedEventArgs args)
+        private void OnTileCacheClearerSaver_CacheCleared(object sender, TileCacheClearerSaver.CacheClearedEventArgs args)
         {
             // output messages
             if (args.TileSource.IsAll)
@@ -356,8 +356,7 @@ namespace LolloGPS.ViewModels
 
         private void OnTileCacheClearerSaver_CacheSaved(object sender, TileCacheClearerSaver.CacheSavedEventArgs args)
         {
-            if (args.IsCacheSaved) PersistentData.LastMessage = $"{args.HowManyRecordsSaved} tiles saved";
-            else PersistentData.LastMessage = "Tiles not saved";
+            PersistentData.LastMessage = $"{args.HowManyRecordsSaved} tiles saved";
         }
         #endregion event handlers
 

@@ -1405,8 +1405,13 @@ namespace LolloGPS.Data
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
+
                 IsSavingTiles = true;
                 IsTileSourcezBusy = true;
+                await RunInUiThreadAsync(delegate
+                {
+                    KeepAlive.UpdateKeepAlive(true);
+                }).ConfigureAwait(false);
 
                 return await TileSaver.TrySaveCacheAsync(tileSource, destinationFolder, cancToken).ConfigureAwait(false);
             }
@@ -1414,6 +1419,11 @@ namespace LolloGPS.Data
             {
                 IsSavingTiles = false;
                 IsTileSourcezBusy = false;
+                await RunInUiThreadAsync(delegate
+                {
+                    KeepAlive.UpdateKeepAlive(IsKeepAlive);
+                }).ConfigureAwait(false);
+
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }

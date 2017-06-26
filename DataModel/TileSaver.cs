@@ -18,15 +18,6 @@ namespace LolloGPS.Data
         private static SafeCancellationTokenSource _localCts;
         private static CancellationTokenSource _linkedCts;
 
-        #region events
-        public static event EventHandler<double> SaveProgressChanged;
-        private static void RaiseProgressChanged(double progress)
-        {
-            _runtimeData.SetDownloadProgressValue_UI(progress);
-            SaveProgressChanged?.Invoke(null, progress);
-        }
-        #endregion events
-
         public static void Cancel()
         {
             lock (_ctsLocker)
@@ -47,11 +38,12 @@ namespace LolloGPS.Data
         }
         public static async Task<int> TrySaveCacheAsync(TileSourceRecord tileSource, StorageFolder destinationFolder, CancellationToken outerCancToken)
         {
+            int currentCnt = 0;
             try
             {
                 if (outerCancToken.IsCancellationRequested) return 0;
                 if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsAll || tileSource.IsFileSource || destinationFolder == null) return 0;
-                RaiseProgressChanged(0.0);
+                _runtimeData.SetSaveProgressValue_UI(0.0);
 
                 var myCancToken = GetLinkedCancToken(outerCancToken);
 
@@ -64,8 +56,7 @@ namespace LolloGPS.Data
                 if (myCancToken.IsCancellationRequested) return 0;
                 var files = await tileSourceFolder.GetFilesAsync().AsTask(myCancToken).ConfigureAwait(false);
                 if (myCancToken.IsCancellationRequested) return 0;
-
-                int currentCnt = 0;
+                
                 int totalCnt = files.Count;
                 if (totalCnt == 0) return 0;
 
@@ -76,23 +67,23 @@ namespace LolloGPS.Data
                 {
                     var copiedFile = file.CopyAsync(destinationFolder, file.Name, NameCollisionOption.ReplaceExisting).AsTask(myCancToken).Result;
                     currentCnt++;
-                    if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) RaiseProgressChanged((double)currentCnt / (double)totalCnt);
+                    if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetSaveProgressValue_UI((double)currentCnt / (double)totalCnt);
                 });
 
                 return currentCnt;
             }
-            catch (ObjectDisposedException) { return 0; }
-            catch (OperationCanceledException) { return 0; }
+            catch (ObjectDisposedException) { return currentCnt; }
+            catch (OperationCanceledException) { return currentCnt; }
             catch (Exception exc)
             {
                 Logger.Add_TPL(exc.ToString(), Logger.FileErrorLogFilename);
-                return 0;
+                return currentCnt;
             }
             finally
             {
                 _linkedCts?.Dispose();
                 _localCts?.Dispose();
-                RaiseProgressChanged(1.0);
+                _runtimeData.SetSaveProgressValue_UI(1.0);
             }
         }
         private static int[] GetStepsToReport(int totalCnt)
