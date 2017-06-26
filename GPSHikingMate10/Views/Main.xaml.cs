@@ -190,10 +190,15 @@ namespace LolloGPS.Core
             Task go = _mainVM.CentreOnCurrentAsync();
         }
 
-        private void OnCancelDownload_Click(object sender, RoutedEventArgs e)
+        private void OnCancelDownload_Click(object sender, EventArgs e)
         {
-            _mainVM.SetLastMessage_UI("Cancelling download");
+            _mainVM?.SetLastMessage_UI("Cancelling download");
             MyLolloMap?.LolloMapVM?.CancelDownloadByUser();
+        }
+        private void OnCancelSaveTiles_Click(object sender, EventArgs e)
+        {
+            _mainVM?.SetLastMessage_UI("Cancelling saving");
+            _mapsPanelVM?.CancelSaveCache();
         }
 
         private async void OnTestFiles_Click(object sender, RoutedEventArgs e)

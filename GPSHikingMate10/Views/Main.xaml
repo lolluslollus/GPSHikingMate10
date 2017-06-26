@@ -131,7 +131,6 @@
         </VisualStateManager.VisualStateGroups>
 
         <!-- loading overlay -->
-        <!--Visibility="{x:Bind Path=RuntimeData.IsCommandsActive, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay, FallbackValue=Visible}">-->
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
 			  Background="White"
 			  Opacity=".5"
@@ -146,17 +145,33 @@
 				Style="{StaticResource HugeTextStyle}">
             </TextBlock>
         </Grid>
-
+        <!-- download progress bar -->
+        <mctl:LolloProgressBar Grid.Column="1"
+            Canvas.ZIndex="800"
+            IsProgressHindered="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+            Cancel="OnCancelDownload_Click"
+            ProgressHinderedNotice="Download will resume when back online"
+            ProgressUnhinderedNotice="Downloading..."
+            Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"
+			VerticalAlignment="Bottom"
+            Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
+        <!-- save tiles progress bar -->
+        <mctl:LolloProgressBar Grid.Column="1"
+            Canvas.ZIndex="800"
+            Cancel="OnCancelSaveTiles_Click"
+            ProgressUnhinderedNotice="Saving..."
+            Value="{x:Bind RuntimeData.SaveProgressValue, Mode=OneWay}"
+			VerticalAlignment="Bottom"
+            Visibility="{x:Bind PersistentData.IsSavingTiles, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
         <!-- Map, altitude, menu, user info and their overlays -->
         <Grid Grid.Row="0" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition x:Name="UserInfoGridRow" Height="40"/>
             </Grid.RowDefinitions>
-            <!-- map overlays -->
+            <!-- map and altitude overlays -->
             <StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
-                <!-- download progress bar -->
-                <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
+                <!--<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 					Opacity=".75"
 					Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 					VerticalAlignment="Top"
@@ -207,7 +222,7 @@
 								IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"/>
                         </Button.Content>
                     </Button>
-                </Grid>
+                </Grid>-->
                 <!-- icons for battery consuming functions -->
                 <StackPanel Margin="0" Padding="0" Orientation="Horizontal">
                     <mctl:AppBarButtonReallyCompact

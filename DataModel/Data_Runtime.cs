@@ -43,7 +43,7 @@ namespace LolloGPS.Data.Runtime
         public bool IsHardwareButtonsAPIPresent { get { return _isHardwareButtonsAPIPresent; } }
         #endregion hardware       
 
-        #region download tiles
+        #region download and save tiles
         private double _downloadProgressValue = default(double);
         public double DownloadProgressValue { get { return _downloadProgressValue; } private set { if (_downloadProgressValue != value) { _downloadProgressValue = value; RaisePropertyChanged(); } } }
         public void SetDownloadProgressValue_UI(double newProgressValue)
@@ -53,7 +53,16 @@ namespace LolloGPS.Data.Runtime
                 GetInstance().DownloadProgressValue = newProgressValue;
             });
         }
-        #endregion download tiles
+        private double _saveProgressValue = default(double);
+        public double SaveProgressValue { get { return _saveProgressValue; } private set { if (_saveProgressValue != value) { _saveProgressValue = value; RaisePropertyChanged(); } } }
+        public void SetSaveProgressValue_UI(double newProgressValue)
+        {
+            Task upd = RunInUiThreadAsync(delegate
+            {
+                GetInstance().SaveProgressValue = newProgressValue;
+            });
+        }
+        #endregion download and save tiles
 
         #region connection
         private static readonly object _isConnAvailLocker = new object();

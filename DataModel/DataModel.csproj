@@ -127,6 +127,7 @@
     <Compile Include="Record_Point.cs" />
     <Compile Include="Record_TileSource.cs" />
     <Compile Include="TileCache.cs" />
+    <Compile Include="TileSaver.cs" />
     <Compile Include="wgs84_ch1903.cs" />
     <Content Include="Properties\DataModel.rd.xml" />
   </ItemGroup>

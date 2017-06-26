@@ -122,6 +122,9 @@
     <Compile Include="Controlz\LolloMultipleListChooser.xaml.cs">
       <DependentUpon>LolloMultipleListChooser.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controlz\LolloProgressBar.xaml.cs">
+      <DependentUpon>LolloProgressBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controlz\ToggleButtonLollo.cs" />
     <Compile Include="Converters\Converters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -258,6 +261,10 @@
     <Page Include="Controlz\LolloMultipleListChooser.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controlz\LolloProgressBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>

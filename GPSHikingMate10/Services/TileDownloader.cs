@@ -228,16 +228,7 @@ namespace LolloGPS.Core
 
                 if (totalCnt > 0)
                 {
-                    int howManyProgressStepsIWantToReport = Math.Min(MaxProgressStepsToReport, totalCnt);
-
-                    int[] stepsWhenIWantToRaiseProgress = new int[howManyProgressStepsIWantToReport];
-                    if (howManyProgressStepsIWantToReport > 0)
-                    {
-                        for (int i = 0; i < howManyProgressStepsIWantToReport; i++)
-                        {
-                            stepsWhenIWantToRaiseProgress[i] = totalCnt * i / howManyProgressStepsIWantToReport;
-                        }
-                    }
+                    int[] stepsWhenIWantToRaiseProgress = GetStepsToReport(totalCnt);
                     // LOLLO TODO check if this parallelisation bothers certain providers. It is faster than without, by 1.2 to 2 x. 
                     // Otherwise, see if you can download the tiles in the background. 
                     // Let's see: a background task would mean using named semaphores in the tile cache db.
@@ -286,6 +277,20 @@ namespace LolloGPS.Core
             }
             RaiseSaveProgressChanged(1.0);
             return Tuple.Create(currentOkCnt, totalCnt);
+        }
+        private static int[] GetStepsToReport(int totalCnt)
+        {
+            int howManyProgressStepsIWantToReport = Math.Min(MaxProgressStepsToReport, totalCnt);
+
+            int[] stepsWhenIWantToRaiseProgress = new int[howManyProgressStepsIWantToReport];
+            if (howManyProgressStepsIWantToReport > 0)
+            {
+                for (int i = 0; i < howManyProgressStepsIWantToReport; i++)
+                {
+                    stepsWhenIWantToRaiseProgress[i] = totalCnt * i / howManyProgressStepsIWantToReport;
+                }
+            }
+            return stepsWhenIWantToRaiseProgress;
         }
         #endregion save services
 

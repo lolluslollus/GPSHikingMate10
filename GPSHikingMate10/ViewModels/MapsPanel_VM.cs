@@ -35,8 +35,8 @@ namespace LolloGPS.ViewModels
         public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } private set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged_UI(); } } }
         private bool _isClearOrSaveCacheEnabled = false;
         public bool IsClearOrSaveCacheEnabled { get { return _isClearOrSaveCacheEnabled; } private set { if (_isClearOrSaveCacheEnabled != value) { _isClearOrSaveCacheEnabled = value; RaisePropertyChanged_UI(); } } }
-        private bool _isCacheBtnEnabled = false;
-        public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } private set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged_UI(); } } }
+        //private bool _isCacheBtnEnabled = false;
+        //public bool IsCacheBtnEnabled { get { return _isCacheBtnEnabled; } private set { if (_isCacheBtnEnabled != value) { _isCacheBtnEnabled = value; RaisePropertyChanged_UI(); } } }
         private bool _isLeechingEnabled = false;
         public bool IsLeechingEnabled { get { return _isLeechingEnabled; } private set { if (_isLeechingEnabled != value) { _isLeechingEnabled = value; RaisePropertyChanged_UI(); } } }
         private bool _isTestBtnEnabled = false;
@@ -47,8 +47,6 @@ namespace LolloGPS.ViewModels
         public bool IsChangeMapStyleEnabled { get { return _isChangeMapStyleEnabled; } private set { if (_isChangeMapStyleEnabled != value) { _isChangeMapStyleEnabled = value; RaisePropertyChanged_UI(); } } }
         private string _testTileSourceErrorMsg = "";
         public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
-        //private bool? _isFileSource = false;
-        //public bool? IsFileSource { get { return _isFileSource; } private set { if (_isFileSource != value) { _isFileSource = value; RaisePropertyChanged_UI(); } } }
 
         public class TileSourceChoiceRecord
         {
@@ -102,7 +100,7 @@ namespace LolloGPS.ViewModels
             {
                 UpdateIsClearCacheEnabled();
                 UpdateIsClearCustomCacheEnabled(allTileSources);
-                UpdateIsCacheBtnEnabled(currentTileSources);
+                //UpdateIsCacheBtnEnabled(currentTileSources);
                 UpdateIsLeechingEnabled(currentTileSources);
                 UpdateIsChangeTileSourceEnabled();
                 UpdateIsTestCustomTileSourceEnabled();
@@ -110,7 +108,6 @@ namespace LolloGPS.ViewModels
                 UpdateTileSourceChoices(allTileSources);
                 UpdateSelectedBaseTile(currentTileSources);
                 UpdateSelectedOverlayTiles(currentTileSources);
-                //UpdateIsFileSource();
             }).ConfigureAwait(false);
         }
 
@@ -124,26 +121,26 @@ namespace LolloGPS.ViewModels
         #region updaters
         private void UpdateIsClearCustomCacheEnabled(ICollection<TileSourceRecord> allTileSources)
         {
-            IsClearCustomCacheEnabled = allTileSources.Any(ts => ts.IsDeletable)
-            && !_tileCacheClearerSaver.IsClearingScheduled
-            && !PersistentData.IsTileSourcezBusy;
+            IsClearCustomCacheEnabled = !_tileCacheClearerSaver.IsClearingScheduled
+            && !PersistentData.IsTileSourcezBusy
+            && allTileSources?.Any(ts => ts.IsDeletable) == true;
         }
         private void UpdateIsClearCacheEnabled()
         {
             IsClearOrSaveCacheEnabled = !_tileCacheClearerSaver.IsClearingScheduled
             && !PersistentData.IsTileSourcezBusy;
         }
-        private void UpdateIsCacheBtnEnabled(ICollection<TileSourceRecord> currentTileSources)
-        {
-            IsCacheBtnEnabled = currentTileSources.Any(ts => !ts.IsDefault);
-        }
+        //private void UpdateIsCacheBtnEnabled(ICollection<TileSourceRecord> currentTileSources)
+        //{
+        //    IsCacheBtnEnabled = currentTileSources.Any(ts => !ts.IsDefault);
+        //}
         private void UpdateIsLeechingEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
             IsLeechingEnabled = !PersistentData.IsTilesDownloadDesired
-            && currentTileSources.Any(ts => !ts.IsDefault)
             && RuntimeData.IsConnectionAvailable
             && !_tileCacheClearerSaver.IsClearingScheduled
-            && !PersistentData.IsTileSourcezBusy;
+            && !PersistentData.IsTileSourcezBusy
+            && currentTileSources?.Any(ts => !ts.IsDefault) == true;
         }
         private void UpdateIsChangeTileSourceEnabled()
         {
@@ -158,25 +155,31 @@ namespace LolloGPS.ViewModels
         }
         private void UpdateIsChangeMapStyleEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
-            if (currentTileSources.Count == 1) IsChangeMapStyleEnabled = !currentTileSources.ElementAt(0).IsDefault;
-            else IsChangeMapStyleEnabled = true;
+            if (currentTileSources == null) IsChangeMapStyleEnabled = false;
+            else
+            {
+                if (currentTileSources.Count == 1) IsChangeMapStyleEnabled = !currentTileSources.ElementAt(0).IsDefault;
+                else IsChangeMapStyleEnabled = true;
+            }
         }
         private void UpdateTileSourceChoices(ICollection<TileSourceRecord> allTileSources)
         {
             List<TextAndTag> baseTileSources = new List<TextAndTag>();
             List<TextAndTag> overlayTileSources = new List<TextAndTag>();
-
-            foreach (var ts in allTileSources)
+            if (allTileSources != null)
             {
-                if (ts.IsOverlay) overlayTileSources.Add(new TextAndTag(ts.DisplayName, ts));
-                else baseTileSources.Add(new TextAndTag(ts.DisplayName, ts));
+                foreach (var ts in allTileSources)
+                {
+                    if (ts.IsOverlay) overlayTileSources.Add(new TextAndTag(ts.DisplayName, ts));
+                    else baseTileSources.Add(new TextAndTag(ts.DisplayName, ts));
+                }
             }
             _baseTileSourceChoices.ReplaceAll(baseTileSources);
             _overlayTileSourceChoices.ReplaceAll(overlayTileSources);
         }
         private void UpdateSelectedBaseTile(ICollection<TileSourceRecord> currentTileSources)
         {
-            var currentBaseTileSource = currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
+            var currentBaseTileSource = currentTileSources?.FirstOrDefault(ts => !ts.IsOverlay);
             if (currentBaseTileSource == null) return;
             var selectedBaseTiles = (new TextAndTag[] { new TextAndTag(currentBaseTileSource.DisplayName, currentBaseTileSource) }).ToList();
             SelectedBaseTiles = selectedBaseTiles;
@@ -184,17 +187,16 @@ namespace LolloGPS.ViewModels
         private void UpdateSelectedOverlayTiles(ICollection<TileSourceRecord> currentTileSources)
         {
             var selectedOverlayTiles = new List<TextAndTag>();
-            foreach (var item in currentTileSources)
+            if (currentTileSources != null)
             {
-                if (!item.IsOverlay) continue;
-                selectedOverlayTiles.Add(new TextAndTag(item.DisplayName, item));
+                foreach (var item in currentTileSources)
+                {
+                    if (!item.IsOverlay) continue;
+                    selectedOverlayTiles.Add(new TextAndTag(item.DisplayName, item));
+                }
             }
             SelectedOverlayTiles = selectedOverlayTiles;
         }
-        //private void UpdateIsFileSource()
-        //{
-        //    IsFileSource = PersistentData?.TestTileSource?.IsFileSource;
-        //}
         #endregion updaters
 
         #region event handlers
@@ -237,19 +239,19 @@ namespace LolloGPS.ViewModels
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
-            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
+            {
                 var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
-                    UpdateIsCacheBtnEnabled(currentTileSources);
+                    //UpdateIsCacheBtnEnabled(currentTileSources);
                     UpdateIsChangeMapStyleEnabled(currentTileSources);
                     UpdateSelectedBaseTile(currentTileSources);
                     UpdateSelectedOverlayTiles(currentTileSources);
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
-            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
+            {
                 var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
@@ -258,22 +260,35 @@ namespace LolloGPS.ViewModels
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
-            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
-                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
-                await RunInUiThreadAsync(delegate
+            {
+                bool isBusy = PersistentData.IsTileSourcezBusy;
+                if (isBusy)
                 {
-                    UpdateIsClearCacheEnabled();
-                    UpdateIsClearCustomCacheEnabled(allTileSources);
-                    UpdateIsLeechingEnabled(currentTileSources);
-                    UpdateIsChangeTileSourceEnabled();
-                    UpdateIsTestCustomTileSourceEnabled();
-                }).ConfigureAwait(false);
+                    // if I get the tile sources now, this will only fire after the tile sources semaphore has been released, 
+                    // ie too late to be useful. Not dangerous but bad UI. It's also a matter of performance.
+                    await RunInUiThreadAsync(delegate
+                    {
+                        UpdateIsClearCacheEnabled();
+                        UpdateIsClearCustomCacheEnabled(null);
+                        UpdateIsLeechingEnabled(null);
+                        UpdateIsChangeTileSourceEnabled();
+                        UpdateIsTestCustomTileSourceEnabled();
+                    }).ConfigureAwait(false);
+                }
+                else
+                {
+                    var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
+                    var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                    await RunInUiThreadAsync(delegate
+                    {
+                        UpdateIsClearCacheEnabled();
+                        UpdateIsClearCustomCacheEnabled(allTileSources);
+                        UpdateIsLeechingEnabled(currentTileSources);
+                        UpdateIsChangeTileSourceEnabled();
+                        UpdateIsTestCustomTileSourceEnabled();
+                    }).ConfigureAwait(false);
+                }
             }
-            //else if (e.PropertyName == nameof(PersistentData.TestTileSource))
-            //{
-            //    UpdateIsFileSource();
-            //}
         }
 
         private async void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -364,6 +379,10 @@ namespace LolloGPS.ViewModels
             return Instance;
         }
 
+        public void CancelSaveCache()
+        {
+            PersistentData.CancelSaveTileCache();
+        }
         public async Task ScheduleSaveCacheAsync(TileSourceRecord tileSource)
         {
             if (!_isOpen || CancToken.IsCancellationRequested) return;
@@ -463,7 +482,6 @@ namespace LolloGPS.ViewModels
                 }
                 else TestTileSourceErrorMsg = result?.Item2; // error
 
-                //UpdateIsFileSource();
                 _mainVM?.SetLastMessage_UI(result?.Item2);
             });
         }

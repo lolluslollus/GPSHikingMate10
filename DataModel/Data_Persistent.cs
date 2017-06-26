@@ -532,6 +532,10 @@ namespace LolloGPS.Data
         [IgnoreDataMember]
         public bool IsTileSourcezBusy { get { return _isTileSourcezBusy; } private set { if (_isTileSourcezBusy != value) { _isTileSourcezBusy = value; RaisePropertyChanged_UI(); } } }
 
+        private volatile bool _isSavingTiles = false;
+        [IgnoreDataMember]
+        public bool IsSavingTiles { get { return _isSavingTiles; } private set { if (_isSavingTiles != value) { _isSavingTiles = true; /* LOLLO TODO restore after testing value*/; RaisePropertyChanged_UI(); } } }
+
         private double _lastAltitudeLastVScroll = 0.0;
         [DataMember]
         public double LastAltLastVScroll { get { return _lastAltitudeLastVScroll; } set { _lastAltitudeLastVScroll = value; } }
@@ -1392,6 +1396,10 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
+        public void CancelSaveTileCache()
+        {
+            TileSaver.Cancel();
+        }
         public async Task<int> TrySaveCacheAsync(TileSourceRecord tileSource, StorageFolder destinationFolder, CancellationToken cancToken)
         {
             if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsAll || tileSource.IsFileSource || destinationFolder == null) return 0;
@@ -1399,35 +1407,14 @@ namespace LolloGPS.Data
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
+                IsSavingTiles = true;
                 IsTileSourcezBusy = true;
 
-                if (cancToken.IsCancellationRequested) return 0;
-                var tileSourcesRootFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
-                if (tileSourcesRootFolder == null) return 0;
-                if (cancToken.IsCancellationRequested) return 0;
-                var tileSourceFolder = await tileSourcesRootFolder.TryGetItemAsync(tileSource.FolderName).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
-                if (tileSourceFolder == null) return 0;
-
-                if (cancToken.IsCancellationRequested) return 0;
-                var files = await tileSourceFolder.GetFilesAsync().AsTask(cancToken).ConfigureAwait(false);
-                if (cancToken.IsCancellationRequested) return 0;
-                // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
-                Parallel.ForEach(files, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, file =>
-                {
-                    var copiedFile = file.CopyAsync(destinationFolder, file.Name, NameCollisionOption.ReplaceExisting).AsTask(cancToken).Result;
-                });
-
-                return files.Count;
-            }
-            catch (ObjectDisposedException) { return 0; }
-            catch (OperationCanceledException) { return 0; }
-            catch (Exception exc)
-            {
-                Logger.Add_TPL(exc.ToString(), Logger.FileErrorLogFilename);
-                return 0;
+                return await TileSaver.TrySaveCacheAsync(tileSource, destinationFolder, cancToken).ConfigureAwait(false);
             }
             finally
             {
+                IsSavingTiles = false;
                 IsTileSourcezBusy = false;
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
