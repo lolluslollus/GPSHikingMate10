@@ -157,11 +157,11 @@ namespace LolloGPS.Core
         /// LOLLO NOTE This method must complete within the deadline, which is 5 sec with a slow phone.
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
-        private async void OnSuspending(object sender, SuspendingEventArgs e)
+        /// <param name="args">Details about the suspend request.</param>
+        private async void OnSuspending(object sender, SuspendingEventArgs args)
         {
-            var deferral = e.SuspendingOperation.GetDeferral();
-            Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + e.SuspendingOperation.Deadline.ToString(),
+            var deferral = args.SuspendingOperation.GetDeferral();
+            Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + args.SuspendingOperation.Deadline.ToString(),
                 Logger.AppEventsLogFilename,
                 Logger.Severity.Info,
                 false);
@@ -172,8 +172,8 @@ namespace LolloGPS.Core
 
                 // try closing the subscribers tidily...
                 // notify the subscribers (eg Main.cs)
-                SuspendStarted?.Invoke(this, e);
-                // make sure the subscribers are all closed before saving the settings.
+                SuspendStarted?.Invoke(this, args);
+                // make sure the subscribers are all closed.
                 await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
 
                 //first to come, last to go
