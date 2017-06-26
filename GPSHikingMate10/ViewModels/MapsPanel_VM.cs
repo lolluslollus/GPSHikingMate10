@@ -237,7 +237,7 @@ namespace LolloGPS.ViewModels
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
-            {
+            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
                 var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
@@ -249,7 +249,7 @@ namespace LolloGPS.ViewModels
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
-            {
+            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
                 var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
                 {
@@ -258,7 +258,7 @@ namespace LolloGPS.ViewModels
                 }).ConfigureAwait(false);
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
-            {
+            {// LOLLO TODO this will only fire after the tile sources semaphore has been released, ie too late to be useful. Not dangerous but bad UI.
                 var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
                 var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
                 await RunInUiThreadAsync(delegate
