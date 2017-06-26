@@ -34,21 +34,21 @@
             <uctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
                 <mctl:AppBarButtonReallyCompact x:Name="ChooseDisplayHistoryButton"
 					Click="OnDisplayHistory_Click"
-                    Margin="10,0,0,0"
+                    Margin="20,0,0,0"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Trk history"
 					Foreground="{StaticResource HistoryBrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"/>
                 <mctl:AppBarButtonReallyCompact x:Name="ChooseDisplayRoute0Button"
 					Click="OnDisplayRoute0_Click"
-                    Margin="10,0,0,0"
+                    Margin="20,0,0,0"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Route"
 					Foreground="{StaticResource Route0BrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"/>
                 <mctl:AppBarButtonReallyCompact x:Name="ChooseDisplayCheckpointsButton"
 					Click="OnDisplayCheckpoints_Click"
-                    Margin="10,0,0,0"
+                    Margin="20,0,0,0"
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Target" Label="Checkpoints"
 					Foreground="{StaticResource CheckpointBrushOpaque}"
@@ -127,21 +127,21 @@
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
                     <mctl:AppBarButtonReallyCompact
 						Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
-                        Margin="10,0,0,0"
+                        Margin="20,0,0,0"
 						Icon="Previous"
 						IsCompact="True"
 						IsEnabled="{x:Bind IsGotoPreviousEnabled, Mode=OneWay}"
 						Style="{StaticResource AppBarButtonRecoloured}"/>
                     <mctl:AppBarButtonReallyCompact
 						Click="OnGotoNext_Click" DoubleTapped="OnGoto100Next_Click" Holding="OnGotoNextButton_Holding"
-                        Margin="10,0,0,0"
+                        Margin="20,0,0,0"
 						Icon="Next"
 						IsCompact="True"
 						IsEnabled="{x:Bind IsGotoNextEnabled, Mode=OneWay}"
 						Style="{StaticResource AppBarButtonRecoloured}"/>
                     <mctl:AppBarButtonReallyCompact
 						Click="OnDeletePoint_Click"
-                        Margin="10,0,0,0"
+                        Margin="60,0,0,0"
 						Icon="Delete"
 						IsCompact="True"                          
 						Style="{StaticResource AppBarButtonRecoloured}"/>
@@ -167,7 +167,7 @@
 						PointerEntered="OnTextBox_PointerEntered"/>
                     <mctl:AppBarButtonReallyCompact						
 						Click="OnHyperlink_Click"
-                        Margin="10,0,0,0"
+                        Margin="20,0,0,0"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 						Icon="View"
 						IsCompact="True"
@@ -202,7 +202,7 @@
 						PointerEntered="OnTextBox_PointerEntered"/>
 					<mctl:AppBarButtonReallyCompact						
 						Click="OnHyperlink_Click"
-                        Margin="10,0,0,0"
+                        Margin="20,0,0,0"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 						Icon="View"
 						IsCompact="True"
@@ -248,7 +248,7 @@
                     </TextBlock>
                     <mctl:AppBarButtonReallyCompact						
 						Click="OnCalcTotalDistance_Click"
-                        Margin="10,0,0,0"
+                        Margin="20,0,0,0"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                         Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 						IsCompact="True"
