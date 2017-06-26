@@ -229,7 +229,7 @@ namespace LolloGPS.Core
                     CancellationTokenSource cancTokenSourceLinked = null;
                     try
                     {
-                        var tileCache = new TileCacheReaderWriter(tileSource, false, false);
+                        var tileCache = new TileCacheReaderWriter(tileSource, false, false, null, cancToken);
 
                         cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
                             cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);

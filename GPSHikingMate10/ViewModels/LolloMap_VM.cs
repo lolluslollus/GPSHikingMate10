@@ -172,7 +172,7 @@ namespace LolloGPS.ViewModels
                     {
                         if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)
                         var customMapTileDataSource = new CustomMapTileDataSource();
-                        var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource);
+                        var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource, cancToken);
                         var mapTileSource = new MapTileSource(
                             customMapTileDataSource,
                             // The MapControl won't request the uri if the zoom is outside its bounds.

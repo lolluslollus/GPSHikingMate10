@@ -55,6 +55,7 @@ namespace LolloGPS.Data.Leeching
         /// <param name="gbb"></param>
         /// <param name="tileSources"></param>
         /// <param name="maxMaxZoom"></param>
+        /// <exception cref="InvalidDownloadSessionArgumentsException"/>
         public DownloadSession(GeoboundingBox gbb, ICollection<TileSourceRecord> tileSources, int maxMaxZoom)
         {
             if (gbb == null) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: gbb is null");
@@ -103,6 +104,7 @@ namespace LolloGPS.Data.Leeching
         /// <param name="nwCorner"></param>
         /// <param name="seCorner"></param>
         /// <param name="tileSources"></param>
+        /// <exception cref="InvalidDownloadSessionArgumentsException"/>
         public DownloadSession(int minZoom, int maxZoom, BasicGeoposition nwCorner, BasicGeoposition seCorner, IEnumerable<TileSourceRecord> tileSources)
         {
             if (tileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: cannot find a tile source with the given name");

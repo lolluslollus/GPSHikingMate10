@@ -63,16 +63,17 @@ namespace LolloGPS.Data.TileCache
         /// <summary>
         /// Make sure you supply a thread-safe tile source, ie a clone, to preserve atomicity
         /// </summary>
-        /// <param name="tileSource"></param>
-        /// <param name="isCaching"></param>
-        public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching, bool isReturnLocalUris, MapTileDataSource mapTileDataSource = null)
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="OperationCanceledException"/>
+        public TileCacheReaderWriter(TileSourceRecord tileSource, bool isCaching, bool isReturnLocalUris, MapTileDataSource mapTileDataSource, CancellationToken cancToken)
         {
             _tileSource = tileSource ?? throw new ArgumentNullException("TileCache ctor was given tileSource == null");
-
+            if (cancToken.IsCancellationRequested) throw new OperationCanceledException(cancToken);
             //_isCaching = isCaching;
             _isReturnLocalUris = isReturnLocalUris;
-            _assetsFolder = Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask().Result;
+            _assetsFolder = Windows.ApplicationModel.Package.Current.InstalledLocation.GetFolderAsync("Assets").AsTask(cancToken).Result;
 
+            if (cancToken.IsCancellationRequested) throw new OperationCanceledException(cancToken);
             if (GetIsFileSource())
             {
                 if (string.IsNullOrWhiteSpace(tileSource.TileSourceFileName)) throw new ArgumentNullException("TileCache ctor was given no file names for file tile source");
@@ -93,8 +94,9 @@ namespace LolloGPS.Data.TileCache
 
                 try
                 {
-                    _tileSourceFolder = Pickers.GetLastPickedFolderAsync(tileSource.TileSourceFolderPath).Result;
+                    _tileSourceFolder = Pickers.GetLastPickedFolderAsync(tileSource.TileSourceFolderPath, cancToken).Result;
                 }
+                catch (OperationCanceledException) { throw; }
                 catch (Exception exc)
                 {
                     Logger.Add_TPL(exc.ToString(), Logger.ForegroundLogFilename);
@@ -120,9 +122,11 @@ namespace LolloGPS.Data.TileCache
                 }
                 _sourceUriFormats = webUriFormats.AsReadOnly();
 
-                var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask().Result;
-                _tileCacheFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask().Result;
+                var tileCacheFolder = ApplicationData.Current.LocalCacheFolder.CreateFolderAsync(ConstantData.TILE_SOURCES_DIR_NAME, CreationCollisionOption.OpenIfExists).AsTask(cancToken).Result;
+                _tileCacheFolder = tileCacheFolder.CreateFolderAsync(_tileSource.FolderName, CreationCollisionOption.OpenIfExists).AsTask(cancToken).Result;
             }
+
+            if (cancToken.IsCancellationRequested) throw new OperationCanceledException(cancToken);
             _mapTileDataSource = mapTileDataSource;
 
             _mustZoomInTileUri = _tileSource.IsOverlay ? _tileEmptyUri : _tileMustZoomInUri;
@@ -252,7 +256,6 @@ namespace LolloGPS.Data.TileCache
             return _tileSource.IsFileSource == true;
         }
         #endregion getters
-
 
         #region services
         private string GetFileNameWithExtensionFromCache(string fileNameNoExtension)
@@ -730,7 +733,7 @@ namespace LolloGPS.Data.TileCache
         }
 
         private TileCacheClearerSaver() { }
-        
+
         protected override async Task OpenMayOverrideAsync(object args = null)
         {
             // resume clearing cache if it was interrupted

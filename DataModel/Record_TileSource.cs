@@ -210,7 +210,7 @@ namespace LolloGPS.Data
             if (string.IsNullOrWhiteSpace(tileSourceFileName)) return "Assign a file name";
             try
             {
-                var folder = await Pickers.GetLastPickedFolderAsync(tileSourceFolderPath).ConfigureAwait(false);
+                var folder = await Pickers.GetLastPickedFolderAsync(tileSourceFolderPath, cancToken).ConfigureAwait(false);
                 if (folder == null) return "Folder does not exist";
             }
             catch

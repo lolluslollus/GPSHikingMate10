@@ -111,7 +111,9 @@ namespace LolloGPS.Data
         /// If the supplied <paramref name="source"/> argument is null, this method throws <see cref="ArgumentException"/>.
         /// </summary>
         /// <param name="source"></param>
-        /// <returns></returns>        
+        /// <returns>PersistentData</returns>
+        /// <exception cref="ArgumentException"/>
+        /// <exception cref="DataAlreadyBoundException"/>
         public static PersistentData GetInstanceWithProperties(PersistentData source)
         {
             if (source == null) throw new ArgumentException("PersistentData.GetInstanceWithClonedNonDbProperties was called with source == null");
@@ -1722,8 +1724,10 @@ namespace LolloGPS.Data
             try
             {
                 var currentTss = await GetCurrentTileSourcezCloneAsync(cancToken).ConfigureAwait(false);
+                if (currentTss == null) return null;
                 return new DownloadSession(gbb, currentTss, 99);
             }
+            catch (InvalidDownloadSessionArgumentsException) { return null; }
             catch (OperationCanceledException) { return null; }
         }
         #endregion download session methods

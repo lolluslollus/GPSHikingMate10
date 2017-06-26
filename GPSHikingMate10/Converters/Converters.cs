@@ -713,7 +713,7 @@ namespace LolloGPS.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("should never get here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 
@@ -730,7 +730,7 @@ namespace LolloGPS.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("should never get here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 
@@ -746,7 +746,7 @@ namespace LolloGPS.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("should never get here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 
@@ -762,7 +762,7 @@ namespace LolloGPS.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            throw new Exception("should never get here");
+            throw new Exception("this is a one-way binding, it should never come here");
         }
     }
 

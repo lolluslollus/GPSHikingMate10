@@ -398,7 +398,7 @@ namespace LolloGPS.ViewModels
             {
                 Logger.Add_TPL($"MapsPanelVM is about to schedule saving the tiles", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
                 bool isScheduled = await Task.Run(() => instance._tileCacheClearerSaver.TryScheduleSaveCacheAsync(tileSource, dir)).ConfigureAwait(false);
-                instance.PersistentData.LastMessage = isScheduled ? "cache will be saved asap" : "nothing saved";
+                instance.PersistentData.LastMessage = isScheduled ? "started saving cache" : "nothing saved";
             }).ConfigureAwait(false);
         }
         public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
