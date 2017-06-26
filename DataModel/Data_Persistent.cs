@@ -1218,22 +1218,24 @@ namespace LolloGPS.Data
         #endregion selectedRecordMethods
 
         #region tileSourcesMethods
-        public async Task<string> AddCurrentTileSourceAsync(TileSourceRecord newTileSource)
+        public async Task<string> AddCurrentTileSourceAsync(TileSourceRecord newTileSource, CancellationToken cancToken)
         {
             if (newTileSource == null) return $"Error adding tile source";
             try
             {
-                await _tileSourcezSemaphore.WaitAsync();
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
                 if (_currentTileSources.Count >= MaxCurrentTileSources) return $"Too many tile sources, max {MaxCurrentTileSources}";
-                await AddCurrentTileSource2Async(newTileSource).ConfigureAwait(false);
+                await AddCurrentTileSource2Async(newTileSource, cancToken).ConfigureAwait(false);
                 return null;
             }
+            catch (ObjectDisposedException) { return "cancelled"; }
+            catch (OperationCanceledException) { return "cancelled"; }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                return $"Error adding tile source";
+                return "Error adding tile source";
             }
             finally
             {
@@ -1241,19 +1243,22 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        private Task AddCurrentTileSource2Async(TileSourceRecord newTileSource)
+        private Task AddCurrentTileSource2Async(TileSourceRecord newTileSource, CancellationToken cancToken)
         {
             if (newTileSource == null) return Task.CompletedTask;
             if (_currentTileSources.Any(ts => ts.TechName.Equals(newTileSource.TechName))) return Task.CompletedTask;
+            if (cancToken.IsCancellationRequested) return Task.CompletedTask;
 
             return RunInUiThreadAsync(delegate
             {
+                if (cancToken.IsCancellationRequested) return;
                 if (!newTileSource.IsOverlay)
                 {
                     var existingBaseTileSource = _currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
                     if (existingBaseTileSource != null) _currentTileSources.Remove(existingBaseTileSource);
                 }
                 _currentTileSources.Add(newTileSource);
+                if (cancToken.IsCancellationRequested) return;
                 RaisePropertyChanged_UI(nameof(CurrentTileSources));
             });
         }
@@ -1262,11 +1267,11 @@ namespace LolloGPS.Data
         /// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.
         /// </summary>
         /// <returns></returns>
-        public async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcezAsync()
+        public async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcezAsync(CancellationToken cancToken)
         {
             try
             {
-                await _tileSourcezSemaphore.WaitAsync();
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
                 // the following is not atomic because there may be concurrent action in the UI thread. 
@@ -1279,11 +1284,15 @@ namespace LolloGPS.Data
                 testTileSource.FolderName = testTileSource.DisplayName = testTileSource.TechName; // we always set it automatically
                 testTileSource.IsDeletable = true;
                 // some more checks
-                string errorMsg = await testTileSource.CheckAsync(); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                string errorMsg = await testTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // try the insertion
-                Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource)).ConfigureAwait(false);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource, cancToken)).ConfigureAwait(false);
                 return tryInsert;
             }
+            catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }
+            catch (OperationCanceledException) { return Tuple.Create(false, "cancelled"); }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1295,7 +1304,7 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(WritableTileSourceRecord testTs)
+        private async Task<Tuple<bool, string>> TryInsertTestTileSourceIntoTileSourcez2Async(WritableTileSourceRecord testTs, CancellationToken cancToken)
         {
             if (testTs == null) return Tuple.Create(false, "Tile source cannot be changed");
 
@@ -1305,7 +1314,7 @@ namespace LolloGPS.Data
             if (recordsWithSameName?.Count() == 1)
             {
                 var recordWithSameName = recordsWithSameName.First();
-                if (await RemoveTileSource2Async(recordWithSameName.TechName))
+                if (await RemoveTileSource2Async(recordWithSameName.TechName, cancToken))
                     result = Tuple.Create(true, $"Source {testTs.DisplayName} changed");
                 else
                     result = Tuple.Create(false, $"Tile source {testTs.DisplayName} cannot be changed");
@@ -1324,7 +1333,7 @@ namespace LolloGPS.Data
                 Logger.Add_TPL(newTs.ToString() + " added to _tileSourcez", Logger.ForegroundLogFilename, Logger.Severity.Info);
                 Logger.Add_TPL($"_tileSourcez now has {_tileSourcez.Count} records", Logger.ForegroundLogFilename, Logger.Severity.Info);
 
-                await AddCurrentTileSource2Async(newTs);
+                await AddCurrentTileSource2Async(newTs, cancToken);
 
                 TestTileSource = testTs;
                 if (result == null) result = Tuple.Create(true, $"Source {testTs.DisplayName} added");
@@ -1356,9 +1365,9 @@ namespace LolloGPS.Data
                         var tileSourceFolder = await tileSourcesFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
                         if (tileSourceFolder == null) continue;
                         // recreate the folder instead of deleting it: there may be someone waiting for this folder, like a TileCacheReaderWriter.
-                        await tileSourcesFolder.CreateFolderAsync(folderName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
+                        await tileSourcesFolder.CreateFolderAsync(folderName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
                         // remove tile source from collection last.
-                        if (isAlsoRemoveSources) await RemoveTileSource2Async(folderName).ConfigureAwait(false);
+                        if (isAlsoRemoveSources) await RemoveTileSource2Async(folderName, cancToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { return ClearCacheResult.Cancelled; }
                     catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
@@ -1394,67 +1403,82 @@ namespace LolloGPS.Data
 
                 IsSavingTiles = true;
                 IsTileSourcezBusy = true;
+
+                if (cancToken.IsCancellationRequested) return 0;
                 await RunInUiThreadAsync(delegate
                 {
+                    if (cancToken.IsCancellationRequested) return;
                     KeepAlive.UpdateKeepAlive(true);
                 }).ConfigureAwait(false);
 
+                if (cancToken.IsCancellationRequested) return 0;
                 return await TileSaver.TrySaveCacheAsync(tileSource, destinationFolder, cancToken).ConfigureAwait(false);
             }
+            catch (ObjectDisposedException) { return 0; }
+            catch (OperationCanceledException) { return 0; }
             finally
             {
                 IsSavingTiles = false;
                 IsTileSourcezBusy = false;
                 await RunInUiThreadAsync(delegate
                 {
+                    if (cancToken.IsCancellationRequested) return;
                     KeepAlive.UpdateKeepAlive(IsKeepAlive);
                 }).ConfigureAwait(false);
 
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        private async Task<bool> RemoveTileSource2Async(string tileSourceTechName)
+        private async Task<bool> RemoveTileSource2Async(string tileSourceTechName, CancellationToken cancToken)
         {
             if (string.IsNullOrWhiteSpace(tileSourceTechName)) return false;
 
-            await RemoveCurrentTileSource2Async(tileSourceTechName).ConfigureAwait(false);
+            await RemoveCurrentTileSource2Async(tileSourceTechName, cancToken).ConfigureAwait(false);
+            if (cancToken.IsCancellationRequested) return false;
 
             var tileSourceToBeDeleted = _tileSourcez.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
             if (tileSourceToBeDeleted?.IsDeletable != true) return false;
 
+            if (cancToken.IsCancellationRequested) return false;
             await RunInUiThreadAsync(delegate
             {
+                if (cancToken.IsCancellationRequested) return;
                 _tileSourcez.Remove(tileSourceToBeDeleted);
                 RaisePropertyChanged(nameof(TileSourcez));
             }).ConfigureAwait(false);
 
             return true;
         }
-        private Task RemoveCurrentTileSource2Async(string tileSourceTechName)
+        private Task RemoveCurrentTileSource2Async(string tileSourceTechName, CancellationToken cancToken)
         {
             if (string.IsNullOrWhiteSpace(tileSourceTechName)) return Task.CompletedTask;
 
             var tileSourceToBeDeleted = _currentTileSources.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
             if (tileSourceToBeDeleted == null) return Task.CompletedTask;
+            if (cancToken.IsCancellationRequested) return Task.CompletedTask;
 
             return RunInUiThreadAsync(delegate
             {
+                if (cancToken.IsCancellationRequested) return;
                 // restore default if removing current tile source
                 if (!tileSourceToBeDeleted.IsOverlay) _currentTileSources.Add(TileSourceRecord.GetDefaultTileSource());
                 _currentTileSources.Remove(tileSourceToBeDeleted);
+                if (cancToken.IsCancellationRequested) return;
                 RaisePropertyChanged(nameof(CurrentTileSources));
             });
         }
-        public async Task RemoveCurrentTileSourceAsync(TileSourceRecord tileSource)
+        public async Task RemoveCurrentTileSourceAsync(TileSourceRecord tileSource, CancellationToken cancToken)
         {
             if (tileSource == null) return;
             try
             {
-                await _tileSourcezSemaphore.WaitAsync();
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
-                await RemoveCurrentTileSource2Async(tileSource?.TechName).ConfigureAwait(false);
+                await RemoveCurrentTileSource2Async(tileSource?.TechName, cancToken).ConfigureAwait(false);
             }
+            catch (ObjectDisposedException) { }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1465,15 +1489,17 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource)
+        public async Task<TileSourceRecord> GetTileSourceClone(TileSourceRecord tileSource, CancellationToken cancToken)
         {
             if (tileSource == null) return null;
 
             try
             {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
                 return TileSourceRecord.Clone(tileSource);
             }
+            catch (ObjectDisposedException) { return null; }
+            catch (OperationCanceledException) { return null; }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1484,16 +1510,16 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync()
+        public async Task<ICollection<TileSourceRecord>> GetAllTileSourcezCloneAsync(CancellationToken cancToken)
         {
-            ICollection<TileSourceRecord> result = new Collection<TileSourceRecord>();
-
             try
             {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
 
                 return GetAllTileSourcezClone2();
             }
+            catch (ObjectDisposedException) { return new Collection<TileSourceRecord>(); }
+            catch (OperationCanceledException) { return new Collection<TileSourceRecord>(); }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1517,14 +1543,16 @@ namespace LolloGPS.Data
 
             return result;
         }
-        public async Task<ICollection<TileSourceRecord>> GetCurrentTileSourcezCloneAsync()
+        public async Task<ICollection<TileSourceRecord>> GetCurrentTileSourcezCloneAsync(CancellationToken cancToken)
         {
             try
             {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
 
                 return GetCurrentTileSourcezClone2();
             }
+            catch (ObjectDisposedException) { return new Collection<TileSourceRecord>(); }
+            catch (OperationCanceledException) { return new Collection<TileSourceRecord>(); }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1548,14 +1576,16 @@ namespace LolloGPS.Data
 
             return result;
         }
-        public async Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync()
+        public async Task<TileSourceRecord> GetCurrentBaseTileSourceCloneAsync(CancellationToken cancToken)
         {
             try
             {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
                 var currentTileSources = GetCurrentTileSourcezClone2();
                 return currentTileSources.FirstOrDefault(ts => !ts.IsOverlay);
             }
+            catch (ObjectDisposedException) { return null; }
+            catch (OperationCanceledException) { return null; }
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
@@ -1626,19 +1656,20 @@ namespace LolloGPS.Data
 
             if (isIsTilesDownloadDesiredChanged) RaisePropertyChanged(nameof(IsTilesDownloadDesired));
         }
-        public async Task<DownloadSession> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb)
+        public async Task<DownloadSession> InitOrReinitDownloadSessionAsync(GeoboundingBox gbb, CancellationToken cancToken)
         {
             if (gbb == null) return null;
 
             try
             {
-                await _tileSourcezSemaphore.WaitAsync().ConfigureAwait(false);
+                await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
                 IsTileSourcezBusy = true;
 
                 lock (_lastDownloadLocker)
                 {
                     try
                     {
+                        if (cancToken.IsCancellationRequested) return null;
                         // last download completed: start a new one with the current tile source
                         if (_lastDownloadSession == null)
                         {
@@ -1676,6 +1707,8 @@ namespace LolloGPS.Data
                     }
                 }
             }
+            catch (ObjectDisposedException) { return null; }
+            catch (OperationCanceledException) { return null; }
             finally
             {
                 IsTileSourcezBusy = false;
@@ -1683,11 +1716,15 @@ namespace LolloGPS.Data
             }
             return null;
         }
-        public async Task<DownloadSession> GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(GeoboundingBox gbb)
+        public async Task<DownloadSession> GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(GeoboundingBox gbb, CancellationToken cancToken)
         {
             if (gbb == null) return null;
-            var currentTss = await GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
-            return new DownloadSession(gbb, currentTss, 99);
+            try
+            {
+                var currentTss = await GetCurrentTileSourcezCloneAsync(cancToken).ConfigureAwait(false);
+                return new DownloadSession(gbb, currentTss, 99);
+            }
+            catch (OperationCanceledException) { return null; }
         }
         #endregion download session methods
     }

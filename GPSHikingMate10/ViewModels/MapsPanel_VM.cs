@@ -92,8 +92,8 @@ namespace LolloGPS.ViewModels
             ICollection<TileSourceRecord> currentTileSources = null;
             await Task.Run(async () =>
             {
-                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync();
-                currentTileSources = await PersistentData.GetCurrentTileSourcezCloneAsync();
+                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync(CancToken);
+                currentTileSources = await PersistentData.GetCurrentTileSourcezCloneAsync(CancToken);
             });
 
             await RunInUiThreadAsync(delegate
@@ -232,7 +232,7 @@ namespace LolloGPS.ViewModels
         {
             if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
             {
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(() =>
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
@@ -240,7 +240,7 @@ namespace LolloGPS.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
             {
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
@@ -252,7 +252,7 @@ namespace LolloGPS.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
-                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
+                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsClearCustomCacheEnabled(allTileSources);
@@ -277,8 +277,8 @@ namespace LolloGPS.ViewModels
                 }
                 else
                 {
-                    var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
-                    var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                    var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
+                    var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
                     await RunInUiThreadAsync(delegate
                     {
                         UpdateIsClearCacheEnabled();
@@ -295,7 +295,7 @@ namespace LolloGPS.ViewModels
         {
             if (e.PropertyName == nameof(RuntimeData.IsConnectionAvailable))
             {
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
@@ -306,8 +306,8 @@ namespace LolloGPS.ViewModels
 
         private async void OnTileCache_IsClearingOrSavingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync());
-            var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync());
+            var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
+            var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
             await RunInUiThreadAsync(delegate
             {
                 UpdateIsClearCacheEnabled();
@@ -455,7 +455,7 @@ namespace LolloGPS.ViewModels
             return RunFunctionIfOpenAsyncT(async () =>
             {
                 if (ts == null) return;
-                var result = await PersistentData.AddCurrentTileSourceAsync(ts).ConfigureAwait(false);
+                var result = await PersistentData.AddCurrentTileSourceAsync(ts, CancToken).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(result)) PersistentData.LastMessage = result;
             });
         }
@@ -464,7 +464,7 @@ namespace LolloGPS.ViewModels
             return RunFunctionIfOpenAsyncT(() =>
             {
                 if (ts == null) return Task.CompletedTask;
-                return PersistentData.RemoveCurrentTileSourceAsync(ts);
+                return PersistentData.RemoveCurrentTileSourceAsync(ts, CancToken);
             });
         }
 
@@ -472,7 +472,7 @@ namespace LolloGPS.ViewModels
         {
             return RunFunctionIfOpenAsyncT(async delegate
             {
-                Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync();
+                Tuple<bool, string> result = await PersistentData.TryInsertTestTileSourceIntoTileSourcezAsync(CancToken);
 
                 if (result?.Item1 == true)
                 {

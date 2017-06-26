@@ -1003,7 +1003,7 @@ namespace LolloGPS.Core
             {
                 try
                 {
-                    var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync();
+                    var baseTileSource = await PersistentData.GetCurrentBaseTileSourceCloneAsync(CancToken);
                     string uriString = baseTileSource?.ProviderUriString;
                     if (string.IsNullOrWhiteSpace(uriString) || !RuntimeData.IsConnectionAvailable) return;
 

@@ -790,7 +790,7 @@ namespace LolloGPS.Data.TileCache
         {
             return RunFunctionIfOpenAsyncTB(async delegate
             {
-                var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource).ConfigureAwait(false);
+                var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource, CancToken).ConfigureAwait(false);
                 return await TryScheduleClearCache2Async(tileSourceClone, isAlsoRemoveSources, true).ConfigureAwait(false);
             });
         }
@@ -798,7 +798,7 @@ namespace LolloGPS.Data.TileCache
         {
             return RunFunctionIfOpenAsyncTB(async delegate
             {
-                var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource).ConfigureAwait(false);
+                var tileSourceClone = await PersistentData.GetInstance().GetTileSourceClone(tileSource, CancToken).ConfigureAwait(false);
                 return await TryScheduleSaveCache2Async(tileSourceClone, destinationFolder).ConfigureAwait(false);
             });
         }

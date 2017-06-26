@@ -57,7 +57,7 @@ namespace LolloGPS.ViewModels
             await UpdateCurrentTileSourceAsync();
 
             _ctsManager.Open(CancToken);
-            await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+            await OpenAlternativeMap_Custom_Async(CancToken).ConfigureAwait(false);
             //await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
             //await OpenAlternativeMap_Local_Async().ConfigureAwait(false);  // LOLLO NOTE If you decide to use it, remember that the tileCacheReaderWriter must always cache!
         }
@@ -152,11 +152,12 @@ namespace LolloGPS.ViewModels
             }).ConfigureAwait(false);
         }
         */
-        private async Task OpenAlternativeMap_Custom_Async()
+        private async Task OpenAlternativeMap_Custom_Async(CancellationToken cancToken)
         {
-            var tileSources = await PersistentData.GetCurrentTileSourcezCloneAsync().ConfigureAwait(false);
+            var tileSources = await PersistentData.GetCurrentTileSourcezCloneAsync(cancToken).ConfigureAwait(false);
             await RunInUiThreadAsync(delegate
             {
+                if (cancToken.IsCancellationRequested) return;
                 // default tile source ----------
                 if (tileSources.Count == 1 && tileSources.ElementAt(0).IsDefault)
                 {
@@ -272,7 +273,7 @@ namespace LolloGPS.ViewModels
                 {
                     // cancel current download
                     _ctsManager.Reset(CancToken);
-                    await OpenAlternativeMap_Custom_Async().ConfigureAwait(false);
+                    await OpenAlternativeMap_Custom_Async(CancToken).ConfigureAwait(false);
                     //await OpenAlternativeMap_Http_Async().ConfigureAwait(false);
                     //await OpenAlternativeMap_Local_Async().ConfigureAwait(false);
                     await UpdateCurrentTileSourceAsync().ConfigureAwait(false);
@@ -369,7 +370,7 @@ namespace LolloGPS.ViewModels
         #region services
         private async Task UpdateCurrentTileSourceAsync()
         {
-            var currentBaseTs = await PersistentData.GetCurrentBaseTileSourceCloneAsync().ConfigureAwait(false);
+            var currentBaseTs = await PersistentData.GetCurrentBaseTileSourceCloneAsync(CancToken).ConfigureAwait(false);
             IsShowCurrentBaseTileSource = currentBaseTs?.IsDefault != true;
             CurrentBaseTileSource = currentBaseTs;
         }
@@ -389,7 +390,7 @@ namespace LolloGPS.ViewModels
                 {
                     KeepAlive.UpdateKeepAlive(true);
                 }).ConfigureAwait(false);
-                downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync().ConfigureAwait(false);
+                downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync(CancToken).ConfigureAwait(false);
             }
             finally
             {
@@ -412,7 +413,7 @@ namespace LolloGPS.ViewModels
             var result = new List<Tuple<int, int>>();
             var td = _tileDownloader;
             if (td == null) return result;
-            await RunFunctionIfOpenAsyncT(async delegate { result = await td.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync().ConfigureAwait(false); }).ConfigureAwait(false);
+            await RunFunctionIfOpenAsyncT(async delegate { result = await td.GetHowManyTiles4DifferentZooms4CurrentConditionsAsync(CancToken).ConfigureAwait(false); }).ConfigureAwait(false);
             return result;
         }
 

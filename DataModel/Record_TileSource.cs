@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
@@ -175,7 +176,7 @@ namespace LolloGPS.Data
         }
 
         #region checks
-        public async Task<string> CheckAsync()
+        public async Task<string> CheckAsync(CancellationToken cancToken)
         {
             string errorMsg = string.Empty;
             errorMsg = CheckTechName(TechName);
@@ -186,7 +187,7 @@ namespace LolloGPS.Data
             {
                 errorMsg = CheckUri(TileSourceFileName, false, true);
                 if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
-                errorMsg = await CheckFileSourceAsync(TileSourceFolderPath, TileSourceFileName);
+                errorMsg = await CheckFileSourceAsync(TileSourceFolderPath, TileSourceFileName, cancToken);
                 if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
             }
             else
@@ -203,7 +204,7 @@ namespace LolloGPS.Data
 
             return string.Empty;
         }
-        private static async Task<string> CheckFileSourceAsync(string tileSourceFolderPath, string tileSourceFileName)
+        private static async Task<string> CheckFileSourceAsync(string tileSourceFolderPath, string tileSourceFileName, CancellationToken cancToken)
         {
             if (string.IsNullOrWhiteSpace(tileSourceFolderPath)) return "Assign a folder";
             if (string.IsNullOrWhiteSpace(tileSourceFileName)) return "Assign a file name";

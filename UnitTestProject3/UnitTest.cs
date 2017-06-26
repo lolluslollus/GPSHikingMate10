@@ -277,7 +277,7 @@ namespace UnitTestProject3
                 //    ts.TechName = "lolloTest";
                 //}
                 var ds = new DownloadSession(nw_se, dummyTileSources, MaxZoom);
-                return GetTileData_RespondingToCancel(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom);
+                return GetTileData2(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, CancToken);
             }
             public List<TileCacheRecord> GetTileData_RespondingToCancelTest2()
             {
@@ -288,7 +288,7 @@ namespace UnitTestProject3
                 //    ts.TechName = "lolloTest";
                 //}
                 var ds = new DownloadSession(MinZoom, MaxZoom, nw_se.NorthwestCorner, nw_se.SoutheastCorner, dummyTileSources);
-                return GetTileData_RespondingToCancel(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom);
+                return GetTileData2(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, CancToken);
             }
             public List<TileCacheRecord> GetTileData_RespondingToCancelTest3(IEnumerable<TileSourceRecord> tileSources)
             {
@@ -297,7 +297,7 @@ namespace UnitTestProject3
                 var result = new List<TileCacheRecord>();
                 foreach (var ts in ds.TileSources)
                 {
-                    result.AddRange(GetTileData_RespondingToCancel(ds.NWCorner, ds.SECorner, ts.MaxZoom, ts.MinZoom));
+                    result.AddRange(GetTileData2(ds.NWCorner, ds.SECorner, ts.MaxZoom, ts.MinZoom, CancToken));
                 }
                 return result;
             }

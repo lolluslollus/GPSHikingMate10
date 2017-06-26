@@ -884,7 +884,7 @@ namespace LolloGPS.Converters
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             var tsr = value as TileSourceRecord;
-            if (tsr == null) return false;
+            if (tsr == null) return string.Empty;
             return $"{tsr.DisplayName} © {tsr.CopyrightNotice}";
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)

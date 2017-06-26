@@ -154,7 +154,7 @@ namespace LolloGPS.Core
         #endregion event handlers
 
         #region save services
-        public async Task<List<Tuple<int, int>>> StartOrResumeDownloadTilesAsync()
+        public async Task<List<Tuple<int, int>>> StartOrResumeDownloadTilesAsync(CancellationToken cancToken)
         {
             var results = new List<Tuple<int, int>>();
             await RunFunctionIfOpenAsyncT(async delegate
@@ -170,13 +170,13 @@ namespace LolloGPS.Core
                     var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
                     if (gbb == null) return;
 
-                    var session = await persistentData.InitOrReinitDownloadSessionAsync(gbb).ConfigureAwait(false);
+                    var session = await persistentData.InitOrReinitDownloadSessionAsync(gbb, cancToken).ConfigureAwait(false);
                     if (session == null) return;
                     // result = SaveTiles_RespondingToCancel(tileCacheAndSession.Item1, tileCacheAndSession.Item2);
                     foreach (var ts in session.TileSources)
                     {
                         results.Add(await Task.Run(() =>
-                            SaveTiles_RespondingToCancel2(session, ts), CancToken).ConfigureAwait(false));
+                            SaveTiles2(session, ts, cancToken), cancToken).ConfigureAwait(false));
                     }
                 }
                 catch (Exception ex)
@@ -204,7 +204,7 @@ namespace LolloGPS.Core
                 if (isSuccess) await persistentData.SetTilesDownloadPropsAsync(false, 0, true).ConfigureAwait(false);
             }
         }
-        private Tuple<int, int> SaveTiles_RespondingToCancel2(DownloadSession session, TileSourceRecord tileSource)
+        private Tuple<int, int> SaveTiles2(DownloadSession session, TileSourceRecord tileSource, CancellationToken cancToken)
         {
             _runtimeData.SetDownloadProgressValue_UI(0.0);
 
@@ -214,7 +214,7 @@ namespace LolloGPS.Core
 
             if (session != null && _runtimeData.IsConnectionAvailable)
             {
-                var requiredTilesOrderedByZoom = GetTileData_RespondingToCancel(session.NWCorner, session.SECorner, tileSource.MaxZoom, tileSource.MinZoom);
+                var requiredTilesOrderedByZoom = GetTileData2(session.NWCorner, session.SECorner, tileSource.MaxZoom, tileSource.MinZoom, cancToken);
                 totalCnt = requiredTilesOrderedByZoom.Count;
 
                 if (totalCnt > 0)
@@ -232,21 +232,19 @@ namespace LolloGPS.Core
                         var tileCache = new TileCacheReaderWriter(tileSource, false, false);
 
                         cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
-                            CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);
-                        var cancToken = cancTokenSourceLinked.Token;
+                            cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);
+                        var linkedCancToken = cancTokenSourceLinked.Token;
 
-                        if (cancToken != null && !cancToken.IsCancellationRequested)
+                        if (linkedCancToken.IsCancellationRequested) return Tuple.Create(0, 0);
+                        // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
+                        Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = linkedCancToken, MaxDegreeOfParallelism = 4 }, tile =>
                         {
-                            // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
-                            Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = cancToken, MaxDegreeOfParallelism = 4 }, tile =>
-                            {
-                                bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom, cancToken).Result;
-                                if (isOk) currentOkCnt++;
+                            bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom, linkedCancToken).Result;
+                            if (isOk) currentOkCnt++;
 
-                                currentCnt++;
-                                if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetDownloadProgressValue_UI((double)currentCnt / (double)totalCnt);
-                            });
-                        }
+                            currentCnt++;
+                            if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetDownloadProgressValue_UI((double)currentCnt / (double)totalCnt);
+                        });
                     }
                     catch (OperationCanceledException) { } // comes from the canc token
                     catch (ObjectDisposedException) { } // comes from the canc token
@@ -281,7 +279,7 @@ namespace LolloGPS.Core
         #endregion save services
 
         #region read services
-        public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZooms4CurrentConditionsAsync()
+        public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZooms4CurrentConditionsAsync(CancellationToken cancToken)
         {
             var output = new List<Tuple<int, int>>();
 
@@ -289,15 +287,16 @@ namespace LolloGPS.Core
             {
                 try
                 {
+                    if (cancToken.IsCancellationRequested) return;
                     IsCancelledByUser = false;
 
                     var gbb = await _gbbProvider.GetMinMaxLatLonAsync().ConfigureAwait(false);
                     if (gbb == null) return;
                     // now I have a geobounding box that certainly encloses the screen.
-                    var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb).ConfigureAwait(false);
+                    var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb, cancToken).ConfigureAwait(false);
                     if (session == null) return;
                     // we want this method to be quick, so we don't loop over the layers, but only use the session data once
-                    var tilesOrderedByZoom = GetTileData_RespondingToCancel(session.NWCorner, session.SECorner, session.MaxZoom, session.MinZoom);
+                    var tilesOrderedByZoom = GetTileData2(session.NWCorner, session.SECorner, session.MaxZoom, session.MinZoom, cancToken);
                     if (tilesOrderedByZoom == null) return;
                     for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
                     {
@@ -314,7 +313,7 @@ namespace LolloGPS.Core
             return output;
         }
 
-        protected List<TileCacheRecord> GetTileData_RespondingToCancel(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom)
+        protected List<TileCacheRecord> GetTileData2(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom, CancellationToken cancToken)
         {
             var output = new List<TileCacheRecord>();
             if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude || maxZoom < minZoom) return output;
@@ -322,10 +321,10 @@ namespace LolloGPS.Core
             CancellationTokenSource cancTokenSourceLinked = null;
             try
             {
-                cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(CancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
-                var cancToken = cancTokenSourceLinked.Token;
+                cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
+                var linkedCancToken = cancTokenSourceLinked.Token;
 
-                if (cancToken.IsCancellationRequested) return output;
+                if (linkedCancToken.IsCancellationRequested) return output;
 
                 int totalCnt = 0;
                 for (int zoom = minZoom; zoom <= maxZoom; zoom++)
@@ -345,7 +344,7 @@ namespace LolloGPS.Core
                         {
                             output.Add(new TileCacheRecord(x, y, 0, zoom));
                             totalCnt++;
-                            if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested)
+                            if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || linkedCancToken.IsCancellationRequested)
                             {
                                 exit = true;
                                 break;
@@ -369,7 +368,7 @@ namespace LolloGPS.Core
                             }
                         }
                     }
-                    if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || cancToken.IsCancellationRequested) break;
+                    if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || linkedCancToken.IsCancellationRequested) break;
                 }
             }
             catch (OperationCanceledException) { }
