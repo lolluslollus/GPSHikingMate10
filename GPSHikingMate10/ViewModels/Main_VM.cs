@@ -1,13 +1,14 @@
-﻿using GPX;
+﻿using LolloGPS.Core;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
 using LolloGPS.GPSInteraction;
+using LolloGPS.GPX;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
@@ -16,11 +17,6 @@ using Windows.Phone.UI.Input;
 using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using System.Threading;
-using System.Collections.ObjectModel;
-using Windows.Storage.Pickers;
-using LolloGPS.Core;
 
 namespace LolloGPS.ViewModels
 {

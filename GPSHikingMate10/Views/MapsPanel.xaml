@@ -34,7 +34,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarToggleButtonReallyCompact Grid.Row="0" Grid.Column="1"
+        <uctl:AppBarToggleButtonReallyCompact Grid.Row="0" Grid.Column="1"
 			IsChecked="{x:Bind PersistentData.IsAllowMeteredConnection, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}}"
 			Style="{StaticResource AppBarToggleButtonRecoloured}"
 			IsCompact="True"
@@ -44,7 +44,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1" 
+        <uctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1" 
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Click="OnGoto2D_Click"
@@ -54,16 +54,16 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="2" Grid.Column="1"
+        <uctl:AppBarButtonReallyCompact Grid.Row="2" Grid.Column="1"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 			Click="OnMapStyleButton_Click">
-            <mctl:AppBarButtonReallyCompact.Icon>
+            <uctl:AppBarButtonReallyCompact.Icon>
                 <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 					Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-            </mctl:AppBarButtonReallyCompact.Icon>
-        </mctl:AppBarButtonReallyCompact>
+            </uctl:AppBarButtonReallyCompact.Icon>
+        </uctl:AppBarButtonReallyCompact>
 
         <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
@@ -75,7 +75,7 @@
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
-            <mctl:LolloMultipleListChooser Grid.Column="1"
+            <uctl:LolloMultipleListChooser Grid.Column="1"
 				x:Name="BaseMapSourceChooser"
 				PlaceholderText="Select a map tile source"
 				ListHeaderText="Select a map tile source"
@@ -99,7 +99,7 @@
 				Style="{StaticResource BaseMessageStyle}"
 				VerticalAlignment="Center"/>
             <!--SelectedItem="{x:Bind PersistentData.CurrentTileSource, Converter={StaticResource TileSourceToTextAndTagConverter}, Mode=OneWay}"-->
-            <mctl:LolloMultipleListChooser Grid.Column="1"
+            <uctl:LolloMultipleListChooser Grid.Column="1"
 				x:Name="OverlayMapSourceChooser"
                 IsMultiSelectCheckBoxEnabled="True"
 				PlaceholderText="Select map tile sources"
@@ -129,7 +129,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="5" Grid.Column="1"
+        <uctl:AppBarButtonReallyCompact Grid.Row="5" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsLeechingEnabled, Mode=OneWay}"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
@@ -143,7 +143,7 @@
 			Foreground="{StaticResource FlashyForeground}"
 			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 			Text="No connection"/>
-        <mctl:LolloMultipleListChooser Grid.Row="6" Grid.Column="0"
+        <uctl:LolloMultipleListChooser Grid.Row="6" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ZoomLevelChooser"
 			PlaceholderText="Select max zoom level to download"
@@ -158,13 +158,13 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
+        <uctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
 			Click="OnClearMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Icon="Delete"/>
-        <mctl:LolloMultipleListChooser Grid.Row="7" Grid.Column="0"
+        <uctl:LolloMultipleListChooser Grid.Row="7" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="ClearCacheChooser"
 			PlaceholderText="Which cache do you want to clear?"
@@ -178,13 +178,13 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="1"
+        <uctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="1"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearOrSaveCacheEnabled, Mode=OneWay}"
 			Click="OnSaveMapCache_Click"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			IsCompact="True"
 			Icon="Save"/>
-        <mctl:LolloMultipleListChooser Grid.Row="8" Grid.Column="0"
+        <uctl:LolloMultipleListChooser Grid.Row="8" Grid.Column="0"
 			SelectorVisibility="Collapsed"
 			x:Name="SaveCacheChooser"
 			PlaceholderText="Which cache do you want to save?"

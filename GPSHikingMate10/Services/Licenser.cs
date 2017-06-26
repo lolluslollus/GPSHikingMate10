@@ -1,20 +1,21 @@
 ﻿using LolloGPS.Core;
-using Utilz.Data;
+using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
+using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Store;
 using Windows.Storage;
 using Windows.System;
 using Windows.UI.Popups;
-using LolloGPS.Data;
 
-namespace Utilz
+namespace LolloGPS.Services
 {
-	internal sealed class Licenser : ObservableData
+    internal sealed class Licenser : ObservableData
 	{
 		private static readonly object _instanceLocker = new object();
 		private static Licenser _instance = null;

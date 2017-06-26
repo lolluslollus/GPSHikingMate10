@@ -1,15 +1,15 @@
-﻿using LolloGPS.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
+using LolloGPS.Data.TileCache;
 using System;
-using System.Linq;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
+using Utilz.Controlz;
 using Windows.Devices.Geolocation;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
-using System.Diagnostics;
-using Windows.UI.Xaml.Controls;
 
 namespace LolloGPS.Converters
 {

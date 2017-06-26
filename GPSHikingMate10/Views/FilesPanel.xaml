@@ -1,4 +1,4 @@
-﻿<ctl:ObservableControl
+﻿<uctl:ObservableControl
 	x:Class="LolloGPS.Core.FilesPanel"
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,8 +6,8 @@
 	xmlns:local="using:LolloGPS.Core"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:ctl="using:Utilz.Controlz"
     xmlns:mctl="using:LolloGPS.Controlz"
+    xmlns:uctl="using:Utilz.Controlz"
 	mc:Ignorable="d"
 	d:DesignHeight="300"
 	d:DesignWidth="400">
@@ -41,14 +41,14 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource HistoryBrushOpaque}"
 			Text="Tracking history"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1"
+        <uctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterHistory_Click"                                    
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-        <mctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="2"
+        <uctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
@@ -58,7 +58,7 @@
 		<ContentControl Grid.Row="1" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-            <mctl:AppBarButtonReallyCompact
+            <uctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
@@ -88,14 +88,14 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource Route0BrushOpaque}"
 			Text="Route"/>
-		<mctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="1"
+		<uctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="1"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterRoute_Click" 
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-		<mctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="2"
+		<uctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
@@ -105,7 +105,7 @@
 		<ContentControl Grid.Row="4" Grid.Column="3"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<mctl:AppBarButtonReallyCompact
+			<uctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
@@ -115,7 +115,7 @@
 		<ContentControl Grid.Row="4" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<mctl:AppBarButtonReallyCompact
+			<uctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"
@@ -139,14 +139,14 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource CheckpointBrushOpaque}"
 			Text="Checkpoints"/>
-		<mctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
+		<uctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Click="OnCenterCheckpoints_Click" 
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-		<mctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="2"
+		<uctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="2"
 			HorizontalAlignment="Center"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
@@ -156,7 +156,7 @@
 		<ContentControl Grid.Row="7" Grid.Column="3"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<mctl:AppBarButtonReallyCompact
+			<uctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"                                  
@@ -166,7 +166,7 @@
 		<ContentControl Grid.Row="7" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<mctl:AppBarButtonReallyCompact
+			<uctl:AppBarButtonReallyCompact
 				HorizontalAlignment="Center"
 				IsCompact="True"
 				Style="{StaticResource AppBarButtonRecoloured}"                                  
@@ -187,4 +187,4 @@
 			Text="Add or update checkpoints in the 'Points' panel. You can export them and import them again later."
 			Visibility="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource IntIsNullToCollapsedConverter}, Mode=OneWay}"/>
 	</Grid>
-</ctl:ObservableControl>
+</uctl:ObservableControl>

@@ -1,14 +1,12 @@
 ﻿using LolloGPS.Data.Runtime;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Storage;
 
-namespace LolloGPS.Data
+namespace LolloGPS.Data.TileCache
 {
     public static class TileSaver
     {

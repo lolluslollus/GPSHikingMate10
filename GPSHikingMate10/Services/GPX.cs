@@ -1,7 +1,6 @@
 ﻿using LolloGPS.Data;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -20,7 +19,7 @@ using Windows.Storage.Streams;
 // Garmin extensions are at http://www8.garmin.com/xmlschemas/GpxExtensions/v3/GpxExtensionsv3.xsd
 // However, I don't want to use extensions. Some apps do <sym>Flag, Blue</sym>
 
-namespace GPX
+namespace LolloGPS.GPX
 {
     public sealed class ReaderWriter
     {

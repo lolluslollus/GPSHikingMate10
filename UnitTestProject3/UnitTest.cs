@@ -1,14 +1,9 @@
-﻿
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using LolloGPS.Core;
-using System.Collections.Generic;
+﻿using LolloGPS.Calcs;
 using LolloGPS.Data.TileCache;
-using Windows.Devices.Geolocation;
-using LolloGPS.Data;
-using LolloGPS.Data.Leeching;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using LolloGPS.Calcs;
+using Windows.Devices.Geolocation;
 
 namespace UnitTestProject3
 {

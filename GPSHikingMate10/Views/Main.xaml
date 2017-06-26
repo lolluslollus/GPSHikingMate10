@@ -1,4 +1,4 @@
-﻿<ctl:OpenableObservablePage 
+﻿<uctl:OpenableObservablePage 
 	x:Class="LolloGPS.Core.Main"
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -7,12 +7,12 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:customTriggers="using:Utilz"
-	xmlns:ctl="using:Utilz.Controlz"
+	xmlns:uctl="using:Utilz.Controlz"
     xmlns:mctl="using:LolloGPS.Controlz"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
 	UseLayoutRounding="True">
-    <ctl:OpenableObservablePage.Resources>
+    <uctl:OpenableObservablePage.Resources>
         <Storyboard x:Name="ShowHideLastMessageFlashyStoryboard">
             <!-- LOLLO NOTE the animation makes the container of the animated object swell. 
 			So we must de-animate both. -->
@@ -93,7 +93,7 @@
                 <LinearDoubleKeyFrame KeyTime="0:0:5.0" Value="0.0"/>
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
-    </ctl:OpenableObservablePage.Resources>
+    </uctl:OpenableObservablePage.Resources>
 
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
@@ -207,7 +207,7 @@
                 </Grid>-->
                 <!-- icons for battery consuming functions -->
                 <StackPanel Margin="0" Padding="0" Orientation="Horizontal">
-                    <mctl:AppBarButtonReallyCompact
+                    <uctl:AppBarButtonReallyCompact
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -215,7 +215,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
-                    <mctl:AppBarButtonReallyCompact
+                    <uctl:AppBarButtonReallyCompact
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -223,7 +223,7 @@
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>
-                    <mctl:AppBarButtonReallyCompact
+                    <uctl:AppBarButtonReallyCompact
 						HorizontalAlignment="Center" VerticalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
@@ -466,7 +466,7 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <!-- back -->
-            <mctl:AppBarButtonReallyCompact Grid.Column="0"
+            <uctl:AppBarButtonReallyCompact Grid.Column="0"
 						  HorizontalAlignment="Center" 
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
@@ -474,7 +474,7 @@
 						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
 						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
             <!-- get a fix -->
-            <mctl:AppBarButtonReallyCompact Grid.Column="1"
+            <uctl:AppBarButtonReallyCompact Grid.Column="1"
 						  VerticalAlignment="Center"
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
@@ -483,7 +483,7 @@
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
             <!-- go to last -->
             <ContentControl Grid.Column="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <mctl:AppBarButtonReallyCompact
+                <uctl:AppBarButtonReallyCompact
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
@@ -492,31 +492,31 @@
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
             </ContentControl>
             <!-- altitude profiles -->
-            <mctl:AppBarToggleButtonReallyCompact Grid.Column="3"
+            <uctl:AppBarToggleButtonReallyCompact Grid.Column="3"
 				VerticalAlignment="Center"
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
             <!-- open menu pivot -->
-            <mctl:AppBarToggleButtonReallyCompact Grid.Column="4"
+            <uctl:AppBarToggleButtonReallyCompact Grid.Column="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
             <!-- map style -->
             <ContentControl Grid.Column="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <mctl:AppBarButtonReallyCompact
+                <uctl:AppBarButtonReallyCompact
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
 					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
-                    <mctl:AppBarButtonReallyCompact.Icon>
+                    <uctl:AppBarButtonReallyCompact.Icon>
                         <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-                    </mctl:AppBarButtonReallyCompact.Icon>
-                </mctl:AppBarButtonReallyCompact>
+                    </uctl:AppBarButtonReallyCompact.Icon>
+                </uctl:AppBarButtonReallyCompact>
             </ContentControl>
         </Grid>
 
@@ -535,7 +535,7 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <!-- back -->
-            <mctl:AppBarButtonReallyCompact Grid.Row="0"
+            <uctl:AppBarButtonReallyCompact Grid.Row="0"
 						  HorizontalAlignment="Center" 
 						  Label="Back" Icon="Back"
 						  Click="OnBack_Click"
@@ -543,7 +543,7 @@
 						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
 						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
             <!-- get a fix -->
-            <mctl:AppBarButtonReallyCompact Grid.Row="1"
+            <uctl:AppBarButtonReallyCompact Grid.Row="1"
 						  HorizontalAlignment="Center"  
 						  Label="Get a fix" Icon="Map"
 						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
@@ -552,7 +552,7 @@
 						  Foreground="{StaticResource HistoryBrushOpaque}"/>
             <!-- go to last -->
             <ContentControl Grid.Row="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <mctl:AppBarButtonReallyCompact
+                <uctl:AppBarButtonReallyCompact
 					VerticalAlignment="Center"
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
@@ -561,33 +561,33 @@
 					Foreground="{StaticResource HistoryBrushOpaque}"/>
             </ContentControl>
             <!-- altitude profiles -->
-            <mctl:AppBarToggleButtonReallyCompact Grid.Row="3"
+            <uctl:AppBarToggleButtonReallyCompact Grid.Row="3"
 				HorizontalAlignment="Center" 
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
             <!-- open menu pivot -->
-            <mctl:AppBarToggleButtonReallyCompact Grid.Row="4"
+            <uctl:AppBarToggleButtonReallyCompact Grid.Row="4"
 				HorizontalAlignment="Center" 
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
             <!-- map style -->
             <ContentControl Grid.Row="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <mctl:AppBarButtonReallyCompact
+                <uctl:AppBarButtonReallyCompact
 					HorizontalAlignment="Center"
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
 					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
 					Style="{StaticResource AppBarButtonRecoloured}">
-                    <mctl:AppBarButtonReallyCompact.Icon>
+                    <uctl:AppBarButtonReallyCompact.Icon>
                         <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-                    </mctl:AppBarButtonReallyCompact.Icon>
-                </mctl:AppBarButtonReallyCompact>
+                    </uctl:AppBarButtonReallyCompact.Icon>
+                </uctl:AppBarButtonReallyCompact>
             </ContentControl>
 
         </Grid>
     </Grid>
-</ctl:OpenableObservablePage>
+</uctl:OpenableObservablePage>

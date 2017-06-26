@@ -1,14 +1,10 @@
 ﻿using LolloGPS.Data;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Utilz;
 using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace LolloGPS.Suspension
 {
@@ -107,14 +103,7 @@ namespace LolloGPS.Suspension
 
             if (persistentData.CurrentTileSources == null) return false;
 
-            foreach (var ts in persistentData.TileSourcez)
-            {
-                if (!string.IsNullOrWhiteSpace(ts.FolderName) && ts.UriStrings != null)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return true;
         }
 
         public static async Task SaveSettingsAsync(PersistentData persistentData)

@@ -1,9 +1,10 @@
-﻿using LolloGPS.Controlz;
-using LolloGPS.Data;
+﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.Data.TileCache;
 using LolloGPS.ViewModels;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Utilz.Controlz;
 using Windows.UI.Xaml;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236

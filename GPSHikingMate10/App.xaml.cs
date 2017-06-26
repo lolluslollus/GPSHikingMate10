@@ -1,16 +1,11 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.Services;
 using LolloGPS.Suspension;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Utilz;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Core;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;

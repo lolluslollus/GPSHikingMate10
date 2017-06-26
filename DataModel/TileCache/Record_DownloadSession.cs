@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 using Utilz;
 using Windows.Devices.Geolocation;
 
-namespace LolloGPS.Data.Leeching
+namespace LolloGPS.Data.TileCache
 {
     [DataContract]
     [KnownType(typeof(string[]))]

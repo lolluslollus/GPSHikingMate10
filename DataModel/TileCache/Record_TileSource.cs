@@ -15,7 +15,7 @@ using Windows.Storage;
 // http://onlinetopomaps.net/
 // http://www.oruxmaps.com/foro/viewtopic.php?t=3035
 
-namespace LolloGPS.Data
+namespace LolloGPS.Data.TileCache
 {
     [DataContract]
     [KnownType(typeof(string[]))]

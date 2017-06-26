@@ -1,5 +1,4 @@
-﻿using LolloGPS.Controlz;
-using LolloGPS.Core;
+﻿using LolloGPS.Core;
 using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
 using LolloGPS.Data.TileCache;
@@ -7,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Controlz;
 using Utilz.Data;
-using static LolloGPS.Controlz.LolloMultipleListChooser;
 
 namespace LolloGPS.ViewModels
 {

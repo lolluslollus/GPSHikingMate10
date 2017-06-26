@@ -1,7 +1,9 @@
 ﻿using LolloGPS.Data;
 using LolloGPS.Data.Runtime;
+using LolloGPS.Data.TileCache;
 using LolloGPS.ViewModels;
 using System.Threading.Tasks;
+using Utilz.Controlz;
 using Windows.UI.Xaml;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
@@ -55,7 +57,7 @@ namespace LolloGPS.Core
 			else PersistentData.LastMessage = "Cache busy";
 		}
 
-		private void OnClearCustomCacheChooser_ItemSelected(object sender, Controlz.TextAndTag e)
+		private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
 		{
 			Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
 		}

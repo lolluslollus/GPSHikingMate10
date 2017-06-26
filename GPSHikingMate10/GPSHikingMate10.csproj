@@ -118,10 +118,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controlz\AppBarButtonLollo.cs" />
-    <Compile Include="Controlz\LolloMultipleListChooser.xaml.cs">
-      <DependentUpon>LolloMultipleListChooser.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controlz\LolloProgressBar.xaml.cs">
       <DependentUpon>LolloProgressBar.xaml</DependentUpon>
     </Compile>
@@ -131,7 +127,6 @@
     <Compile Include="Services\GPX.cs" />
     <Compile Include="Services\Licenser.cs" />
     <Compile Include="Services\SuspensionManager.cs" />
-    <Compile Include="Services\TileDownloader.cs" />
     <Compile Include="ViewModels\AltitudeProfiles_VM.cs" />
     <Compile Include="ViewModels\LolloMap_VM.cs" />
     <Compile Include="ViewModels\Main_VM.cs" />
@@ -258,10 +253,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controlz\LolloMultipleListChooser.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Controlz\LolloProgressBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

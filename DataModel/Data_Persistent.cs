@@ -1,5 +1,5 @@
-﻿using LolloGPS.Data.Leeching;
-using LolloGPS.Data.Runtime;
+﻿using LolloGPS.Data.Runtime;
+using LolloGPS.Data.TileCache;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

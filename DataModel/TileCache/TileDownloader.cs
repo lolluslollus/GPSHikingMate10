@@ -1,19 +1,16 @@
-﻿using LolloGPS.Data;
-using Utilz.Data;
-using LolloGPS.Data.Leeching;
+﻿using LolloGPS.Calcs;
 using LolloGPS.Data.Runtime;
-using LolloGPS.Data.TileCache;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 using Windows.Devices.Geolocation;
-using System.Threading;
-using LolloGPS.Calcs;
 
-namespace LolloGPS.Core
+namespace LolloGPS.Data.TileCache
 {
     public interface IGeoBoundingBoxProvider
     {
@@ -147,7 +144,7 @@ namespace LolloGPS.Core
             }
         }
 
-        internal void CancelDownloadByUser()
+        public void CancelDownloadByUser()
         {
             IsCancelledByUser = true;
         }
@@ -385,5 +382,43 @@ namespace LolloGPS.Core
             return output;
         }
         #endregion read services
+    }
+
+    /// <summary>
+    /// TileCacheRecord like in the db
+    /// </summary>
+    public sealed class TileCacheRecord
+    {
+        public int X { get { return _x; } }
+        public int Y { get { return _y; } }
+        public int Z { get { return _z; } }
+        public int Zoom { get { return _zoom; } }
+
+        private readonly int _x = 0;
+        private readonly int _y = 0;
+        private readonly int _z = 0;
+        private readonly int _zoom = 2;
+
+        public TileCacheRecord(int x, int y, int z, int zoom)
+        {
+            _x = x;
+            _y = y;
+            _z = z;
+            _zoom = zoom;
+        }
+        /*
+		internal static Task<TileCacheRecord> GetTileCacheRecordFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
+		{
+			try
+			{
+				return DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom);
+			}
+			catch (Exception ex)
+			{
+				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+			}
+			return null;
+		}
+		*/
     }
 }
