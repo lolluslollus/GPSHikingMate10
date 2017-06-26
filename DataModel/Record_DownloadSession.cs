@@ -61,14 +61,14 @@ namespace LolloGPS.Data.Leeching
             if (gbb == null) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: gbb is null");
             if (gbb.NorthwestCorner.Latitude == gbb.SoutheastCorner.Latitude
                 && gbb.NorthwestCorner.Longitude == gbb.SoutheastCorner.Longitude) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: NW corner same as SE corner");
-            if (tileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: cannot find a tile source with the given name");
+            if (tileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: no tile sources to download");
 
-            _nwCorner = gbb.NorthwestCorner;
-            _seCorner = gbb.SoutheastCorner;
+            var downloadableTileSources = tileSources.Where(ts2 => !ts2.IsDefault && !ts2.IsFileSource && !ts2.IsAll && !ts2.IsNone);
+            if (downloadableTileSources?.Any() != true) throw new InvalidDownloadSessionArgumentsException("DownloadSession ctor: no tile sources suitable for download");
 
             int minZoom = 99; int maxZoom = -1;
             // first try to find the min and max zooms from the base layer tile source
-            foreach (var ts in tileSources)
+            foreach (var ts in downloadableTileSources)
             {
                 if (ts.IsOverlay) continue;
                 maxZoom = Math.Max(ts.MaxZoom, maxZoom);
@@ -77,7 +77,7 @@ namespace LolloGPS.Data.Leeching
             // no base layer tile source: check all tile sources
             if (minZoom == 99 || maxZoom == -1)
             {
-                foreach (var ts in tileSources)
+                foreach (var ts in downloadableTileSources)
                 {
                     maxZoom = Math.Max(ts.MaxZoom, maxZoom);
                     minZoom = Math.Min(ts.MinZoom, minZoom);
@@ -93,7 +93,10 @@ namespace LolloGPS.Data.Leeching
             _maxZoom = maxZoom;
             _minZoom = minZoom;
 
-            _tileSources = GetTileSourcesWithReducedZooms(tileSources, maxZoom, minZoom);
+            _tileSources = GetTileSourcesWithReducedZooms(downloadableTileSources, maxZoom, minZoom);
+
+            _nwCorner = gbb.NorthwestCorner;
+            _seCorner = gbb.SoutheastCorner;
         }
         /// <summary>
         /// Initialises an instance starting from another instance.

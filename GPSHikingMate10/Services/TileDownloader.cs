@@ -179,6 +179,7 @@ namespace LolloGPS.Core
                             SaveTiles2(session, ts, cancToken), cancToken).ConfigureAwait(false));
                     }
                 }
+                catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);

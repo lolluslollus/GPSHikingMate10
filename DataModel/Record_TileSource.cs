@@ -325,7 +325,6 @@ namespace LolloGPS.Data
             return new TileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName, source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isDeletable, source._isOverlay,
-                // LOLLO TODO check that the clones below really clone
                 new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public bool IsEqualTo(TileSourceRecord comp)
@@ -721,7 +720,6 @@ namespace LolloGPS.Data
                 source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isDeletable, source._isOverlay,
-                // LOLLO TODO check that the clones below really clone
                 new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public new static WritableTileSourceRecord Clone(TileSourceRecord source)
@@ -732,7 +730,6 @@ namespace LolloGPS.Data
                 source.TechName, source.DisplayName, source.FolderName, source.CopyrightNotice,
                 source.ProviderUriString, source.MinZoom, source.MaxZoom, source.TilePixelSize,
                 source.IsDeletable, source.IsOverlay,
-                // LOLLO TODO check that the clones below really clone
                 new Dictionary<string, string>(source.RequestHeaders), source.UriStrings.ToArray());
         }
 

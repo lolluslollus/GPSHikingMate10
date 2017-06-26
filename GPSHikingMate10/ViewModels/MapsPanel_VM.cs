@@ -436,7 +436,7 @@ namespace LolloGPS.ViewModels
                 else
                 {
                     IsShowZoomLevelChoices = false;
-                    _mainVM.SetLastMessage_UI("No downloads possible for this area");
+                    _mainVM.SetLastMessage_UI("No downloads possible for this area or layers");
                 }
             });
         }

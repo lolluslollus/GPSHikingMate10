@@ -1602,7 +1602,7 @@ namespace LolloGPS.Data
         {
             var result = new List<string>();
             if (tileSource == null) return result;
-            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName))
+            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName) && !tileSource.IsDefault)
             {
                 result.Add(tileSource.FolderName);
             }
@@ -1667,6 +1667,7 @@ namespace LolloGPS.Data
                 await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
                 IsTileSourcezBusy = true;
 
+                if (cancToken.IsCancellationRequested) return null;
                 lock (_lastDownloadLocker)
                 {
                     try
