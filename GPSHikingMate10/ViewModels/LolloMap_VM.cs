@@ -388,6 +388,7 @@ namespace LolloGPS.ViewModels
             {
                 await RunInUiThreadAsync(delegate
                 {
+                    if (CancToken.IsCancellationRequested) return;
                     KeepAlive.UpdateKeepAlive(true);
                 }).ConfigureAwait(false);
                 downloadResult = await _tileDownloader.StartOrResumeDownloadTilesAsync(CancToken).ConfigureAwait(false);
