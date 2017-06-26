@@ -116,8 +116,8 @@ namespace LolloGPS.Data
         public int TilePixelSize { get { return _tilePixelSize; } }
 
         [DataMember]
-        protected bool _isDeletable = false;
-        public bool IsDeletable { get { return _isDeletable; } }
+        protected bool _isCustom = false;
+        public bool IsCustom { get { return _isCustom; } }
 
         [DataMember]
         protected bool _isFileSource = false;
@@ -155,7 +155,7 @@ namespace LolloGPS.Data
 
         public TileSourceRecord(bool isFileSource, string tileSourceFolderPath, string tileSourceFileName, string techName, string displayName, string folderName, string copyrightNotice,
             string providerUri, int minZoom, int maxZoom, int tilePixelSize,
-            bool isDeletable, bool isOverlay,
+            bool isCustom, bool isOverlay,
             Dictionary<string, string> headers, params string[] uriStrings)
         {
             _isFileSource = isFileSource;
@@ -169,7 +169,7 @@ namespace LolloGPS.Data
             _minZoom = minZoom;
             _maxZoom = maxZoom;
             _tilePixelSize = tilePixelSize;
-            _isDeletable = isDeletable;
+            _isCustom = isCustom;
             _isOverlay = isOverlay;
             _requestHeaders = headers;
             _uriStrings = uriStrings;
@@ -324,7 +324,7 @@ namespace LolloGPS.Data
 
             return new TileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName, source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
-                source._isDeletable, source._isOverlay,
+                source._isCustom, source._isOverlay,
                 new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public bool IsEqualTo(TileSourceRecord comp)
@@ -340,7 +340,7 @@ namespace LolloGPS.Data
                 && comp._minZoom == _minZoom
                 && comp._maxZoom == _maxZoom
                 && comp._tilePixelSize == _tilePixelSize
-                && comp._isDeletable == _isDeletable
+                && comp._isCustom == _isCustom
                 && comp._isFileSource == _isFileSource
                 && comp._tileSourceFolderPath == _tileSourceFolderPath
                 && comp._tileSourceFileName == _tileSourceFileName
@@ -689,7 +689,7 @@ namespace LolloGPS.Data
 
         public new int TilePixelSize { get { return _tilePixelSize; } set { _tilePixelSize = value; RaisePropertyChanged_UI(); } }
 
-        public new bool IsDeletable { get { return _isDeletable; } set { _isDeletable = value; RaisePropertyChanged_UI(); } }
+        public new bool IsCustom { get { return _isCustom; } set { _isCustom = value; RaisePropertyChanged_UI(); } }
 
         public new bool IsFileSource { get { return _isFileSource; } set { _isFileSource = value; RaisePropertyChanged_UI(); } }
 
@@ -704,11 +704,11 @@ namespace LolloGPS.Data
         public WritableTileSourceRecord(bool isFileSource, string tileSourceFolderPath, string tileSourceFileName,
             string techName, string displayName, string folderName, string copyrightNotice,
             string providerUri, int minZoom, int maxZoom, int tilePixelSize,
-            bool isDeletable, bool isOverlay,
+            bool isCustom, bool isOverlay,
             Dictionary<string, string> headers, params string[] uriStrings) : base(isFileSource, tileSourceFolderPath, tileSourceFileName,
                 techName, displayName, folderName, copyrightNotice,
                 providerUri, minZoom, maxZoom, tilePixelSize,
-                isDeletable, isOverlay,
+                isCustom, isOverlay,
                 headers, uriStrings)
         { }
 
@@ -719,7 +719,7 @@ namespace LolloGPS.Data
             return new WritableTileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName,
                 source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
-                source._isDeletable, source._isOverlay,
+                source._isCustom, source._isOverlay,
                 new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public new static WritableTileSourceRecord Clone(TileSourceRecord source)
@@ -729,7 +729,7 @@ namespace LolloGPS.Data
             return new WritableTileSourceRecord(source.IsFileSource, source.TileSourceFolderPath, source.TileSourceFileName,
                 source.TechName, source.DisplayName, source.FolderName, source.CopyrightNotice,
                 source.ProviderUriString, source.MinZoom, source.MaxZoom, source.TilePixelSize,
-                source.IsDeletable, source.IsOverlay,
+                source.IsCustom, source.IsOverlay,
                 new Dictionary<string, string>(source.RequestHeaders), source.UriStrings.ToArray());
         }
 

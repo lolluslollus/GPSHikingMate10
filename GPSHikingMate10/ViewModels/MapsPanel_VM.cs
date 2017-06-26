@@ -123,7 +123,7 @@ namespace LolloGPS.ViewModels
         {
             IsClearCustomCacheEnabled = !_tileCacheClearerSaver.IsClearingScheduled
             && !PersistentData.IsTileSourcezBusy
-            && allTileSources?.Any(ts => ts.IsDeletable) == true;
+            && allTileSources?.Any(ts => ts.IsCustom) == true;
         }
         private void UpdateIsClearCacheEnabled()
         {

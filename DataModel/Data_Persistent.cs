@@ -135,7 +135,7 @@ namespace LolloGPS.Data
                     for (int i = ii; i >= 0; i--)
                     {
                         var ts = source.TileSourcez[i];
-                        if (ts == null || ts.IsDeletable) continue; // do not touch custom tile sources
+                        if (ts == null || ts.IsCustom) continue; // do not touch custom tile sources
                         // I may say, do not delete sources, which are no more available. However, this way we fill up with junk.
                         // Better would be to clear their caches; but for that to succeed, I must leave them in the list. What a mess.
                         // if (!_instance.TileSourcez.Any(tso => tso.TechName == ts.TechName)) continue;
@@ -146,7 +146,7 @@ namespace LolloGPS.Data
                     for (int i = ii; i >= 0; i--)
                     {
                         var ts = _instance.TileSourcez[i];
-                        if (ts == null || ts.IsDeletable) continue;
+                        if (ts == null || ts.IsCustom) continue;
                         source.TileSourcez.Insert(0, ts);
                     }
                 }
@@ -215,9 +215,9 @@ namespace LolloGPS.Data
 
             if (source.TileSourcez != null && source.TileSourcez.Any()) // start with the default values
             {
-                foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsDeletable)) // add custom map sources
+                foreach (var srcItem in source.TileSourcez.Where(tileSource => tileSource.IsCustom)) // add custom map sources
                 {
-                    target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.FolderName, srcItem.CopyrightNotice, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsDeletable, srcItem.RequestHeaders));
+                    target.TileSourcez.Add(new TileSourceRecord(srcItem.TechName, srcItem.DisplayName, srcItem.FolderName, srcItem.CopyrightNotice, srcItem.UriString, srcItem.ProviderUriString, srcItem.MinZoom, srcItem.MaxZoom, srcItem.TilePixelSize, srcItem.IsCustom, srcItem.RequestHeaders));
                 }
             }
 
@@ -1284,7 +1284,7 @@ namespace LolloGPS.Data
                 if (string.IsNullOrWhiteSpace(testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
                 // set non-screen properties
                 testTileSource.FolderName = testTileSource.DisplayName = testTileSource.TechName; // we always set it automatically
-                testTileSource.IsDeletable = true;
+                testTileSource.IsCustom = true;
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await testTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1439,7 +1439,7 @@ namespace LolloGPS.Data
             if (cancToken.IsCancellationRequested) return false;
 
             var tileSourceToBeDeleted = _tileSourcez.FirstOrDefault(ts => ts.TechName.Equals(tileSourceTechName));
-            if (tileSourceToBeDeleted?.IsDeletable != true) return false;
+            if (tileSourceToBeDeleted?.IsCustom != true) return false;
 
             if (cancToken.IsCancellationRequested) return false;
             await RunInUiThreadAsync(delegate

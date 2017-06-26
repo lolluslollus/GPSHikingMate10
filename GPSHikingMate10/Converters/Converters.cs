@@ -849,7 +849,7 @@ namespace LolloGPS.Converters
             // clear all custom sources one by one
             if (isClearingCustomCache)
             {
-                foreach (var item in tileSources.Where(a => a.IsDeletable))
+                foreach (var item in tileSources.Where(a => a.IsCustom))
                 {
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
