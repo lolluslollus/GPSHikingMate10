@@ -589,122 +589,108 @@ namespace LolloGPS.Data
         /// Deletes the selected point from the series it belongs to.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> DeleteSelectedPointFromSeriesAsync()
+        public async Task<bool> DeleteSelectedPointFromSeriesAsync(CancellationToken cancToken)
         {
+            if (_selected == null) return false;
+
             SwitchableObservableCollection<PointRecord> series = null;
             SemaphoreSlimSafeRelease seriesSemaphore = null;
             var selectedSeries = _selectedSeries;
-            if (_selected != null)
-            {
-                if (selectedSeries == Tables.History)
-                {
-                    series = History;
-                    seriesSemaphore = _historySemaphore;
-                }
-                else if (selectedSeries == Tables.Route0)
-                {
-                    series = Route0;
-                    seriesSemaphore = _route0Semaphore;
-                }
-                else if (selectedSeries == Tables.Checkpoints)
-                {
-                    series = Checkpoints;
-                    seriesSemaphore = _checkpointsSemaphore;
-                }
-            }
-            if (series != null && seriesSemaphore != null && Selected != null)
-            {
-                try
-                {
-                    await seriesSemaphore.WaitAsync();
-                    var matchingPointInSeries = series.FirstOrDefault(point => point.Latitude == Selected.Latitude && point.Longitude == Selected.Longitude);
-                    if (matchingPointInSeries != null)
-                    {
-                        if (series.IndexOf(matchingPointInSeries) == 0)
-                        {
-                            SelectNeighbourRecordFromAnySeries(1);
-                        }
-                        else SelectNeighbourRecordFromAnySeries(-1);
-
-                        if (series.Remove(matchingPointInSeries))
-                        {
-                            Task delete = null;
-                            if (selectedSeries == Tables.History) delete = DBManager.DeleteFromHistoryAsync(matchingPointInSeries);
-                            else if (selectedSeries == Tables.Route0) delete = DBManager.DeleteFromRoute0Async(matchingPointInSeries);
-                            else if (selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
-
-                            // if I have removed the last record from the series
-                            if (!series.Any())
-                            {
-                                Selected = new PointRecord();
-                                SelectedIndex_Base1 = DefaultSelectedIndex_Base1;
-                                SelectedSeries = Tables.Nil;
-                                LastMessage = "Series deleted";
-                                return true;
-                            }
-                            else
-                            {
-                                SelectNeighbourRecordFromAnySeries(0);
-                                LastMessage = "Series updated";
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            LastMessage = "Error updating data";
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        LastMessage = "Error updating data";
-                        return false;
-                    }
-                }
-                catch (OutOfMemoryException)
-                {
-                    var howMuchMemoryLeft = GC.GetTotalMemory(true);
-                    Logger.Add_TPL("OutOfMemoryException in PersistentData.RemovePointFromSeries()", Logger.PersistentDataLogFilename);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename);
-                }
-                finally
-                {
-                    SemaphoreSlimSafeRelease.TryRelease(seriesSemaphore);
-                }
-            }
-            LastMessage = "Error updating data";
-            return false;
-        }
-        public async Task RunFunctionUnderSemaphore(Action func, Tables whichTable)
-        {
-            SemaphoreSlimSafeRelease semaphore = null;
-            switch (whichTable)
+            switch (selectedSeries)
             {
                 case Tables.History:
-                    semaphore = _historySemaphore;
+                    series = History;
+                    seriesSemaphore = _historySemaphore;
                     break;
                 case Tables.Route0:
-                    semaphore = _route0Semaphore;
+                    series = Route0;
+                    seriesSemaphore = _route0Semaphore;
                     break;
                 case Tables.Checkpoints:
-                    semaphore = _checkpointsSemaphore;
+                    series = Checkpoints;
+                    seriesSemaphore = _checkpointsSemaphore;
                     break;
                 default:
-                    return;
+                    return false;
             }
+
             try
             {
-                await semaphore.WaitAsync(); //.ConfigureAwait(false);
-                func();
+                await seriesSemaphore.WaitAsync(cancToken);
+                var selected = _selected;
+                if (selected == null || series == null) return false;
+
+                var matchingPointInSeries = series.FirstOrDefault(point => point.Latitude == selected.Latitude && point.Longitude == selected.Longitude);
+                if (matchingPointInSeries == null) return false;
+
+                if (series.IndexOf(matchingPointInSeries) == 0) SelectNeighbourRecordFromAnySeries(1);
+                else SelectNeighbourRecordFromAnySeries(-1);
+
+                if (!series.Remove(matchingPointInSeries)) return false;
+
+                Task delete = null;
+                if (selectedSeries == Tables.History) delete = DBManager.DeleteFromHistoryAsync(matchingPointInSeries);
+                else if (selectedSeries == Tables.Route0) delete = DBManager.DeleteFromRoute0Async(matchingPointInSeries);
+                else if (selectedSeries == Tables.Checkpoints) delete = DBManager.DeleteFromCheckpointsAsync(matchingPointInSeries);
+
+                // if I have removed the last record from the series
+                if (!series.Any())
+                {
+                    Selected = new PointRecord();
+                    SelectedIndex_Base1 = DefaultSelectedIndex_Base1;
+                    SelectedSeries = Tables.Nil;
+                    LastMessage = "Series deleted";
+                    return true;
+                }
+                else
+                {
+                    SelectNeighbourRecordFromAnySeries(0);
+                    LastMessage = "Series updated";
+                    return true;
+                }
             }
+            catch (OutOfMemoryException)
+            {
+                var howMuchMemoryLeft = GC.GetTotalMemory(true);
+                Logger.Add_TPL("OutOfMemoryException in PersistentData.RemovePointFromSeries()", Logger.PersistentDataLogFilename);
+            }
+            catch (ObjectDisposedException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.PersistentDataLogFilename); }
             finally
             {
-                SemaphoreSlimSafeRelease.TryRelease(semaphore);
+                SemaphoreSlimSafeRelease.TryRelease(seriesSemaphore);
             }
+
+            return false;
         }
+        //public async Task RunFunctionUnderSemaphore(Action func, Tables whichTable)
+        //{
+        //    SemaphoreSlimSafeRelease semaphore = null;
+        //    switch (whichTable)
+        //    {
+        //        case Tables.History:
+        //            semaphore = _historySemaphore;
+        //            break;
+        //        case Tables.Route0:
+        //            semaphore = _route0Semaphore;
+        //            break;
+        //        case Tables.Checkpoints:
+        //            semaphore = _checkpointsSemaphore;
+        //            break;
+        //        default:
+        //            return;
+        //    }
+        //    try
+        //    {
+        //        await semaphore.WaitAsync(); //.ConfigureAwait(false);
+        //        func();
+        //    }
+        //    finally
+        //    {
+        //        SemaphoreSlimSafeRelease.TryRelease(semaphore);
+        //    }
+        //}
         private void ResetSeriesAltitudeI0I1(Tables whichTable)
         {
             lock (_seriesAltitudeI0I1Locker)

@@ -96,7 +96,8 @@ namespace LolloGPS.Core
         #region user event handlers
         private async void OnDeletePoint_Click(object sender, RoutedEventArgs e)
         {
-            await PersistentData.DeleteSelectedPointFromSeriesAsync();
+            bool isDeleted = await PersistentData.DeleteSelectedPointFromSeriesAsync(CancToken);
+            if (!isDeleted) PersistentData.LastMessage = "Error updating data";
             SetPointProperties();
         }
         private void OnSymbolChanged(object sender, string newSymbol)
