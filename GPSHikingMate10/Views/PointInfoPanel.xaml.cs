@@ -111,10 +111,17 @@ namespace LolloGPS.Core
             pd.RefreshSeries(whichSeries);
         }
 
+        private void OnHumanDescription_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string currentText = (sender as TextBox)?.Text;
+            if (currentText == null) return;
+            Task upd = PersistentData?.Selected?.UpdateHumanDescriptionAsync(currentText, PersistentData.SelectedSeries);
+        }
         private void OnHumanDescriptionTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            string currentText = (sender as TextBox).Text;
-            Task upd = PersistentData?.Selected?.UpdateHumanDescriptionAsync(currentText, PersistentData.SelectedSeries);
+            //string currentText = (sender as TextBox)?.Text;
+            //if (currentText == null) return;
+            //Task upd = PersistentData?.Selected?.UpdateHumanDescriptionAsync(currentText, PersistentData.SelectedSeries);
         }
 
         // horrid BODGE because TextBox with IsTabStop=False won't acquire focus (and won't show the keyboard, making it as dumb as a TextBlock)
@@ -125,10 +132,17 @@ namespace LolloGPS.Core
             (sender as TextBox).IsTabStop = false;
         }
 
+        private void OnHyperlink_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string currentText = (sender as TextBox)?.Text;
+            if (currentText == null) return;
+            Task upd = PersistentData?.Selected?.UpdateHyperlinkAsync(currentText, PersistentData.SelectedSeries);
+        }
         private void OnHyperlinkTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            string currentText = (sender as TextBox).Text;
-            Task upd = PersistentData?.Selected?.UpdateHyperlinkAsync(currentText, PersistentData.SelectedSeries);
+            //string currentText = (sender as TextBox)?.Text;
+            //if (currentText == null) return;
+            //Task upd = PersistentData?.Selected?.UpdateHyperlinkAsync(currentText, PersistentData.SelectedSeries);
         }
 
         private void OnHyperlinkTextTextBox_LostFocus(object sender, RoutedEventArgs e)
