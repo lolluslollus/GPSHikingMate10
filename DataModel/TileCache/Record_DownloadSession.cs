@@ -10,8 +10,10 @@ namespace LolloGPS.Data.TileCache
 {
     [DataContract]
     [KnownType(typeof(string[]))]
-    [KnownType(typeof(IReadOnlyList<string>))]
+//    [KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
+//    [KnownType(typeof(IReadOnlyList<TileSourceRecord>))]
+    [KnownType(typeof(ReadOnlyCollection<TileSourceRecord>))]
     public sealed class DownloadSession
     {
         [DataMember]

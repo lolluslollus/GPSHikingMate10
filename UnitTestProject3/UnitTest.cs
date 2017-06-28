@@ -1,4 +1,5 @@
 ﻿using LolloGPS.Calcs;
+using LolloGPS.Data;
 using LolloGPS.Data.TileCache;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -263,7 +264,7 @@ namespace UnitTestProject3
             {
                 return PseudoMercator.MaxTilexX4Zoom(z);
             }
-            public List<TileCacheRecord> GetTileData_RespondingToCancelTest()
+            public List<TileCoordinates> GetTileData_RespondingToCancelTest()
             {
                 GeoboundingBox nw_se = _gbbProvider.GetMinMaxLatLonAsync().Result;
                 var dummyTileSources = TileSourceRecord.GetStockTileSources();
@@ -272,9 +273,9 @@ namespace UnitTestProject3
                 //    ts.TechName = "lolloTest";
                 //}
                 var ds = new DownloadSession(nw_se, dummyTileSources, MaxZoom);
-                return GetTileData2(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, CancToken);
+                return TileCoordinates.GetTileCoordinates4MultipleZoomLevels(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, ConstantData.MAX_TILES_TO_LEECH, CancToken);
             }
-            public List<TileCacheRecord> GetTileData_RespondingToCancelTest2()
+            public List<TileCoordinates> GetTileData_RespondingToCancelTest2()
             {
                 GeoboundingBox nw_se = _gbbProvider.GetMinMaxLatLonAsync().Result;
                 var dummyTileSources = TileSourceRecord.GetStockTileSources();
@@ -283,16 +284,16 @@ namespace UnitTestProject3
                 //    ts.TechName = "lolloTest";
                 //}
                 var ds = new DownloadSession(MinZoom, MaxZoom, nw_se.NorthwestCorner, nw_se.SoutheastCorner, dummyTileSources);
-                return GetTileData2(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, CancToken);
+                return TileCoordinates.GetTileCoordinates4MultipleZoomLevels(ds.NWCorner, ds.SECorner, MaxZoom, MinZoom, ConstantData.MAX_TILES_TO_LEECH, CancToken);
             }
-            public List<TileCacheRecord> GetTileData_RespondingToCancelTest3(IEnumerable<TileSourceRecord> tileSources)
+            public List<TileCoordinates> GetTileData_RespondingToCancelTest3(IEnumerable<TileSourceRecord> tileSources)
             {
                 GeoboundingBox nw_se = _gbbProvider.GetMinMaxLatLonAsync().Result;
                 var ds = new DownloadSession(MinZoom, MaxZoom, nw_se.NorthwestCorner, nw_se.SoutheastCorner, tileSources);
-                var result = new List<TileCacheRecord>();
+                var result = new List<TileCoordinates>();
                 foreach (var ts in ds.TileSources)
                 {
-                    result.AddRange(GetTileData2(ds.NWCorner, ds.SECorner, ts.MaxZoom, ts.MinZoom, CancToken));
+                    result.AddRange(TileCoordinates.GetTileCoordinates4MultipleZoomLevels(ds.NWCorner, ds.SECorner, ts.MaxZoom, ts.MinZoom, ConstantData.MAX_TILES_TO_LEECH, CancToken));
                 }
                 return result;
             }

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Data;
-using Windows.Storage;
 
 // LOLLO NOTE https://dzjow.com/2012/04/12/free-online-topographic-maps-for-hiking/
 // http://onlinetopomaps.net/
@@ -21,6 +20,7 @@ namespace LolloGPS.Data.TileCache
     [KnownType(typeof(string[]))]
     //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
+    [KnownType(typeof(WritableTileSourceRecord))]
     public class TileSourceRecord : ObservableData, IComparable
     {
         #region constants
@@ -668,6 +668,8 @@ namespace LolloGPS.Data.TileCache
     }
 
     [DataContract]
+    [KnownType(typeof(string[]))]
+    //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
     public class WritableTileSourceRecord : TileSourceRecord
     {

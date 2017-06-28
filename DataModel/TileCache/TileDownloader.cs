@@ -2,7 +2,6 @@
 using LolloGPS.Data.Runtime;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,7 +149,7 @@ namespace LolloGPS.Data.TileCache
         }
         #endregion event handlers
 
-        #region save services
+        #region services
         public async Task<List<Tuple<int, int>>> StartOrResumeDownloadTilesAsync(CancellationToken cancToken)
         {
             var results = new List<Tuple<int, int>>();
@@ -204,79 +203,62 @@ namespace LolloGPS.Data.TileCache
         }
         private Tuple<int, int> SaveTiles2(DownloadSession session, TileSourceRecord tileSource, CancellationToken cancToken)
         {
-            _runtimeData.SetDownloadProgressValue_UI(0.0);
-
             int totalCnt = 0;
             int currentOkCnt = 0;
             int currentCnt = 0;
+            CancellationTokenSource cancTokenSourceLinked = null;
 
-            if (session != null && _runtimeData.IsConnectionAvailable)
+            try
             {
-                var requiredTilesOrderedByZoom = GetTileData2(session.NWCorner, session.SECorner, tileSource.MaxZoom, tileSource.MinZoom, cancToken);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(0, 0);
+                if (session == null || !_runtimeData.IsConnectionAvailable) return Tuple.Create(0, 0);
+
+                _runtimeData.SetDownloadProgressValue_UI(0.01);
+                cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
+                var linkedCancToken = cancTokenSourceLinked.Token;
+
+                var requiredTilesOrderedByZoom = TileCoordinates.GetTileCoordinates4MultipleZoomLevels(session.NWCorner, session.SECorner, tileSource.MaxZoom, tileSource.MinZoom, ConstantData.MAX_TILES_TO_LEECH, linkedCancToken);
                 totalCnt = requiredTilesOrderedByZoom.Count;
+                if (linkedCancToken.IsCancellationRequested) return Tuple.Create(0, 0);
+                if (totalCnt == 0) return Tuple.Create(0, 0);
 
-                if (totalCnt > 0)
+                var tileCacheReaderWriter = new TileCacheReaderWriter(tileSource, false, false, null, linkedCancToken);
+                if (linkedCancToken.IsCancellationRequested) return Tuple.Create(0, 0);
+
+                var stepsWhenIWantToRaiseProgress = ProgressHelper.GetStepsToReport(totalCnt, MaxProgressStepsToReport);
+                var progressLocker = new object();
+
+                // LOLLO NOTE this parallelisation is faster than without, by 1.2 to 2 x.
+                // This cannot be done in a background task because it is too memory consuming (June 2017).
+                // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
+                Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = linkedCancToken, MaxDegreeOfParallelism = 4 }, tile =>
                 {
-                    int[] stepsWhenIWantToRaiseProgress = GetStepsToReport(totalCnt);
-                    // LOLLO NOTE this parallelisation is faster than without, by 1.2 to 2 x.
-                    // This cannot be done in a background task because it is too memory consuming (June 2017).
-#if DEBUG
-                    Stopwatch sw0 = new Stopwatch();
-                    sw0.Start();
-#endif
-                    CancellationTokenSource cancTokenSourceLinked = null;
-                    try
+                    bool isOk = tileCacheReaderWriter.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom, linkedCancToken).Result;
+                    lock (progressLocker)
                     {
-                        var tileCache = new TileCacheReaderWriter(tileSource, false, false, null, cancToken);
-
-                        cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(
-                            cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token/*, ProcessingQueue.GetInstance().CancellationToken*/);
-                        var linkedCancToken = cancTokenSourceLinked.Token;
-
-                        if (linkedCancToken.IsCancellationRequested) return Tuple.Create(0, 0);
-                        // we don't want too much parallelism coz it will be dead slow when cancelling on a small device. 4 looks OK, we can try a bit more.
-                        Parallel.ForEach(requiredTilesOrderedByZoom, new ParallelOptions() { CancellationToken = linkedCancToken, MaxDegreeOfParallelism = 4 }, tile =>
-                        {
-                            bool isOk = tileCache.TrySaveTileAsync(tile.X, tile.Y, tile.Z, tile.Zoom, linkedCancToken).Result;
-                            if (isOk) currentOkCnt++;
-
-                            currentCnt++;
-                            if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetDownloadProgressValue_UI((double)currentCnt / (double)totalCnt);
-                        });
+                        if (isOk) currentOkCnt++;
+                        currentCnt++;
+                        if (stepsWhenIWantToRaiseProgress.Count == 0) return;
+                        if (stepsWhenIWantToRaiseProgress.Peek() == currentCnt) _runtimeData.SetDownloadProgressValue_UI((double)stepsWhenIWantToRaiseProgress.Pop() / (double)totalCnt);
+                        //if (totalCnt > 0 && stepsWhenIWantToRaiseProgress.Contains(currentCnt)) _runtimeData.SetDownloadProgressValue_UI((double)currentCnt / (double)totalCnt);
                     }
-                    catch (OperationCanceledException) { } // comes from the canc token
-                    catch (ObjectDisposedException) { } // comes from the canc token
-                    catch (Exception ex) { Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename); }
-                    finally
-                    {
-                        cancTokenSourceLinked?.Dispose();
-                    }
-#if DEBUG
-                    sw0.Stop();
-                    Debug.WriteLine("sw0.ElapsedMilliseconds " + sw0.ElapsedMilliseconds + " currentCnt " + currentCnt + " currentOkCnt " + currentOkCnt);
-#endif
-                }
+                });
+
+                return Tuple.Create(currentOkCnt, totalCnt);
             }
-            _runtimeData.SetDownloadProgressValue_UI(1.0);
-            return Tuple.Create(currentOkCnt, totalCnt);
-        }
-        private static int[] GetStepsToReport(int totalCnt)
-        {
-            int howManyProgressStepsIWantToReport = Math.Min(MaxProgressStepsToReport, totalCnt);
-
-            int[] stepsWhenIWantToRaiseProgress = new int[howManyProgressStepsIWantToReport];
-            if (howManyProgressStepsIWantToReport > 0)
+            catch (ObjectDisposedException) { return Tuple.Create(currentOkCnt, totalCnt); } // comes from the canc token
+            catch (OperationCanceledException) { return Tuple.Create(currentOkCnt, totalCnt); } // comes from the canc token
+            catch (Exception ex)
             {
-                for (int i = 0; i < howManyProgressStepsIWantToReport; i++)
-                {
-                    stepsWhenIWantToRaiseProgress[i] = totalCnt * i / howManyProgressStepsIWantToReport;
-                }
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return Tuple.Create(currentOkCnt, totalCnt);
             }
-            return stepsWhenIWantToRaiseProgress;
+            finally
+            {
+                cancTokenSourceLinked?.Dispose();
+                _runtimeData.SetDownloadProgressValue_UI(1.0);
+            }
         }
-        #endregion save services
-
-        #region read services
         public async Task<List<Tuple<int, int>>> GetHowManyTiles4DifferentZooms4CurrentConditionsAsync(CancellationToken cancToken)
         {
             var output = new List<Tuple<int, int>>();
@@ -294,7 +276,7 @@ namespace LolloGPS.Data.TileCache
                     var session = await PersistentData.GetInstance().GetLargestPossibleDownloadSession4CurrentTileSourcesAsync(gbb, cancToken).ConfigureAwait(false);
                     if (session == null) return;
                     // we want this method to be quick, so we don't loop over the layers, but only use the session data once
-                    var tilesOrderedByZoom = GetTileData2(session.NWCorner, session.SECorner, session.MaxZoom, session.MinZoom, cancToken);
+                    var tilesOrderedByZoom = TileCoordinates.GetTileCoordinates4MultipleZoomLevels(session.NWCorner, session.SECorner, session.MaxZoom, session.MinZoom, ConstantData.MAX_TILES_TO_LEECH, cancToken);
                     if (tilesOrderedByZoom == null) return;
                     for (int zoom = session.MinZoom; zoom <= session.MaxZoom; zoom++)
                     {
@@ -310,115 +292,6 @@ namespace LolloGPS.Data.TileCache
 
             return output;
         }
-
-        protected List<TileCacheRecord> GetTileData2(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom, CancellationToken cancToken)
-        {
-            var output = new List<TileCacheRecord>();
-            if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude || maxZoom < minZoom) return output;
-
-            CancellationTokenSource cancTokenSourceLinked = null;
-            try
-            {
-                cancTokenSourceLinked = CancellationTokenSource.CreateLinkedTokenSource(cancToken, SuspendCts.Token, UserCts.Token, ConnCts.Token);
-                var linkedCancToken = cancTokenSourceLinked.Token;
-
-                if (linkedCancToken.IsCancellationRequested) return output;
-
-                int totalCnt = 0;
-                for (int zoom = minZoom; zoom <= maxZoom; zoom++)
-                {
-                    var topLeftTile = new TileCacheRecord(PseudoMercator.Lon2TileX(nwCorner.Longitude, zoom), PseudoMercator.Lat2TileY(nwCorner.Latitude, zoom), 0, zoom); // Alaska
-                    var bottomRightTile = new TileCacheRecord(PseudoMercator.Lon2TileX(seCorner.Longitude, zoom), PseudoMercator.Lat2TileY(seCorner.Latitude, zoom), 0, zoom); // New Zealand
-                    int maxX4Zoom = PseudoMercator.MaxTilexX4Zoom(zoom);
-                    Debug.WriteLine("topLeftTile.X = " + topLeftTile.X + " topLeftTile.Y = " + topLeftTile.Y + " bottomRightTile.X = " + bottomRightTile.X + " bottomRightTile.Y = " + bottomRightTile.Y + " and zoom = " + zoom);
-
-                    bool exit = false;
-                    bool hasJumpedDateLine = false;
-
-                    int x = topLeftTile.X;
-                    while (!exit)
-                    {
-                        for (int y = topLeftTile.Y; y <= bottomRightTile.Y; y++)
-                        {
-                            output.Add(new TileCacheRecord(x, y, 0, zoom));
-                            totalCnt++;
-                            if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || linkedCancToken.IsCancellationRequested)
-                            {
-                                exit = true;
-                                break;
-                            }
-                        }
-
-                        x++;
-                        if (x > bottomRightTile.X)
-                        {
-                            if (topLeftTile.X > bottomRightTile.X && !hasJumpedDateLine)
-                            {
-                                if (x > maxX4Zoom)
-                                {
-                                    x = 0;
-                                    hasJumpedDateLine = true;
-                                }
-                            }
-                            else
-                            {
-                                exit = true;
-                            }
-                        }
-                    }
-                    if (totalCnt > ConstantData.MAX_TILES_TO_LEECH || linkedCancToken.IsCancellationRequested) break;
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex)
-            {
-                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-            }
-            finally
-            {
-                cancTokenSourceLinked?.Dispose();
-            }
-            return output;
-        }
-        #endregion read services
-    }
-
-    /// <summary>
-    /// TileCacheRecord like in the db
-    /// </summary>
-    public sealed class TileCacheRecord
-    {
-        public int X { get { return _x; } }
-        public int Y { get { return _y; } }
-        public int Z { get { return _z; } }
-        public int Zoom { get { return _zoom; } }
-
-        private readonly int _x = 0;
-        private readonly int _y = 0;
-        private readonly int _z = 0;
-        private readonly int _zoom = 2;
-
-        public TileCacheRecord(int x, int y, int z, int zoom)
-        {
-            _x = x;
-            _y = y;
-            _z = z;
-            _zoom = zoom;
-        }
-        /*
-		internal static Task<TileCacheRecord> GetTileCacheRecordFromDbAsync(TileSourceRecord tileSource, int x, int y, int z, int zoom)
-		{
-			try
-			{
-				return DBManager.GetTileRecordAsync(tileSource, x, y, z, zoom);
-			}
-			catch (Exception ex)
-			{
-				Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-			}
-			return null;
-		}
-		*/
+        #endregion services
     }
 }

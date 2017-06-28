@@ -24,6 +24,8 @@ using Windows.UI.Xaml.Controls.Maps;
 namespace LolloGPS.Data
 {
     [DataContract]
+    [KnownType(typeof(ReadOnlyCollection<PointRecord>))]
+    //[KnownType(typeof(IReadOnlyList<PointRecord>))]
     public sealed class PersistentData : ObservableData, IGpsDataModel //, INotifyDataErrorInfo //does not work
     {
         #region enums
@@ -1414,7 +1416,7 @@ namespace LolloGPS.Data
                 }).ConfigureAwait(false);
 
                 if (cancToken.IsCancellationRequested) return 0;
-                return await TileSaver.TrySaveCacheAsync(tileSource, destinationFolder, cancToken).ConfigureAwait(false);
+                return await Task.Run(() => TileSaver.TrySaveCacheAsync(tileSource, destinationFolder, cancToken), cancToken).ConfigureAwait(false);
             }
             catch (ObjectDisposedException) { return 0; }
             catch (OperationCanceledException) { return 0; }
