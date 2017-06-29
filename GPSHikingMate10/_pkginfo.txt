@@ -1,1 +1,1 @@
-D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.36.0\GPSHikingMate10_1.1.36.0_x86_x64_arm.appxbundle
+D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.37.0\GPSHikingMate10_1.1.37.0_x86_x64_arm.appxbundle
