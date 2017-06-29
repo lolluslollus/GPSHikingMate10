@@ -36,9 +36,8 @@
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Text="Basic operation"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Basic operation"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="Tap 'go to last' to centre the map on the last acquired point. Use the settings menu to centre the map automatically, whenever the app acquires your location."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
@@ -71,9 +70,8 @@
 			Margin="{StaticResource Thickness0404}"
 			Foreground="{StaticResource CheckpointBrushOpaque}"/>
 
-		<TextBlock Text="Maps"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Maps"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="You can choose your own map tiles, one for the base layer and multiple overlays. Maps are made of tiles that are mostly 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
@@ -87,33 +85,29 @@
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Text="Tracking"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Tracking"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="Wherever you go, you can turn on the foreground tracking if you can afford draining your battery and want more frequent updates, or the background tracking to get fewer fixes and save the battery. The app remembers the tracking points and the points where you explicitly asked it to get a fix."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Text="Points"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Points"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="Use the points panel to do geocaching or to set checkpoints before setting off on a trip. If you want to set several points, the aim tool will save you time. Press and hold it to get rid of it."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Text="Files"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Files"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="Use the files panel to load or save stuff. To do so, the app uses the GPX format in two flavours: one for routes (used for tracking history and routes) and one for unsorted collections of points (used for checkpoints). Outside the app, you can go online and share those files, or load someone else's and open them with the app. Note that many web sites do not understand GPX but only its mother format XML, so the app cannot open those files right away. As a solution, save them locally and rename them so they end with '.gpx'."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Text="Compass"
-			Style="{StaticResource HeaderTextStyle}"
-			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Compass"
+			Style="{StaticResource HeaderTextStyle}"/>
 		<TextBlock Text="If your device has a compass and it can take a reliable reading, you will see an overlay pointing at true north (not magnetic north). If the reading is approximate, the overlay will be dashed. If it is unreliable, the overlay will be grey and dashed: to fix this, you can wait a bit, move a bit or try to calibrate the device. To do so, move it about like in the following picture (courtesy of Microsoft)."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"

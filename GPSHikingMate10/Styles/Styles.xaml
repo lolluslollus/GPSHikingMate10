@@ -24,6 +24,7 @@
     <Thickness x:Key="Thickness2">2</Thickness>
     <Thickness x:Key="Thickness1">1</Thickness>
     <Thickness x:Key="Thickness0404">0, 4, 0, 4</Thickness>
+    <Thickness x:Key="Thickness4040">4, 0, 4, 0</Thickness>
     <Thickness x:Key="Thickness12">12, 12, 12, 12</Thickness>
 
     <GridLength x:Key="GridSize4Placeholder_Small">10</GridLength>
@@ -58,6 +59,7 @@
         <Setter Property="FontSize" Value="28"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness0404}"/>
     </Style>
 
     <Style x:Key="ListDescriptorTextStyle" TargetType="TextBlock">
@@ -72,6 +74,7 @@
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="Foreground" Value="{ThemeResource ApplicationForegroundThemeBrush}"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness4040}"/>
     </Style>
 
     <Style x:Key="ListItemTextStyle" TargetType="TextBlock">
@@ -587,6 +590,7 @@
         <Setter Property="TextBlockStyle" Value="{StaticResource ListDescriptorTextStyle}"/>
         <Setter Property="TextItemStyle" Value="{StaticResource ListItemTextStyle}"/>
         <Setter Property="ListHeaderStyle" Value="{StaticResource ListHeaderTextStyle}"/>
+        <Setter Property="ListBackground" Value="{ThemeResource FlyoutBackgroundThemeBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <!-- Resources for Windows.UI.Xaml.Controls.ListViewHeaderItem -->
