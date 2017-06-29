@@ -20,7 +20,6 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
@@ -30,8 +29,9 @@
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="4*"/>
-			<ColumnDefinition Width="1*"/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
 		</Grid.ColumnDefinitions>
 		<!--target float-->
 		<StackPanel Grid.Row="0" Grid.Column="0"
@@ -83,7 +83,7 @@
 			</uctl:UniversalWrapPanel>
 		</StackPanel>
 		<!--target in degrees min sec dec-->
-		<StackPanel Grid.Row="1" Grid.Column="0"
+		<StackPanel Grid.Row="0" Grid.Column="0"
 			Orientation="Vertical"
 			Visibility="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 			<!--target lat in deg min sec dec-->
@@ -204,11 +204,11 @@
 			</uctl:UniversalWrapPanel>
 		</StackPanel>
 		<!-- human description -->
-		<TextBlock Grid.Row="2" Grid.Column="0"
+		<TextBlock Grid.Row="1" Grid.Column="0"
 			Text="Description"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center" />
-		<TextBox Grid.Row="3" Grid.Column="0"
+		<TextBox Grid.Row="2" Grid.Column="0"
 			HorizontalAlignment="Stretch" 
 			VerticalAlignment="Center"
 			Style="{StaticResource BaseTextBoxStyle}" 
@@ -219,11 +219,11 @@
 			PlaceholderText="you can type a note here" 
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 		<!-- hyperlink -->
-		<TextBlock Grid.Row="4" Grid.Column="0"
+		<TextBlock Grid.Row="3" Grid.Column="0"
 			Text="Hyperlink"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center" />
-		<TextBox Grid.Row="5" Grid.Column="0"
+		<TextBox Grid.Row="4" Grid.Column="0"
 			HorizontalAlignment="Stretch" 
 			VerticalAlignment="Center"
 			Style="{StaticResource BaseTextBoxStyle}" 
@@ -234,11 +234,11 @@
 			PlaceholderText="you can type a link here" 
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
         <!-- symbol -->
-        <TextBlock Grid.Row="6" Grid.Column="0"
+        <TextBlock Grid.Row="5" Grid.Column="0"
 			Text="Symbol"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:CheckpointStyleSelector Grid.Row="7" Grid.Column="0"
+        <mctl:CheckpointStyleSelector Grid.Row="6" Grid.Column="0"
             Foreground="{StaticResource CheckpointBrushOpaque}"
             Checkpoint="{x:Bind PersistentData.Target, Mode=OneWay}"/>
 
@@ -262,8 +262,7 @@
 			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
 -->
 		<!-- lat lon commands -->
-		<Grid Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
-			VerticalAlignment="Center">
+        <Grid Grid.Row="0" Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition/>
 				<RowDefinition/>
@@ -285,7 +284,7 @@
 		</Grid>
 
 		<!-- hyperlink commands -->
-		<uctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="1" Grid.RowSpan="2"
+		<uctl:AppBarButtonReallyCompact Grid.Row="3" Grid.Column="1" Grid.RowSpan="2"
 			IsEnabled="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}, Mode=OneWay}"
 			VerticalAlignment="Center"
 			Click="OnHyperlink_Click"
@@ -294,12 +293,12 @@
 			Icon="View"/>
 
 		<!--target commands-->
-		<TextBlock Grid.Row="9" Grid.Column="0"
+		<TextBlock Grid.Row="8" Grid.Column="0"
 			VerticalAlignment="Center"
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Add / merge this point into your checkpoints"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="9" Grid.Column="1"
+		<uctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="1"
 			VerticalAlignment="Center"
 			Click="OnAddTargetToCheckpoints_Click"
 			IsCompact="True"
@@ -308,7 +307,7 @@
 			Icon="Add"/>
 
 		<!-- too many checkpoints notice-->
-		<TextBlock Grid.Row="10" Grid.Column="0"
+		<TextBlock Grid.Row="9" Grid.Column="0"
 			VerticalAlignment="Center" 
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}" 
@@ -316,12 +315,12 @@
 			Foreground="{StaticResource FlashyForeground}"
 			Visibility="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountEqualMaxToVisibleConverter}, Mode=OneWay}"/>
 
-		<TextBlock Grid.Row="11" Grid.Column="0"
+		<TextBlock Grid.Row="10" Grid.Column="0"
 			VerticalAlignment="Center"
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Add the current location to your checkpoints"/>
-		<ContentControl Grid.Row="11" Grid.Column="1"
+		<ContentControl Grid.Row="10" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<uctl:AppBarButtonReallyCompact
@@ -334,12 +333,12 @@
 				Icon="Map"/>
 		</ContentControl>
 
-		<TextBlock Grid.Row="12" Grid.Column="0"
+		<TextBlock Grid.Row="11" Grid.Column="0"
 			VerticalAlignment="Center" 
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Move around the map and tap the aim to add a checkpoint. Hold the aim to hide it."/>
-		<ContentControl Grid.Row="12" Grid.Column="1"
+		<ContentControl Grid.Row="11" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<uctl:AppBarToggleButtonReallyCompact
@@ -355,12 +354,12 @@
             </uctl:AppBarToggleButtonReallyCompact>
 		</ContentControl>
 
-		<TextBlock Grid.Row="13" Grid.Column="0"
+		<TextBlock Grid.Row="12" Grid.Column="0"
 			VerticalAlignment="Center" 
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Move around the map and tap the aim to add one checkpoint"/>
-		<ContentControl Grid.Row="13" Grid.Column="1"
+		<ContentControl Grid.Row="12" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
 			<uctl:AppBarToggleButtonReallyCompact
@@ -376,12 +375,12 @@
             </uctl:AppBarToggleButtonReallyCompact>
 		</ContentControl>
 
-		<TextBlock Grid.Row="14" Grid.Column="0"
+		<TextBlock Grid.Row="13" Grid.Column="0"
 			VerticalAlignment="Center" 
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Clear checkpoints"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="14" Grid.Column="1"
+		<uctl:AppBarButtonReallyCompact Grid.Row="13" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsCompact="True"
 			Foreground="{StaticResource CheckpointBrushOpaque}"
