@@ -104,7 +104,7 @@
 					<Run Text="{x:Bind PersistentData.Selected.TimePoint, Mode=OneWay}"/>
                 </TextBlock>
                 <!-- human description -->
-                <uctl:UniversalWrapPanel Orientation="Horizontal">
+                <uctl:UniversalWrapPanel Orientation="Horizontal" VerticalContentAlignment="Center">
                     <TextBlock
 						HorizontalAlignment="Left"
                         Style="{StaticResource BaseMessageStyle}"
@@ -146,7 +146,7 @@
 						Style="{StaticResource AppBarButtonRecoloured}"/>
                 </uctl:UniversalWrapPanel>
                 <!-- link to media -->
-                <uctl:UniversalWrapPanel Orientation="Horizontal">
+                <uctl:UniversalWrapPanel Orientation="Horizontal" VerticalContentAlignment="Center">
                     <TextBlock
                         HorizontalAlignment="Left"
 						Style="{StaticResource BaseMessageStyle}"
