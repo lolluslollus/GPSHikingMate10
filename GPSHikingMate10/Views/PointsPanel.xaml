@@ -54,7 +54,6 @@
 				<TextBox
 					x:Name="LatFloat"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource FloatConverter8DecimalsAbs}, Mode=OneWay}" 
 					InputScope="NumberFullWidth" 
 					LostFocus="OnLatFloat_LostFocus"/>
@@ -76,7 +75,6 @@
 				<TextBox
 					x:Name="LonFloat"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource FloatConverter8DecimalsAbs}, Mode=OneWay}" 
 					InputScope="NumberFullWidth"
 					LostFocus="OnLonFloat_LostFocus"/>
@@ -92,7 +90,6 @@
 				Style="{StaticResource BaseMessageStyle}" />
 			<uctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LatDeg"
-					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterDeg_Abs}, Mode=OneWay}"
@@ -103,7 +100,6 @@
 					VerticalAlignment="Center"
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LatMin"
-					Style="{StaticResource BaseTextBoxStyle}"
 					VerticalAlignment="Center"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterMin}, Mode=OneWay}"
@@ -115,7 +111,6 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LatSec"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterSec}, Mode=OneWay}"
 					LostFocus="OnLatSec_LostFocus"
@@ -126,7 +121,6 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LatDec"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Latitude, Converter={StaticResource AngleConverterDec}, Mode=OneWay}" 
 					MaxLength="3"
@@ -151,7 +145,6 @@
 			<uctl:UniversalWrapPanel Orientation="Horizontal">
 				<TextBox x:Name="LonDeg"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterDeg_Abs}, Mode=OneWay}"
 					LostFocus="OnLonDeg_LostFocus"
@@ -162,7 +155,6 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonMin"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterMin}, Mode=OneWay}"
 					LostFocus="OnLonMin_LostFocus"
@@ -173,7 +165,6 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonSec"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterSec}, Mode=OneWay}"
 					LostFocus="OnLonSec_LostFocus"
@@ -184,7 +175,6 @@
 					Style="{StaticResource BaseMessageStyle}" />
 				<TextBox x:Name="LonDec"
 					VerticalAlignment="Center"
-					Style="{StaticResource BaseTextBoxStyle}"
 					InputScope="NumberFullWidth" 
 					Text="{x:Bind PersistentData.Target.Longitude, Converter={StaticResource AngleConverterDec}, Mode=OneWay}" 
 					LostFocus="OnLonDec_LostFocus"
@@ -208,31 +198,27 @@
 			Text="Description"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center" />
-		<TextBox Grid.Row="2" Grid.Column="0"
+        <TextBox Grid.Row="2" Grid.Column="0"
 			HorizontalAlignment="Stretch" 
 			VerticalAlignment="Center"
-			Style="{StaticResource BaseTextBoxStyle}" 
 			MaxLength="{StaticResource MaxHumanDescriptionLength}"
 			TextWrapping="Wrap" 
 			AcceptsReturn="True"
 			Text="{Binding ElementName=me, Path=PersistentData.Target.HumanDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-			PlaceholderText="you can type a note here" 
-			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			PlaceholderText="you can type a note here"/>
 		<!-- hyperlink -->
 		<TextBlock Grid.Row="3" Grid.Column="0"
 			Text="Hyperlink"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center" />
-		<TextBox Grid.Row="4" Grid.Column="0"
+        <TextBox Grid.Row="4" Grid.Column="0"
 			HorizontalAlignment="Stretch" 
 			VerticalAlignment="Center"
-			Style="{StaticResource BaseTextBoxStyle}" 
 			MaxLength="{StaticResource MaxHyperLinkLength}"
 			TextWrapping="Wrap" 
 			AcceptsReturn="True"
 			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLink, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-			PlaceholderText="you can type a link here" 
-			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			PlaceholderText="you can type a link here"/>
         <!-- symbol -->
         <TextBlock Grid.Row="5" Grid.Column="0"
 			Text="Symbol"
@@ -253,13 +239,11 @@
 			Visibility="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"
 			HorizontalAlignment="Stretch" 
 			VerticalAlignment="Center"
-			Style="{StaticResource BaseTextBoxStyle}" 
 			MaxLength="{StaticResource MaxHumanDescriptionLength}"
 			TextWrapping="Wrap" 
 			AcceptsReturn="True"
 			Text="{Binding ElementName=me, Path=PersistentData.Target.HyperLinkText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-			PlaceholderText="you can name your link here" 
-			PreventKeyboardDisplayOnProgrammaticFocus="True"/>
+			PlaceholderText="you can name your link here"/>
 -->
 		<!-- lat lon commands -->
         <Grid Grid.Row="0" Grid.Column="1">

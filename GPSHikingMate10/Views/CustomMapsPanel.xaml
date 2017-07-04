@@ -87,7 +87,7 @@
 
         <!-- LOLLO TODO the following works with the old binding but not with the new one -->
         <!-- values -->
-        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" 
+        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TechName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
@@ -96,7 +96,8 @@
             VerticalAlignment="Center"
             IsChecked="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, FallbackValue=False}"
             Click="OnToggleLocalRemote_Click"
-			Style="{StaticResource ToggleButtonRecoloured}">
+			Style="{StaticResource ToggleButtonRecoloured}"
+            TabIndex="1">
             <mctl:ToggleButtonLollo.CheckedContent>
                 <TextBlock Text="Local" Style="{StaticResource BaseMessageStyle}" VerticalAlignment="Center"/>
             </mctl:ToggleButtonLollo.CheckedContent>
@@ -128,19 +129,19 @@
 			InputScope="Url"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBox Grid.Row="5" Grid.Column="1" 
+        <TextBox Grid.Row="5" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MinZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="5" Grid.Column="3" 
+        <TextBox Grid.Row="5" Grid.Column="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MaxZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="6" Grid.Column="1" 
+        <TextBox Grid.Row="6" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TilePixelSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="3"
@@ -164,8 +165,7 @@
 			IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
-			Icon="Accept"
-			TabIndex="1"/>
+			Icon="Accept"/>
         <!-- error message: no connection -->
         <TextBlock Grid.Row="9" Grid.ColumnSpan="4"
             Text="No connection"

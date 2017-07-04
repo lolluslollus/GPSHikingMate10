@@ -125,12 +125,12 @@ namespace LolloGPS.Core
         }
 
         // horrid BODGE because TextBox with IsTabStop=False won't acquire focus (and won't show the keyboard, making it as dumb as a TextBlock)
-        private void OnTextBox_PointerEntered(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            (sender as TextBox).IsTabStop = true;
-            bool isOK = (sender as TextBox).Focus(FocusState.Pointer);
-            (sender as TextBox).IsTabStop = false;
-        }
+        //private void OnTextBox_PointerEntered(object sender, Windows.UI.Xaml.Input.PointerRoutedEventArgs e)
+        //{
+        //    (sender as TextBox).IsTabStop = true;
+        //    bool isOK = (sender as TextBox).Focus(FocusState.Pointer);
+        //    (sender as TextBox).IsTabStop = false;
+        //}
 
         private void OnHyperlink_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -147,7 +147,8 @@ namespace LolloGPS.Core
 
         private void OnHyperlinkTextTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            string currentText = (sender as TextBox).Text;
+            string currentText = (sender as TextBox)?.Text;
+            if (currentText == null) return;
             Task upd = PersistentData?.Selected?.UpdateHyperlinkTextAsync(currentText, PersistentData.SelectedSeries);
         }
 

@@ -38,7 +38,8 @@
 					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Trk history"
 					Foreground="{StaticResource HistoryBrushOpaque}"
-					Style="{StaticResource AppBarButtonRecoloured}"/>
+					Style="{StaticResource AppBarButtonRecoloured}"
+                    TabIndex="1"/>
                 <uctl:AppBarButtonReallyCompact x:Name="ChooseDisplayRoute0Button"
 					Click="OnDisplayRoute0_Click"
                     Margin="20,0,0,0"
@@ -104,13 +105,13 @@
                 </TextBlock>
                 <!-- human description -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
-                    <TextBlock TextWrapping="Wrap" 
-						Style="{StaticResource BaseMessageStyle}" 
+                    <TextBlock
 						HorizontalAlignment="Left"
-						VerticalAlignment="Center"
-						Text="Description: "/>
+                        Style="{StaticResource BaseMessageStyle}"
+						Text="Description: "
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Center"/>
                     <TextBox TextWrapping="Wrap"
-						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						MaxLength="{StaticResource MaxHumanDescriptionLength}"
@@ -118,11 +119,8 @@
 						Width="250"
 						Text="{x:Bind PersistentData.Selected.HumanDescription, Mode=OneWay}"
                         TextChanged="OnHumanDescription_TextChanged"
-						LostFocus="OnHumanDescriptionTextBox_LostFocus" 
-						IsTabStop="False" 
-						PlaceholderText="you can type a note here" 
-						PreventKeyboardDisplayOnProgrammaticFocus="True" 
-						PointerEntered="OnTextBox_PointerEntered"/>
+						LostFocus="OnHumanDescriptionTextBox_LostFocus"
+						PlaceholderText="you can type a note here"/>
                 </uctl:UniversalWrapPanel>
                 <!-- point navigation -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
@@ -149,12 +147,13 @@
                 </uctl:UniversalWrapPanel>
                 <!-- link to media -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
-                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
-						TextWrapping="Wrap"
+                    <TextBlock
+                        HorizontalAlignment="Left"
 						Style="{StaticResource BaseMessageStyle}"
-						Text="Link to media: "/>
+						Text="Link to media: "
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Center"/>
                     <TextBox TextWrapping="Wrap"
-						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						MaxLength="{StaticResource MaxHyperLinkLength}"
@@ -162,11 +161,8 @@
 						Width="250"
 						Text="{x:Bind PersistentData.Selected.HyperLink, Mode=OneWay}"
                         TextChanged="OnHyperlink_TextChanged"
-						LostFocus="OnHyperlinkTextBox_LostFocus" 
-						IsTabStop="False" 
-						PlaceholderText="you can type a link here" 
-						PreventKeyboardDisplayOnProgrammaticFocus="True" 
-						PointerEntered="OnTextBox_PointerEntered"/>
+						LostFocus="OnHyperlinkTextBox_LostFocus"
+						PlaceholderText="you can type a link here"/>
                     <uctl:AppBarButtonReallyCompact						
 						Click="OnHyperlink_Click"
                         Margin="20,0,0,0"
@@ -190,18 +186,14 @@
 						Style="{StaticResource BaseMessageStyle}"
 						Text="Name of media: "/>
 					<TextBox TextWrapping="Wrap"
-						Style="{StaticResource BaseTextBoxStyle}" 
 						HorizontalAlignment="Left"
 						VerticalAlignment="Center"
 						MaxLength="{StaticResource MaxHumanDescriptionLength}"
 						AcceptsReturn="True" 
 						Width="250"
 						Text="{x:Bind PersistentData.Selected.HyperLinkText, Mode=OneWay}"
-						LostFocus="OnHyperlinkTextTextBox_LostFocus" 
-						IsTabStop="False" 
-						PlaceholderText="you can name your link here" 
-						PreventKeyboardDisplayOnProgrammaticFocus="True" 
-						PointerEntered="OnTextBox_PointerEntered"/>
+						LostFocus="OnHyperlinkTextTextBox_LostFocus"
+						PlaceholderText="you can name your link here"/>
 					<uctl:AppBarButtonReallyCompact						
 						Click="OnHyperlink_Click"
                         Margin="20,0,0,0"
@@ -255,7 +247,8 @@
                         Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
 						IsCompact="True"
 						Style="{StaticResource AppBarButtonRecoloured}"
-                        Icon="More"/>
+                        Icon="More"
+                        TabIndex="10"/>
                     <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
 					Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
 					<Run Text="Distance from first: "/>
