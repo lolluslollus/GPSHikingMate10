@@ -167,6 +167,18 @@ namespace LolloGPS.Data.TileCache
                 return string.Empty;
             }
         }
+        private string GetFileNameWithExtensionFromCache(string fileNameNoExtension)
+        {
+            try
+            {
+                var fileNames = System.IO.Directory.GetFiles(_tileCacheFolder.Path, fileNameNoExtension + "*");
+                //var files = Directory.GetFileSystemEntries(_imageFolder.Path, fileNameNoExtension);
+                if (fileNames?.Length > 0) return Path.GetFileName(fileNames[0]);
+            }
+            catch { }
+            return null;
+        }
+
         /// <summary>
         /// Gets the web uri to retrieve a tile. You can convert the coordinates here, in future.
         /// </summary>
@@ -234,6 +246,57 @@ namespace LolloGPS.Data.TileCache
         {
             return string.Format(_tileFileFormat, zoom, x, y, _tileSource.FolderName);
         }
+        private static bool IsWebResponseContentOk(byte[] img)
+        {
+            int howManyBytesToCheck = 100;
+            if (img.Length > howManyBytesToCheck)
+            {
+                try
+                {
+                    for (int i = img.Length - 1; i > img.Length - howManyBytesToCheck; i--)
+                    {
+                        if (img[i] != 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                    Debug.WriteLine(ex.ToString());
+                    return false;
+                }
+            }
+            //isStreamOk = newRecord.Img.FirstOrDefault(a => a != 0) != null; // this may take too long, so we only check the last 100 bytes
+            return false;
+        }
+
+        private static string GetExtension(string fileNameNoExtension, WebResponse response)
+        {
+            if (response == null || response.ContentType == null) return null;
+
+            string extension = null;
+            if (!string.IsNullOrWhiteSpace(response?.ContentType))
+            {
+                var contentTypeSegments = response.ContentType.Split(';');
+                foreach (var segment in contentTypeSegments)
+                {
+                    if (segment.Contains(MimeTypeImagePrefix))
+                    {
+                        extension = segment.Trim().Replace(MimeTypeImagePrefix, string.Empty);
+                        break;
+                    }
+                }
+            }
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
+            }
+
+            if (!AllowedExtensionsTolerant.Any(ext => ext == extension)) extension = null;
+            return extension;
+        }
 
         public int GetTilePixelSize()
         {
@@ -254,18 +317,6 @@ namespace LolloGPS.Data.TileCache
         #endregion getters
 
         #region services
-        private string GetFileNameWithExtensionFromCache(string fileNameNoExtension)
-        {
-            try
-            {
-                var fileNames = System.IO.Directory.GetFiles(_tileCacheFolder.Path, fileNameNoExtension + "*");
-                //var files = Directory.GetFileSystemEntries(_imageFolder.Path, fileNameNoExtension);
-                if (fileNames?.Length > 0) return Path.GetFileName(fileNames[0]);
-            }
-            catch { }
-            return null;
-        }
-
         public async Task<IRandomAccessStreamReference> GetTileStreamRefAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
         {
             if (cancToken.IsCancellationRequested) return null;
@@ -580,57 +631,6 @@ namespace LolloGPS.Data.TileCache
             }
 #endif
             return null;
-        }
-        private static bool IsWebResponseContentOk(byte[] img)
-        {
-            int howManyBytesToCheck = 100;
-            if (img.Length > howManyBytesToCheck)
-            {
-                try
-                {
-                    for (int i = img.Length - 1; i > img.Length - howManyBytesToCheck; i--)
-                    {
-                        if (img[i] != 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                    Debug.WriteLine(ex.ToString());
-                    return false;
-                }
-            }
-            //isStreamOk = newRecord.Img.FirstOrDefault(a => a != 0) != null; // this may take too long, so we only check the last 100 bytes
-            return false;
-        }
-
-        private static string GetExtension(string fileNameNoExtension, WebResponse response)
-        {
-            if (response == null || response.ContentType == null) return null;
-
-            string extension = null;
-            if (!string.IsNullOrWhiteSpace(response?.ContentType))
-            {
-                var contentTypeSegments = response.ContentType.Split(';');
-                foreach (var segment in contentTypeSegments)
-                {
-                    if (segment.Contains(MimeTypeImagePrefix))
-                    {
-                        extension = segment.Trim().Replace(MimeTypeImagePrefix, string.Empty);
-                        break;
-                    }
-                }
-            }
-            if (string.IsNullOrWhiteSpace(extension))
-            {
-                extension = Path.GetExtension(response.ResponseUri.AbsolutePath);
-            }
-
-            if (!AllowedExtensionsTolerant.Any(ext => ext == extension)) extension = null;
-            return extension;
         }
         #endregion  services
     }
