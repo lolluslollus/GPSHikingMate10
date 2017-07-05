@@ -360,22 +360,22 @@ namespace LolloGPS.Data.TileCache
             var output = new List<TileSourceRecord>
             {
                 TileSourceRecord.GetDefaultTileSource(),
-                new TileSourceRecord(false, "", "", "ForUMaps", "4UMaps", "ForUMaps", "4UMaps.eu",
+                new TileSourceRecord(false, "", "", "ForUMaps", "4UMaps", "ForUMaps", "© 4UMaps.eu",
                     "http://www.4umaps.eu/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection(), "http://4umaps.eu/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenTopoMap", "OpenTopoMap", "OpenTopoMap", "OpenTopoMap and OpenStreetMap",
+                new TileSourceRecord(false, "", "", "OpenTopoMap", "OpenTopoMap", "OpenTopoMap", "© OpenStreetMap contributors - © OpenTopoMap (CC-BY-SA)",
                     "http://opentopomap.org/", 2, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.opentopomap.org/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.opentopomap.org/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.opentopomap.org/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenTopoMapTwo", "OpenTopoMap Two", "OpenTopoMap", "OpenTopoMap and OpenStreetMap",
+                new TileSourceRecord(false, "", "", "OpenTopoMapTwo", "OpenTopoMap Two", "OpenTopoMap", "© OpenStreetMap contributors - © OpenTopoMap (CC-BY-SA)",
                     "http://opentopomap.org/", 2, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://opentopomap.org/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenStreetMap", "OpenStreetMap", "OpenStreetMap", "",
+                new TileSourceRecord(false, "", "", "OpenStreetMap", "OpenStreetMap", "OpenStreetMap", "© OpenStreetMap contributors",
                     "http://www.openstreetmap.org/", 0, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.openstreetmap.org/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenStreetMapBW", "OpenStreetMap BW", "OpenStreetMapBW", "OpenStreetMap",
+                new TileSourceRecord(false, "", "", "OpenStreetMapBW", "OpenStreetMap BW", "OpenStreetMapBW", "© OpenStreetMap contributors",
                     "http://www.openstreetmap.org/", 0, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png",
                     "http://b.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png",
@@ -387,54 +387,54 @@ namespace LolloGPS.Data.TileCache
                     "http://h.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png",
                     "http://i.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png",
                     "http://j.www.toolserver.org/tiles/bw-mapnik/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenStreetMapHum", "OpenStreetMap Humanitarian","OpenStreetMapHum", "OpenStreetMap",
+                new TileSourceRecord(false, "", "", "OpenStreetMapHum", "OpenStreetMap Humanitarian","OpenStreetMapHum", "© OpenStreetMap contributors",
                     "http://www.openstreetmap.org/", 0, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://tile-a.openstreetmap.fr/hot/{zoomlevel}/{x}/{y}.png",
                     "http://tile-b.openstreetmap.fr/hot/{zoomlevel}/{x}/{y}.png",
                     "http://tile-c.openstreetmap.fr/hot/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenBusMap", "OpenBusMap", "OpenBusMap", "",
+                new TileSourceRecord(false, "", "", "OpenBusMap", "OpenBusMap", "OpenBusMap", "© OpenStreetMap contributors",
                     "http://openbusmap.org/", 3, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://tileserver.memomaps.de/tilegen/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "OpenSeaMap", "OpenSeaMap", "OpenSeaMap", "",
+                new TileSourceRecord(false, "", "", "OpenSeaMap", "OpenSeaMap", "OpenSeaMap", "© OpenStreetMap contributors",
                     "http://openseamap.org/?L=1", 9, 18, 256, false, true, GetAcceptImageWebHeaderCollection(),
                     "http://tiles.openseamap.org/seamark/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "Lonvia", "Lonvia", "Lonvia", "",
+                new TileSourceRecord(false, "", "", "Lonvia", "Lonvia", "Lonvia", "© Lonvia",
                     "http://www.lonvia.de", 5, 18, 256, false, true, GetAcceptImageWebHeaderCollection(),
                     "http://tile.lonvia.de/hiking/{zoomlevel}/{x}/{y}.png"),
 				//new TileSourceRecord(false, "", "", "MapQuestOSM", "MapQuest OSM", // no more provided since mid 2016
 				//	"http://otile1.mqcdn.com/tiles/1.0.0/osm/{zoomlevel}/{x}/{y}.png", 
 				//  "http://www.mapquest.com/", 0, 18, 256, false, false, GetAcceptImageWebHeaderCollection()),
-				new TileSourceRecord(false, "", "", "HikeBike", "Hike & Bike Map","HikeBike", "",
+				new TileSourceRecord(false, "", "", "HikeBike", "Hike & Bike Map","HikeBike", "© OpenStreetMap contributors",
                     "http://hikebikemap.org/", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png",
                     "http://b.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png",
                     "http://c.tiles.wmflabs.org/hikebike/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "ThunderforestLandscape", "Thunderforest Landscape","ThunderforestLandscape", "",
+                new TileSourceRecord(false, "", "", "ThunderforestLandscape", "Thunderforest Landscape","ThunderforestLandscape", "© Thunderforest",
                     "http://www.thunderforest.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.thunderforest.com/landscape/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.thunderforest.com/landscape/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.thunderforest.com/landscape/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "ThunderforestCycle", "Thunderforest Cycle","ThunderforestCycle", "",
+                new TileSourceRecord(false, "", "", "ThunderforestCycle", "Thunderforest Cycle","ThunderforestCycle", "© Thunderforest",
                     "http://www.thunderforest.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.thunderforest.com/cycle/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.thunderforest.com/cycle/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.thunderforest.com/cycle/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "ThunderforestOutdoors", "Thunderforest Outdoors","ThunderforestOutdoors", "",
+                new TileSourceRecord(false, "", "", "ThunderforestOutdoors", "Thunderforest Outdoors","ThunderforestOutdoors", "© Thunderforest",
                     "http://www.thunderforest.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.thunderforest.com/outdoors/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.thunderforest.com/outdoors/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.thunderforest.com/outdoors/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "ThunderforestTransport", "Thunderforest Transport","ThunderforestTransport", "",
+                new TileSourceRecord(false, "", "", "ThunderforestTransport", "Thunderforest Transport","ThunderforestTransport", "© Thunderforest",
                     "http://www.thunderforest.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png"),
                 // not very useful
-                //new TileSourceRecord(false, "", "", "StamenToner", "Stamen Toner","StamenToner", "",
+                //new TileSourceRecord(false, "", "", "StamenToner", "Stamen Toner","StamenToner", "© Stamen - © OpenStreetMap contributors",
                 //    "http://maps.stamen.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 //    "http://tile.stamen.com/toner/{zoomlevel}/{x}/{y}.png"),
                 // not very useful
-                //new TileSourceRecord(false, "", "", "StamenTerrain", "Stamen Terrain","StamenTerrain", "",
+                //new TileSourceRecord(false, "", "", "StamenTerrain", "Stamen Terrain","StamenTerrain", "© Stamen - © OpenStreetMap contributors",
                 //    "http://tile.stamen.com/terrain/{zoomlevel}/{x}/{y}.jpg",
                 //    "http://maps.stamen.com/", 5, 18, 256, false, false, GetAcceptImageWebHeaderCollection()),
                 // this one has funny coordinates
@@ -445,25 +445,25 @@ namespace LolloGPS.Data.TileCache
                 //new TileSourceRecord(false, "", "", "NLSIceland", "National Land Survey (Iceland)",
                 //    "https://gis.lmi.is/mapcache/wmts/1.0.0/LMI_Kort/default/EPSG3057/{zoomlevel}/{x}/{y}.png",
                 //    "http://kortasja.lmi.is/en/", 5, 15, 256, false, false, GetAcceptImageWebHeaderCollection()),
-                new TileSourceRecord(false, "", "", "KartFinnNo", "Kart Finn Norway","KartFinnNo", "",
+                new TileSourceRecord(false, "", "", "KartFinnNo", "Kart Finn Norway","KartFinnNo", "© Norkart",
                     "http://kart.finn.no/", 4, 20, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://maptiles1.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles2.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles3.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles4.finncdn.no/tileService/1.0.3/normap/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "KartFinnNoHd", "Kart Finn Norway HD", "KartFinnNoHd", "",
+                new TileSourceRecord(false, "", "", "KartFinnNoHd", "Kart Finn Norway HD", "KartFinnNoHd", "© Norkart",
                     "http://kart.finn.no/", 4, 20, 512, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://maptiles1.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles2.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles3.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png",
                     "http://maptiles4.finncdn.no/tileService/1.0.3/normaphd/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "UTTopoLight", "UT Topo Light (Norway)", "UTTopoLight", "",
+                new TileSourceRecord(false, "", "", "UTTopoLight", "UT Topo Light (Norway)", "UTTopoLight", "© Kartverket",
                     "http://ut.no/", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg",
                     "http://b-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg",
                     "http://c-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg",
                     "http://d-kartcache.nrk.no/tiles/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"),
-                new TileSourceRecord(false, "", "", "UTTopoLightTwo", "UT Topo Light 2 (Norway)", "UTTopoLight", "",
+                new TileSourceRecord(false, "", "", "UTTopoLightTwo", "UT Topo Light 2 (Norway)", "UTTopoLight", "© Kartverket",
                     "http://ut.no/", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "https://tilesprod.ut.no/tilestache/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"),
 
@@ -479,22 +479,22 @@ namespace LolloGPS.Data.TileCache
                 //    "http://www.lansstyrelsen.se/", 3, 17, 256, false, false, GetAcceptImageWebHeaderCollection()),
                 // referer = "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/?visibleLayerNames=L%C3%A4nsstyrelsens%20kontor&zoomLevel=4&x=524106.125&y=6883110.65625"
                 // not very reliable
-                new TileSourceRecord(false, "", "", "KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "",
+                new TileSourceRecord(false, "", "", "KartatKapsiFiTerrain", "Kartat Kapsi Terrain (FI)","KartatKapsiFiTerrain", "© Maanmittauslaitos",
                     "http://kartat.kapsi.fi/", 2, 17, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://tiles.kartat.kapsi.fi/peruskartta/{zoomlevel}/{x}/{y}.jpg"),
-                new TileSourceRecord(false, "", "", "KartatKapsiFiBackground", "Kartat Kapsi Background (FI)","KartatKapsiFiBackground", "",
+                new TileSourceRecord(false, "", "", "KartatKapsiFiBackground", "Kartat Kapsi Background (FI)","KartatKapsiFiBackground", "© Maanmittauslaitos",
                     "http://kartat.kapsi.fi/", 2, 17, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://tiles.kartat.kapsi.fi/taustakartta/{zoomlevel}/{x}/{y}.jpg"),
                 // strange projection, https
-                //new TileSourceRecord(false, "", "", "Maanmittauslaitos", "Maanmittauslaitos (FI)","Maanmittauslaitos", "",
+                //new TileSourceRecord(false, "", "", "Maanmittauslaitos", "Maanmittauslaitos (FI)","Maanmittauslaitos", "© Maanmittauslaitos",
                 //    "https://karttamoottori.maanmittauslaitos.fi/maasto/wmts/1.0.0/maastokartta/default/ETRS-TM35FIN/{zoomlevel}/{y}/{x}.png",
                 //    "http://www.maanmittauslaitos.fi/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection()),
-                new TileSourceRecord(false, "", "", "OrdnanceSurvey", "Ordnance Survey (UK)","OrdnanceSurvey", "",
+                new TileSourceRecord(false, "", "", "OrdnanceSurvey", "Ordnance Survey (UK)","OrdnanceSurvey", "© OrdnanceSurvey - © OpenStreetMap contributors",
                     "http://www.ordnancesurvey.co.uk/opendata/viewer/index.html", 7, 17, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png",
                     "http://b.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png",
                     "http://c.os.openstreetmap.org/sv/{zoomlevel}/{x}/{y}.png"),
-                new TileSourceRecord(false, "", "", "UmpPoland", "Ump Poland","UmpPoland", "",
+                new TileSourceRecord(false, "", "", "UmpPoland", "Ump Poland","UmpPoland", "© UMP",
                     "http://ump.waw.pl/", 1, 17, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://1.tiles.ump.waw.pl/ump_tiles/{zoomlevel}/{x}/{y}.png",
                     "http://2.tiles.ump.waw.pl/ump_tiles/{zoomlevel}/{x}/{y}.png",
@@ -511,7 +511,7 @@ namespace LolloGPS.Data.TileCache
                 //    "http://www.freemap.sk/layers/allinone/?/BN/{zoomlevel}/{x}/{y}.png",
                 //    "http://www.freemap.sk/", 0, 17, 256, false, false, GetAcceptImageWebHeaderCollection()),
                 // a good map of spain is http://sigpac.mapama.gob.es/SDG/raster/MTN25@3857/14.8026.10210.img, for zoom 14 and 15, and you must replace MTN25 with MTN200 for smaller zooms
-                new TileSourceRecord(false, "", "", "IgnEs", "Ign (Spain)","IgnEs", "",
+                new TileSourceRecord(false, "", "", "IgnEs", "Ign (Spain)","IgnEs", "© IGN",
                     "http://www.ign.es/", 6, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://www.ign.es/wmts/mapa-raster?layer=MTN&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={zoomlevel}&TileCol={x}&TileRow={y}"),
                 // Keeps giving 404, I think they use special coordinates
@@ -532,7 +532,7 @@ namespace LolloGPS.Data.TileCache
             //    "http://www.lpi.nsw.gov.au/", 4, 16, 256, false, false, GetAcceptImageWebHeaderCollection()),
 
 #if NOSTORE
-            output.Add(new TileSourceRecord(false, "", "", "MyTopo", "My Topo (N America)", "MyTopo", "",
+            output.Add(new TileSourceRecord(false, "", "", "MyTopo", "My Topo (N America)", "MyTopo", "© Tribmleoutdoors",
                 "http://www.mytopo.com/", 10, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://tileserver.trimbleoutdoors.com/SecureTile/TileHandler.ashx?mapType=Topo&x={x}&y={y}&z={zoomlevel}"));
 
@@ -540,7 +540,7 @@ namespace LolloGPS.Data.TileCache
 
 #if NOSTORE
             // also try http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}
-            output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "",
+            output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
                 "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif
@@ -600,7 +600,7 @@ namespace LolloGPS.Data.TileCache
             //    "http://wmts109.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/21781/{zoomlevel}/{y}/{x}.jpeg"));
 #endif
 #if NOSTORE
-            output.Add(new TileSourceRecord(false, "", "", "Swisstopo", "Swisstopo (CH)", "Swisstopo", "",
+            output.Add(new TileSourceRecord(false, "", "", "Swisstopo", "Swisstopo (CH)", "Swisstopo", "© Swisstopo",
                 "", 7, 16, 256, false, false, GetDefaultWebHeaderCollection(),
                 "http://mpa1.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg",
                 "http://mpa2.mapplus.ch/swisstopo/{zoomlevel}/{x}/{y}.jpg",
@@ -609,20 +609,20 @@ namespace LolloGPS.Data.TileCache
 #endif
 
 #if NOSTORE
-            output.Add(new TileSourceRecord(false, "", "", "CalTopo", "CalTopo (USA)", "CalTopo", "",
+            output.Add(new TileSourceRecord(false, "", "", "CalTopo", "CalTopo (USA)", "CalTopo", "© Caltopo",
                 "http://caltopo.com", 5, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://caltopo.com/resource/imagery/mapbuilder/cs-60-40-c21BB6100-h22-a21-r22-t22d-m21-p21/{zoomlevel}/{x}/{y}.png"));
 #endif
 
 #if NOSTORE
-            output.Add(new TileSourceRecord(false, "", "", "CalTopo2", "CalTopo 2 (USA)", "CalTopo2", "",
+            output.Add(new TileSourceRecord(false, "", "", "CalTopo2", "CalTopo 2 (USA)", "CalTopo2", "© Caltopo",
                 "", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://s3-us-west-1.amazonaws.com/caltopo/topo/{zoomlevel}/{x}/{y}.png?v=1"));
 #endif
 
 #if NOSTORE
             // referer https://viewer.nationalmap.gov/viewer/
-            output.Add(new TileSourceRecord(false, "", "", "USGSTopo", "USGSTopo (USA)", "USGSTopo", "",
+            output.Add(new TileSourceRecord(false, "", "", "USGSTopo", "USGSTopo (USA)", "USGSTopo", "© USGS",
                 "", 3, 15, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif

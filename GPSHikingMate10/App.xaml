@@ -64,6 +64,7 @@
 			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
 			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
             <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>
+            <conv:DoubleMultiplyConverter x:Key="DoubleMultiplyConverter"/>
         </ResourceDictionary>
 
 	</Application.Resources>

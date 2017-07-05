@@ -104,6 +104,12 @@
         <Setter Property="FontStretch" Value="UltraCondensed"/>
     </Style>
 
+    <Style x:Key="TinyMessageStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2}"/>
+    </Style>
+
     <Style x:Key="TextParagraphStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource BaseMessageStyleFontFamily}"/>
         <Setter Property="FontSize" Value="20"/>

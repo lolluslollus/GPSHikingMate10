@@ -13,6 +13,24 @@ using Windows.UI.Xaml.Data;
 
 namespace LolloGPS.Converters
 {
+    public class DoubleMultiplyConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value == null) return default(double);
+            double dblValue = 0.0;
+            double.TryParse(value.ToString(), out dblValue);
+            if (parameter == null) return dblValue;
+            double dblParameter = 0.0;
+            if (!double.TryParse(parameter.ToString(), out dblParameter)) return dblValue;
+            return dblValue * dblParameter;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never get here");
+        }
+    }
+
     public class SelectedPivotIndexConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -885,7 +903,7 @@ namespace LolloGPS.Converters
         {
             var tsr = value as TileSourceRecord;
             if (tsr == null) return string.Empty;
-            return $"{tsr.DisplayName} © {tsr.CopyrightNotice}";
+            return $"{tsr.DisplayName} - {tsr.CopyrightNotice}";
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
