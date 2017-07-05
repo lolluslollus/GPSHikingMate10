@@ -120,33 +120,24 @@
 			Holding="OnAim_Holding"
 			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
         <!-- base tile source and copyright notice -->
-        <Border Canvas.ZIndex="300"
-				HorizontalAlignment="Right" VerticalAlignment="Top"
+        <uctl:LayoutTransformer Canvas.ZIndex="300" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <uctl:LayoutTransformer.LayoutTransform>
+                <RotateTransform Angle="-90"/>
+            </uctl:LayoutTransformer.LayoutTransform>
+            <Border
 				Background="{ThemeResource FlyoutBackgroundThemeBrush}"
 				CornerRadius="10,10,0,0"
-				RenderTransformOrigin="1, 1"
 				Visibility="{x:Bind LolloMapVM.IsShowCurrentBaseTileSource, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnProvider_Tapped">
-            <Border.RenderTransform>
-                <TransformGroup>
-                    <RotateTransform Angle="-90"/>
-                    <!--<TranslateTransform Y="{Binding ElementName=CopyrightTB, Path=ActualHeight, UpdateSourceTrigger=PropertyChanged}"/>-->
-                </TransformGroup>
-            </Border.RenderTransform>
-            <!--<StackPanel Orientation="Horizontal" >-->
-            <!--<TextBlock Text="© "
-					Style="{StaticResource BaseMessageStyle}"
-					Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
-					Margin="6,2,6,2"/>-->
-            <TextBlock x:Name="CopyrightTB"
-				Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
-				Margin="6,2,6,2"
-                MaxWidth="{x:Bind MapActualHeight, Mode=OneWay, Converter={StaticResource DoubleMultiplyConverter}, ConverterParameter=.8}"
-                Style="{StaticResource TinyMessageStyle}"
-                Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
-				TextWrapping="Wrap"/>
-            <!--</StackPanel>-->
-        </Border>
+                <TextBlock x:Name="CopyrightTB"
+				    Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
+				    Margin="6,2,6,2"
+                    MaxWidth="{x:Bind MapActualHeight, Mode=OneWay}"
+                    Style="{StaticResource TinyMessageStyle}"
+                    Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
+				    TextWrapping="Wrap"/>
+            </Border>
+        </uctl:LayoutTransformer>
         <Maps:MapControl Canvas.ZIndex="100"
 			x:Name="MyMap"
 			HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
