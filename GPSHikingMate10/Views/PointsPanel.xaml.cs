@@ -89,9 +89,9 @@ namespace LolloGPS.Core
         {
             int intg;
             if (int.TryParse(LatDeg.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg <= 90)
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(intg.ToString(CultureInfo.CurrentUICulture), LatMin.Text, LatSec.Text, LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(intg.ToString(CultureInfo.CurrentUICulture), LatMin.Text, LatSec.Text, "0"); //LatDec.Text);
             else if (string.IsNullOrWhiteSpace(LatDeg.Text))
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float("0", LatMin.Text, LatSec.Text, LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float("0", LatMin.Text, LatSec.Text, "0"); //LatDec.Text);
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
@@ -99,9 +99,9 @@ namespace LolloGPS.Core
         {
             int intg;
             if (int.TryParse(LatMin.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg < 60)
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, intg.ToString(CultureInfo.CurrentUICulture), LatSec.Text, LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, intg.ToString(CultureInfo.CurrentUICulture), LatSec.Text, "0"); //LatDec.Text);
             else if (string.IsNullOrWhiteSpace(LatMin.Text))
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, "0", LatSec.Text, LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, "0", LatSec.Text, "0"); //LatDec.Text);
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
@@ -109,30 +109,30 @@ namespace LolloGPS.Core
         {
             int intg;
             if (int.TryParse(LatSec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg < 60)
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, intg.ToString(CultureInfo.CurrentUICulture), LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, intg.ToString(CultureInfo.CurrentUICulture), "0"); //LatDec.Text);
             else if (string.IsNullOrWhiteSpace(LatSec.Text))
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, "0", LatDec.Text);
+                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, "0", "0"); //LatDec.Text);
             else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
         }
 
-        private void OnLatDec_LostFocus(object sender, RoutedEventArgs e)
-        {
-            int intg;
-            if (int.TryParse(LatDec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0)
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, LatSec.Text, intg.ToString(CultureInfo.CurrentUICulture));
-            else if (string.IsNullOrWhiteSpace(LatDec.Text))
-                PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, LatSec.Text, "0");
-            else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
-        }
+        //private void OnLatDec_LostFocus(object sender, RoutedEventArgs e)
+        //{
+        //    int intg;
+        //    if (int.TryParse(LatDec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0)
+        //        PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, LatSec.Text, intg.ToString(CultureInfo.CurrentUICulture));
+        //    else if (string.IsNullOrWhiteSpace(LatDec.Text))
+        //        PersistentData.Target.Latitude = AngleConverterHelper.DegMinSecDec_To_Float(LatDeg.Text, LatMin.Text, LatSec.Text, "0");
+        //    else PersistentData.Target.Latitude = PersistentData.Target.Latitude;
+        //}
 
 
         private void OnLonDeg_LostFocus(object sender, RoutedEventArgs e)
         {
             int intg;
             if (int.TryParse(LonDeg.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg <= 180)
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(intg.ToString(CultureInfo.CurrentUICulture), LonMin.Text, LonSec.Text, LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(intg.ToString(CultureInfo.CurrentUICulture), LonMin.Text, LonSec.Text, "0"); // LonDec.Text);
             else if (string.IsNullOrWhiteSpace(LonDeg.Text))
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float("0", LonMin.Text, LonSec.Text, LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float("0", LonMin.Text, LonSec.Text, "0"); // LonDec.Text);
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
@@ -140,9 +140,9 @@ namespace LolloGPS.Core
         {
             int intg;
             if (int.TryParse(LonMin.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg < 60)
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, intg.ToString(CultureInfo.CurrentUICulture), LonSec.Text, LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, intg.ToString(CultureInfo.CurrentUICulture), LonSec.Text, "0"); // LonDec.Text);
             else if (string.IsNullOrWhiteSpace(LonMin.Text))
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, "0", LonSec.Text, LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, "0", LonSec.Text, "0"); // LonDec.Text);
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
@@ -150,21 +150,21 @@ namespace LolloGPS.Core
         {
             int intg;
             if (int.TryParse(LonSec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0 && intg < 60)
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, intg.ToString(CultureInfo.CurrentUICulture), LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, intg.ToString(CultureInfo.CurrentUICulture), "0"); // LonDec.Text);
             else if (string.IsNullOrWhiteSpace(LonSec.Text))
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, "0", LonDec.Text);
+                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, "0", "0"); // LonDec.Text);
             else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
         }
 
-        private void OnLonDec_LostFocus(object sender, RoutedEventArgs e)
-        {
-            int intg;
-            if (int.TryParse(LonDec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0)
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, LonSec.Text, intg.ToString(CultureInfo.CurrentUICulture));
-            else if (string.IsNullOrWhiteSpace(LonDec.Text))
-                PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, LonSec.Text, "0");
-            else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
-        }
+        //private void OnLonDec_LostFocus(object sender, RoutedEventArgs e)
+        //{
+        //    int intg;
+        //    if (int.TryParse(LonDec.Text, NumberStyles.None, CultureInfo.CurrentUICulture, out intg) && intg >= 0)
+        //        PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, LonSec.Text, intg.ToString(CultureInfo.CurrentUICulture));
+        //    else if (string.IsNullOrWhiteSpace(LonDec.Text))
+        //        PersistentData.Target.Longitude = AngleConverterHelper.DegMinSecDec_To_Float(LonDeg.Text, LonMin.Text, LonSec.Text, "0");
+        //    else PersistentData.Target.Longitude = PersistentData.Target.Longitude;
+        //}
 
 
         private void OnHyperlink_Click(object sender, RoutedEventArgs e)
