@@ -903,6 +903,7 @@ namespace LolloGPS.Converters
         {
             var tsr = value as TileSourceRecord;
             if (tsr == null) return string.Empty;
+            if (string.IsNullOrWhiteSpace(tsr.CopyrightNotice)) return tsr.DisplayName;
             return $"{tsr.DisplayName} - {tsr.CopyrightNotice}";
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language)

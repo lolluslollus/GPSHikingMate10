@@ -130,6 +130,9 @@ namespace LolloGPS.Core
         private bool _isFlyoutPointInMap = false;
 
         private readonly SemaphoreSlimSafeRelease _drawSemaphore = new SemaphoreSlimSafeRelease(1, 1);
+
+        private double _mapActualHeight = 0.0;
+        public double MapActualHeight { get { return _mapActualHeight; } private set { _mapActualHeight = value; RaisePropertyChanged_UI(); } }
         #endregion properties
 
 
@@ -1012,6 +1015,10 @@ namespace LolloGPS.Core
                 }
                 catch (Exception) { }
             });
+        }
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            MapActualHeight = MyMap.ActualHeight;
         }
         #endregion user event handlers
 

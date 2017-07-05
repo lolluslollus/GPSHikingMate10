@@ -141,7 +141,7 @@
             <TextBlock x:Name="CopyrightTB"
 				Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
 				Margin="6,2,6,2"
-                MaxWidth="{Binding ElementName=MyMap, Path=ActualHeight, Mode=OneWay, Converter={StaticResource DoubleMultiplyConverter}, ConverterParameter=.8}"
+                MaxWidth="{x:Bind MapActualHeight, Mode=OneWay, Converter={StaticResource DoubleMultiplyConverter}, ConverterParameter=.8}"
                 Style="{StaticResource TinyMessageStyle}"
                 Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
 				TextWrapping="Wrap"/>
@@ -156,6 +156,7 @@
             CenterChanged="OnCenterChanged"
             HeadingChanged="OnHeadingChanged"
             PitchChanged="OnPitchChanged"
+            SizeChanged="OnSizeChanged"
             ZoomLevelChanged="OnZoomLevelChanged">
             <!--<Maps:MapItemsControl x:Name="MapItems">
                 <Maps:MapItemsControl.ItemTemplate>
