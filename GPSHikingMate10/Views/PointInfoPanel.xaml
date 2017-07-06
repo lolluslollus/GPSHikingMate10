@@ -167,7 +167,7 @@
 						Click="OnHyperlink_Click"
                         Margin="20,0,0,0"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-						Icon="View"
+						Icon="World"
 						IsCompact="True"
 						Style="{StaticResource AppBarButtonRecoloured}"
                         Visibility="{x:Bind PersistentData.Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"/>

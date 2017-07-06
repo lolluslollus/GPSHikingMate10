@@ -274,7 +274,7 @@
 			Click="OnHyperlink_Click"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
-			Icon="View"/>
+			Icon="World"/>
 
         <!--target commands-->
         <TextBlock Grid.Row="8" Grid.Column="0"
