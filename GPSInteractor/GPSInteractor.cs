@@ -1,21 +1,20 @@
 ﻿using LolloGPS.Data;
-using Utilz.Data;
 using System;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Utilz;
+using Utilz.Data;
 using Windows.ApplicationModel.Background;
-using Windows.ApplicationModel.Core;
+using Windows.ApplicationModel.Resources;
 using Windows.Devices.Geolocation;
-using Windows.Foundation;
-using System.Threading;
 
 namespace LolloGPS.GPSInteraction
 {
     public sealed class GPSInteractor : OpenableObservableData
     {
         #region properties
+        private readonly ResourceLoader resourceLoader = ResourceLoader.GetForViewIndependentUse("GPSInteractor/Resources");
         private readonly IGpsDataModel _persistentData = null;
         private volatile Geolocator _geolocator = null;
         private volatile bool _isGeolocatorAllowed = false;
@@ -45,7 +44,7 @@ namespace LolloGPS.GPSInteraction
             AddHandlers_DataModelPropertyChanged();
             await TryUpdateBackgroundTrkProps2Async(CancToken).ConfigureAwait(false);
             GetLocBackgroundTaskSemaphoreManager.SetMainAppIsRunningAndActive(); // This may take a while, but if you run it in Task.Run it may fire after its counterpart
-            UpdateForegroundTrkProps2(true, false, CancToken);
+            await TryUpdateForegroundTrkProps2Async(CancToken).ConfigureAwait(false);
         }
 
         protected override Task CloseMayOverrideAsync(object args = null)
@@ -79,11 +78,11 @@ namespace LolloGPS.GPSInteraction
                 || e.PropertyName == nameof(PersistentData.ReportIntervalInMilliSec))
                 //|| e.PropertyName == "MovementThresholdInMetres" || e.PropertyName == "PositAccuracy") // no! either these or the ones I use, they are conflicting
                 {
-                    UpdateForegroundTrkProps2(true, true, CancToken); // must reinit the geoLocator whenever these props change
+                    await TryUpdateForegroundTrkProps2Async(CancToken).ConfigureAwait(false); // must reinit the geoLocator whenever these props change
                 }
                 else if (e.PropertyName == nameof(PersistentData.IsForegroundTracking))
                 {
-                    UpdateForegroundTrkProps2(false, true, CancToken);
+                    await TryUpdateForegroundTrkProps2Async(CancToken).ConfigureAwait(false);
                 }
                 else if (e.PropertyName == nameof(PersistentData.BackgroundUpdatePeriodInMinutes))
                 {
@@ -96,7 +95,7 @@ namespace LolloGPS.GPSInteraction
                 else if (e.PropertyName == nameof(PersistentData.IsBackgroundTracking))
                 {
                     bool isOk = await TryUpdateBackgroundTrkProps2Async(CancToken).ConfigureAwait(false);
-                    // if just switched on and ok, get a location now. The foreground tracking does it, so we do it here as well
+                    // if just switched on and ok, get a location now. The foreground tracking does it (automatically), so we do it here as well (manually)
                     if (isOk && _persistentData.IsBackgroundTracking)
                     {
                         Task getLoc = Task.Run(GetGeoLocationAppendingHistoryAsync); // use new thread to avoid deadlock
@@ -171,23 +170,32 @@ namespace LolloGPS.GPSInteraction
                 }
                 catch (Exception exc)
                 {
-                    SetLastMessage_UI(exc.Message);
+                    SetLastMessage_UI(resourceLoader.GetString("GetLocError"));
                     Logger.Add_TPL("OnGeolocator_PositionChangedAsync threw " + exc.ToString(), Logger.ForegroundLogFilename, Logger.Severity.Error, false);
                 }
             });
         }
 
-        private void UpdateForegroundTrkProps2(bool resetGeoLocator, bool setUserMessage, CancellationToken cancToken)
+        private async Task<bool> TryUpdateForegroundTrkProps2Async(CancellationToken cancToken)
         {
-            if (cancToken.IsCancellationRequested == true) return;
-            if (resetGeoLocator)
-            {
-                RemoveHandlers_GeoLocator(); // must reinit the geolocator whenever I change these props
-                _geolocator = null;
-            }
+            if (cancToken.IsCancellationRequested == true) return false;
 
-            if (_geolocator == null)
+            RemoveHandlers_GeoLocator();
+
+            if (_persistentData.IsForegroundTracking)
             {
+                _isGeolocatorAllowed = _isGeolocatorAllowed || await GetIsGeolocatorAllowed2Async().ConfigureAwait(false);
+                if (!_isGeolocatorAllowed)
+                {
+                    SetLastMessage_UI(resourceLoader.GetString("GiveLocationPermission"));
+                    Task setToFalse = Task.Run(() => RunInUiThreadIdleAsync(() =>
+                    {
+                        _persistentData.IsBackgroundTracking = false;
+                        _persistentData.IsForegroundTracking = false;
+                    }));
+                    return false;
+                }
+
                 _geolocator = new Geolocator()
                 {
                     DesiredAccuracyInMeters = _persistentData.DesiredAccuracyInMeters,
@@ -198,18 +206,14 @@ namespace LolloGPS.GPSInteraction
                 // Only with windows phone: You must set the MovementThreshold for 
                 // distance-based tracking or ReportInterval for
                 // periodic-based tracking before adding event handlers.
-            }
 
-            if (_persistentData.IsForegroundTracking)
-            {
                 AddHandlers_GeoLocator();
-                if (setUserMessage) SetLastMessage_UI("Tracking on, waiting for update...");
             }
             else
             {
                 RemoveHandlers_GeoLocator();
-                if (setUserMessage) SetLastMessage_UI("Tracking off");
             }
+            return true;
         }
         #endregion foreground tracking
 
@@ -232,7 +236,6 @@ namespace LolloGPS.GPSInteraction
         {
             bool isOk = false;
             string msg = string.Empty;
-            string errorMsg = string.Empty;
             BackgroundAccessStatus backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
 
             _getlocBkgTask = GetTaskIfAlreadyRegistered();
@@ -262,9 +265,12 @@ namespace LolloGPS.GPSInteraction
                     // Register the background task
                     _getlocBkgTask = geolocTaskBuilder.Register();
                 }
+                catch (OperationCanceledException)
+                {
+                    backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
+                }
                 catch (Exception ex)
                 {
-                    errorMsg = ex.ToString();
                     backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
@@ -277,7 +283,6 @@ namespace LolloGPS.GPSInteraction
                 }
                 catch (Exception ex)
                 {
-                    errorMsg = ex.ToString();
                     backgroundAccessStatus = BackgroundAccessStatus.Unspecified;
                     Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 }
@@ -287,19 +292,19 @@ namespace LolloGPS.GPSInteraction
             {
                 case BackgroundAccessStatus.Unspecified:
                     RemoveHandlers_GetLocBackgroundTask();
-                    msg = "Cannot run in background, enable it in the \"Battery Saver\" app";
+                    msg = resourceLoader.GetString("DoEnableBackground");
                     break;
                 case BackgroundAccessStatus.DeniedByUser:
                     RemoveHandlers_GetLocBackgroundTask();
-                    msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Battery Use Settings" : errorMsg;
+                    msg = resourceLoader.GetString("DoAllowBackground");
                     break;
                 case BackgroundAccessStatus.DeniedBySystemPolicy:
                     RemoveHandlers_GetLocBackgroundTask();
-                    msg = string.IsNullOrWhiteSpace(errorMsg) ? "Cannot run in background, enable it in Battery Use Settings - Battery Optimised - Allow this Application" : errorMsg;
+                    msg = resourceLoader.GetString("DoAllowBackgroundExtended");
                     break;
                 default:
                     AddHandlers_GetLocBackgroundTask();
-                    msg = "Background task on";
+                    msg = string.Empty;
                     isOk = true;
                     break;
             }
@@ -340,6 +345,24 @@ namespace LolloGPS.GPSInteraction
         {
             if (_persistentData.IsBackgroundTracking)
             {
+                _isGeolocatorAllowed = _isGeolocatorAllowed || await GetIsGeolocatorAllowed2Async().ConfigureAwait(false);
+                // in case of failure (eg the user revoked background permissions when the app was suspended or off), reset the variables
+                if (!_isGeolocatorAllowed)
+                {
+                    // notify the user
+                    SetLastMessage_UI(resourceLoader.GetString("GiveLocationPermission"));
+                    // BODGE change the value back to false in a deferred cycle, otherwise the control won't update, even if the property will.
+                    // the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
+                    // it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
+                    // In any case, this change must take place on the UI thread, so no issue really.
+                    Task setToFalse = Task.Run(() => RunInUiThreadIdleAsync(() =>
+                    {
+                        _persistentData.IsBackgroundTracking = false;
+                        _persistentData.IsForegroundTracking = false;
+                    }));
+                    return false;
+                }
+
                 Tuple<bool, string> result = await TryOpenGetLocBackgroundTask2Async(cancToken).ConfigureAwait(false);
                 // in case of failure (eg the user revoked background permissions when the app was suspended or off), reset the variables
                 if (result?.Item1 == false)
@@ -347,25 +370,20 @@ namespace LolloGPS.GPSInteraction
                     CloseGetLocBackgroundTask2_All();
                     // notify the user
                     if (!string.IsNullOrWhiteSpace(result.Item2)) SetLastMessage_UI(result.Item2);
-                    else SetLastMessage_UI("Background tracking was force-disabled");
+                    else SetLastMessage_UI(resourceLoader.GetString("BackgroundDead"));
                     // BODGE change the value back to false in a deferred cycle, otherwise the control won't update, even if the property will.
                     // the trouble seems to lie in the ToggleSwitch style: both mine and MS default don't work.
                     // it could also be a problem with the binding engine, which I have seen already: you cannot change a property twice within one cycle.
                     // In any case, this change must take place on the UI thread, so no issue really.
                     Task setToFalse = Task.Run(() => RunInUiThreadIdleAsync(() => _persistentData.IsBackgroundTracking = false));
+                    return false;
                 }
-                else
-                {
-                    SetLastMessage_UI("Background tracking on");
-                }
-                return result?.Item1 == true;
             }
             else
             {
                 CloseGetLocBackgroundTask2_All();
-                SetLastMessage_UI("Background tracking off");
-                return true;
             }
+            return true;
         }
         #endregion background task
 
@@ -380,7 +398,7 @@ namespace LolloGPS.GPSInteraction
             await RunFunctionIfOpenAsyncT(async delegate
             {
                 IsGPSWorking = true;
-                SetLastMessage_UI("getting current location...");
+                SetLastMessage_UI(resourceLoader.GetString("GettingCurrentLocation"));
 
                 try
                 {
@@ -390,7 +408,7 @@ namespace LolloGPS.GPSInteraction
                     _isGeolocatorAllowed = _isGeolocatorAllowed || await GetIsGeolocatorAllowed2Async().ConfigureAwait(false);
                     if (!_isGeolocatorAllowed)
                     {
-                        SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
+                        SetLastMessage_UI(resourceLoader.GetString("GiveLocationPermission"));
                         return;
                     }
 
@@ -405,22 +423,22 @@ namespace LolloGPS.GPSInteraction
                 catch (UnauthorizedAccessException)
                 {
                     result = null;
-                    SetLastMessage_UI("Give the app permission to access your location (Settings - Privacy - Location)");
+                    SetLastMessage_UI(resourceLoader.GetString("GiveLocationPermission"));
                 }
                 catch (ObjectDisposedException) // comes from the canc token
                 {
                     result = null;
-                    SetLastMessage_UI("location acquisition cancelled");
+                    SetLastMessage_UI(resourceLoader.GetString("GetLocCancelled"));
                 }
                 catch (OperationCanceledException) // comes from the canc token
                 {
                     result = null;
-                    SetLastMessage_UI("location acquisition cancelled");
+                    SetLastMessage_UI(resourceLoader.GetString("GetLocCancelled"));
                 }
                 catch (Exception ex)
                 {
                     result = null;
-                    SetLastMessage_UI("cannot get location");
+                    SetLastMessage_UI(resourceLoader.GetString("GetLocError"));
                     await Logger.AddAsync(ex.ToString(), Logger.ForegroundLogFilename).ConfigureAwait(false);
                 }
                 finally

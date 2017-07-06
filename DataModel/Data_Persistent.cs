@@ -1743,7 +1743,7 @@ namespace LolloGPS.Data
         uint ReportIntervalInMilliSec { get; }
         uint BackgroundUpdatePeriodInMinutes { get; }
         uint GetDefaultDesiredAccuracyInMetres { get; }
-        bool IsForegroundTracking { get; }
+        bool IsForegroundTracking { get; set; }
         bool IsBackgroundTracking { get; set; }
 
         string LastMessage { get; set; }

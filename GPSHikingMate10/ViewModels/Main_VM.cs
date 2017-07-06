@@ -241,15 +241,14 @@ namespace LolloGPS.ViewModels
 
             var currrent = await gpsInteractor.GetGeoLocationAppendingHistoryAsync();
             var persistentData = PersistentData;
-            if (currrent != null && persistentData != null)
+            if (currrent == null || persistentData == null) return;
+
+            Task upd = currrent.UpdateUIEditablePropertiesAsync(persistentData.Target, PersistentData.Tables.History).ContinueWith(delegate
             {
-                Task upd = currrent.UpdateUIEditablePropertiesAsync(persistentData.Target, PersistentData.Tables.History).ContinueWith(delegate
-                {
-                    PointRecord currentClone = null;
-                    PointRecord.Clone(currrent, ref currentClone);
-                    Task add = persistentData.TryAddPointToCheckpointsAsync(currentClone);
-                });
-            }
+                PointRecord currentClone = null;
+                PointRecord.Clone(currrent, ref currentClone);
+                Task add = persistentData.TryAddPointToCheckpointsAsync(currentClone);
+            });
         }
         #endregion services
 
