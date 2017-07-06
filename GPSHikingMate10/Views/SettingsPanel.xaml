@@ -11,73 +11,81 @@
 	d:DesignHeight="300"
 	d:DesignWidth="400">
 
-	<Grid x:Name="LayoutRoot">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="*"/>
-			<!--<ColumnDefinition Width="*"/>-->
-		</Grid.ColumnDefinitions>
+    <Grid x:Name="LayoutRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-		<TextBlock Grid.Row="0" Grid.ColumnSpan="2"
-								Text="Foreground tracking period (sec): " 
-								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="0" Grid.Column="2" 
-					IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-					VerticalAlignment="Center"
-					IsOn="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=TwoWay}"/>
-		<ContentControl Grid.Row="1" Grid.Column="1"
-						IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-						VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
-			<Slider Grid.Row="1" Grid.Column="1"
-					Margin="{StaticResource Thickness2}"
-					VerticalAlignment="Center"
-					HorizontalAlignment="Stretch"
-					Value="{x:Bind MainVM.PersistentData.ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}"
-					IsThumbToolTipEnabled="False"
-					IsEnabled="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=OneWay}"
-					Minimum="{x:Bind MainVM.PersistentData.MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
-					Maximum="{x:Bind MainVM.PersistentData.MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
-					SmallChange="1" LargeChange="3"/>
-		</ContentControl>
-		<TextBlock Grid.Row="1" Grid.Column="2"
-								Text="{x:Bind MainVM.PersistentData.ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}"
-								VerticalAlignment="Center"
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+			Text="Foreground tracking period (sec): " 
+			TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="0" Grid.Column="2"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=TwoWay}"/>
+        <ContentControl Grid.Row="1" Grid.Column="1"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
+            <Slider
+				Margin="{StaticResource Thickness2}"
+				VerticalAlignment="Center"
+				HorizontalAlignment="Stretch"
+				Value="{x:Bind MainVM.PersistentData.ReportIntervalInMilliSec, Mode=TwoWay, Converter={StaticResource LogToLinearConverter}}"
+				IsThumbToolTipEnabled="False"
+				IsEnabled="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=OneWay}"
+				Minimum="{x:Bind MainVM.PersistentData.MinReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
+				Maximum="{x:Bind MainVM.PersistentData.MaxReportIntervalInMilliSecProp, Converter={StaticResource LogToLinearConverter}, Mode=OneWay}" 
+				SmallChange="1" LargeChange="3"/>
+        </ContentControl>
+        <ContentControl Grid.Row="1" Grid.Column="2"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
+            <TextBox
+                IsEnabled="{x:Bind MainVM.PersistentData.IsForegroundTracking, Mode=OneWay}"
+                Margin="{StaticResource Thickness0404}"
+                Style="{StaticResource ReadOnlyTextBoxWithChrome}"
+			    Text="{x:Bind MainVM.PersistentData.ReportIntervalInMilliSec, Mode=OneWay, Converter={StaticResource MsecToSecConverter}}"
+			    VerticalAlignment="Center"/>
+        </ContentControl>
 
-		<TextBlock Grid.Row="3" Grid.ColumnSpan="2"
-								Text="Background tracking period (min): " 
-								TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="3" Grid.Column="2"
-								VerticalAlignment="Center"
-								IsOn="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=TwoWay}"/>
-		<Slider Grid.Row="4" Grid.Column="1" 
+        <TextBlock Grid.Row="3" Grid.ColumnSpan="2"
+			Text="Background tracking period (min): " 
+			TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="3" Grid.Column="2"
+            IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			IsOn="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=TwoWay}"
+            VerticalAlignment="Center"/>
+        <ContentControl Grid.Row="4" Grid.Column="1"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
+            <Slider
 				Margin="{StaticResource Thickness2}"
 				Value="{x:Bind MainVM.PersistentData.BackgroundUpdatePeriodInMinutes, Converter={StaticResource UintToDoubleConverter}, Mode=TwoWay}"
 				Minimum="{x:Bind MainVM.PersistentData.MinBackgroundUpdatePeriodInMinutesProp, Mode=OneWay}" 
@@ -86,101 +94,108 @@
 				IsThumbToolTipEnabled="False"
 				VerticalAlignment="Center"
 				IsEnabled="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=OneWay}"/>
-		<TextBlock Grid.Row="4" Grid.Column="2"
-								Text="{x:Bind MainVM.PersistentData.BackgroundUpdatePeriodInMinutes, Mode=OneWay}"
-								VerticalAlignment="Center"
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"/>
+        </ContentControl>
+        <ContentControl Grid.Row="4" Grid.Column="2"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			VerticalAlignment="Center" HorizontalContentAlignment="Stretch">
+            <TextBox
+                IsEnabled="{x:Bind MainVM.PersistentData.IsBackgroundTracking, Mode=OneWay}"
+			    Margin="{StaticResource Thickness0404}"
+                Style="{StaticResource ReadOnlyTextBoxWithChrome}"
+                Text="{x:Bind MainVM.PersistentData.BackgroundUpdatePeriodInMinutes, Mode=OneWay}"
+			    VerticalAlignment="Center"/>
+        </ContentControl>
 
-		<TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
-								Text="You can tap and hold the map to centre it on the last point. This switch keeps it centred automatically." 
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="6" Grid.Column="2"
-								  VerticalAlignment="Center"
-								  IsOn="{x:Bind MainVM.PersistentData.IsCentreOnCurrent, Mode=TwoWay}"/>
+        <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+			Text="You can tap and hold the map to centre it on the last point. This switch keeps it centred automatically." 
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="6" Grid.Column="2"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsCentreOnCurrent, Mode=TwoWay}"/>
 
-		<TextBlock Grid.Row="8" Grid.ColumnSpan="2"
-								Text="Keep the app alive, overriding the lock screen settings."
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="8" Grid.Column="2"
-								  VerticalAlignment="Center"
-								  IsOn="{x:Bind MainVM.PersistentData.IsKeepAlive, Mode=TwoWay}"/>
+        <TextBlock Grid.Row="8" Grid.ColumnSpan="2"
+			Text="Keep the app alive, overriding the lock screen settings."
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="8" Grid.Column="2"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsKeepAlive, Mode=TwoWay}"/>
 
-		<TextBlock Grid.Row="10"
-								Text="GPS accuracy (m): " 
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<Slider Grid.Row="10" Grid.Column="1"
-								VerticalAlignment="Center"
-								Margin="{StaticResource Thickness2}"
-								Value="{x:Bind MainVM.PersistentData.DesiredAccuracyInMeters, Converter={StaticResource UintToDoubleConverter}, Mode=TwoWay}"
-								Minimum="{x:Bind MainVM.PersistentData.MinDesiredAccuracyInMetresProp, Mode=OneWay}"
-								Maximum="{x:Bind MainVM.PersistentData.MaxDesiredAccuracyInMetresProp, Mode=OneWay}"
-								SmallChange="1" LargeChange="10"
-								IsThumbToolTipEnabled="False"
-								IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
-		<TextBlock Grid.Row="10" Grid.Column="2"
-								Text="{x:Bind MainVM.PersistentData.DesiredAccuracyInMeters, Mode=OneWay}"
-								VerticalAlignment="Center"
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Grid.Row="10"
+			Text="GPS accuracy (m): " 
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <Slider Grid.Row="10" Grid.Column="1"
+			VerticalAlignment="Center"
+			Margin="{StaticResource Thickness2}"
+			Value="{x:Bind MainVM.PersistentData.DesiredAccuracyInMeters, Converter={StaticResource UintToDoubleConverter}, Mode=TwoWay}"
+			Minimum="{x:Bind MainVM.PersistentData.MinDesiredAccuracyInMetresProp, Mode=OneWay}"
+			Maximum="{x:Bind MainVM.PersistentData.MaxDesiredAccuracyInMetresProp, Mode=OneWay}"
+			SmallChange="1" LargeChange="10"
+			IsThumbToolTipEnabled="False"
+			IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"/>
+        <TextBox Grid.Row="10" Grid.Column="2"
+            IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+			Margin="{StaticResource Thickness0404}"
+            Style="{StaticResource ReadOnlyTextBoxWithChrome}"
+            Text="{x:Bind MainVM.PersistentData.DesiredAccuracyInMeters, Mode=OneWay}"
+			VerticalAlignment="Center"/>
 
-		<TextBlock Grid.Row="12"
-								Text="You can tap on a map object to show its details. Raise this for more tolerance." 
-								TextWrapping="Wrap" 
-				   Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<Slider Grid.Row="12" Grid.Column="1"
-								VerticalAlignment="Center"
-								Margin="{StaticResource Thickness2}"
-								Value="{x:Bind MainVM.PersistentData.TapTolerance, Mode=TwoWay}" 
-								IsThumbToolTipEnabled="False"
-								Minimum="{x:Bind MainVM.PersistentData.MinTapToleranceProp, Mode=OneWay}"
-								Maximum="{x:Bind MainVM.PersistentData.MaxTapToleranceProp, Mode=OneWay}"
-								SmallChange="1" LargeChange="3"/>
-		<TextBlock Grid.Row="12" Grid.Column="2"
-								Text="{x:Bind MainVM.PersistentData.TapTolerance, Mode=OneWay}"
-								VerticalAlignment="Center"
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Grid.Row="12"
+			Text="You can tap on a map object to show its details. Raise this for more tolerance." 
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <Slider Grid.Row="12" Grid.Column="1"
+			VerticalAlignment="Center"
+			Margin="{StaticResource Thickness2}"
+			Value="{x:Bind MainVM.PersistentData.TapTolerance, Mode=TwoWay}" 
+			IsThumbToolTipEnabled="False"
+			Minimum="{x:Bind MainVM.PersistentData.MinTapToleranceProp, Mode=OneWay}"
+			Maximum="{x:Bind MainVM.PersistentData.MaxTapToleranceProp, Mode=OneWay}"
+			SmallChange="1" LargeChange="3"/>
+        <TextBox Grid.Row="12" Grid.Column="2"
+			Text="{x:Bind MainVM.PersistentData.TapTolerance, Mode=OneWay}"
+			VerticalAlignment="Center"
+			Style="{StaticResource ReadOnlyTextBoxWithChrome}"
+			Margin="{StaticResource Thickness0404}"/>
 
-		<TextBlock Grid.Row="14" Grid.ColumnSpan="2"
-								Text="Show angles in degrees"
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="14" Grid.Column="2"
-								  VerticalAlignment="Center"
-								  IsOn="{x:Bind MainVM.PersistentData.IsShowDegrees, Mode=TwoWay}"/>
+        <TextBlock Grid.Row="14" Grid.ColumnSpan="2"
+			Text="Show angles in degrees"
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="14" Grid.Column="2"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsShowDegrees, Mode=TwoWay}"/>
 
-		<TextBlock Grid.Row="16" Grid.ColumnSpan="2"
-								Text="Imperial units"
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="16" Grid.Column="2"
-								VerticalAlignment="Center"
-								IsOn="{x:Bind MainVM.PersistentData.IsShowImperialUnits, Mode=TwoWay}"/>
+        <TextBlock Grid.Row="16" Grid.ColumnSpan="2"
+			Text="Imperial units"
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="16" Grid.Column="2"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsShowImperialUnits, Mode=TwoWay}"/>
 
-		<TextBlock Grid.Row="18" Grid.ColumnSpan="2"
-								Text="Show speedometre"
-								TextWrapping="Wrap" 
-								Style="{StaticResource BaseMessageStyle}"
-								Margin="{StaticResource Thickness0404}"
-								VerticalAlignment="Center"/>
-		<ToggleSwitch Grid.Row="18" Grid.Column="2"
-								VerticalAlignment="Center"
-								IsOn="{x:Bind MainVM.PersistentData.IsShowSpeed, Mode=TwoWay}"/>
-	</Grid>
+        <TextBlock Grid.Row="18" Grid.ColumnSpan="2"
+			Text="Show speedometre"
+			TextWrapping="Wrap" 
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"
+			VerticalAlignment="Center"/>
+        <ToggleSwitch Grid.Row="18" Grid.Column="2"
+			VerticalAlignment="Center"
+			IsOn="{x:Bind MainVM.PersistentData.IsShowSpeed, Mode=TwoWay}"/>
+    </Grid>
 </ctl:ObservableControl>
