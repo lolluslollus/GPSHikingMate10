@@ -51,8 +51,8 @@ namespace LolloGPS.GPSInteraction
         {
             RemoveHandlers_DataModelPropertyChanged();
             RemoveHandlers_GeoLocator();
-            GetLocBackgroundTaskSemaphoreManager.SetMainAppIsNotRunningOrNotActive(); // This may take a while, but if you run it in Task.Run it may not fire at all if the app is closing
             RemoveHandlers_GetLocBackgroundTask();
+            GetLocBackgroundTaskSemaphoreManager.SetMainAppIsNotRunningOrNotActive(); // This may take a while, but if you run it in Task.Run it may not fire at all if the app is closing
 
             return Task.CompletedTask;
         }
