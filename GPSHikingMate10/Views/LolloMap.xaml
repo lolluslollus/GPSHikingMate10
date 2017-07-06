@@ -119,7 +119,7 @@
 			Tapped="OnAim_Tapped"
 			Holding="OnAim_Holding"
 			IsDoubleTapEnabled="False" IsRightTapEnabled="False"/>
-        <!-- base tile source and copyright notice -->
+        <!-- base tile source name and copyright notice -->
         <uctl:LayoutTransformer Canvas.ZIndex="300" HorizontalAlignment="Right" VerticalAlignment="Center">
             <uctl:LayoutTransformer.LayoutTransform>
                 <RotateTransform Angle="-90"/>
@@ -129,13 +129,17 @@
 				CornerRadius="10,10,0,0"
 				Visibility="{x:Bind LolloMapVM.IsShowCurrentBaseTileSource, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 				Tapped="OnProvider_Tapped">
-                <TextBlock x:Name="CopyrightTB"
-				    Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
-				    Margin="6,2,6,2"
-                    MaxWidth="{x:Bind MapActualHeight, Mode=OneWay}"
-                    Style="{StaticResource TinyMessageStyle}"
-                    Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
-				    TextWrapping="Wrap"/>
+                <uctl:TextBlockScaler
+                    Margin="6,2,6,2"
+                    MaxWidth="{x:Bind MapActualHeight, Mode=OneWay}">
+                    <uctl:TextBlockScaler.TextBlock>
+                        <TextBlock x:Name="CopyrightTB"
+				            Foreground="{ThemeResource SystemControlForegroundChromeWhiteBrush}"
+                            Style="{StaticResource BaseMessageStyle}"
+                            Text="{x:Bind LolloMapVM.CurrentBaseTileSource, Converter={StaticResource MapSourceToItsCopyrightNoticeConverter}, Mode=OneWay}"
+				            TextWrapping="NoWrap"/>
+                    </uctl:TextBlockScaler.TextBlock>
+                </uctl:TextBlockScaler>
             </Border>
         </uctl:LayoutTransformer>
         <Maps:MapControl Canvas.ZIndex="100"
