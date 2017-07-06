@@ -95,8 +95,8 @@ namespace LolloGPS.ViewModels
                     AllowOverstretch = true,
                     IsRetryEnabled = true,
                     IsFadingEnabled = false,
-                    IsTransparencyEnabled = false,
-                    Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+                    IsTransparencyEnabled = true,
+                    Layer = MapTileLayer.BackgroundOverlay, // we may want to see the default map as well
                     TilePixelSize = tileCache.GetTilePixelSize(),
                     ZIndex = 999,
                     //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
@@ -140,8 +140,8 @@ namespace LolloGPS.ViewModels
                     AllowOverstretch = true,
                     IsRetryEnabled = true,
                     IsFadingEnabled = false,
-                    IsTransparencyEnabled = false,
-                    Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+                    IsTransparencyEnabled = true,
+                    Layer = MapTileLayer.BackgroundOverlay, // we may want to see the default map as well
                     TilePixelSize = tileCache.GetTilePixelSize(),
                     ZIndex = 999,
                     //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
@@ -182,8 +182,8 @@ namespace LolloGPS.ViewModels
                             AllowOverstretch = true,
                             IsRetryEnabled = true,
                             IsFadingEnabled = false,
-                            IsTransparencyEnabled = false,
-                            Layer = MapTileLayer.BackgroundOverlay, // we may have an overlay
+                            IsTransparencyEnabled = true,
+                            Layer = MapTileLayer.BackgroundOverlay, // we may want to see the default map as well
                             TilePixelSize = tileCache.GetTilePixelSize(),
                             ZIndex = 999,
                             //ZoomLevelRange = new MapZoomLevelRange() { Max = tileCache.GetMaxZoom(), Min = tileCache.GetMinZoom() },
