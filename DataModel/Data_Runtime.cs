@@ -120,22 +120,22 @@ namespace LolloGPS.Data.Runtime
         }
         #endregion connection
 
-        #region globalisation
-        private static readonly ResourceLoader _resourceLoader = new ResourceLoader();
-        /// <summary>
-        /// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
-        /// For that, you need Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
-        /// However, that must be called from a view, and this class is not.
-        /// </summary>
-        /// <param name="resourceName"></param>
-        /// <returns></returns>
-        public static string GetText(string resourceName)
-        {
-            // localization localisation globalization globalisation
-            string name = _resourceLoader.GetString(resourceName);
-            return name ?? string.Empty;
-        }
-        #endregion globalisation
+        //#region globalisation
+        //private static readonly ResourceLoader _resourceLoader = new ResourceLoader();
+        ///// <summary>
+        ///// Gets a text from the resources, but not in the complex form such as "Resources/NewFieldValue/Text"
+        ///// For that, you need Windows.ApplicationModel.Resources.Core.ResourceManager.Current.MainResourceMap.GetValue("Resources/NewFieldValue/Text", ResourceContext.GetForCurrentView()).ValueAsString;
+        ///// However, that must be called from a view, and this class is not.
+        ///// </summary>
+        ///// <param name="resourceName"></param>
+        ///// <returns></returns>
+        //public static string GetText(string resourceName)
+        //{
+        //    // localization localisation globalization globalisation
+        //    string name = _resourceLoader.GetString(resourceName);
+        //    return name ?? string.Empty;
+        //}
+        //#endregion globalisation
         #endregion properties
 
         #region lifecycle
