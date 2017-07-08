@@ -1273,25 +1273,27 @@ namespace LolloGPS.Data
         public async Task<Tuple<bool, string>> TrySetModelTileSourceAsync(TileSourceRecord source, CancellationToken cancToken)
         {
             if (source == null) Tuple.Create(false, "Record null");
-            WritableTileSourceRecord newTileSource = null;
+            WritableTileSourceRecord newTestTileSource = null;
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
-                newTileSource = WritableTileSourceRecord.Clone(source);
+                newTestTileSource = WritableTileSourceRecord.Clone(source);
+                newTestTileSource.UriStrings = new List<string>(newTestTileSource.UriStrings.Take(1)); // LOLLO TODO check this
                 // exit if wrong data - it should never happen
-                if (newTileSource == null) return Tuple.Create(false, "Record not found");
-                if (string.IsNullOrWhiteSpace(newTileSource.TechName)) return Tuple.Create(false, "Name is empty");
+                if (newTestTileSource == null) return Tuple.Create(false, "Record not found");
+                if (string.IsNullOrWhiteSpace(newTestTileSource.TechName)) return Tuple.Create(false, "Name is empty");
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
-                string errorMsg = await newTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                string errorMsg = await newTestTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // set
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
-                _modelTileSource = newTileSource;
-                var newTileSourceClone = WritableTileSourceRecord.Clone(newTileSource);
-
+                
+                _modelTileSource = newTestTileSource;
+                var newTileSourceClone = WritableTileSourceRecord.Clone(newTestTileSource);
                 newTileSourceClone.DisplayName = newTileSourceClone.FolderName = newTileSourceClone.TechName = _testTileSource.TechName;
+                newTestTileSource.CopyrightNotice = string.Empty;
                 _testTileSource = newTileSourceClone;
 
                 RaisePropertyChanged_UI(nameof(ModelTileSource));
@@ -1303,7 +1305,7 @@ namespace LolloGPS.Data
             catch (Exception ex)
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                return Tuple.Create(false, $"Error with tile source {newTileSource?.DisplayName ?? string.Empty}");
+                return Tuple.Create(false, $"Error with tile source {newTestTileSource?.DisplayName ?? string.Empty}");
             }
             finally
             {
