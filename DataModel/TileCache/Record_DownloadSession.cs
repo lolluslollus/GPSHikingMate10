@@ -127,7 +127,7 @@ namespace LolloGPS.Data.TileCache
         {
             return tileSources.Select(ts =>
             {
-                var tsClone = WritableTileSourceRecord.Clone(ts);
+                var tsClone = TileSourceRecord.CloneWritable(ts);
                 var maxZoomReduced = Math.Min(tsClone.MaxZoom, maxZoom);
                 var minZoomReduced = Math.Max(tsClone.MinZoom, minZoom);
                 //if (minZoomReduced > maxZoomReduced) maxZoomReduced = minZoomReduced = 0;

@@ -510,12 +510,37 @@ namespace LolloGPS.ViewModels
 
                 var pd = PersistentData;
                 if (pd == null) return;
-
-                var tsClone = WritableTileSourceRecord.Clone(ts);
-
+                
                 // LOLLO TODO why is the "clear" button disabled until I click "accept"?
-                // LOLLO TODO shall I give the option to insert multiple sources? a la a, b, c. Maybe max 3 sources?
-                var result = await pd.TrySetModelTileSourceAsync(tsClone, CancToken).ConfigureAwait(false);
+                var result = await pd.TrySetModelTileSourceAsync(ts, CancToken).ConfigureAwait(false);
+                if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
+                else TestTileSourceErrorMsg = result?.Item2 ?? "";
+
+                _mainVM?.SetLastMessage_UI(result?.Item2);
+            });
+        }
+        public Task AddUriToTestTileSourceAsync()
+        {
+            return RunFunctionIfOpenAsyncT(async () =>
+            {
+                var pd = PersistentData;
+                if (pd == null) return;
+
+                var result = await pd.AddUriToTestTileSourceAsync(CancToken).ConfigureAwait(false);
+                if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
+                else TestTileSourceErrorMsg = result?.Item2 ?? "";
+
+                _mainVM?.SetLastMessage_UI(result?.Item2);
+            });
+        }
+        public Task RemoveUriFromTestTileSourceAsync(TypedString uriString)
+        {
+            return RunFunctionIfOpenAsyncT(async () =>
+            {
+                var pd = PersistentData;
+                if (pd == null) return;
+
+                var result = await pd.RemoveUriFromTestTileSourceAsync(uriString, CancToken).ConfigureAwait(false);
                 if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
                 else TestTileSourceErrorMsg = result?.Item2 ?? "";
 

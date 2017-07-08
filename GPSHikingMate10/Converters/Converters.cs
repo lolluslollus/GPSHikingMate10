@@ -13,6 +13,20 @@ using Windows.UI.Xaml.Data;
 
 namespace LolloGPS.Converters
 {
+    // useful to debug bindings
+    public class DoNothingConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            return value;
+        }
+    }
+
     public class DoubleMultiplyConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)

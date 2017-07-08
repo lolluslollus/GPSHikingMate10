@@ -1274,16 +1274,18 @@ namespace LolloGPS.Data
         {
             if (source == null) return Tuple.Create(false, "Record null");
             WritableTileSourceRecord newTestTileSource = null;
+            WritableTileSourceRecord newModelTileSource = null;
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
-                // take some properties from the source, and some from TestTileSource
-                newTestTileSource = WritableTileSourceRecord.Clone(source);
-                newTestTileSource.UriStrings = new List<string>(newTestTileSource.UriStrings.Take(1)); // LOLLO TODO check this
+                // make new test tile source: take the properties from the source, and the names from TestTileSource
+                newTestTileSource = TileSourceRecord.CloneWritable(source);
                 newTestTileSource.DisplayName = newTestTileSource.FolderName = newTestTileSource.TechName = _testTileSource.TechName;
                 newTestTileSource.CopyrightNotice = string.Empty;
+                // make new model tile source
+                newModelTileSource = TileSourceRecord.CloneWritable(source);
                 // exit if wrong data - it should never happen
                 if (newTestTileSource == null) return Tuple.Create(false, "Record not found");
                 if (string.IsNullOrWhiteSpace(newTestTileSource.TechName)) return Tuple.Create(false, "Name is empty");
@@ -1293,8 +1295,8 @@ namespace LolloGPS.Data
                 // set
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
 
-                _modelTileSource = newTestTileSource;
-                _testTileSource = WritableTileSourceRecord.Clone(newTestTileSource);
+                _modelTileSource = newModelTileSource;
+                _testTileSource = newTestTileSource;
                 RaisePropertyChanged_UI(nameof(ModelTileSource));
                 RaisePropertyChanged_UI(nameof(TestTileSource));
                 return Tuple.Create(true, "");
@@ -1305,6 +1307,89 @@ namespace LolloGPS.Data
             {
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 return Tuple.Create(false, $"Error with tile source {newTestTileSource?.DisplayName ?? string.Empty}");
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+
+        public async Task<Tuple<bool, string>> AddUriToTestTileSourceAsync(CancellationToken cancToken)
+        {
+            WritableTileSourceRecord tts = null;
+            try
+            {
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                IsTileSourcezBusy = true;
+
+                tts = _testTileSource;
+                // exit if no tts - it should never happen
+                if (tts == null) return Tuple.Create(false, "TestTileSource not found");
+                // add
+                var isAdded = tts.TryAddUriString(string.Empty);
+                // exit if error
+                if (!isAdded.Item1) return isAdded;
+                // make sure listeners get it
+                _testTileSource = WritableTileSourceRecord.Clone(tts);
+                RaisePropertyChanged_UI(nameof(TestTileSource));
+                // some more checks
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                return Tuple.Create(true, "");
+            }
+            catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }
+            catch (OperationCanceledException) { return Tuple.Create(false, "cancelled"); }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return Tuple.Create(false, $"Error with tile source {tts?.DisplayName ?? string.Empty}");
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        public async Task<Tuple<bool, string>> RemoveUriFromTestTileSourceAsync(TypedString uriString, CancellationToken cancToken)
+        {
+            WritableTileSourceRecord tts = null;
+            try
+            {
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                IsTileSourcezBusy = true;
+
+                tts = _testTileSource;
+                // exit if no tts - it should never happen
+                if (tts == null) return Tuple.Create(false, "TestTileSource not found");
+                // remove
+                var isRemoved = tts.TryRemoveUriString(uriString);
+                // exit if error
+                if (!isRemoved) return Tuple.Create(true, string.Empty);
+                // make sure listeners get it
+                _testTileSource = WritableTileSourceRecord.Clone(tts);
+                RaisePropertyChanged_UI(nameof(TestTileSource));
+                // some more checks
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                return Tuple.Create(true, "");
+            }
+            catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }
+            catch (OperationCanceledException) { return Tuple.Create(false, "cancelled"); }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return Tuple.Create(false, $"Error with tile source {tts?.DisplayName ?? string.Empty}");
             }
             finally
             {
@@ -1327,19 +1412,19 @@ namespace LolloGPS.Data
 
                 // the following is not atomic because there may be concurrent action in the UI thread. 
                 // However, this method is currently called in the UI thread, and this is not critical anyway.
-                var testTileSource = WritableTileSourceRecord.Clone(_testTileSource);
+                var tts = WritableTileSourceRecord.Clone(_testTileSource);
                 // exit if wrong data - it should never happen
-                if (testTileSource == null) return Tuple.Create(false, "Record not found");
-                if (string.IsNullOrWhiteSpace(testTileSource.TechName)) return Tuple.Create(false, "Name is empty");
+                if (tts == null) return Tuple.Create(false, "Record not found");
+                if (string.IsNullOrWhiteSpace(tts.TechName)) return Tuple.Create(false, "Name is empty");
                 // set non-screen properties
-                testTileSource.FolderName = testTileSource.DisplayName = testTileSource.TechName; // we always set it automatically
-                testTileSource.IsCustom = true;
+                tts.FolderName = tts.DisplayName = tts.TechName; // we always set it automatically
+                tts.IsCustom = true;
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
-                string errorMsg = await testTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // try the insertion
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
-                Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(testTileSource, cancToken)).ConfigureAwait(false);
+                Tuple<bool, string> tryInsert = await RunInUiThreadAsyncTT(() => TryInsertTestTileSourceIntoTileSourcez2Async(tts, cancToken)).ConfigureAwait(false);
                 return tryInsert;
             }
             catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }

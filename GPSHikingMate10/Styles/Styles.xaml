@@ -188,8 +188,6 @@
 
     <x:Double x:Key="AppBarButtonWidth">68</x:Double>
     <x:Double x:Key="AppBarButtonEllipseDiametre">40</x:Double>
-    <!--<x:Double x:Key="AppBarButtonFullOutWidth">80</x:Double>-->
-    <!--<x:Double x:Key="AppBarButtonExtendedFullOutWidth">100</x:Double>-->
 
     <Style x:Key="AppBarButtonRecoloured" TargetType="AppBarButton">
         <!--<Setter Property="Foreground" Value="{ThemeResource AppBarItemForegroundThemeBrush}"/>-->
@@ -215,6 +213,9 @@
                                     <Storyboard>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Visibility">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
@@ -365,6 +366,9 @@
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Visibility">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed" />
                                         </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
+                                        </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}" />
                                         </ObjectAnimationUsingKeyFrames>
@@ -500,6 +504,9 @@
                                     <Storyboard>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Visibility">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>

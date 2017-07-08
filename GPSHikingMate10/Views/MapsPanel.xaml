@@ -12,7 +12,7 @@
 	d:DesignHeight="600"
 	d:DesignWidth="400">
 
-    <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}">
+    <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -80,7 +80,7 @@
 				x:Name="BaseMapSourceChooser"
 				PlaceholderText="Select a map tile source"
 				ListHeaderText="Select a map tile source"
-				PopupContainer="{x:Bind me, Mode=OneWay}"
+				PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
 				BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
 				Margin="{StaticResource Thickness2}"
 				ItemsSource="{x:Bind MapsPanelVM.BaseTileSourceChoices, Mode=OneWay}"
@@ -105,7 +105,7 @@
                 IsMultiSelectCheckBoxEnabled="True"
 				PlaceholderText="Select map tile sources"
 				ListHeaderText="Select map tile sources"
-				PopupContainer="{x:Bind me, Mode=OneWay}"
+				PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
 				BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
 				Margin="{StaticResource Thickness2}"
 				ItemsSource="{x:Bind MapsPanelVM.OverlayTileSourceChoices, Mode=OneWay}"
@@ -149,7 +149,7 @@
 			x:Name="ZoomLevelChooser"
 			PlaceholderText="Select max zoom level to download"
 			ListHeaderText="Select max zoom level to download"
-			PopupContainer="{x:Bind me, Mode=OneWay}"
+			PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
             IsPopupOpen="{x:Bind MapsPanelVM.IsShowZoomLevelChoices, Mode=OneWay}"
             ItemsSource="{x:Bind MapsPanelVM.ZoomLevelChoices, Mode=OneWay}"
@@ -170,7 +170,7 @@
 			x:Name="ClearCacheChooser"
 			PlaceholderText="Which cache do you want to clear?"
 			ListHeaderText="Which cache do you want to clear?"
-			PopupContainer="{x:Bind me, Mode=OneWay}"
+			PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCache, Mode=OneWay}"
 			ItemSelected="OnClearCacheChooser_ItemSelected"/>
@@ -190,7 +190,7 @@
 			x:Name="SaveCacheChooser"
 			PlaceholderText="Which cache do you want to save?"
 			ListHeaderText="Which cache do you want to save?"
-			PopupContainer="{x:Bind me, Mode=OneWay}"
+			PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
 			BackPressedRaiser="{x:Bind MainVM, Mode=OneWay}"
 			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forSavingTiles, Mode=OneWay}"
 			ItemSelected="OnSaveCacheChooser_ItemSelected"/>

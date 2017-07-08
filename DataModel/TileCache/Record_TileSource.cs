@@ -17,13 +17,28 @@ using Utilz.Data;
 namespace LolloGPS.Data.TileCache
 {
     [DataContract]
+    public class TypedString : ObservableData, IComparable
+    {
+        private string _str = string.Empty;
+        public string Str { get { return _str; } set { _str = value; RaisePropertyChanged_UI(); } }
+        public TypedString(string str)
+        {
+            Str = str;
+        }
+
+        public int CompareTo(object obj)
+        {
+            return string.Compare(_str, (obj as TypedString)._str);
+        }
+    }
+    [DataContract]
     [KnownType(typeof(string[]))]
-    //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
     [KnownType(typeof(WritableTileSourceRecord))]
     public class TileSourceRecord : ObservableData, IComparable
     {
         #region constants
+        protected const int MaxUriSources = 10;
         protected const string DefaultTileSourceTechName = "Nokia";
         protected const string AllTileSourceTechName = "All";
         protected const string NoTileSourceTechName = "None";
@@ -32,16 +47,15 @@ namespace LolloGPS.Data.TileCache
         protected const string DefaultTileSourceDisplayName = "Built in";
         protected const string AllTileSourceDisplayName = "All";
         protected const string NoTileSourceDisplayName = "None";
-        
+
         public const string SampleLocalUriString = "MyTile_{zoomlevel}_{x}_{y}.png";
-        public const string SampleRemoteUriString = "http://tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png";
+        public const string SampleRemoteUriString = "http://tileserver.something/{zoomlevel}/{x}/{y}.png";
 
         protected static readonly string[] DefaultTileSourceUriString = { };
-        protected static readonly string DefaultTileSourceProviderUriString = string.Empty;
         protected static readonly string[] DummyTileSourceUriString = { };
         protected static readonly string DummyTileSourceProviderUriString = string.Empty;
-        protected static readonly string[] SampleLocalUriStrings = { SampleLocalUriString };
-        protected static readonly string[] SampleRemoteUriStrings = { SampleRemoteUriString };
+        protected static readonly List<TypedString> SampleLocalUriStrings = (new TypedString[] { new TypedString(SampleLocalUriString) }).ToList();
+        protected static readonly List<TypedString> SampleRemoteUriStrings = (new TypedString[] { new TypedString(SampleRemoteUriString) }).ToList();
 
         public const int MinMinZoom = 0;
         protected const int DummyTileSourceMinZoom = 0;
@@ -100,8 +114,9 @@ namespace LolloGPS.Data.TileCache
         public string CopyrightNotice { get { return _copyrightNotice; } }
 
         [DataMember]
-        protected IReadOnlyList<string> _uriStrings = SampleRemoteUriStrings;
-        public IReadOnlyList<string> UriStrings { get { return _uriStrings; } }
+        protected List<TypedString> _uriStrings = SampleRemoteUriStrings;
+        //public IReadOnlyList<string> UriStrings { get { return _uriStrings.AsReadOnly(); } }
+        public List<TypedString> UriStrings { get { return (_uriStrings); } }
 
         [DataMember]
         protected string _providerUriString = string.Empty;
@@ -176,7 +191,8 @@ namespace LolloGPS.Data.TileCache
             _isCustom = isCustom;
             _isOverlay = isOverlay;
             _requestHeaders = headers;
-            _uriStrings = uriStrings;
+            var newUriStrings = uriStrings.ToList();
+            _uriStrings = uriStrings.Select(us => new TypedString(us)).ToList();
         }
 
         #region checks
@@ -241,7 +257,7 @@ namespace LolloGPS.Data.TileCache
 
             return string.Empty;
         }
-        private static string CheckUri(IReadOnlyList<string> uris, bool isEmptyAllowed, bool isFileSource)
+        private static string CheckUri(IReadOnlyList<TypedString> uris, bool isEmptyAllowed, bool isFileSource)
         {
             if (uris == null || uris.Count == 0)
             {
@@ -250,7 +266,7 @@ namespace LolloGPS.Data.TileCache
             }
             foreach (var item in uris)
             {
-                var result = CheckUri(item, isEmptyAllowed, isFileSource);
+                var result = CheckUri(item.Str, isEmptyAllowed, isFileSource);
                 if (!string.IsNullOrWhiteSpace(result)) return result;
             }
             return string.Empty;
@@ -327,8 +343,19 @@ namespace LolloGPS.Data.TileCache
             return new TileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName, source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isCustom, source._isOverlay,
-                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
         }
+        public static WritableTileSourceRecord CloneWritable(TileSourceRecord source)
+        {
+            if (source == null) return null;
+
+            return new WritableTileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName,
+                source._techName, source._displayName, source._folderName, source._copyrightNotice,
+                source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
+                source._isCustom, source._isOverlay,
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
+        }
+
         public bool IsEqualTo(TileSourceRecord comp)
         {
             if (comp == null) return false;
@@ -636,7 +663,7 @@ namespace LolloGPS.Data.TileCache
         }
         public static TileSourceRecord GetDefaultTileSource()
         {
-            return new TileSourceRecord(false, "", "", DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
+            return new TileSourceRecord(false, "", "", DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", "", MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
         }
         public static List<TileSourceRecord> GetDefaultTileSourceList()
         {
@@ -671,7 +698,6 @@ namespace LolloGPS.Data.TileCache
 
     [DataContract]
     [KnownType(typeof(string[]))]
-    //[KnownType(typeof(IReadOnlyList<string>))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
     public class WritableTileSourceRecord : TileSourceRecord
     {
@@ -683,7 +709,9 @@ namespace LolloGPS.Data.TileCache
 
         public new string CopyrightNotice { get { return _copyrightNotice; } set { _copyrightNotice = value; RaisePropertyChanged_UI(); } }
 
-        public new IReadOnlyList<string> UriStrings { get { return _uriStrings; } set { _uriStrings = value; RaisePropertyChanged_UI(); } }
+        // LOLLO NOTE use the same type as the superclass, even if the temptation is strong, or you will get crazy errors
+        //public new IReadOnlyList<string> UriStrings { get { return _uriStrings.AsReadOnly(); } private set { _uriStrings = value.ToList(); RaisePropertyChanged_UI(); } }
+        public new List<TypedString> UriStrings { get { return _uriStrings; } private set { _uriStrings = value; RaisePropertyChanged_UI(); } }
 
         public new string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged_UI(); } }
 
@@ -716,6 +744,20 @@ namespace LolloGPS.Data.TileCache
                 headers, uriStrings)
         { }
 
+        public Tuple<bool, string> TryAddUriString(string newUriString)
+        {
+            if (_uriStrings.Count >= MaxUriSources) return Tuple.Create(false, $"Max {MaxUriSources} uris");
+
+            _uriStrings.Add(new TypedString(newUriString));
+            RaisePropertyChanged_UI(nameof(UriStrings));
+            return Tuple.Create(true, string.Empty);
+        }
+        public bool TryRemoveUriString(TypedString uriString)
+        {
+            var result = _uriStrings.Remove(uriString);
+            RaisePropertyChanged_UI(nameof(UriStrings));
+            return result;
+        }
         public static WritableTileSourceRecord Clone(WritableTileSourceRecord source)
         {
             if (source == null) return null;
@@ -724,22 +766,16 @@ namespace LolloGPS.Data.TileCache
                 source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isCustom, source._isOverlay,
-                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
-        }
-        public new static WritableTileSourceRecord Clone(TileSourceRecord source)
-        {
-            if (source == null) return null;
-
-            return new WritableTileSourceRecord(source.IsFileSource, source.TileSourceFolderPath, source.TileSourceFileName,
-                source.TechName, source.DisplayName, source.FolderName, source.CopyrightNotice,
-                source.ProviderUriString, source.MinZoom, source.MaxZoom, source.TilePixelSize,
-                source.IsCustom, source.IsOverlay,
-                new Dictionary<string, string>(source.RequestHeaders), source.UriStrings.ToArray());
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
         }
 
         public static WritableTileSourceRecord GetSampleRemoteTileSource()
         {
-            return new WritableTileSourceRecord(false, "", SampleLocalUriString, SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleRemoteUriStrings);
+            return new WritableTileSourceRecord(false, "", SampleLocalUriString,
+                SampleTileSourceTechName, SampleTileSourceTechName, "", "",
+                "", MinMinZoom, SampleMaxZoom, DefaultTilePixelSize,
+                false, false,
+                GetDefaultWebHeaderCollection(), SampleRemoteUriStrings.Select(us => us.Str).ToArray());
         }
     }
 }

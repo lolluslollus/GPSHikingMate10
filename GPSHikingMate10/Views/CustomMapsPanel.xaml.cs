@@ -1,20 +1,18 @@
-﻿using LolloGPS.Data;
-using LolloGPS.Data.Runtime;
-using LolloGPS.Data.TileCache;
+﻿using LolloGPS.Data.TileCache;
 using LolloGPS.ViewModels;
 using System.Threading.Tasks;
+using Utilz;
 using Utilz.Controlz;
+using Utilz.Data;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace LolloGPS.Core
 {
-    public sealed partial class CustomMapsPanel : Utilz.Controlz.OpenableObservableControl
+    public sealed partial class CustomMapsPanel : OpenableObservableControl
     {
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
-
         public MainVM MainVM
         {
             get { return (MainVM)GetValue(MainVMProperty); }
@@ -55,7 +53,7 @@ namespace LolloGPS.Core
             {
                 ClearCustomCacheChooser.IsPopupOpen = true;
             }
-            else PersistentData.LastMessage = "Cache busy";
+            else MainVM?.SetLastMessage_UI("Cache busy");
         }
 
         private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
@@ -81,6 +79,18 @@ namespace LolloGPS.Core
         private void OnPickCustomTileSourceChooser_ItemSelected(object sender, TextAndTag e)
         {
             Task pick = MapsPanelVM?.SetModelTileSourceAsync(e?.Tag as TileSourceRecord);
+        }
+
+        private void OnAddUriString_Click(object sender, RoutedEventArgs e)
+        {
+            Task add = MapsPanelVM?.AddUriToTestTileSourceAsync();
+        }
+
+        private void OnRemoveUriString_Click(object sender, RoutedEventArgs e)
+        {
+            var dataContext = (sender as FrameworkElement)?.DataContext as TypedString;
+            if (dataContext == null) return;
+            Task add = MapsPanelVM?.RemoveUriFromTestTileSourceAsync(dataContext);
         }
     }
 }

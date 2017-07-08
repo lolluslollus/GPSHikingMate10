@@ -81,7 +81,7 @@ namespace LolloGPS.Data.TileCache
         private static async Task<byte[]> GetPixelArrayFromRandomAccessStream(IRandomAccessStream source)
         {
 #if DEBUG
-            var sw = new Stopwatch(); sw.Start();
+            //var sw = new Stopwatch(); sw.Start();
 #endif
             try
             {
@@ -108,11 +108,11 @@ namespace LolloGPS.Data.TileCache
                 return null;
             }
 #if DEBUG
-            finally
-            {
-                sw.Stop();
-                Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedTicks + " ticks");
-            }
+            //finally
+            //{
+            //    sw.Stop();
+            //    Debug.WriteLine("GetPixelArrayFromRandomAccessStream has taken " + sw.ElapsedTicks + " ticks");
+            //}
 #endif
         }
         private static async Task<RandomAccessStreamReference> GetStreamRefFromArray(byte[] array)
