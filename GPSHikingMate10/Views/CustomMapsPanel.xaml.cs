@@ -92,5 +92,17 @@ namespace LolloGPS.Core
             if (dataContext == null) return;
             Task add = MapsPanelVM?.RemoveUriFromTestTileSourceAsync(dataContext);
         }
+
+        private void OnAddRequestHeader_Click(object sender, RoutedEventArgs e)
+        {
+            Task add = MapsPanelVM?.AddRequestHeaderToTestTileSourceAsync();
+        }
+        private void OnRemoveRequestHeader_Click(object sender, RoutedEventArgs e)
+        {
+            var dataContext = (sender as FrameworkElement)?.DataContext as KeyAndValue;
+            if (dataContext == null) return;
+
+            Task remove = MapsPanelVM?.RemoveRequestHeaderFromTestTileSourceAsync(dataContext);
+        }
     }
 }

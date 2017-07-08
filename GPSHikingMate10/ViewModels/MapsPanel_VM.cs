@@ -5,7 +5,9 @@ using LolloGPS.Data.TileCache;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Utilz;
 using Utilz.Controlz;
@@ -58,6 +60,9 @@ namespace LolloGPS.ViewModels
         private List<TextAndTag> _modelTileSources = new List<TextAndTag>();
         public List<TextAndTag> ModelTileSources { get { return _modelTileSources; } private set { _modelTileSources = value; RaisePropertyChanged_UI(); } }
 
+        private readonly SwitchableObservableCollection<KeyAndValue> _requestHeaders = new SwitchableObservableCollection<KeyAndValue>();
+        public SwitchableObservableCollection<KeyAndValue> RequestHeaders { get { return _requestHeaders; } /*private set { _requestHeaders = value; RaisePropertyChanged_UI(); }*/ }
+
         public string SampleLocalUriString { get { return TileSourceRecord.SampleLocalUriString; } }
         public string SampleRemoteUriString { get { return TileSourceRecord.SampleRemoteUriString; } }
 
@@ -84,6 +89,7 @@ namespace LolloGPS.ViewModels
             await _tileCacheClearerSaver.OpenAsync(args);
 
             AddHandlers_DataChanged();
+            KeyAndValue.SomethingChanged += OnKeyAndValue_SomethingChanged;
 
             ICollection<TileSourceRecord> allTileSources = null;
             ICollection<TileSourceRecord> currentTileSources = null;
@@ -106,11 +112,13 @@ namespace LolloGPS.ViewModels
                 UpdateSelectedBaseTile(currentTileSources);
                 UpdateSelectedOverlayTiles(currentTileSources);
                 UpdateModelTileSources();
+                UpdateRequestHeaders();
             }).ConfigureAwait(false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
+            KeyAndValue.SomethingChanged -= OnKeyAndValue_SomethingChanged;
             RemoveHandlers_DataChanged();
             await _tileCacheClearerSaver.CloseAsync(args);
         }
@@ -180,13 +188,23 @@ namespace LolloGPS.ViewModels
             var ts = PersistentData?.ModelTileSource;
             if (ts == null)
             {
-                ModelTileSources.Clear();
+                ModelTileSources = new List<TextAndTag>();
             }
             else
             {
                 ModelTileSources = ((new TextAndTag[] { new TextAndTag(ts.DisplayName, WritableTileSourceRecord.Clone(ts)) }).ToList());
             }
         }
+
+        private void UpdateRequestHeaders()
+        {
+            var ts = PersistentData?.TestTileSource;
+            RequestHeaders.Clear();
+            if (ts == null) return;
+
+            RequestHeaders.ReplaceAll(ts.RequestHeaders.Select(kvp => new KeyAndValue(kvp.Key, kvp.Value, ts)).ToList());
+        }
+
         private void UpdateSelectedBaseTile(ICollection<TileSourceRecord> currentTileSources)
         {
             var currentBaseTileSource = currentTileSources?.FirstOrDefault(ts => !ts.IsOverlay);
@@ -306,6 +324,13 @@ namespace LolloGPS.ViewModels
                     UpdateModelTileSources();
                 }).ConfigureAwait(false);
             }
+            else if (e.PropertyName == nameof(PersistentData.TestTileSource))
+            {
+                await RunInUiThreadAsync(delegate
+                {
+                    UpdateRequestHeaders();
+                }).ConfigureAwait(false);
+            }
         }
 
         private async void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -319,6 +344,23 @@ namespace LolloGPS.ViewModels
                     UpdateIsTestCustomTileSourceEnabled();
                 }).ConfigureAwait(false);
             }
+        }
+
+        private async void OnKeyAndValue_SomethingChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var pd = PersistentData;
+            var tts = pd?.TestTileSource;
+            if (tts == null) return;
+
+            var nd = new Dictionary<string, string>();
+            foreach (var rh in RequestHeaders)
+            {
+                nd.Add(rh.Key, rh.Val);
+            }
+            // LOLLO TODO this is rather overkill, most other fields of TestTileSource are changed directly from the UI with two-way bindings.
+            // Maybe I do it properly one day.
+            var result = await pd.SetRequestHeadersOfTestTileSourceAsync(nd, CancToken);
+            if (result?.Item1 != true) _mainVM?.SetLastMessage_UI(result?.Item2 ?? "Error setting the response headers");
         }
 
         private async void OnTileCache_IsClearingOrSavingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -510,7 +552,7 @@ namespace LolloGPS.ViewModels
 
                 var pd = PersistentData;
                 if (pd == null) return;
-                
+
                 var result = await pd.TrySetModelTileSourceAsync(ts, CancToken).ConfigureAwait(false);
                 if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
                 else TestTileSourceErrorMsg = result?.Item2 ?? "";
@@ -546,6 +588,59 @@ namespace LolloGPS.ViewModels
                 _mainVM?.SetLastMessage_UI(result?.Item2);
             });
         }
+
+        public Task AddRequestHeaderToTestTileSourceAsync()
+        {
+            return RunFunctionIfOpenAsyncT(async () =>
+            {
+                var pd = PersistentData;
+                if (pd == null) return;
+
+                var result = await pd.AddRequestHeaderToTestTileSourceAsync(CancToken).ConfigureAwait(false);
+                if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
+                else TestTileSourceErrorMsg = result?.Item2 ?? "";
+
+                _mainVM?.SetLastMessage_UI(result?.Item2);
+            });
+        }
+        public Task RemoveRequestHeaderFromTestTileSourceAsync(KeyAndValue keyAndValue)
+        {
+            return RunFunctionIfOpenAsyncT(async () =>
+            {
+                var pd = PersistentData;
+                if (pd == null) return;
+
+                var result = await pd.RemoveRequestHeaderFromTestTileSourceAsync(keyAndValue?.Key, CancToken).ConfigureAwait(false);
+                if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
+                else TestTileSourceErrorMsg = result?.Item2 ?? "";
+
+                _mainVM?.SetLastMessage_UI(result?.Item2);
+            });
+        }
         #endregion services
+    }
+
+    public class KeyAndValue : ObservableData
+    {
+        public static event PropertyChangedEventHandler SomethingChanged;
+        protected void RaiseSomethingChanged_UI([CallerMemberName] string propertyName = "")
+        {
+            if (SomethingChanged == null) return;
+            Task raise = RunInUiThreadAsync(delegate
+            {
+                SomethingChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            });
+        }
+        private string _key = string.Empty;
+        public string Key { get { return _key; } set { _key = value; RaisePropertyChanged_UI(); RaiseSomethingChanged_UI(); } }
+        private string _val = string.Empty;
+        public string Val { get { return _val; } set { _val = value; RaisePropertyChanged_UI(); RaiseSomethingChanged_UI(); } }
+        private readonly WritableTileSourceRecord _wts = null;
+        public KeyAndValue(string key, string val, WritableTileSourceRecord wts)
+        {
+            _key = key;
+            _val = val;
+            _wts = wts;
+        }
     }
 }

@@ -45,6 +45,7 @@ namespace LolloGPS.Data.TileCache
     {
         #region constants
         protected const int MaxUriSources = 10;
+        protected const int MaxRequestHeaders = 20;
         protected const string DefaultTileSourceTechName = "Nokia";
         protected const string AllTileSourceTechName = "All";
         protected const string NoTileSourceTechName = "None";
@@ -56,11 +57,11 @@ namespace LolloGPS.Data.TileCache
 
         public const string SampleLocalUriString = "MyTile_{zoomlevel}_{x}_{y}.png";
         public const string SampleRemoteUriString = "http://tileserver.something/{zoomlevel}/{x}/{y}.png";
+        //public static readonly Dictionary<string, string> SampleRemoteRequestHeaders = GetDefaultWebHeaderCollection();
 
         protected static readonly string[] DefaultTileSourceUriString = { };
         protected static readonly string[] DummyTileSourceUriString = { };
         protected static readonly string DummyTileSourceProviderUriString = string.Empty;
-        protected static readonly List<TypedString> SampleLocalUriStrings = (new TypedString[] { new TypedString(SampleLocalUriString) }).ToList();
         protected static readonly List<TypedString> SampleRemoteUriStrings = (new TypedString[] { new TypedString(SampleRemoteUriString) }).ToList();
 
         public const int MinMinZoom = 0;
@@ -91,7 +92,7 @@ namespace LolloGPS.Data.TileCache
         private static Dictionary<string, string> GetAcceptImageWebHeaderCollection()
         {
             var headers = new Dictionary<string, string>();
-            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = TileCache.TileCacheReaderWriter.MimeTypeImageAny;
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = TileCacheReaderWriter.MimeTypeImageAny;
             return headers;
         }
         private static Dictionary<string, string> GetSchweizmobilWebHeaderCollection()
@@ -751,9 +752,10 @@ namespace LolloGPS.Data.TileCache
 
         public Tuple<bool, string> TryAddUriString(string newUriString)
         {
-            if (_uriStrings.Count >= MaxUriSources) return Tuple.Create(false, $"Max {MaxUriSources} uris");
+            var uss = _uriStrings;
+            if (uss.Count >= MaxUriSources) return Tuple.Create(false, $"Max {MaxUriSources} uris");
 
-            _uriStrings.Add(new TypedString(newUriString));
+            uss.Add(new TypedString(newUriString));
             RaisePropertyChanged_UI(nameof(UriStrings));
             return Tuple.Create(true, string.Empty);
         }
@@ -763,6 +765,31 @@ namespace LolloGPS.Data.TileCache
             RaisePropertyChanged_UI(nameof(UriStrings));
             return result;
         }
+        public Tuple<bool, string> TryAddRequestHeader()
+        {
+            var rh = _requestHeaders;
+            if (rh.Count >= MaxRequestHeaders) return Tuple.Create(false, $"Max {MaxRequestHeaders} headers");
+
+            if (rh.ContainsKey(string.Empty)) return Tuple.Create(false, "A header with empty key already exists");
+
+            rh.Add(string.Empty, string.Empty);
+            RaisePropertyChanged_UI(nameof(RequestHeaders));
+            return Tuple.Create(true, string.Empty);
+        }
+        public bool TryRemoveRequestHeader(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return false;
+            var result = _requestHeaders.Remove(key);
+            RaisePropertyChanged_UI(nameof(RequestHeaders));
+            return result;
+        }
+        public void SetRequestHeaders(Dictionary<string, string> requestHeaders)
+        {
+            if (requestHeaders == null) return;
+
+            RequestHeaders = requestHeaders;
+        }
+
         public static WritableTileSourceRecord Clone(WritableTileSourceRecord source)
         {
             if (source == null) return null;
