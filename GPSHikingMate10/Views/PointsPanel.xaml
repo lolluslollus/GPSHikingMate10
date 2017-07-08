@@ -224,7 +224,7 @@
 			Text="Symbol"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <mctl:CheckpointStyleSelector Grid.Row="6" Grid.Column="0"
+        <mctl:CheckpointSymbolSelector Grid.Row="6" Grid.Column="0"
             Foreground="{StaticResource CheckpointBrushOpaque}"
             Checkpoint="{x:Bind PersistentData.Target, Mode=OneWay}"/>
 
@@ -252,28 +252,26 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <!--Label="Show degrees"-->
-            <uctl:AppBarToggleButtonReallyCompact Grid.Row="0"
-				IsChecked="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
-				IsCompact="True"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"
+            <AppBarToggleButton Grid.Row="0"				
 				Icon="Clock"
+                IsChecked="{x:Bind PersistentData.IsShowDegrees, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
+                Style="{StaticResource AppBarToggleButtonRecolouredCompact}"
+                HorizontalAlignment="Center"
 				TabIndex="2"/>
             <!--Label="Go to target"-->
-            <uctl:AppBarButtonReallyCompact Grid.Row="1"
-				Click="OnGotoTarget_Click" 
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"
+            <AppBarButton Grid.Row="1"
 				Icon="View"
+                Click="OnGotoTarget_Click"
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
+                HorizontalAlignment="Center"
 				TabIndex="1"/>
         </Grid>
 
         <!-- hyperlink commands -->
-        <uctl:AppBarButtonReallyCompact Grid.Row="3" Grid.Column="1" Grid.RowSpan="2"
+        <AppBarButton Grid.Row="3" Grid.Column="1" Grid.RowSpan="2"
 			IsEnabled="{x:Bind PersistentData.Target.HyperLink, Converter={StaticResource StringNotEmptyToTrueConverter}, Mode=OneWay}"
-			VerticalAlignment="Center"
 			Click="OnHyperlink_Click"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Icon="World"/>
 
         <!--target commands-->
@@ -282,12 +280,10 @@
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Add / merge this point into your checkpoints"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="1"
-			VerticalAlignment="Center"
+        <AppBarButton Grid.Row="8" Grid.Column="1"
 			Click="OnAddTargetToCheckpoints_Click"
-			IsCompact="True"
 			Foreground="{StaticResource CheckpointBrushOpaque}"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Icon="Add"/>
 
         <!-- too many checkpoints notice-->
@@ -307,13 +303,11 @@
         <ContentControl Grid.Row="10" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
-            <uctl:AppBarButtonReallyCompact
-				VerticalAlignment="Center"
+            <AppBarButton
 				IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
 				Click="OnSetTargetToCurrentPoint_Click" 
-				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
-				Style="{StaticResource AppBarButtonRecoloured}"
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Icon="Map"/>
         </ContentControl>
 
@@ -325,17 +319,15 @@
         <ContentControl Grid.Row="11" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
-            <uctl:AppBarToggleButtonReallyCompact
-				VerticalAlignment="Center"
+            <AppBarToggleButton
 				IsChecked="{x:Bind PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
-				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"
+				Style="{StaticResource AppBarToggleButtonRecolouredCompact}"
 				Click="OnAim_Click">
-                <uctl:AppBarToggleButtonReallyCompact.Icon>
+                <AppBarToggleButton.Icon>
                     <BitmapIcon UriSource="ms-appx:///Assets/aim-36.png"/>
-                </uctl:AppBarToggleButtonReallyCompact.Icon>
-            </uctl:AppBarToggleButtonReallyCompact>
+                </AppBarToggleButton.Icon>
+            </AppBarToggleButton>
         </ContentControl>
 
         <TextBlock Grid.Row="12" Grid.Column="0"
@@ -346,17 +338,15 @@
         <ContentControl Grid.Row="12" Grid.Column="1"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource CheckpointCountLowerThanMaxToTrueConverter}, Mode=OneWay}">
-            <uctl:AppBarToggleButtonReallyCompact
-				VerticalAlignment="Center"
+            <AppBarToggleButton
 				IsChecked="{x:Bind PersistentData.IsShowAim, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
-				IsCompact="True"
 				Foreground="{StaticResource CheckpointBrushOpaque}"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"
+				Style="{StaticResource AppBarToggleButtonRecolouredCompact}"
 				Click="OnAimOnce_Click">
-                <uctl:AppBarToggleButtonReallyCompact.Icon>
+                <AppBarToggleButton.Icon>
                     <BitmapIcon UriSource="ms-appx:///Assets/aimOnce-36.png"/>
-                </uctl:AppBarToggleButtonReallyCompact.Icon>
-            </uctl:AppBarToggleButtonReallyCompact>
+                </AppBarToggleButton.Icon>
+            </AppBarToggleButton>
         </ContentControl>
 
         <TextBlock Grid.Row="13" Grid.Column="0"
@@ -364,11 +354,9 @@
 			Style="{StaticResource BaseMessageStyle}"
 			TextWrapping="WrapWholeWords"
 			Text="Clear checkpoints"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="13" Grid.Column="1"
-			VerticalAlignment="Center"
-			IsCompact="True"
+        <AppBarButton Grid.Row="13" Grid.Column="1"
 			Foreground="{StaticResource CheckpointBrushOpaque}"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnClearCheckpoints_Click" 
 			Icon="Delete"
 			IsEnabled="{x:Bind PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>

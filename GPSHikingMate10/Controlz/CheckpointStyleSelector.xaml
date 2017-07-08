@@ -1,5 +1,5 @@
 ﻿<ctl:ObservableControl
-	x:Class="LolloGPS.Controlz.CheckpointStyleSelector"
+	x:Class="LolloGPS.Controlz.CheckpointSymbolSelector"
 	x:Name="me"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

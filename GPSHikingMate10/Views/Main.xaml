@@ -207,24 +207,24 @@
                 </Grid>-->
                 <!-- icons for battery consuming functions -->
                 <StackPanel Margin="0" Padding="0" Orientation="Horizontal">
-                    <uctl:AppBarButtonReallyCompact
-						HorizontalAlignment="Center" VerticalAlignment="Center"
+                    <AppBarButton
+						HorizontalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
 						Visibility="{x:Bind PersistentData.IsForegroundTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Foreground trk"/>
-                    <uctl:AppBarButtonReallyCompact
-						HorizontalAlignment="Center" VerticalAlignment="Center"
+                    <AppBarButton
+						HorizontalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
 						Visibility="{x:Bind PersistentData.IsBackgroundTracking, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
 						Foreground="{StaticResource FlashyForeground}"
 						IsEnabled="False"
 						Icon="Clock" Label="Background trk"/>
-                    <uctl:AppBarButtonReallyCompact
-						HorizontalAlignment="Center" VerticalAlignment="Center"
+                    <AppBarButton
+						HorizontalAlignment="Center"
 						Width="90"
 						Style="{StaticResource AppBarButtonRecoloured_DisabledColoured}"
 						Visibility="{x:Bind PersistentData.IsKeepAlive, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
@@ -466,57 +466,57 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <!-- back -->
-            <uctl:AppBarButtonReallyCompact Grid.Column="0"
-						  HorizontalAlignment="Center" 
-						  Label="Back" Icon="Back"
-						  Click="OnBack_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
-						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
+            <AppBarButton Grid.Column="0"
+				Label="Back" Icon="Back"
+				IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
+				Click="OnBack_Click"
+				Style="{StaticResource AppBarButtonRecoloured}"
+                Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
+                HorizontalAlignment="Center"/>
             <!-- get a fix -->
-            <uctl:AppBarButtonReallyCompact Grid.Column="1"
-						  VerticalAlignment="Center"
-						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-						  Click="OnGetAFixNow_Click" 
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+            <AppBarButton Grid.Column="1"
+				Label="Get a fix" Icon="Map"
+				IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+				Click="OnGetAFixNow_Click" 
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Foreground="{StaticResource HistoryBrushOpaque}"
+                HorizontalAlignment="Center"/>
             <!-- go to last -->
             <ContentControl Grid.Column="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <uctl:AppBarButtonReallyCompact
-					VerticalAlignment="Center"
+                <AppBarButton
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
-					Foreground="{StaticResource HistoryBrushOpaque}"/>
+					Foreground="{StaticResource HistoryBrushOpaque}"
+                    HorizontalAlignment="Center"/>
             </ContentControl>
             <!-- altitude profiles -->
-            <uctl:AppBarToggleButtonReallyCompact Grid.Column="3"
-				VerticalAlignment="Center"
+            <AppBarToggleButton Grid.Column="3"
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+				Style="{StaticResource AppBarToggleButtonRecoloured}"
+                HorizontalAlignment="Center"/>
             <!-- open menu pivot -->
-            <uctl:AppBarToggleButtonReallyCompact Grid.Column="4"
-				HorizontalAlignment="Center" 
+            <AppBarToggleButton Grid.Column="4"
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+                Style="{StaticResource AppBarToggleButtonRecoloured}"
+                HorizontalAlignment="Center"/>
             <!-- map style -->
             <ContentControl Grid.Column="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <uctl:AppBarButtonReallyCompact
-					HorizontalAlignment="Center"
+                <AppBarButton
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
 					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
-					Style="{StaticResource AppBarButtonRecoloured}">
-                    <uctl:AppBarButtonReallyCompact.Icon>
+					Style="{StaticResource AppBarButtonRecoloured}"
+                    HorizontalAlignment="Center">
+                    <AppBarButton.Icon>
                         <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-                    </uctl:AppBarButtonReallyCompact.Icon>
-                </uctl:AppBarButtonReallyCompact>
+                    </AppBarButton.Icon>
+                </AppBarButton>
             </ContentControl>
         </Grid>
 
@@ -535,57 +535,57 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <!-- back -->
-            <uctl:AppBarButtonReallyCompact Grid.Row="0"
-						  HorizontalAlignment="Center" 
-						  Label="Back" Icon="Back"
-						  Click="OnBack_Click"
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
-						  Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
+            <AppBarButton Grid.Row="0"
+				Label="Back" Icon="Back"
+				Click="OnBack_Click"
+				Style="{StaticResource AppBarButtonRecoloured}"
+				IsEnabled="{x:Bind PersistentData.IsBackButtonEnabled, Mode=OneWay}"
+				Visibility="{x:Bind RuntimeData.IsHardwareButtonsAPIPresent, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
+                HorizontalAlignment="Center"/>
             <!-- get a fix -->
-            <uctl:AppBarButtonReallyCompact Grid.Row="1"
-						  HorizontalAlignment="Center"  
-						  Label="Get a fix" Icon="Map"
-						  IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
-						  Click="OnGetAFixNow_Click" 
-						  Style="{StaticResource AppBarButtonRecoloured}"
-						  Foreground="{StaticResource HistoryBrushOpaque}"/>
+            <AppBarButton Grid.Row="1"
+				Label="Get a fix" Icon="Map"
+				IsEnabled="{x:Bind MainVM.GPSInteractor.IsGPSWorking, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}"
+				Click="OnGetAFixNow_Click" 
+				Style="{StaticResource AppBarButtonRecoloured}"
+				Foreground="{StaticResource HistoryBrushOpaque}"
+                HorizontalAlignment="Center"/>
             <!-- go to last -->
             <ContentControl Grid.Row="2" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <uctl:AppBarButtonReallyCompact
-					VerticalAlignment="Center"
+                <AppBarButton
 					Label="Go to last" Icon="Target"
 					IsEnabled="{x:Bind PersistentData.Current, Converter={StaticResource PointRecordEmptyToFalseConverter}, Mode=OneWay}"
 					Click="OnGotoLast_Click" 
 					Style="{StaticResource AppBarButtonRecoloured}"
-					Foreground="{StaticResource HistoryBrushOpaque}"/>
+					Foreground="{StaticResource HistoryBrushOpaque}"
+                    HorizontalAlignment="Center"/>
             </ContentControl>
             <!-- altitude profiles -->
-            <uctl:AppBarToggleButtonReallyCompact Grid.Row="3"
-				HorizontalAlignment="Center" 
+            <AppBarToggleButton Grid.Row="3"
 				Label="Altitude" Icon="List"
 				IsChecked="{x:Bind PersistentData.IsShowingAltitudeProfiles, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
 				Click="OnAltitude_Click"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+				Style="{StaticResource AppBarToggleButtonRecoloured}"
+                HorizontalAlignment="Center"/>
             <!-- open menu pivot -->
-            <uctl:AppBarToggleButtonReallyCompact Grid.Row="4"
-				HorizontalAlignment="Center" 
+            <AppBarToggleButton Grid.Row="4"
 				Label="Menu" Icon="Setting"
 				IsChecked="{x:Bind PersistentData.IsShowingPivot, Converter={StaticResource BoolToNullableBoolConverter}, Mode=TwoWay}"
-				Style="{StaticResource AppBarToggleButtonRecoloured}"/>
+				Style="{StaticResource AppBarToggleButtonRecoloured}"
+                HorizontalAlignment="Center"/>
             <!-- map style -->
             <ContentControl Grid.Row="5" IsEnabled="{x:Bind IsExtraButtonsEnabled, Mode=OneWay}">
-                <uctl:AppBarButtonReallyCompact
-					HorizontalAlignment="Center"
+                <AppBarButton
 					Label="Overlay"
 					Click="OnMapStyleButton_Click"
 					IsEnabled="{x:Bind MapsPanelVM.IsChangeMapStyleEnabled, Mode=OneWay}"
-					Style="{StaticResource AppBarButtonRecoloured}">
-                    <uctl:AppBarButtonReallyCompact.Icon>
+					Style="{StaticResource AppBarButtonRecoloured}"
+                    HorizontalAlignment="Center">
+                    <AppBarButton.Icon>
                         <FontIcon FontFamily="{StaticResource DefaultFontFamily}" 
 						Glyph="{x:Bind PersistentData.MapStyle, Converter={StaticResource MapStyleToGlyphConverter}, Mode=OneWay}"/>
-                    </uctl:AppBarButtonReallyCompact.Icon>
-                </uctl:AppBarButtonReallyCompact>
+                    </AppBarButton.Icon>
+                </AppBarButton>
             </ContentControl>
 
         </Grid>

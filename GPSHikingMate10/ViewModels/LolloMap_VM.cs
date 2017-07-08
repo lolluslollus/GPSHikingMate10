@@ -170,7 +170,7 @@ namespace LolloGPS.ViewModels
                     CloseAlternativeMap_Custom(); // unregister events and clear lists
                     foreach (var ts in tileSources)
                     {
-                        if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)
+                        if (ts.IsDefault) continue; // do nothing with the default source (ie Nokia)                        
                         var customMapTileDataSource = new CustomMapTileDataSource();
                         var tileCache = new TileCacheReaderWriter(ts, true, false, customMapTileDataSource, cancToken);
                         var mapTileSource = new MapTileSource(

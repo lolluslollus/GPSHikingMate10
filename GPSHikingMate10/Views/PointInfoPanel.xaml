@@ -32,28 +32,31 @@
 				Margin="8" 
 				Style="{StaticResource BaseMessageStyle}"/>
             <uctl:UniversalWrapPanel Grid.Row="1" Orientation="Horizontal">
-                <uctl:AppBarButtonReallyCompact x:Name="ChooseDisplayHistoryButton"
+                <AppBarButton x:Name="ChooseDisplayHistoryButton"
 					Click="OnDisplayHistory_Click"
                     Margin="20,0,0,0"
-					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+					VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Trk history"
 					Foreground="{StaticResource HistoryBrushOpaque}"
 					Style="{StaticResource AppBarButtonRecoloured}"
+                    HorizontalAlignment="Center" 
                     TabIndex="1"/>
-                <uctl:AppBarButtonReallyCompact x:Name="ChooseDisplayRoute0Button"
+                <AppBarButton x:Name="ChooseDisplayRoute0Button"
 					Click="OnDisplayRoute0_Click"
                     Margin="20,0,0,0"
-					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+					VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Directions" Label="Route"
 					Foreground="{StaticResource Route0BrushOpaque}"
-					Style="{StaticResource AppBarButtonRecoloured}"/>
-                <uctl:AppBarButtonReallyCompact x:Name="ChooseDisplayCheckpointsButton"
+					Style="{StaticResource AppBarButtonRecoloured}"
+                    HorizontalAlignment="Center" />
+                <AppBarButton x:Name="ChooseDisplayCheckpointsButton"
 					Click="OnDisplayCheckpoints_Click"
                     Margin="20,0,0,0"
-					VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+					VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 					Icon="Target" Label="Checkpoints"
 					Foreground="{StaticResource CheckpointBrushOpaque}"
-					Style="{StaticResource AppBarButtonRecoloured}"/>
+					Style="{StaticResource AppBarButtonRecoloured}"
+                    HorizontalAlignment="Center" />
             </uctl:UniversalWrapPanel>
         </Grid>
         <!-- info grid -->
@@ -124,26 +127,23 @@
                 </uctl:UniversalWrapPanel>
                 <!-- point navigation -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal">
-                    <uctl:AppBarButtonReallyCompact
+                    <AppBarButton
 						Click="OnGotoPrevious_Click" DoubleTapped="OnGoto100Previous_Click" Holding="OnGotoPreviousButton_Holding" 
                         Margin="20,0,0,0"
 						Icon="Previous"
-						IsCompact="True"
 						IsEnabled="{x:Bind IsGotoPreviousEnabled, Mode=OneWay}"
-						Style="{StaticResource AppBarButtonRecoloured}"/>
-                    <uctl:AppBarButtonReallyCompact
+						Style="{StaticResource AppBarButtonRecolouredCompact}"/>
+                    <AppBarButton
 						Click="OnGotoNext_Click" DoubleTapped="OnGoto100Next_Click" Holding="OnGotoNextButton_Holding"
                         Margin="20,0,0,0"
 						Icon="Next"
-						IsCompact="True"
 						IsEnabled="{x:Bind IsGotoNextEnabled, Mode=OneWay}"
-						Style="{StaticResource AppBarButtonRecoloured}"/>
-                    <uctl:AppBarButtonReallyCompact
+						Style="{StaticResource AppBarButtonRecolouredCompact}"/>
+                    <AppBarButton
 						Click="OnDeletePoint_Click"
                         Margin="60,0,0,0"
 						Icon="Delete"
-						IsCompact="True"                          
-						Style="{StaticResource AppBarButtonRecoloured}"/>
+						Style="{StaticResource AppBarButtonRecolouredCompact}"/>
                 </uctl:UniversalWrapPanel>
                 <!-- link to media -->
                 <uctl:UniversalWrapPanel Orientation="Horizontal" VerticalContentAlignment="Center">
@@ -163,16 +163,16 @@
                         TextChanged="OnHyperlink_TextChanged"
 						LostFocus="OnHyperlinkTextBox_LostFocus"
 						PlaceholderText="you can type a link here"/>
-                    <uctl:AppBarButtonReallyCompact						
+                    <AppBarButton
 						Click="OnHyperlink_Click"
                         Margin="20,0,0,0"
-						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 						Icon="World"
-						IsCompact="True"
-						Style="{StaticResource AppBarButtonRecoloured}"
+						Style="{StaticResource AppBarButtonRecolouredCompact}"
+                        HorizontalAlignment="Center" 
                         Visibility="{x:Bind PersistentData.Selected.HyperLink, Converter={StaticResource StringNotEmptyToVisibleConverter}, Mode=OneWay}"/>
                 </uctl:UniversalWrapPanel>
-                <mctl:CheckpointStyleSelector
+                <mctl:CheckpointSymbolSelector
                     Checkpoint="{x:Bind PersistentData.Selected, Mode=OneWay}"
                     SymbolChanged="OnSymbolChanged"
                     Visibility="{x:Bind PersistentData.SelectedSeries, Converter={StaticResource SeriesToVisibilityConverter}, ConverterParameter=Checkpoints, Mode=OneWay}"/>
@@ -194,13 +194,12 @@
 						Text="{x:Bind PersistentData.Selected.HyperLinkText, Mode=OneWay}"
 						LostFocus="OnHyperlinkTextTextBox_LostFocus"
 						PlaceholderText="you can name your link here"/>
-					<uctl:AppBarButtonReallyCompact						
+					<AppBarButton
 						Click="OnHyperlink_Click"
                         Margin="20,0,0,0"
 						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
 						Icon="View"
-						IsCompact="True"
-						Style="{StaticResource AppBarButtonRecoloured}"/>
+						Style="{StaticResource AppBarButtonRecolouredCompact}"/>
 				</uctl:UniversalWrapPanel>
 -->
                 <!-- data -->
@@ -240,24 +239,24 @@
 					<Run Text="Distance from previous: "/>
 					<Run Text="{x:Bind DistanceMFromPrevious, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
                     </TextBlock>
-                    <uctl:AppBarButtonReallyCompact						
+                    <AppBarButton
 						Click="OnCalcTotalDistance_Click"
                         Margin="20,0,0,0"
-						VerticalAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+						VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                         Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"
-						IsCompact="True"
-						Style="{StaticResource AppBarButtonRecoloured}"
+						Style="{StaticResource AppBarButtonRecolouredCompact}"
+                        HorizontalAlignment="Center" 
                         Icon="More"
                         TabIndex="10"/>
                     <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
-					Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
-					<Run Text="Distance from first: "/>
-					<Run Text="{x:Bind DistanceMFromFirst, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
+					    Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					    <Run Text="Distance from first: "/>
+					    <Run Text="{x:Bind DistanceMFromFirst, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
                     </TextBlock>
                     <TextBlock TextWrapping="Wrap" Style="{StaticResource BaseMessageStyle}" HorizontalAlignment="Left" 
-					Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
-					<Run Text="Distance to last: "/>
-					<Run Text="{x:Bind DistanceMToLast, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
+					    Visibility="{x:Bind IsTotalDistancesCalculated, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}">
+					    <Run Text="Distance to last: "/>
+					    <Run Text="{x:Bind DistanceMToLast, Converter={StaticResource FloatConverter1Decimals}, ConverterParameter=M_KM, Mode=OneWay}"/>
                     </TextBlock>
                 </uctl:UniversalWrapPanel>
             </StackPanel>

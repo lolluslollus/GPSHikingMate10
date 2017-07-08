@@ -14,7 +14,7 @@ using Windows.UI.Xaml.Media;
 
 namespace LolloGPS.Controlz
 {
-    public sealed partial class CheckpointStyleSelector : Utilz.Controlz.ObservableControl
+    public sealed partial class CheckpointSymbolSelector : Utilz.Controlz.ObservableControl
     {
         #region properties
         public PersistentData PersistentData { get { return App.PersistentData; } }
@@ -33,7 +33,7 @@ namespace LolloGPS.Controlz
             set { SetValue(AlternativeForegroundProperty, value); }
         }
         public static readonly DependencyProperty AlternativeForegroundProperty =
-            DependencyProperty.Register("AlternativeForeground", typeof(Brush), typeof(CheckpointStyleSelector), new PropertyMetadata(new SolidColorBrush(Colors.Gray)));
+            DependencyProperty.Register("AlternativeForeground", typeof(Brush), typeof(CheckpointSymbolSelector), new PropertyMetadata(new SolidColorBrush(Colors.Gray)));
 
         public PointRecord Checkpoint
         {
@@ -41,7 +41,7 @@ namespace LolloGPS.Controlz
             set { SetValue(CheckpointProperty, value); }
         }
         public static readonly DependencyProperty CheckpointProperty =
-            DependencyProperty.Register("Checkpoint", typeof(PointRecord), typeof(CheckpointStyleSelector), new PropertyMetadata(new PointRecord()));
+            DependencyProperty.Register("Checkpoint", typeof(PointRecord), typeof(CheckpointSymbolSelector), new PropertyMetadata(new PointRecord()));
         #endregion properties
 
         #region events
@@ -49,7 +49,7 @@ namespace LolloGPS.Controlz
         #endregion events
 
         #region lifecycle
-        public CheckpointStyleSelector()
+        public CheckpointSymbolSelector()
         {
             InitializeComponent();
         }

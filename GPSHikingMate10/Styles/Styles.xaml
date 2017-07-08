@@ -191,10 +191,11 @@
 
     <Style x:Key="AppBarButtonRecoloured" TargetType="AppBarButton">
         <!--<Setter Property="Foreground" Value="{ThemeResource AppBarItemForegroundThemeBrush}"/>-->
-        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}"/>
         <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="IsCompact" Value="False"/>
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
@@ -215,11 +216,14 @@
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Margin">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
-                                        </ObjectAnimationUsingKeyFrames>
+                                        </ObjectAnimationUsingKeyFrames>-->
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
@@ -283,7 +287,7 @@
                         </VisualStateManager.VisualStateGroups>
 
                         <!--<StackPanel VerticalAlignment="Top" Margin="0,14,0,13">-->
-                        <StackPanel VerticalAlignment="Top" Margin="0,4,0,4" HorizontalAlignment="Center">
+                        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
                             <Grid Width="{StaticResource AppBarButtonEllipseDiametre}" Height="{StaticResource AppBarButtonEllipseDiametre}"
 								  Margin="0,0,0,0" HorizontalAlignment="Center">
                                 <Ellipse
@@ -313,6 +317,7 @@
 								Foreground="{TemplateBinding Foreground}"
 								FontSize="12"
 								FontFamily="{TemplateBinding FontFamily}"
+                                Margin="0,4,0,4"
 								TextAlignment="Center"
 								Width="{TemplateBinding Width}"
 								HorizontalAlignment="Center"
@@ -339,13 +344,20 @@
             </Setter.Value>
         </Setter>
     </Style>
-
+    <Style x:Key="AppBarButtonRecolouredCompact" TargetType="AppBarButton" BasedOn="{StaticResource AppBarButtonRecoloured}">
+        <Setter Property="IsCompact" Value="True"/>
+        <Setter Property="Label" Value=""/>
+        <Setter Property="Height" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
+        <Setter Property="Width" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
+    </Style>
+    
     <Style x:Key="AppBarToggleButtonRecoloured" TargetType="AppBarToggleButton">
         <!--<Setter Property="Foreground" Value="{TemplateBinding Foreground}" />-->
-        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
         <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="IsCompact" Value="False"/>
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
@@ -364,14 +376,17 @@
                                 <VisualState x:Name="Compact">
                                     <Storyboard>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed" />
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Width">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Margin">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}" />
-                                        </ObjectAnimationUsingKeyFrames>
+                                        </ObjectAnimationUsingKeyFrames>-->
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
@@ -448,7 +463,7 @@
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
                         <!--<StackPanel VerticalAlignment="Top" Margin="0,14,0,13">-->
-                        <StackPanel VerticalAlignment="Top" Margin="0,4,0,4" Padding="0" HorizontalAlignment="Center">
+                        <StackPanel VerticalAlignment="Top" Padding="0" HorizontalAlignment="Center">
                             <Grid Width="{StaticResource AppBarButtonEllipseDiametre}" Height="{StaticResource AppBarButtonEllipseDiametre}" 
 								  Margin="0,0,0,0" HorizontalAlignment="Center">
                                 <Ellipse x:Name="Ellipse" UseLayoutRounding="False" 
@@ -463,8 +478,9 @@
                                 </Grid>
                             </Grid>
                             <TextBlock x:Name="TextLabel" 
-								Text="{TemplateBinding Label}" 
-								Margin="0" Padding="0"
+								Text="{TemplateBinding Label}"
+                                Margin="0,4,0,4"
+								Padding="0"
 								Foreground="{TemplateBinding Foreground}" 
 								FontSize="12"
 								FontFamily="{TemplateBinding FontFamily}" 
@@ -478,13 +494,20 @@
             </Setter.Value>
         </Setter>
     </Style>
-
+    <Style x:Key="AppBarToggleButtonRecolouredCompact" TargetType="AppBarToggleButton" BasedOn="{StaticResource AppBarToggleButtonRecoloured}">
+        <Setter Property="IsCompact" Value="True"/>
+        <Setter Property="Label" Value=""/>
+        <Setter Property="Height" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
+        <Setter Property="Width" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
+    </Style>
+    
     <Style x:Key="AppBarButtonRecoloured_DisabledColoured" TargetType="AppBarButton">
         <!--<Setter Property="Foreground" Value="{ThemeResource AppBarItemForegroundThemeBrush}"/>-->
-        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}"/>
         <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="IsCompact" Value="False"/>
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
@@ -506,11 +529,14 @@
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
                                         </ObjectAnimationUsingKeyFrames>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Height">
-                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0"/>
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="TextLabel" Storyboard.TargetProperty="Margin">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="0.0"/>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Width">
                                             <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource AppBarButtonEllipseDiametre}"/>
-                                        </ObjectAnimationUsingKeyFrames>
+                                        </ObjectAnimationUsingKeyFrames>-->
                                     </Storyboard>
                                 </VisualState>
                             </VisualStateGroup>
@@ -574,7 +600,7 @@
                         </VisualStateManager.VisualStateGroups>
 
                         <!--<StackPanel VerticalAlignment="Top" Margin="0,14,0,13">-->
-                        <StackPanel VerticalAlignment="Top" Margin="0,4,0,4" HorizontalAlignment="Center">
+                        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center">
                             <Grid Width="{StaticResource AppBarButtonEllipseDiametre}" Height="{StaticResource AppBarButtonEllipseDiametre}"
 								  Margin="0,0,0,0" HorizontalAlignment="Center">
                                 <Ellipse
@@ -604,6 +630,7 @@
 								Foreground="{TemplateBinding Foreground}"
 								FontSize="12"
 								FontFamily="{TemplateBinding FontFamily}"
+                                Margin="0,4,0,4"
 								TextAlignment="Center"
 								Width="{TemplateBinding Width}"
 								HorizontalAlignment="Center"
@@ -658,7 +685,7 @@
     </Style>
 
     <Style TargetType="uctl:LolloMultipleListChooser">
-        <Setter Property="AppBarButtonStyle" Value="{StaticResource AppBarButtonRecoloured}"/>
+        <Setter Property="AppBarButtonStyle" Value="{StaticResource AppBarButtonRecolouredCompact}"/>
         <Setter Property="TextBlockStyle" Value="{StaticResource ListDescriptorTextStyle}"/>
         <Setter Property="TextItemStyle" Value="{StaticResource ListItemTextStyle}"/>
         <Setter Property="ListHeaderStyle" Value="{StaticResource ListHeaderTextStyle}"/>

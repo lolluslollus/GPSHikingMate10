@@ -127,12 +127,10 @@
 			TextWrapping="Wrap"
             VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="3" Grid.Column="3"
+        <AppBarButton Grid.Row="3" Grid.Column="3"
 			Click="OnPickFolderClicked"
             Icon="OpenFile"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
-			VerticalAlignment="Center"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
         <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
             VerticalAlignment="Center"
@@ -159,13 +157,10 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            <uctl:AppBarButtonReallyCompact
+                            <AppBarButton
 			                    Click="OnRemoveUriString_Click"
                                 Icon="Clear"
-			                    IsCompact="True"
-			                    Style="{StaticResource AppBarButtonRecoloured}"
-			                    VerticalAlignment="Center"/>
-                            <!--TextChanged="OnUriString_TextChanged"-->
+			                    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
                             <TextBox Grid.Column="1"
 			                    InputScope="Url"
                                 PlaceholderText="{Binding ElementName=me, Path=MapsPanelVM.SampleRemoteUriString}"
@@ -176,12 +171,10 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <uctl:AppBarButtonReallyCompact Grid.Row="1"
+            <AppBarButton Grid.Row="1"
 			    Click="OnAddUriString_Click"
                 Icon="Add"
-			    IsCompact="True"
-			    Style="{StaticResource AppBarButtonRecoloured}"
-			    VerticalAlignment="Center"/>
+			    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
         </Grid>
         <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.TileSourceFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -220,13 +213,11 @@
 			Margin="8,2,2,2"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Center"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="3"
-			VerticalAlignment="Center"
+        <AppBarButton Grid.Row="8" Grid.Column="3"
 			Click="OnTestClicked"
+            Icon="Accept"
 			IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
-			Icon="Accept"/>
+			Style="{StaticResource AppBarButtonRecolouredCompact}"/>
         <!-- error message: no connection -->
         <TextBlock Grid.Row="9" Grid.ColumnSpan="4"
             Text="No connection"
@@ -237,13 +228,11 @@
 			VerticalAlignment="Center"
 			HorizontalAlignment="Right"
 			Visibility="{x:Bind MapsPanelVM.RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="10" Grid.Column="3"
-			VerticalAlignment="Center"
-			IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
+        <AppBarButton Grid.Row="10" Grid.Column="3"
 			Click="OnClearCustomTileSource_Click"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
-			Icon="Delete"/>
+			Icon="Delete"
+            IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
+            Style="{StaticResource AppBarButtonRecolouredCompact}"/>
         <!--ItemsSource="{x:Bind MapsPanelVM.PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache, Mode=OneWay}"-->
         <uctl:LolloMultipleListChooser Grid.Row="10" Grid.Column="3"
 			x:Name="ClearCustomCacheChooser"

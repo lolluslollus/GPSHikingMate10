@@ -41,27 +41,24 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource HistoryBrushOpaque}"
 			Text="Tracking history"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="1"
+        <AppBarButton Grid.Row="1" Grid.Column="1"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnCenterHistory_Click"                                    
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="1" Grid.Column="2"
+        <AppBarButton Grid.Row="1" Grid.Column="2"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnClearHistory_Click"
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="1" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-            <uctl:AppBarButtonReallyCompact
+            <AppBarButton
 				HorizontalAlignment="Center"
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Click="OnSaveTrackingHistory_Click"                                        
 				Icon="Save"
 				IsEnabled="{x:Bind MainVM.PersistentData.History.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
@@ -88,37 +85,33 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource Route0BrushOpaque}"
 			Text="Route"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="1"
+		<AppBarButton Grid.Row="4" Grid.Column="1"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnCenterRoute_Click" 
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="4" Grid.Column="2"
+		<AppBarButton Grid.Row="4" Grid.Column="2"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnClearRoute0_Click" 
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="4" Grid.Column="3"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<uctl:AppBarButtonReallyCompact
+			<AppBarButton
 				HorizontalAlignment="Center"
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Click="OnLoadRoute0_Click" 
 				Icon="OpenFile"/>
 		</ContentControl>
 		<ContentControl Grid.Row="4" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<uctl:AppBarButtonReallyCompact
+			<AppBarButton
 				HorizontalAlignment="Center"
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Click="OnSaveRoute0_Click"                                        
 				Icon="Save"
 				IsEnabled="{x:Bind MainVM.PersistentData.Route0.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
@@ -139,37 +132,33 @@
 			Style="{StaticResource BaseMessageStyle}" 
 			Foreground="{StaticResource CheckpointBrushOpaque}"
 			Text="Checkpoints"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="1"
+		<AppBarButton Grid.Row="7" Grid.Column="1"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnCenterCheckpoints_Click" 
 			Icon="View"
 			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
-		<uctl:AppBarButtonReallyCompact Grid.Row="7" Grid.Column="2"
+		<AppBarButton Grid.Row="7" Grid.Column="2"
 			HorizontalAlignment="Center"
-			IsCompact="True"
-			Style="{StaticResource AppBarButtonRecoloured}"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
 			Click="OnClearCheckpoints_Click" 
 			Icon="Delete"
 			IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>
 		<ContentControl Grid.Row="7" Grid.Column="3"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsLoading, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<uctl:AppBarButtonReallyCompact
+			<AppBarButton
 				HorizontalAlignment="Center"
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"                                  
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Click="OnLoadCheckpoints_Click" 
 				Icon="OpenFile" />
 		</ContentControl>
 		<ContentControl Grid.Row="7" Grid.Column="4"
             HorizontalAlignment="Center"
 			IsEnabled="{x:Bind MainVM.IsSaving, Converter={StaticResource TrueToFalseConverter}, Mode=OneWay}">
-			<uctl:AppBarButtonReallyCompact
+			<AppBarButton
 				HorizontalAlignment="Center"
-				IsCompact="True"
-				Style="{StaticResource AppBarButtonRecoloured}"                                  
+				Style="{StaticResource AppBarButtonRecolouredCompact}"
 				Click="OnSaveCheckpoints_Click" 
 				Icon="Save"
 				IsEnabled="{x:Bind MainVM.PersistentData.Checkpoints.Count, Converter={StaticResource SeriesCountGreaterThanZeroToBooleanConverter}, Mode=OneWay}"/>

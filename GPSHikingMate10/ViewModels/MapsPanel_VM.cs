@@ -511,7 +511,6 @@ namespace LolloGPS.ViewModels
                 var pd = PersistentData;
                 if (pd == null) return;
                 
-                // LOLLO TODO why is the "clear" button disabled until I click "accept"?
                 var result = await pd.TrySetModelTileSourceAsync(ts, CancToken).ConfigureAwait(false);
                 if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
                 else TestTileSourceErrorMsg = result?.Item2 ?? "";
