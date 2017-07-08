@@ -96,7 +96,6 @@
             Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
 
-        <!-- LOLLO TODO the following works with the old binding but not with the new one -->
         <!-- values -->
         <uctl:LolloMultipleListChooser Grid.Column="2" Grid.ColumnSpan="2"
 			x:Name="PickCustomTileSourceChooser"
@@ -107,7 +106,7 @@
             Margin="{StaticResource Thickness2}"
             PlaceholderText="Pick a tile source"
 			PopupContainer="{x:Bind LayoutRoot, Mode=OneWay}"
-            SelectedItems="{Binding ElementName=me, Path=MapsPanelVM.ModelTileSources, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+            SelectedItems="{x:Bind MapsPanelVM.ModelTileSources, Mode=OneWay}"
             VerticalAlignment="Center"/>
 
         <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"
