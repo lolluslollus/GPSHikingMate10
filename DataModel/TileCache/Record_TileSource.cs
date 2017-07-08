@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,27 +18,6 @@ using Utilz.Data;
 
 namespace LolloGPS.Data.TileCache
 {
-    [DataContract]
-    public class TypedString : ObservableData, IComparable
-    {
-        [DataMember]
-        private string _str = string.Empty;
-        public string Str { get { return _str; } set { _str = value; RaisePropertyChanged_UI(); } }
-
-        /// <summary>
-        /// Useful for a List{TypedString}, as opposed to a List{string},
-        /// when you want to inform the listeners that something changed.
-        /// </summary>
-        public TypedString(string str)
-        {
-            Str = str;
-        }
-
-        public int CompareTo(object obj)
-        {
-            return string.Compare(_str, (obj as TypedString)._str);
-        }
-    }
     [DataContract]
     [KnownType(typeof(string[]))]
     [KnownType(typeof(ReadOnlyCollection<string>))]
@@ -62,7 +43,7 @@ namespace LolloGPS.Data.TileCache
         protected static readonly string[] DefaultTileSourceUriString = { };
         protected static readonly string[] DummyTileSourceUriString = { };
         protected static readonly string DummyTileSourceProviderUriString = string.Empty;
-        protected static readonly List<TypedString> SampleRemoteUriStrings = (new TypedString[] { new TypedString(SampleRemoteUriString) }).ToList();
+        protected static readonly List<string> SampleRemoteUriStrings = (new string[] { SampleRemoteUriString }).ToList();
 
         public const int MinMinZoom = 0;
         protected const int DummyTileSourceMinZoom = 0;
@@ -121,9 +102,9 @@ namespace LolloGPS.Data.TileCache
         public string CopyrightNotice { get { return _copyrightNotice; } }
 
         [DataMember]
-        protected List<TypedString> _uriStrings = SampleRemoteUriStrings;
+        protected List<string> _uriStrings = SampleRemoteUriStrings;
         //public IReadOnlyList<string> UriStrings { get { return _uriStrings.AsReadOnly(); } }
-        public List<TypedString> UriStrings { get { return (_uriStrings); } }
+        public List<string> UriStrings { get { return (_uriStrings); } }
 
         [DataMember]
         protected string _providerUriString = string.Empty;
@@ -198,7 +179,7 @@ namespace LolloGPS.Data.TileCache
             _isCustom = isCustom;
             _isOverlay = isOverlay;
             _requestHeaders = headers;
-            _uriStrings = uriStrings.Select(us => new TypedString(us)).ToList();
+            _uriStrings = uriStrings.ToList();
         }
 
         #region checks
@@ -263,16 +244,16 @@ namespace LolloGPS.Data.TileCache
 
             return string.Empty;
         }
-        private static string CheckUri(IReadOnlyList<TypedString> uris, bool isEmptyAllowed, bool isFileSource)
+        private static string CheckUri(IReadOnlyList<string> uris, bool isEmptyAllowed, bool isFileSource)
         {
             if (uris == null || uris.Count == 0)
             {
                 if (isEmptyAllowed) return string.Empty;
                 else return "Uri is empty";
             }
-            foreach (var item in uris)
+            foreach (var uriStr in uris)
             {
-                var result = CheckUri(item.Str, isEmptyAllowed, isFileSource);
+                var result = CheckUri(uriStr, isEmptyAllowed, isFileSource);
                 if (!string.IsNullOrWhiteSpace(result)) return result;
             }
             return string.Empty;
@@ -349,7 +330,7 @@ namespace LolloGPS.Data.TileCache
             return new TileSourceRecord(source._isFileSource, source._tileSourceFolderPath, source._tileSourceFileName, source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isCustom, source._isOverlay,
-                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
         public static WritableTileSourceRecord CloneWritable(TileSourceRecord source)
         {
@@ -359,7 +340,7 @@ namespace LolloGPS.Data.TileCache
                 source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isCustom, source._isOverlay,
-                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
 
         public bool IsEqualTo(TileSourceRecord comp)
@@ -717,7 +698,7 @@ namespace LolloGPS.Data.TileCache
 
         // LOLLO NOTE use the same type as the superclass, even if the temptation is strong, or you will get crazy errors
         //public new IReadOnlyList<string> UriStrings { get { return _uriStrings.AsReadOnly(); } private set { _uriStrings = value.ToList(); RaisePropertyChanged_UI(); } }
-        public new List<TypedString> UriStrings { get { return _uriStrings; } private set { _uriStrings = value; RaisePropertyChanged_UI(); } }
+        public new List<string> UriStrings { get { return _uriStrings; } private set { _uriStrings = value; RaisePropertyChanged_UI(); } }
 
         public new string ProviderUriString { get { return _providerUriString; } set { _providerUriString = value; RaisePropertyChanged_UI(); } }
 
@@ -755,15 +736,23 @@ namespace LolloGPS.Data.TileCache
             var uss = _uriStrings;
             if (uss.Count >= MaxUriSources) return Tuple.Create(false, $"Max {MaxUriSources} uris");
 
-            uss.Add(new TypedString(newUriString));
+            uss.Add(newUriString);
             RaisePropertyChanged_UI(nameof(UriStrings));
             return Tuple.Create(true, string.Empty);
         }
-        public bool TryRemoveUriString(TypedString uriString)
+        public bool TryRemoveUriString(string uriString)
         {
+            //if (string.IsNullOrWhiteSpace(uriString)) return false; NO!
+
             var result = _uriStrings.Remove(uriString);
             RaisePropertyChanged_UI(nameof(UriStrings));
             return result;
+        }
+        public void SetUriStrings(List<string> uriStrings)
+        {
+            if (uriStrings == null) return;
+
+            UriStrings = uriStrings;
         }
         public Tuple<bool, string> TryAddRequestHeader()
         {
@@ -778,7 +767,8 @@ namespace LolloGPS.Data.TileCache
         }
         public bool TryRemoveRequestHeader(string key)
         {
-            if (string.IsNullOrWhiteSpace(key)) return false;
+            // if (string.IsNullOrWhiteSpace(key)) return false; NO!
+
             var result = _requestHeaders.Remove(key);
             RaisePropertyChanged_UI(nameof(RequestHeaders));
             return result;
@@ -798,7 +788,7 @@ namespace LolloGPS.Data.TileCache
                 source._techName, source._displayName, source._folderName, source._copyrightNotice,
                 source._providerUriString, source._minZoom, source._maxZoom, source._tilePixelSize,
                 source._isCustom, source._isOverlay,
-                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.Select(us => us.Str).ToArray());
+                new Dictionary<string, string>(source._requestHeaders), source._uriStrings.ToArray());
         }
 
         public static WritableTileSourceRecord GetSampleRemoteTileSource()
@@ -807,7 +797,7 @@ namespace LolloGPS.Data.TileCache
                 SampleTileSourceTechName, SampleTileSourceTechName, "", "",
                 "", MinMinZoom, SampleMaxZoom, DefaultTilePixelSize,
                 false, false,
-                GetDefaultWebHeaderCollection(), SampleRemoteUriStrings.Select(us => us.Str).ToArray());
+                GetDefaultWebHeaderCollection(), SampleRemoteUriStrings.ToArray());
         }
     }
 }

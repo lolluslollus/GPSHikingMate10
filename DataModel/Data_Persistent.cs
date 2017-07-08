@@ -1356,7 +1356,7 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        public async Task<Tuple<bool, string>> RemoveUriFromTestTileSourceAsync(TypedString uriString, CancellationToken cancToken)
+        public async Task<Tuple<bool, string>> RemoveUriFromTestTileSourceAsync(string uriString, CancellationToken cancToken)
         {
             WritableTileSourceRecord tts = null;
             try
@@ -1374,6 +1374,45 @@ namespace LolloGPS.Data
                 var isRemoved = tts.TryRemoveUriString(uriString);
                 // exit if error
                 if (!isRemoved) return Tuple.Create(true, string.Empty);
+                // make sure listeners get it
+                _testTileSource = WritableTileSourceRecord.Clone(tts);
+                RaisePropertyChanged_UI(nameof(TestTileSource));
+                // some more checks
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                return Tuple.Create(true, "");
+            }
+            catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }
+            catch (OperationCanceledException) { return Tuple.Create(false, "cancelled"); }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return Tuple.Create(false, $"Error with tile source {tts?.DisplayName ?? string.Empty}");
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+        public async Task<Tuple<bool, string>> SetUriStringsOfTestTileSourceAsync(List<string> uriStrings, CancellationToken cancToken)
+        {
+            WritableTileSourceRecord tts = null;
+            try
+            {
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+
+                IsTileSourcezBusy = true;
+
+                tts = _testTileSource;
+                // exit if no tts - it should never happen
+                if (tts == null) return Tuple.Create(false, "TestTileSource not found");
+                // set
+                tts.SetUriStrings(uriStrings);
                 // make sure listeners get it
                 _testTileSource = WritableTileSourceRecord.Clone(tts);
                 RaisePropertyChanged_UI(nameof(TestTileSource));
@@ -1480,7 +1519,6 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-
         public async Task<Tuple<bool, string>> SetRequestHeadersOfTestTileSourceAsync(Dictionary<string, string> requestHeaders, CancellationToken cancToken)
         {
             WritableTileSourceRecord tts = null;

@@ -148,7 +148,7 @@
             <!--ItemsSource="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
             <!--ItemsSource="{x:Bind MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
             <ItemsControl x:Name="UriStringsIC"
-                ItemsSource="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{x:Bind MapsPanelVM.UriStrings, Mode=OneWay}"
                 VerticalAlignment="Center">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -197,7 +197,7 @@
             </Grid.RowDefinitions>
 
             <ItemsControl x:Name="RequestHeadersIC"
-                ItemsSource="{Binding ElementName=me, Path=MapsPanelVM.RequestHeaders, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{x:Bind MapsPanelVM.RequestHeaders, Mode=OneWay}"
                 VerticalAlignment="Center">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

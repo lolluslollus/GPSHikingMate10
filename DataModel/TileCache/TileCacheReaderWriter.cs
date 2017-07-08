@@ -106,7 +106,7 @@ namespace LolloGPS.Data.TileCache
                 {
                     try
                     {
-                        string webUriFormat = uriString.Str.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
+                        string webUriFormat = uriString.Replace(TileSourceRecord.ZoomLevelPlaceholder, TileSourceRecord.ZoomLevelPlaceholder_Internal);
                         webUriFormat = webUriFormat.Replace(TileSourceRecord.XPlaceholder, TileSourceRecord.XPlaceholder_Internal);
                         webUriFormat = webUriFormat.Replace(TileSourceRecord.YPlaceholder, TileSourceRecord.YPlaceholder_Internal);
                         webUriFormats.Add(webUriFormat);

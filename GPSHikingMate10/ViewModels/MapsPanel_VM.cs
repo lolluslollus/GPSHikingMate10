@@ -61,7 +61,10 @@ namespace LolloGPS.ViewModels
         public List<TextAndTag> ModelTileSources { get { return _modelTileSources; } private set { _modelTileSources = value; RaisePropertyChanged_UI(); } }
 
         private readonly SwitchableObservableCollection<KeyAndValue> _requestHeaders = new SwitchableObservableCollection<KeyAndValue>();
-        public SwitchableObservableCollection<KeyAndValue> RequestHeaders { get { return _requestHeaders; } /*private set { _requestHeaders = value; RaisePropertyChanged_UI(); }*/ }
+        public SwitchableObservableCollection<KeyAndValue> RequestHeaders { get { return _requestHeaders; } }
+
+        private readonly SwitchableObservableCollection<TypedString> _uriStrings = new SwitchableObservableCollection<TypedString>();
+        public SwitchableObservableCollection<TypedString> UriStrings { get { return _uriStrings; } }
 
         public string SampleLocalUriString { get { return TileSourceRecord.SampleLocalUriString; } }
         public string SampleRemoteUriString { get { return TileSourceRecord.SampleRemoteUriString; } }
@@ -89,7 +92,6 @@ namespace LolloGPS.ViewModels
             await _tileCacheClearerSaver.OpenAsync(args);
 
             AddHandlers_DataChanged();
-            KeyAndValue.SomethingChanged += OnKeyAndValue_SomethingChanged;
 
             ICollection<TileSourceRecord> allTileSources = null;
             ICollection<TileSourceRecord> currentTileSources = null;
@@ -113,12 +115,12 @@ namespace LolloGPS.ViewModels
                 UpdateSelectedOverlayTiles(currentTileSources);
                 UpdateModelTileSources();
                 UpdateRequestHeaders();
+                UpdateUriStrings();
             }).ConfigureAwait(false);
         }
 
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
-            KeyAndValue.SomethingChanged -= OnKeyAndValue_SomethingChanged;
             RemoveHandlers_DataChanged();
             await _tileCacheClearerSaver.CloseAsync(args);
         }
@@ -198,11 +200,31 @@ namespace LolloGPS.ViewModels
 
         private void UpdateRequestHeaders()
         {
-            var ts = PersistentData?.TestTileSource;
+            var rhs = PersistentData?.TestTileSource?.RequestHeaders;
             RequestHeaders.Clear();
-            if (ts == null) return;
+            if (rhs == null) return;
 
-            RequestHeaders.ReplaceAll(ts.RequestHeaders.Select(kvp => new KeyAndValue(kvp.Key, kvp.Value, ts)).ToList());
+            // return if no changes. It can avoid endless loops in edge cases.
+            var rhd = new Dictionary<string, string>();
+            foreach (var rh in _requestHeaders)
+            {
+                rhd.Add(rh.Key, rh.Val);
+            }
+            if (rhs.OrderBy(kvp => kvp.Key).SequenceEqual(rhd.OrderBy(kvp => kvp.Key))) return;
+
+            RequestHeaders.ReplaceAll(rhs.Select(kvp => new KeyAndValue(kvp.Key, kvp.Value)).ToList());
+        }
+
+        private void UpdateUriStrings()
+        {
+            var uss = PersistentData?.TestTileSource?.UriStrings;
+            UriStrings.Clear();
+            if (uss == null) return;
+
+            // return if no changes. It can avoid endless loops in edge cases.
+            if (uss.OrderBy(str => str).SequenceEqual(_uriStrings.Select(us => us.Str).OrderBy(str => str))) return;
+
+            UriStrings.ReplaceAll(uss.Select(us => new TypedString(us)));
         }
 
         private void UpdateSelectedBaseTile(ICollection<TileSourceRecord> currentTileSources)
@@ -234,12 +256,15 @@ namespace LolloGPS.ViewModels
             if (!_isDataChangedHandlerActive)
             {
                 _isDataChangedHandlerActive = true;
+
                 PersistentData.PropertyChanged += OnPersistentData_PropertyChanged;
                 RuntimeData.PropertyChanged += OnRuntimeData_PropertyChanged;
                 TileCacheClearerSaver.IsClearingScheduledChanged += OnTileCache_IsClearingOrSavingScheduledChanged;
                 TileCacheClearerSaver.CacheCleared += OnTileCacheClearerSaver_CacheCleared;
                 TileCacheClearerSaver.IsSavingScheduledChanged += OnTileCache_IsClearingOrSavingScheduledChanged;
                 TileCacheClearerSaver.CacheSaved += OnTileCacheClearerSaver_CacheSaved;
+                KeyAndValue.SomethingChanged += OnKeyAndValue_SomethingChanged;
+                TypedString.SomethingChanged += OnTypedString_SomethingChanged;
             }
         }
 
@@ -253,6 +278,9 @@ namespace LolloGPS.ViewModels
                 TileCacheClearerSaver.CacheCleared -= OnTileCacheClearerSaver_CacheCleared;
                 TileCacheClearerSaver.IsSavingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
                 TileCacheClearerSaver.CacheSaved -= OnTileCacheClearerSaver_CacheSaved;
+                KeyAndValue.SomethingChanged -= OnKeyAndValue_SomethingChanged;
+                TypedString.SomethingChanged -= OnTypedString_SomethingChanged;
+
                 _isDataChangedHandlerActive = false;
             }
         }
@@ -329,6 +357,7 @@ namespace LolloGPS.ViewModels
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateRequestHeaders();
+                    UpdateUriStrings();
                 }).ConfigureAwait(false);
             }
         }
@@ -361,6 +390,16 @@ namespace LolloGPS.ViewModels
             // Maybe I do it properly one day.
             var result = await pd.SetRequestHeadersOfTestTileSourceAsync(nd, CancToken);
             if (result?.Item1 != true) _mainVM?.SetLastMessage_UI(result?.Item2 ?? "Error setting the response headers");
+        }
+
+        private async void OnTypedString_SomethingChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var pd = PersistentData;
+            var tts = pd?.TestTileSource;
+            if (tts == null) return;
+
+            var result = await pd.SetUriStringsOfTestTileSourceAsync(_uriStrings.Select(us => us.Str).ToList(), CancToken);
+            if (result?.Item1 != true) _mainVM?.SetLastMessage_UI(result?.Item2 ?? "Error setting the uri strings");
         }
 
         private async void OnTileCache_IsClearingOrSavingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -581,7 +620,7 @@ namespace LolloGPS.ViewModels
                 var pd = PersistentData;
                 if (pd == null) return;
 
-                var result = await pd.RemoveUriFromTestTileSourceAsync(uriString, CancToken).ConfigureAwait(false);
+                var result = await pd.RemoveUriFromTestTileSourceAsync(uriString?.Str, CancToken).ConfigureAwait(false);
                 if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
                 else TestTileSourceErrorMsg = result?.Item2 ?? "";
 
@@ -635,12 +674,30 @@ namespace LolloGPS.ViewModels
         public string Key { get { return _key; } set { _key = value; RaisePropertyChanged_UI(); RaiseSomethingChanged_UI(); } }
         private string _val = string.Empty;
         public string Val { get { return _val; } set { _val = value; RaisePropertyChanged_UI(); RaiseSomethingChanged_UI(); } }
-        private readonly WritableTileSourceRecord _wts = null;
-        public KeyAndValue(string key, string val, WritableTileSourceRecord wts)
+        public KeyAndValue(string key, string val)
         {
             _key = key;
             _val = val;
-            _wts = wts;
+        }
+    }
+
+    public class TypedString : ObservableData
+    {
+        public static event PropertyChangedEventHandler SomethingChanged;
+        protected void RaiseSomethingChanged_UI([CallerMemberName] string propertyName = "")
+        {
+            if (SomethingChanged == null) return;
+            Task raise = RunInUiThreadAsync(delegate
+            {
+                SomethingChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            });
+        }
+        private string _str = string.Empty;
+        public string Str { get { return _str; } set { _str = value; RaisePropertyChanged_UI(); RaiseSomethingChanged_UI(); } }
+
+        public TypedString(string str)
+        {
+            _str = str;
         }
     }
 }
