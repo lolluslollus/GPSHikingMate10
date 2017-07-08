@@ -1272,15 +1272,18 @@ namespace LolloGPS.Data
         }
         public async Task<Tuple<bool, string>> TrySetModelTileSourceAsync(TileSourceRecord source, CancellationToken cancToken)
         {
-            if (source == null) Tuple.Create(false, "Record null");
+            if (source == null) return Tuple.Create(false, "Record null");
             WritableTileSourceRecord newTestTileSource = null;
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken);
                 IsTileSourcezBusy = true;
 
+                // take some properties from the source, and some from TestTileSource
                 newTestTileSource = WritableTileSourceRecord.Clone(source);
                 newTestTileSource.UriStrings = new List<string>(newTestTileSource.UriStrings.Take(1)); // LOLLO TODO check this
+                newTestTileSource.DisplayName = newTestTileSource.FolderName = newTestTileSource.TechName = _testTileSource.TechName;
+                newTestTileSource.CopyrightNotice = string.Empty;
                 // exit if wrong data - it should never happen
                 if (newTestTileSource == null) return Tuple.Create(false, "Record not found");
                 if (string.IsNullOrWhiteSpace(newTestTileSource.TechName)) return Tuple.Create(false, "Name is empty");
@@ -1289,13 +1292,9 @@ namespace LolloGPS.Data
                 string errorMsg = await newTestTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
                 // set
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
-                
-                _modelTileSource = newTestTileSource;
-                var newTileSourceClone = WritableTileSourceRecord.Clone(newTestTileSource);
-                newTileSourceClone.DisplayName = newTileSourceClone.FolderName = newTileSourceClone.TechName = _testTileSource.TechName;
-                newTestTileSource.CopyrightNotice = string.Empty;
-                _testTileSource = newTileSourceClone;
 
+                _modelTileSource = newTestTileSource;
+                _testTileSource = WritableTileSourceRecord.Clone(newTestTileSource);
                 RaisePropertyChanged_UI(nameof(ModelTileSource));
                 RaisePropertyChanged_UI(nameof(TestTileSource));
                 return Tuple.Create(true, "");

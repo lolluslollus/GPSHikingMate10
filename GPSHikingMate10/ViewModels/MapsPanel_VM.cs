@@ -60,7 +60,7 @@ namespace LolloGPS.ViewModels
 
         public string SampleLocalUriString { get { return TileSourceRecord.SampleLocalUriString; } }
         public string SampleRemoteUriString { get { return TileSourceRecord.SampleRemoteUriString; } }
-        
+
         #region lifecycle
         private static readonly object _instanceLocker = new object();
         private static MapsPanelVM _instance = null;
@@ -506,16 +506,15 @@ namespace LolloGPS.ViewModels
         {
             await RunFunctionIfOpenAsyncT(async () =>
             {
-                var tsClone = WritableTileSourceRecord.Clone(ts);
+                if (ts == null) return;
+
                 var pd = PersistentData;
                 if (pd == null) return;
 
-                // LOLLO TODO check how we deal with multiple UriSources and the TestTileSource.
+                var tsClone = WritableTileSourceRecord.Clone(ts);
+
                 // LOLLO TODO why is the "clear" button disabled until I click "accept"?
-                // LOLLO TODO when I pick a model tile source, it overwrites the TestTileSource names: it shouldn't.
-                // LOLLO TODO once I picked a model tile source, the multiple picker should display its name
                 // LOLLO TODO shall I give the option to insert multiple sources? a la a, b, c. Maybe max 3 sources?
-                // LOLLO TODO the local / remote toggler should be bound to the model tile source.
                 var result = await pd.TrySetModelTileSourceAsync(tsClone, CancToken).ConfigureAwait(false);
                 if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
                 else TestTileSourceErrorMsg = result?.Item2 ?? "";

@@ -106,23 +106,19 @@ namespace LolloGPS.Core
         private void OnBaseMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
         {
             Debugger.Break(); // this should not happen
-            if (args == null) return;
             Task set = MapsPanelVM?.RemoveMapSource(args?.Tag as TileSourceRecord);
         }
         private void OnBaseMapSourceChooser_ItemSelected(object sender, TextAndTag args)
         {
-            if (args == null) return;
             Task set = MapsPanelVM?.AddMapSource(args?.Tag as TileSourceRecord);
         }
 
         private void OnOverlayMapSourceChooser_ItemDeselected(object sender, TextAndTag args)
         {
-            if (args == null) return;
             Task set = MapsPanelVM?.RemoveMapSource(args?.Tag as TileSourceRecord);
         }
         private void OnOverlayMapSourceChooser_ItemSelected(object sender, TextAndTag args)
         {
-            if (args == null) return;
             Task set = MapsPanelVM?.AddMapSource(args?.Tag as TileSourceRecord);
         }
     }

@@ -129,17 +129,17 @@
             VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
         <uctl:AppBarButtonReallyCompact Grid.Row="5" Grid.Column="3"
-            VerticalAlignment="Center"
 			Click="OnPickFolderClicked"
+            Icon="OpenFile"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
-			Icon="OpenFile"
+			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
         <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
-			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
-			TextWrapping="Wrap"
 			InputScope="Url"
             PlaceholderText="{x:Bind MapsPanelVM.SampleRemoteUriString}"
+            Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
+			TextWrapping="Wrap"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
         <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
