@@ -103,6 +103,8 @@ namespace LolloGPS.Suspension
 
             if (persistentData.CurrentTileSources == null) return false;
 
+            if (persistentData.ModelTileSource == null) return false;
+
             return true;
         }
 

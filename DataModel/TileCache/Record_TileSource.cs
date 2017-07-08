@@ -32,12 +32,16 @@ namespace LolloGPS.Data.TileCache
         protected const string DefaultTileSourceDisplayName = "Built in";
         protected const string AllTileSourceDisplayName = "All";
         protected const string NoTileSourceDisplayName = "None";
+        
+        public const string SampleLocalUriString = "MyTile_{zoomlevel}_{x}_{y}.png";
+        public const string SampleRemoteUriString = "http://tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png";
 
         protected static readonly string[] DefaultTileSourceUriString = { };
         protected static readonly string DefaultTileSourceProviderUriString = string.Empty;
         protected static readonly string[] DummyTileSourceUriString = { };
         protected static readonly string DummyTileSourceProviderUriString = string.Empty;
-        protected static readonly string[] SampleUriString = { $"http://tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png" };
+        protected static readonly string[] SampleLocalUriStrings = { SampleLocalUriString };
+        protected static readonly string[] SampleRemoteUriStrings = { SampleRemoteUriString };
 
         public const int MinMinZoom = 0;
         protected const int DummyTileSourceMinZoom = 0;
@@ -96,7 +100,7 @@ namespace LolloGPS.Data.TileCache
         public string CopyrightNotice { get { return _copyrightNotice; } }
 
         [DataMember]
-        protected IReadOnlyList<string> _uriStrings = SampleUriString;
+        protected IReadOnlyList<string> _uriStrings = SampleRemoteUriStrings;
         public IReadOnlyList<string> UriStrings { get { return _uriStrings; } }
 
         [DataMember]
@@ -193,8 +197,6 @@ namespace LolloGPS.Data.TileCache
             else
             {
                 errorMsg = CheckUri(UriStrings, false, false);
-                if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
-                errorMsg = CheckUri(ProviderUriString, true, false);
                 if (!string.IsNullOrEmpty(errorMsg)) return errorMsg;
             }
             errorMsg = CheckMinMaxZoom(MinZoom, MaxZoom);
@@ -735,9 +737,9 @@ namespace LolloGPS.Data.TileCache
                 new Dictionary<string, string>(source.RequestHeaders), source.UriStrings.ToArray());
         }
 
-        public static WritableTileSourceRecord GetSampleTileSource()
+        public static WritableTileSourceRecord GetSampleRemoteTileSource()
         {
-            return new WritableTileSourceRecord(false, "", "MyTile_{zoomlevel}_{x}_{y}.png", SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleUriString);
+            return new WritableTileSourceRecord(false, "", SampleLocalUriString, SampleTileSourceTechName, SampleTileSourceTechName, "", "", DefaultTileSourceProviderUriString, MinMinZoom, SampleMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), SampleRemoteUriStrings);
         }
     }
 }

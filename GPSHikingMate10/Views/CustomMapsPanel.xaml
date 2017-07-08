@@ -17,6 +17,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="{StaticResource GridSize4Placeholder_Small}"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -35,64 +37,80 @@
             <ColumnDefinition Width="{StaticResource GridSize4Placeholder_Medium}"/>
         </Grid.ColumnDefinitions>
         <!-- captions -->
-        <TextBlock Grid.Row="1" Text="Name: "
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="2"
+            Text="Model tile source: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="Toggle local / remote source: "
+        <TextBlock Grid.Row="3" Text="Name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="3" Text="Local folder: "
+        <TextBlock Grid.Row="4" Grid.ColumnSpan="3" Text="Toggle local / remote source: "
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="5" Text="Local folder: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBlock Grid.Row="4" Text="File name: "
+        <TextBlock Grid.Row="6" Text="File name: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBlock Grid.Row="4" Text="Uri: "
+        <TextBlock Grid.Row="6" Text="Uri: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-        <TextBlock Grid.Row="5" Text="Min zoom: "
+        <TextBlock Grid.Row="7" Text="Min zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="5" Grid.Column="2" Text="Max zoom: "
+        <TextBlock Grid.Row="7" Grid.Column="2" Text="Max zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"			
 			VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="6" Text="Tile size (px): "
+        <TextBlock Grid.Row="8" Text="Tile size (px): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="6" Grid.Column="2" Text="Overlay layer:"
+        <TextBlock Grid.Row="8" Grid.Column="2" Text="Overlay layer:"
             TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="8" Grid.ColumnSpan="3" Text="Use this source"
+        <TextBlock Grid.Row="10" Grid.ColumnSpan="3" Text="Use this source"
 			TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="10" Grid.ColumnSpan="3" Text="Erase custom sources"
+        <TextBlock Grid.Row="12" Grid.ColumnSpan="3" Text="Erase custom sources"
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
 
         <!-- LOLLO TODO the following works with the old binding but not with the new one -->
         <!-- values -->
-        <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"
+        <uctl:LolloMultipleListChooser Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
+			x:Name="PickCustomTileSourceChooser"
+            BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
+			ItemSelected="OnPickCustomTileSourceChooser_ItemSelected"
+            ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forPickingTileSource, Mode=OneWay}"
+            ListHeaderText="Pick a tile source"
+            Margin="{StaticResource Thickness2}"
+            PlaceholderText="Pick a tile source"
+			PopupContainer="{x:Bind me, Mode=OneWay}"
+            SelectedItems="{x:Bind MapsPanelVM.ModelTileSources, Mode=OneWay}"/>
+
+        <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TechName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="{x:Bind PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
-        <mctl:ToggleButtonLollo Grid.Row="2" Grid.Column="3"
+        <mctl:ToggleButtonLollo Grid.Row="4" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, FallbackValue=False}"
             Click="OnToggleLocalRemote_Click"
@@ -105,53 +123,55 @@
                 <TextBlock Text="Remote" Style="{StaticResource BaseMessageStyle}" VerticalAlignment="Center"/>
             </mctl:ToggleButtonLollo.UncheckedContent>
         </mctl:ToggleButtonLollo>
-        <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3"
+        <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TileSourceFolderPath, Mode=OneWay}"
 			TextWrapping="Wrap"
             VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="3" Grid.Column="3"
+        <uctl:AppBarButtonReallyCompact Grid.Row="5" Grid.Column="3"
             VerticalAlignment="Center"
 			Click="OnPickFolderClicked"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Icon="OpenFile"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
+        <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.UriStrings, Mode=TwoWay, Converter={StaticResource StringToStringArrayConverter}, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			InputScope="Url"
+            PlaceholderText="{x:Bind MapsPanelVM.SampleRemoteUriString}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-        <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
+        <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TileSourceFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			InputScope="Url"
+            PlaceholderText="{x:Bind MapsPanelVM.SampleLocalUriString}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBox Grid.Row="5" Grid.Column="1"
+        <TextBox Grid.Row="7" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MinZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="5" Grid.Column="3"
+        <TextBox Grid.Row="7" Grid.Column="3"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.MaxZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="6" Grid.Column="1"
+        <TextBox Grid.Row="8" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=PersistentData.TestTileSource.TilePixelSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="3"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <CheckBox Grid.Row="6" Grid.Column="3"
+        <CheckBox Grid.Row="8" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{Binding ElementName=me, Path=PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <!-- error message after clicking test -->
-        <TextBlock Grid.Row="7" Grid.ColumnSpan="4"
+        <TextBlock Grid.Row="9" Grid.ColumnSpan="4"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -159,7 +179,7 @@
 			Margin="8,2,2,2"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Center"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="8" Grid.Column="3"
+        <uctl:AppBarButtonReallyCompact Grid.Row="10" Grid.Column="3"
 			VerticalAlignment="Center"
 			Click="OnTestClicked"
 			IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
@@ -167,7 +187,7 @@
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Icon="Accept"/>
         <!-- error message: no connection -->
-        <TextBlock Grid.Row="9" Grid.ColumnSpan="4"
+        <TextBlock Grid.Row="11" Grid.ColumnSpan="4"
             Text="No connection"
             TextWrapping="Wrap"
             Foreground="{StaticResource FlashyForeground}"
@@ -176,21 +196,22 @@
 			VerticalAlignment="Center"
 			HorizontalAlignment="Right"
 			Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-        <uctl:AppBarButtonReallyCompact Grid.Row="10" Grid.Column="3"
+        <uctl:AppBarButtonReallyCompact Grid.Row="12" Grid.Column="3"
 			VerticalAlignment="Center"
 			IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
 			Click="OnClearCustomTileSource_Click"
 			IsCompact="True"
 			Style="{StaticResource AppBarButtonRecoloured}"
 			Icon="Delete"/>
-        <uctl:LolloMultipleListChooser Grid.Row="10" Grid.Column="3"
-			SelectorVisibility="Collapsed"
+        <!--ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache, Mode=OneWay}"-->
+        <uctl:LolloMultipleListChooser Grid.Row="12" Grid.Column="3"
 			x:Name="ClearCustomCacheChooser"
-			PlaceholderText="Which source do you want to erase?"
-			ListHeaderText="Which source do you want to erase?"
-			PopupContainer="{x:Bind me, Mode=OneWay}"
-			ItemsSource="{x:Bind PersistentData.TileSourcez, Converter={StaticResource TileSourcezToTextAndTagsConverter}, ConverterParameter=forClearingCustomCache, Mode=OneWay}"
+            BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
 			ItemSelected="OnClearCustomCacheChooser_ItemSelected"
-			BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"/>
+            ItemsSource="{x:Bind MapsPanelVM.OverlayTileSourceChoices, Mode=OneWay}"
+            ListHeaderText="Which source do you want to erase?"
+            PlaceholderText="Which source do you want to erase?"
+			PopupContainer="{x:Bind me, Mode=OneWay}"
+            SelectorVisibility="Collapsed"/>
     </Grid>
 </uctl:OpenableObservableControl>

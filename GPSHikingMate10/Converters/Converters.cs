@@ -852,6 +852,7 @@ namespace LolloGPS.Converters
             bool isClearingCache = (parameter?.ToString() == "forClearingCache");
             bool isClearingCustomCache = (parameter?.ToString() == "forClearingCustomCache");
             bool isSavingTiles = (parameter?.ToString() == "forSavingTiles");
+            bool isPickingTileSource = (parameter?.ToString() == "forPickingTileSource");
             // clear none
             if (isClearingCache || isClearingCustomCache)
             {
@@ -886,6 +887,14 @@ namespace LolloGPS.Converters
                 foreach (var item in tileSources)
                 {
                     if (item.IsDefault || item.IsFileSource) continue;
+                    output.Add(new TextAndTag(item.DisplayName, item));
+                }
+            }
+            else if (isPickingTileSource)
+            {
+                foreach (var item in tileSources)
+                {
+                    if (item.IsDefault) continue;
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
             }

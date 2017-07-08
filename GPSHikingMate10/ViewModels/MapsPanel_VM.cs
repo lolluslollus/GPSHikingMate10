@@ -46,13 +46,6 @@ namespace LolloGPS.ViewModels
         private string _testTileSourceErrorMsg = "";
         public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
 
-        public class TileSourceChoiceRecord
-        {
-            public string TechName { get; set; }
-            public string DisplayName { get; set; }
-            public bool IsSelected { get; set; }
-        }
-
         private List<TextAndTag> _selectedBaseTiles = new List<TextAndTag>();
         public List<TextAndTag> SelectedBaseTiles { get { return _selectedBaseTiles; } private set { _selectedBaseTiles = value; RaisePropertyChanged_UI(); } }
         private List<TextAndTag> _selectedOverlayTiles = new List<TextAndTag>();
@@ -62,6 +55,12 @@ namespace LolloGPS.ViewModels
         private readonly SwitchableObservableCollection<TextAndTag> _overlayTileSourceChoices = new SwitchableObservableCollection<TextAndTag>();
         public SwitchableObservableCollection<TextAndTag> OverlayTileSourceChoices { get { return _overlayTileSourceChoices; } }
 
+        private List<TextAndTag> _modelTileSources = new List<TextAndTag>();
+        public List<TextAndTag> ModelTileSources { get { return _modelTileSources; } private set { _modelTileSources = value; RaisePropertyChanged_UI(); } }
+
+        public string SampleLocalUriString { get { return TileSourceRecord.SampleLocalUriString; } }
+        public string SampleRemoteUriString { get { return TileSourceRecord.SampleRemoteUriString; } }
+        
         #region lifecycle
         private static readonly object _instanceLocker = new object();
         private static MapsPanelVM _instance = null;
@@ -106,6 +105,7 @@ namespace LolloGPS.ViewModels
                 UpdateTileSourceChoices(allTileSources);
                 UpdateSelectedBaseTile(currentTileSources);
                 UpdateSelectedOverlayTiles(currentTileSources);
+                UpdateModelTileSources();
             }).ConfigureAwait(false);
         }
 
@@ -174,6 +174,18 @@ namespace LolloGPS.ViewModels
             }
             _baseTileSourceChoices.ReplaceAll(baseTileSources);
             _overlayTileSourceChoices.ReplaceAll(overlayTileSources);
+        }
+        private void UpdateModelTileSources()
+        {
+            var ts = PersistentData?.ModelTileSource;
+            if (ts == null)
+            {
+                ModelTileSources.Clear();
+            }
+            else
+            {
+                ModelTileSources = ((new TextAndTag[] { new TextAndTag(ts.DisplayName, WritableTileSourceRecord.Clone(ts)) }).ToList());
+            }
         }
         private void UpdateSelectedBaseTile(ICollection<TileSourceRecord> currentTileSources)
         {
@@ -287,6 +299,13 @@ namespace LolloGPS.ViewModels
                     }).ConfigureAwait(false);
                 }
             }
+            else if (e.PropertyName == nameof(PersistentData.ModelTileSource))
+            {
+                await RunInUiThreadAsync(delegate
+                {
+                    UpdateModelTileSources();
+                }).ConfigureAwait(false);
+            }
         }
 
         private async void OnRuntimeData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -320,41 +339,31 @@ namespace LolloGPS.ViewModels
             // output messages
             if (args.TileSource.IsAll)
             {
-                /*if (args.HowManyRecordsDeleted > 0)
-				{
-					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " records deleted");
-				}
-				else */
                 if (args.IsCacheCleared)
                 {
-                    PersistentData.LastMessage = ("Cache empty");
+                    _mainVM?.SetLastMessage_UI("Cache empty");
                 }
                 else
                 {
-                    PersistentData.LastMessage = ("Cache busy");
+                    _mainVM?.SetLastMessage_UI("Cache busy");
                 }
             }
             else
             {
-                /*if (args.HowManyRecordsDeleted > 0)
-				{
-					PersistentData.LastMessage = (args.HowManyRecordsDeleted + " " + args.TileSource.DisplayName + " records deleted");
-				}
-				else */
                 if (args.IsCacheCleared)
                 {
-                    PersistentData.LastMessage = (args.TileSource.DisplayName + " cache is empty");
+                    _mainVM?.SetLastMessage_UI(args.TileSource.DisplayName + " cache is empty");
                 }
                 else
                 {
-                    PersistentData.LastMessage = (args.TileSource.DisplayName + " cache is busy");
+                    _mainVM?.SetLastMessage_UI(args.TileSource.DisplayName + " cache is busy");
                 }
             }
         }
 
         private void OnTileCacheClearerSaver_CacheSaved(object sender, TileCacheClearerSaver.CacheSavedEventArgs args)
         {
-            PersistentData.LastMessage = $"{args.HowManyRecordsSaved} tiles saved";
+            _mainVM?.SetLastMessage_UI($"{args.HowManyRecordsSaved} tiles saved");
         }
         #endregion event handlers
 
@@ -402,7 +411,7 @@ namespace LolloGPS.ViewModels
         public async Task ScheduleClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources)
         {
             bool isScheduled = await Task.Run(() => _tileCacheClearerSaver.TryScheduleClearCacheAsync(tileSource, isAlsoRemoveSources)).ConfigureAwait(false);
-            PersistentData.LastMessage = isScheduled ? "cache will be cleared asap" : "cache unchanged";
+            _mainVM?.SetLastMessage_UI(isScheduled ? "cache will be cleared asap" : "cache unchanged");
         }
         public Task ShowDownloadZooms()
         {
@@ -454,7 +463,7 @@ namespace LolloGPS.ViewModels
             {
                 if (ts == null) return;
                 var result = await PersistentData.AddCurrentTileSourceAsync(ts, CancToken).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(result)) PersistentData.LastMessage = result;
+                if (!string.IsNullOrWhiteSpace(result)) _mainVM?.SetLastMessage_UI(result);
             });
         }
         public Task RemoveMapSource(TileSourceRecord ts)
@@ -490,6 +499,28 @@ namespace LolloGPS.ViewModels
                 var tts = PersistentData?.TestTileSource;
                 if (tts == null) return;
                 tts.IsFileSource = !tts.IsFileSource;
+            });
+        }
+
+        public async Task SetModelTileSourceAsync(TileSourceRecord ts)
+        {
+            await RunFunctionIfOpenAsyncT(async () =>
+            {
+                var tsClone = WritableTileSourceRecord.Clone(ts);
+                var pd = PersistentData;
+                if (pd == null) return;
+
+                // LOLLO TODO check how we deal with multiple UriSources and the TestTileSource.
+                // LOLLO TODO why is the "clear" button disabled until I click "accept"?
+                // LOLLO TODO when I pick a model tile source, it overwrites the TestTileSource names: it shouldn't.
+                // LOLLO TODO once I picked a model tile source, the multiple picker should display its name
+                // LOLLO TODO shall I give the option to insert multiple sources? a la a, b, c. Maybe max 3 sources?
+                // LOLLO TODO the local / remote toggler should be bound to the model tile source.
+                var result = await pd.TrySetModelTileSourceAsync(tsClone, CancToken).ConfigureAwait(false);
+                if (result?.Item1 == true) TestTileSourceErrorMsg = string.Empty;
+                else TestTileSourceErrorMsg = result?.Item2 ?? "";
+
+                _mainVM?.SetLastMessage_UI(result?.Item2);
             });
         }
         #endregion services

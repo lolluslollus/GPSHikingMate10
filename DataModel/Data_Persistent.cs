@@ -524,9 +524,13 @@ namespace LolloGPS.Data
         private readonly SwitchableObservableCollection<TileSourceRecord> _tileSourcez = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetStockTileSources());
         public SwitchableObservableCollection<TileSourceRecord> TileSourcez { get { return _tileSourcez; } }
 
-        private volatile WritableTileSourceRecord _testTileSource = WritableTileSourceRecord.GetSampleTileSource();
+        private volatile WritableTileSourceRecord _testTileSource = WritableTileSourceRecord.GetSampleRemoteTileSource();
         [DataMember]
         public WritableTileSourceRecord TestTileSource { get { return _testTileSource; } private set { _testTileSource = value; RaisePropertyChanged_UI(); } }
+
+        private WritableTileSourceRecord _modelTileSource = WritableTileSourceRecord.GetSampleRemoteTileSource();
+        [DataMember]
+        public WritableTileSourceRecord ModelTileSource { get { return _modelTileSource; } set { _modelTileSource = value; RaisePropertyChanged_UI(); } }
 
         [DataMember]
         private readonly SwitchableObservableCollection<TileSourceRecord> _currentTileSources = new SwitchableObservableCollection<TileSourceRecord>(TileSourceRecord.GetDefaultTileSourceList());
@@ -1266,6 +1270,48 @@ namespace LolloGPS.Data
                 RaisePropertyChanged_UI(nameof(CurrentTileSources));
             });
         }
+        public async Task<Tuple<bool, string>> TrySetModelTileSourceAsync(TileSourceRecord source, CancellationToken cancToken)
+        {
+            if (source == null) Tuple.Create(false, "Record null");
+            WritableTileSourceRecord newTileSource = null;
+            try
+            {
+                await _tileSourcezSemaphore.WaitAsync(cancToken);
+                IsTileSourcezBusy = true;
+
+                newTileSource = WritableTileSourceRecord.Clone(source);
+                // exit if wrong data - it should never happen
+                if (newTileSource == null) return Tuple.Create(false, "Record not found");
+                if (string.IsNullOrWhiteSpace(newTileSource.TechName)) return Tuple.Create(false, "Name is empty");
+                // some more checks
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                string errorMsg = await newTileSource.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
+                // set
+                if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
+                _modelTileSource = newTileSource;
+                var newTileSourceClone = WritableTileSourceRecord.Clone(newTileSource);
+
+                newTileSourceClone.DisplayName = newTileSourceClone.FolderName = newTileSourceClone.TechName = _testTileSource.TechName;
+                _testTileSource = newTileSourceClone;
+
+                RaisePropertyChanged_UI(nameof(ModelTileSource));
+                RaisePropertyChanged_UI(nameof(TestTileSource));
+                return Tuple.Create(true, "");
+            }
+            catch (ObjectDisposedException) { return Tuple.Create(false, "cancelled"); }
+            catch (OperationCanceledException) { return Tuple.Create(false, "cancelled"); }
+            catch (Exception ex)
+            {
+                Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                return Tuple.Create(false, $"Error with tile source {newTileSource?.DisplayName ?? string.Empty}");
+            }
+            finally
+            {
+                IsTileSourcezBusy = false;
+                SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
+            }
+        }
+
         /// <summary>
         /// Checks TestTileSource and, if good, adds it to TileSourcez and sets CurrentTileSource to it.
         /// Note that the user might press "test" multiple times, so I may clutter TileSourcez with test records.

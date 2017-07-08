@@ -12,16 +12,16 @@ namespace LolloGPS.Core
 {
     public sealed partial class CustomMapsPanel : Utilz.Controlz.OpenableObservableControl
     {
-		public PersistentData PersistentData { get { return App.PersistentData; } }
-		public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData { get { return App.PersistentData; } }
+        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
 
-		public MainVM MainVM
-		{
-			get { return (MainVM)GetValue(MainVMProperty); }
-			set { SetValue(MainVMProperty, value); }
-		}
-		public static readonly DependencyProperty MainVMProperty =
-			DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
+        public MainVM MainVM
+        {
+            get { return (MainVM)GetValue(MainVMProperty); }
+            set { SetValue(MainVMProperty, value); }
+        }
+        public static readonly DependencyProperty MainVMProperty =
+            DependencyProperty.Register("MainVM", typeof(MainVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
 
         public MapsPanelVM MapsPanelVM
         {
@@ -30,42 +30,43 @@ namespace LolloGPS.Core
         }
         public static readonly DependencyProperty MapsPanelVMProperty =
             DependencyProperty.Register("MapsPanelVM", typeof(MapsPanelVM), typeof(CustomMapsPanel), new PropertyMetadata(null));
-        
+
         public CustomMapsPanel()
-		{
-			InitializeComponent();
-		}
+        {
+            InitializeComponent();
+        }
 
-		protected override async Task OpenMayOverrideAsync(object args = null)
-		{
-			await ClearCustomCacheChooser.OpenAsync().ConfigureAwait(false);
-			await base.OpenMayOverrideAsync().ConfigureAwait(false);
-		}
+        protected override async Task OpenMayOverrideAsync(object args = null)
+        {
+            await PickCustomTileSourceChooser.OpenAsync().ConfigureAwait(false);
+            await ClearCustomCacheChooser.OpenAsync().ConfigureAwait(false);
+            await base.OpenMayOverrideAsync().ConfigureAwait(false);
+        }
 
-		protected override async Task CloseMayOverrideAsync(object args = null)
-		{
-			await ClearCustomCacheChooser.CloseAsync().ConfigureAwait(false);
-			await base.CloseMayOverrideAsync().ConfigureAwait(false);
-		}
+        protected override async Task CloseMayOverrideAsync(object args = null)
+        {
+            await ClearCustomCacheChooser.CloseAsync().ConfigureAwait(false);
+            await base.CloseMayOverrideAsync().ConfigureAwait(false);
+        }
 
-		private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
-		{
-			if (MapsPanelVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
-			{
-				ClearCustomCacheChooser.IsPopupOpen = true;
-			}
-			else PersistentData.LastMessage = "Cache busy";
-		}
+        private void OnClearCustomTileSource_Click(object sender, RoutedEventArgs e)
+        {
+            if (MapsPanelVM?.IsClearCustomCacheEnabled == true) // this is redundant safety
+            {
+                ClearCustomCacheChooser.IsPopupOpen = true;
+            }
+            else PersistentData.LastMessage = "Cache busy";
+        }
 
-		private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
-		{
-			Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
-		}
+        private void OnClearCustomCacheChooser_ItemSelected(object sender, TextAndTag e)
+        {
+            Task sch = MapsPanelVM?.ScheduleClearCacheAsync(e?.Tag as TileSourceRecord, true);
+        }
 
-		private void OnTestClicked(object sender, RoutedEventArgs e)
-		{
-			Task uuu = MapsPanelVM?.StartUserTestingTileSourceAsync();
-		}
+        private void OnTestClicked(object sender, RoutedEventArgs e)
+        {
+            Task uuu = MapsPanelVM?.StartUserTestingTileSourceAsync();
+        }
 
         private void OnPickFolderClicked(object sender, RoutedEventArgs e)
         {
@@ -75,6 +76,11 @@ namespace LolloGPS.Core
         private void OnToggleLocalRemote_Click(object sender, RoutedEventArgs e)
         {
             Task toggle = MapsPanelVM?.ToggleIsFileSourceAsync();
+        }
+
+        private void OnPickCustomTileSourceChooser_ItemSelected(object sender, TextAndTag e)
+        {
+            Task pick = MapsPanelVM?.SetModelTileSourceAsync(e?.Tag as TileSourceRecord);
         }
     }
 }
