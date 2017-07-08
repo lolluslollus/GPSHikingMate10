@@ -2,10 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -249,7 +247,7 @@ namespace LolloGPS.Data.TileCache
             if (uris == null || uris.Count == 0)
             {
                 if (isEmptyAllowed) return string.Empty;
-                else return "Uri is empty";
+                else return "No uris";
             }
             foreach (var uriStr in uris)
             {
@@ -263,7 +261,7 @@ namespace LolloGPS.Data.TileCache
             if (string.IsNullOrWhiteSpace(uri))
             {
                 if (isEmptyAllowed) return string.Empty;
-                else return "Uri is empty";
+                else return "Empty uri";
             }
             if (uri.Length < 7) return "Invalid uri";
             if (!uri.Contains(ZoomLevelPlaceholder)) return string.Format("Uri must contain {0}", ZoomLevelPlaceholder);
@@ -731,12 +729,14 @@ namespace LolloGPS.Data.TileCache
                 headers, uriStrings)
         { }
 
-        public Tuple<bool, string> TryAddUriString(string newUriString)
+        public Tuple<bool, string> TryAddEmptyUriString()
         {
             var uss = _uriStrings;
             if (uss.Count >= MaxUriSources) return Tuple.Create(false, $"Max {MaxUriSources} uris");
 
-            uss.Add(newUriString);
+            if (uss.Contains(string.Empty)) return Tuple.Create(false, "You already have an empty uri");
+
+            uss.Add(string.Empty);
             RaisePropertyChanged_UI(nameof(UriStrings));
             return Tuple.Create(true, string.Empty);
         }
@@ -754,12 +754,12 @@ namespace LolloGPS.Data.TileCache
 
             UriStrings = uriStrings;
         }
-        public Tuple<bool, string> TryAddRequestHeader()
+        public Tuple<bool, string> TryAddEmptyRequestHeader()
         {
             var rh = _requestHeaders;
             if (rh.Count >= MaxRequestHeaders) return Tuple.Create(false, $"Max {MaxRequestHeaders} headers");
 
-            if (rh.ContainsKey(string.Empty)) return Tuple.Create(false, "A header with empty key already exists");
+            if (rh.ContainsKey(string.Empty)) return Tuple.Create(false, "You already have a header with empty key");
 
             rh.Add(string.Empty, string.Empty);
             RaisePropertyChanged_UI(nameof(RequestHeaders));

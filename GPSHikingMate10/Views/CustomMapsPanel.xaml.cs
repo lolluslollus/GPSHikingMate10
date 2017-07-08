@@ -83,26 +83,21 @@ namespace LolloGPS.Core
 
         private void OnAddUriString_Click(object sender, RoutedEventArgs e)
         {
-            Task add = MapsPanelVM?.AddUriToTestTileSourceAsync();
+            Task add = MapsPanelVM?.AddEmptyUriStringToTestTileSourceAsync();
         }
 
         private void OnRemoveUriString_Click(object sender, RoutedEventArgs e)
         {
-            var dataContext = (sender as FrameworkElement)?.DataContext as TypedString;
-            if (dataContext == null) return;
-            Task add = MapsPanelVM?.RemoveUriFromTestTileSourceAsync(dataContext);
+            Task add = MapsPanelVM?.RemoveUriStringFromTestTileSourceAsync((sender as FrameworkElement)?.DataContext as ObservableString);
         }
 
         private void OnAddRequestHeader_Click(object sender, RoutedEventArgs e)
         {
-            Task add = MapsPanelVM?.AddRequestHeaderToTestTileSourceAsync();
+            Task add = MapsPanelVM?.AddEmptyRequestHeaderToTestTileSourceAsync();
         }
         private void OnRemoveRequestHeader_Click(object sender, RoutedEventArgs e)
         {
-            var dataContext = (sender as FrameworkElement)?.DataContext as KeyAndValue;
-            if (dataContext == null) return;
-
-            Task remove = MapsPanelVM?.RemoveRequestHeaderFromTestTileSourceAsync(dataContext);
+            Task remove = MapsPanelVM?.RemoveRequestHeaderFromTestTileSourceAsync((sender as FrameworkElement)?.DataContext as ObservableKeyAndValue);
         }
     }
 }

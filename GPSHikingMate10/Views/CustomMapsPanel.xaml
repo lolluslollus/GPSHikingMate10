@@ -27,6 +27,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -37,7 +39,7 @@
         </Grid.ColumnDefinitions>
         <!-- captions -->
         <TextBlock Grid.ColumnSpan="2"
-            Text="Model tile source (optional): "
+            Text="Pick a source to copy or edit: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -59,39 +61,41 @@
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <TextBlock Grid.Row="4" Text="Uri(s): "
+        <TextBlock Grid.Row="4" Grid.ColumnSpan="2"
+            Text="Uri(s): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-        <TextBlock Grid.Row="5" Text="Web request headers: "
+        <TextBlock Grid.Row="6" Grid.ColumnSpan="2"
+            Text="Web request headers: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
-        <TextBlock Grid.Row="6" Text="Min zoom: "
+        <TextBlock Grid.Row="8" Text="Min zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="6" Grid.Column="2" Text="Max zoom: "
+        <TextBlock Grid.Row="8" Grid.Column="2" Text="Max zoom: "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"			
 			VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="7" Text="Tile size (px): "
+        <TextBlock Grid.Row="9" Text="Tile size (px): "
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="7" Grid.Column="2" Text="Overlay layer:"
+        <TextBlock Grid.Row="9" Grid.Column="2" Text="Overlay layer:"
             TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"
             Margin="8,2,2,2"/>
-        <TextBlock Grid.Row="9" Grid.ColumnSpan="3" Text="Use this source"
+        <TextBlock Grid.Row="11" Grid.ColumnSpan="3" Text="Use this source"
 			TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
             VerticalAlignment="Center"/>
-        <TextBlock Grid.Row="11" Grid.ColumnSpan="3" Text="Erase custom sources"
+        <TextBlock Grid.Row="13" Grid.ColumnSpan="3" Text="Erase custom sources"
             TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
 			VerticalAlignment="Center"/>
@@ -115,10 +119,12 @@
 			MaxLength="{x:Bind MapsPanelVM.PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
         <mctl:ToggleButtonLollo Grid.Row="2" Grid.Column="3"
-            VerticalAlignment="Center"
             IsChecked="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, FallbackValue=False}"
             Click="OnToggleLocalRemote_Click"
 			Style="{StaticResource ToggleButtonRecoloured}"
+            Margin="{StaticResource Thickness2}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Stretch"
             TabIndex="1">
             <mctl:ToggleButtonLollo.CheckedContent>
                 <TextBlock Text="Local" Style="{StaticResource BaseMessageStyle}" VerticalAlignment="Center"/>
@@ -136,51 +142,54 @@
 			Click="OnPickFolderClicked"
             Icon="OpenFile"
 			Style="{StaticResource AppBarButtonRecolouredCompact}"
+            HorizontalAlignment="Right"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
+        <AppBarButton Grid.Row="4" Grid.Column="3"
+			Click="OnAddUriString_Click"
+            Icon="Add"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
+            HorizontalAlignment="Right"
+            Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+        <!--ItemsSource="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
+        <!--ItemsSource="{x:Bind MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
+        <ItemsControl Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"
+            ItemsSource="{x:Bind MapsPanelVM.UriStrings, Mode=OneWay}"
             VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <!--ItemsSource="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
-            <!--ItemsSource="{x:Bind MapsPanelVM.PersistentData.TestTileSource.UriStrings, Mode=OneWay}"-->
-            <ItemsControl x:Name="UriStringsIC"
-                ItemsSource="{x:Bind MapsPanelVM.UriStrings, Mode=OneWay}"
-                VerticalAlignment="Center">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsStackPanel Orientation="Vertical"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <AppBarButton
-			                    Click="OnRemoveUriString_Click"
-                                Icon="Clear"
-			                    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
-                            <TextBox Grid.Column="1"
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Vertical"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox
 			                    InputScope="Url"
                                 PlaceholderText="{Binding ElementName=me, Path=MapsPanelVM.SampleRemoteUriString}"
                                 Text="{Binding Path=Str, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			                    TextWrapping="Wrap"
 			                    VerticalAlignment="Center"/>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <AppBarButton Grid.Row="1"
-			    Click="OnAddUriString_Click"
-                Icon="Add"
-			    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
-        </Grid>
+                        <AppBarButton Grid.Column="1"
+			                    Click="OnRemoveUriString_Click"
+                                Icon="Remove"
+			                    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ContentControl Grid.Row="5" Grid.ColumnSpan="4"
+            Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+            HorizontalContentAlignment="Right">
+            <TextBlock
+                Foreground="{StaticResource FlashyForeground}"
+                Text="No uris, add some"
+                Visibility="{x:Bind MapsPanelVM.UriStrings.Count, Mode=OneWay, Converter={StaticResource ListCountGreaterThanZeroToCollapsedConverter}}"/>
+        </ContentControl>
         <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3"
 			Text="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.TileSourceFileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
@@ -188,78 +197,79 @@
             PlaceholderText="{x:Bind MapsPanelVM.SampleLocalUriString, Mode=OneWay}"
 			VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToVisibleConverter}}"/>
-        <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3"
+        <AppBarButton Grid.Row="6" Grid.Column="3"
+			Click="OnAddRequestHeader_Click"
+            Icon="Add"
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
+            HorizontalAlignment="Right"
+            Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"/>
+        <ItemsControl Grid.Row="7" Grid.ColumnSpan="4"
+            ItemsSource="{x:Bind MapsPanelVM.RequestHeaders, Mode=OneWay}"
             VerticalAlignment="Center"
             Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <ItemsControl x:Name="RequestHeadersIC"
-                ItemsSource="{x:Bind MapsPanelVM.RequestHeaders, Mode=OneWay}"
-                VerticalAlignment="Center">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsStackPanel Orientation="Vertical"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <AppBarButton
-			                    Click="OnRemoveRequestHeader_Click"
-                                Icon="Clear"
-			                    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
-                            <TextBox Grid.Column="1"
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel Orientation="Vertical"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox
 			                    InputScope="Url"
                                 PlaceholderText="Type a header key"
                                 Text="{Binding Path=Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			                    TextWrapping="Wrap"
 			                    VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="2"
+                        <TextBox Grid.Column="1"
 			                    InputScope="Url"
                                 PlaceholderText="Type a header value"
                                 Text="{Binding Path=Val, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			                    TextWrapping="Wrap"
 			                    VerticalAlignment="Center"/>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <AppBarButton Grid.Row="1"
-			    Click="OnAddRequestHeader_Click"
-                Icon="Add"
-			    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
-        </Grid>
-        <TextBox Grid.Row="6" Grid.Column="1"
+                        <AppBarButton Grid.Column="2"
+			                    Click="OnRemoveRequestHeader_Click"
+                                Icon="Remove"
+			                    Style="{StaticResource AppBarButtonRecolouredCompact}"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ContentControl Grid.Row="7" Grid.ColumnSpan="4"
+            Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}"
+            HorizontalContentAlignment="Right">
+            <TextBlock
+                Text="No headers, usually OK"
+                Visibility="{x:Bind MapsPanelVM.RequestHeaders.Count, Mode=OneWay, Converter={StaticResource ListCountGreaterThanZeroToCollapsedConverter}}"/>
+        </ContentControl>
+        <TextBox Grid.Row="8" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.MinZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="6" Grid.Column="3"
+        <TextBox Grid.Row="8" Grid.Column="3"
 			Text="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.MaxZoom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="2"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <TextBox Grid.Row="7" Grid.Column="1"
+        <TextBox Grid.Row="9" Grid.Column="1"
 			Text="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.TilePixelSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 			TextWrapping="Wrap"
 			MaxLength="3"
 			InputScope="Number"
 			VerticalAlignment="Center"/>
-        <CheckBox Grid.Row="7" Grid.Column="3"
+        <CheckBox Grid.Row="9" Grid.Column="3"
             VerticalAlignment="Center"
             IsChecked="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         <!-- error message after clicking test -->
-        <TextBlock Grid.Row="8" Grid.ColumnSpan="4"
+        <TextBlock Grid.Row="10" Grid.ColumnSpan="4"
 			Text="{x:Bind MapsPanelVM.TestTileSourceErrorMsg, Mode=OneWay}"
 			TextWrapping="Wrap"
 			Foreground="{StaticResource FlashyForeground}"
@@ -267,13 +277,14 @@
 			Margin="8,2,2,2"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Center"/>
-        <AppBarButton Grid.Row="9" Grid.Column="3"
+        <AppBarButton Grid.Row="11" Grid.Column="3"
 			Click="OnTestClicked"
             Icon="Accept"
 			IsEnabled="{x:Bind MapsPanelVM.IsTestCustomTileSourceEnabled, Mode=OneWay}"
-			Style="{StaticResource AppBarButtonRecolouredCompact}"/>
+			Style="{StaticResource AppBarButtonRecolouredCompact}"
+            HorizontalAlignment="Right"/>
         <!-- error message: no connection -->
-        <TextBlock Grid.Row="10" Grid.ColumnSpan="4"
+        <TextBlock Grid.Row="12" Grid.ColumnSpan="4"
             Text="No connection"
             TextWrapping="Wrap"
             Foreground="{StaticResource FlashyForeground}"
@@ -282,12 +293,13 @@
 			VerticalAlignment="Center"
 			HorizontalAlignment="Right"
 			Visibility="{x:Bind MapsPanelVM.RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-        <AppBarButton Grid.Row="11" Grid.Column="3"
+        <AppBarButton Grid.Row="13" Grid.Column="3"
 			Click="OnClearCustomTileSource_Click"
 			Icon="Delete"
             IsEnabled="{x:Bind MapsPanelVM.IsClearCustomCacheEnabled, Mode=OneWay}"
-            Style="{StaticResource AppBarButtonRecolouredCompact}"/>
-        <uctl:LolloMultipleListChooser Grid.Row="11" Grid.Column="3"
+            Style="{StaticResource AppBarButtonRecolouredCompact}"
+            HorizontalAlignment="Right"/>
+        <uctl:LolloMultipleListChooser Grid.Row="13" Grid.Column="3"
 			x:Name="ClearCustomCacheChooser"
             BackPressedRaiser="{x:Bind Path=MainVM, Mode=OneWay}"
 			ItemSelected="OnClearCustomCacheChooser_ItemSelected"

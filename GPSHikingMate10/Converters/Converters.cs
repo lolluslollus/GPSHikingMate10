@@ -270,6 +270,21 @@ namespace LolloGPS.Converters
             throw new Exception("this is a one-way binding, it should never come here");
         }
     }
+    public class ListCountGreaterThanZeroToCollapsedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (!(value is int)) return Visibility.Visible;
+            int val = (int)value;
+            if (val > 0) return Visibility.Collapsed;
+            else return Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new Exception("this is a one-way binding, it should never come here");
+        }
+    }
 
     public class CheckpointCountLowerThanMaxToTrueConverter : IValueConverter
     {

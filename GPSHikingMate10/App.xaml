@@ -60,7 +60,8 @@
 			<conv:AngleConverterLon x:Key="AngleConverterLon"/>
 			<conv:SeriesTextConverter x:Key="SeriesTextConverter"/>
 			<conv:SeriesToVisibilityConverter x:Key="SeriesToVisibilityConverter"/>
-			<conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
+            <conv:ListCountGreaterThanZeroToCollapsedConverter x:Key="ListCountGreaterThanZeroToCollapsedConverter"/>
+            <conv:StringFormatterConverter x:Key="StringFormatterConverter"/>
 			<conv:UintToDoubleConverter x:Key="UintToDoubleConverter"/>
 			<conv:SelectedPivotIndexConverter x:Key="SelectedPivotIndexConverter"/>
             <conv:BoolToSelectionModeConverter x:Key="BoolToSelectionModeConverter"/>

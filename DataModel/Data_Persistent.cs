@@ -1315,7 +1315,7 @@ namespace LolloGPS.Data
             }
         }
 
-        public async Task<Tuple<bool, string>> AddUriToTestTileSourceAsync(CancellationToken cancToken)
+        public async Task<Tuple<bool, string>> AddEmptyUriStringToTestTileSourceAsync(CancellationToken cancToken)
         {
             WritableTileSourceRecord tts = null;
             try
@@ -1330,12 +1330,11 @@ namespace LolloGPS.Data
                 // exit if no tts - it should never happen
                 if (tts == null) return Tuple.Create(false, "TestTileSource not found");
                 // add
-                var isAdded = tts.TryAddUriString(string.Empty);
+                var isAdded = tts.TryAddEmptyUriString();
                 // exit if error
                 if (!isAdded.Item1) return isAdded;
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1356,7 +1355,7 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
         }
-        public async Task<Tuple<bool, string>> RemoveUriFromTestTileSourceAsync(string uriString, CancellationToken cancToken)
+        public async Task<Tuple<bool, string>> RemoveUriStringFromTestTileSourceAsync(string uriString, CancellationToken cancToken)
         {
             WritableTileSourceRecord tts = null;
             try
@@ -1372,11 +1371,10 @@ namespace LolloGPS.Data
                 if (tts == null) return Tuple.Create(false, "TestTileSource not found");
                 // remove
                 var isRemoved = tts.TryRemoveUriString(uriString);
-                // exit if error
+                // exit if error. Not really an error in this case, so we let it go.
                 if (!isRemoved) return Tuple.Create(true, string.Empty);
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1414,8 +1412,7 @@ namespace LolloGPS.Data
                 // set
                 tts.SetUriStrings(uriStrings);
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1452,12 +1449,11 @@ namespace LolloGPS.Data
                 // exit if no tts - it should never happen
                 if (tts == null) return Tuple.Create(false, "TestTileSource not found");
                 // add
-                var isAdded = tts.TryAddRequestHeader();
+                var isAdded = tts.TryAddEmptyRequestHeader();
                 // exit if error
-                if (!isAdded.Item1) return Tuple.Create(false, isAdded.Item2);
+                if (!isAdded.Item1) return isAdded;
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1494,11 +1490,10 @@ namespace LolloGPS.Data
                 if (tts == null) return Tuple.Create(false, "TestTileSource not found");
                 // remove
                 var isRemoved = tts.TryRemoveRequestHeader(key);
-                // exit if error
+                // exit if error. Not really an error here, so we let it go
                 if (!isRemoved) return Tuple.Create(true, string.Empty);
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
@@ -1536,8 +1531,7 @@ namespace LolloGPS.Data
                 // add
                 tts.SetRequestHeaders(requestHeaders);
                 // make sure listeners get it
-                _testTileSource = WritableTileSourceRecord.Clone(tts);
-                RaisePropertyChanged_UI(nameof(TestTileSource));
+                TestTileSource = WritableTileSourceRecord.Clone(tts);
                 // some more checks
                 if (cancToken.IsCancellationRequested) return Tuple.Create(false, "cancelled");
                 string errorMsg = await tts.CheckAsync(cancToken); if (!string.IsNullOrEmpty(errorMsg)) return Tuple.Create(false, errorMsg);
