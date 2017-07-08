@@ -72,15 +72,34 @@
 
         <TextBlock Text="Maps"
 			Style="{StaticResource HeaderTextStyle}"/>
-		<TextBlock Text="You can choose your own map tiles, one for the base layer and multiple overlays. Maps are made of tiles that are mostly 256x256 images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but it is just a tool and any breeches are entirely up to you."
+		<TextBlock Text="You can choose your own map tiles - one base layer and multiple overlays. Maps are made of tiles that are mostly 256x256 pixel images, and some web servers provide those. You can bulk download them at home for later offline usage, but beware: many web sites offer free map tiles but do not allow their usage under certain conditions, it is up to you to break their rules or not. The app puts a limit on the amount of tiles you can download, but this is just a tool and any breeches are entirely up to you."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web or in your machine, open the custom maps menu and input their web addresses yourself. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
+		<TextBlock Text="I would really like to give you some more tile sources, but either they are forbidden or I don't know them. If you need tiles that are not already listed, look them up in the web or in your device, open the custom maps menu and try your luck."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="Mind that many maps only support certain zoom levels."
+		<TextBlock Text="Mind that many maps only support certain zoom levels, or only cover certain areas."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"/>
+
+        <TextBlock Text="Custom Maps"
+			Style="{StaticResource HeaderTextStyle}"/>
+        <TextBlock Text="Here, you can define your own tile sources. The app understands tile addresses that have a zoom, x and y reference system. Some tiles use different systems and won't work."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="To get started, you can pick an available tile source and see how its parameters look. You cannot edit the sources that come with the app, but you can copy them under a different name and then edit them."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="You can pick tiles from a folder or from a remote address. Some servers have multiple mirrors you can use in parallel."
+			TextWrapping="Wrap"
+			Style="{StaticResource BaseMessageStyle}"
+			Margin="{StaticResource Thickness0404}"/>
+        <TextBlock Text="Certain servers require particular headers; most don't."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
