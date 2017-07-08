@@ -19,8 +19,14 @@ namespace LolloGPS.Data.TileCache
     [DataContract]
     public class TypedString : ObservableData, IComparable
     {
+        [DataMember]
         private string _str = string.Empty;
         public string Str { get { return _str; } set { _str = value; RaisePropertyChanged_UI(); } }
+
+        /// <summary>
+        /// Useful for a List{TypedString}, as opposed to a List{string},
+        /// when you want to inform the listeners that something changed.
+        /// </summary>
         public TypedString(string str)
         {
             Str = str;
@@ -191,7 +197,6 @@ namespace LolloGPS.Data.TileCache
             _isCustom = isCustom;
             _isOverlay = isOverlay;
             _requestHeaders = headers;
-            var newUriStrings = uriStrings.ToList();
             _uriStrings = uriStrings.Select(us => new TypedString(us)).ToList();
         }
 
@@ -241,7 +246,7 @@ namespace LolloGPS.Data.TileCache
         private static string CheckTechName(string techName)
         {
             if (string.IsNullOrWhiteSpace(techName)) return "Name must not be empty";
-            if (techName.Length > MaxTechNameLength) return string.Format("Name must be max {0} characters", MaxTechNameLength);
+            if (techName.Length > MaxTechNameLength) return $"Name must be max {MaxTechNameLength} characters";
             //int invalidCharIndex = techName.IndexOfAny(Path.GetInvalidPathChars());
             //if (invalidCharIndex >= 0) return string.Format("{0} is an invalid character", techName.Substring(invalidCharIndex, 1));
             //invalidCharIndex = techName.IndexOfAny(Path.GetInvalidFileNameChars());
