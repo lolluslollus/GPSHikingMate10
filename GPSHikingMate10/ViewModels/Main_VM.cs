@@ -420,7 +420,7 @@ namespace LolloGPS.ViewModels
             // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
             if (dir == null) return;
 
-            Pickers.SetLastPickedFolder(dir, dir.Path);
+            Pickers.SetPickedFolder(dir, dir.Path);
 
             var instance = await GetCurrentOpenInstanceAsync().ConfigureAwait(false);
             if (instance == null) return;

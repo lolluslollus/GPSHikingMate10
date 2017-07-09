@@ -90,7 +90,7 @@ namespace LolloGPS.Data.TileCache
 
                 try
                 {
-                    _tileSourceFolder = Pickers.GetLastPickedFolderAsync(tileSource.TileSourceFolderPath, cancToken).Result;
+                    _tileSourceFolder = Pickers.GetPreviouslyPickedFolderAsync(tileSource.TileSourceFolderPath, cancToken).Result;
                 }
                 catch (OperationCanceledException) { throw; }
                 catch (Exception exc)
