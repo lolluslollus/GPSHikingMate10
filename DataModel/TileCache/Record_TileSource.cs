@@ -34,24 +34,14 @@ namespace LolloGPS.Data.TileCache
         protected const string AllTileSourceDisplayName = "All";
         protected const string NoTileSourceDisplayName = "None";
 
-        public const string SampleLocalUriString = "MyTile_{zoomlevel}_{x}_{y}.png";
-        public const string SampleRemoteUriString = "http://tileserver.something/{zoomlevel}/{x}/{y}.png";
-        //public static readonly Dictionary<string, string> SampleRemoteRequestHeaders = GetDefaultWebHeaderCollection();
-
-        protected static readonly string[] DefaultTileSourceUriString = { };
-        protected static readonly string[] DummyTileSourceUriString = { };
-        protected static readonly string DummyTileSourceProviderUriString = string.Empty;
-        protected static readonly List<string> SampleRemoteUriStrings = (new string[] { SampleRemoteUriString }).ToList();
+        public static readonly string SampleLocalUriString = $"MyTile_{ZoomLevelPlaceholder}_{XPlaceholder}_{YPlaceholder}.png";
+        public static readonly string SampleRemoteUriString = $"{"http://"}tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png";
 
         public const int MinMinZoom = 0;
-        protected const int DummyTileSourceMinZoom = 0;
-
         public const int MaxMaxZoom = 20;
-        protected const int DummyTileSourceMaxZoom = 0;
         protected const int SampleMaxZoom = 16;
 
         protected const int DefaultTilePixelSize = 256;
-        protected const int DummyTileSourceTilePixelSize = 0;
 
         public const string ZoomLevelPlaceholder = "{zoomlevel}";
         public const string XPlaceholder = "{x}";
@@ -100,7 +90,7 @@ namespace LolloGPS.Data.TileCache
         public string CopyrightNotice { get { return _copyrightNotice; } }
 
         [DataMember]
-        protected List<string> _uriStrings = SampleRemoteUriStrings;
+        protected List<string> _uriStrings = (new string[] { SampleRemoteUriString }).ToList();
         //public IReadOnlyList<string> UriStrings { get { return _uriStrings.AsReadOnly(); } }
         public List<string> UriStrings { get { return (_uriStrings); } }
 
@@ -278,7 +268,7 @@ namespace LolloGPS.Data.TileCache
                 testUriFormat = testUriFormat.Replace(YPlaceholder, YPlaceholder_Internal);
 
                 sTestUri = string.Format(testUriFormat, 84848, 42424, 20202);
-                if (!sTestUri.Contains("84848") || !sTestUri.Contains("42424") || !sTestUri.Contains("20202")) return "The string must include {zoomlevel}, {x} and {y}";
+                if (!sTestUri.Contains("84848") || !sTestUri.Contains("42424") || !sTestUri.Contains("20202")) return $"The string must include {ZoomLevelPlaceholder}, {XPlaceholder} and {YPlaceholder}";
 
                 if (isFileSource) return string.Empty; // not a real uri: skip the next checks
 
@@ -648,7 +638,7 @@ namespace LolloGPS.Data.TileCache
         }
         public static TileSourceRecord GetDefaultTileSource()
         {
-            return new TileSourceRecord(false, "", "", DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", "", MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DefaultTileSourceUriString);
+            return new TileSourceRecord(false, "", "", DefaultTileSourceTechName, DefaultTileSourceDisplayName, "", "", "", MinMinZoom, MaxMaxZoom, DefaultTilePixelSize, false, false, GetDefaultWebHeaderCollection(), new string[] { });
         }
         public static List<TileSourceRecord> GetDefaultTileSourceList()
         {
@@ -658,11 +648,11 @@ namespace LolloGPS.Data.TileCache
         }
         public static TileSourceRecord GetAllTileSource()
         {
-            return new TileSourceRecord(false, "", "", AllTileSourceTechName, AllTileSourceDisplayName, "", "", DummyTileSourceProviderUriString, DummyTileSourceMinZoom, DummyTileSourceMaxZoom, DummyTileSourceTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DummyTileSourceUriString);
+            return new TileSourceRecord(false, "", "", AllTileSourceTechName, AllTileSourceDisplayName, "", "", "", 0, 0, 0, false, false, GetDefaultWebHeaderCollection(), new string[] { });
         }
         public static TileSourceRecord GetNoTileSource()
         {
-            return new TileSourceRecord(false, "", "", NoTileSourceTechName, NoTileSourceDisplayName, "", "", DummyTileSourceProviderUriString, DummyTileSourceMinZoom, DummyTileSourceMaxZoom, DummyTileSourceTilePixelSize, false, false, GetDefaultWebHeaderCollection(), DummyTileSourceUriString);
+            return new TileSourceRecord(false, "", "", NoTileSourceTechName, NoTileSourceDisplayName, "", "", "", 0, 0, 0, false, false, GetDefaultWebHeaderCollection(), new string[] { });
         }
 
         public void ApplyHeadersToWebRequest(WebRequest request)
@@ -797,7 +787,7 @@ namespace LolloGPS.Data.TileCache
                 SampleTileSourceTechName, SampleTileSourceTechName, "", "",
                 "", MinMinZoom, SampleMaxZoom, DefaultTilePixelSize,
                 false, false,
-                GetDefaultWebHeaderCollection(), SampleRemoteUriStrings.ToArray());
+                GetDefaultWebHeaderCollection(), (new string[] { SampleRemoteUriString }));
         }
     }
 }

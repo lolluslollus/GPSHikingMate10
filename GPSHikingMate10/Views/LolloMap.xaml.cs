@@ -209,7 +209,7 @@ namespace LolloGPS.Core
             else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             //MyMap.MapElements.Clear(); // no!
-            
+
             _lolloMapVM = new LolloMapVM(MyMap.TileSources, this);
             RaisePropertyChanged_UI(nameof(LolloMapVM));
         }
@@ -336,6 +336,19 @@ namespace LolloGPS.Core
                     double maxLongitude = coll.Max(a => a.Longitude);
                     double minLatitude = coll.Min(a => a.Latitude);
                     double maxLatitude = coll.Max(a => a.Latitude);
+
+                    // avoid a single-point geobounding box, 
+                    // without parsing the whole collection
+                    if (maxLatitude == minLatitude)
+                    {
+                        maxLatitude = Math.Min(maxLatitude * 1.001, MAX_LAT);
+                        minLatitude = Math.Max(minLatitude * 0.999, MIN_LAT);
+                    }
+                    if (maxLongitude == minLongitude)
+                    {
+                        maxLongitude = Math.Min(maxLongitude * 1.001, MAX_LON);
+                        minLongitude = Math.Max(minLongitude * 0.999, MIN_LON);
+                    }
 
                     var bounds = new GeoboundingBox(
                         new BasicGeoposition { Latitude = maxLatitude, Longitude = minLongitude },
@@ -1187,7 +1200,7 @@ namespace LolloGPS.Core
             throw new Exception("this is a one-way binding, it should never come here");
         }
     }
-    
+
     public class ScaleFactors
     {
         #region instance

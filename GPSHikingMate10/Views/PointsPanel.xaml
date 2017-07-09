@@ -226,6 +226,7 @@
 			VerticalAlignment="Center"/>
         <mctl:CheckpointSymbolSelector Grid.Row="6" Grid.Column="0"
             Foreground="{StaticResource CheckpointBrushOpaque}"
+            Margin="{StaticResource Thickness2}"
             Checkpoint="{x:Bind PersistentData.Target, Mode=OneWay}"/>
 
         <!-- hyperlink name -->

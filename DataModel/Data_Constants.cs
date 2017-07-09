@@ -17,6 +17,9 @@ namespace LolloGPS.Data
         public const string BUY_URI = @"ms-windows-store://pdp/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
         public const string RATE_URI = @"ms-windows-store://review/?ProductId=9NBLGGH1Z7LM"; // this id comes from the dashboard
         public const string GPX_EXTENSION = ".gpx";
+        public const string PICK_FOLDER_TOKEN = "GPSHikingMatePickFolderToken";
+        public const string PICK_OPEN_FILE_TOKEN = "GPSHikingMatePickOpenFileToken";
+        public const string PICK_SAVE_FILE_TOKEN = "GPSHikingMatePickSaveFileToken";
         public const string GET_LOCATION_BACKGROUND_TASK_NAME = "GetLocationBackgroundTask";
         public const string GET_LOCATION_BACKGROUND_TASK_ENTRY_POINT = "BackgroundTasks.GetLocationBackgroundTask";
         public const string PRIVACY_POLICY_URL = "https://1drv.ms/w/s!AidtRscM9dFkhtYdY4GpJVOLVXyI5Q";

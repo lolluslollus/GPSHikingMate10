@@ -145,8 +145,8 @@
     <Compile Include="Views\Main.xaml.cs" />
     <Compile Include="Views\MapsPanel.xaml.cs" />
     <Compile Include="Views\PointInfoPanel.xaml.cs" />
-    <Compile Include="Controlz\CheckpointStyleSelector.xaml.cs">
-      <DependentUpon>CheckpointStyleSelector.xaml</DependentUpon>
+    <Compile Include="Controlz\CheckpointSymbolSelector.xaml.cs">
+      <DependentUpon>CheckpointSymbolSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PointsPanel.xaml.cs">
       <DependentUpon>PointsPanel.xaml</DependentUpon>
@@ -301,7 +301,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Controlz\CheckpointStyleSelector.xaml">
+    <Page Include="Controlz\CheckpointSymbolSelector.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

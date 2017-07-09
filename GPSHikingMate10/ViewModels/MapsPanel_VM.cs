@@ -480,7 +480,7 @@ namespace LolloGPS.ViewModels
         {
             if (!_isOpen || CancToken.IsCancellationRequested) return;
 
-            var dir = await Pickers.PickDirectoryAsync(new string[] { "*" }).ConfigureAwait(false);
+            var dir = await Pickers.PickFolderAsync(new string[] { "*" }, ConstantData.PICK_FOLDER_TOKEN).ConfigureAwait(false);
             if (dir == null) return;
 
             //Pickers.SetLastPickedFolder(dir, dir.Path);

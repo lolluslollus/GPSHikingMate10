@@ -350,7 +350,7 @@ namespace LolloGPS.ViewModels
 
             // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
             // It will then resume and come back here, but with a new instance, since I have IOpenable.
-            var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION });
+            var file = await Pickers.PickOpenFileAsync(new string[] { ConstantData.GPX_EXTENSION }, ConstantData.PICK_OPEN_FILE_TOKEN);
             Logger.Add_TPL($"PickLoadSeriesFromFileAsync has picked file {file?.Name ?? "NONE"} for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
             if (file == null) return;
@@ -382,7 +382,7 @@ namespace LolloGPS.ViewModels
             DateTime fileCreationDateTime = DateTime.Now;
             // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
             // It will then resume and come back here, but with a new instance, since I have IOpenable.
-            var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
+            var file = await Pickers.PickSaveFileAsync(new string[] { ConstantData.GPX_EXTENSION }, ConstantData.PICK_SAVE_FILE_TOKEN, fileCreationDateTime.ToString(ConstantData.GPX_DATE_TIME_FORMAT_ONLY_LETTERS_AND_NUMBERS, CultureInfo.InvariantCulture) + fileNameSuffix).ConfigureAwait(false);
             Logger.Add_TPL($"PickSaveSeriesToFileAsync has picked file {file?.Name ?? "NONE"} for series {whichSeries.ToString()}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
             if (file == null) return;
@@ -415,7 +415,7 @@ namespace LolloGPS.ViewModels
 
             // the picker triggers a suspend on phones. If so, execution will be cancelled immediately.
             // It will then resume and come back here, but with a new instance, since I have IOpenable.
-            var dir = await Pickers.PickDirectoryAsync(TileCacheReaderWriter.AllowedExtensions.Select(ext => $".{ext}").ToArray());
+            var dir = await Pickers.PickFolderAsync(TileCacheReaderWriter.AllowedExtensions.Select(ext => $".{ext}").ToArray(), ConstantData.PICK_FOLDER_TOKEN);
             Logger.Add_TPL($"PickCustomTileFolderAsync has picked dir {dir?.Name ?? "NONE"}", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             // LOLLO NOTE at this point, OnResuming() has just started, if the app was suspended. This is the case with phones. Again, I am on a different instance now.
             if (dir == null) return;
