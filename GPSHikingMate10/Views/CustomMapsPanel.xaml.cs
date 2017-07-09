@@ -99,5 +99,10 @@ namespace LolloGPS.Core
         {
             Task remove = MapsPanelVM?.RemoveRequestHeaderFromTestTileSourceAsync((sender as FrameworkElement)?.DataContext as ObservableKeyAndValue);
         }
+
+        private void OnToggleIsOverlay_Click(object sender, RoutedEventArgs e)
+        {
+            Task toggle = MapsPanelVM?.ToggleIsOverlayAsync();
+        }
     }
 }

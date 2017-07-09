@@ -181,6 +181,16 @@ namespace LolloGPS.GPSInteraction
             if (cancToken.IsCancellationRequested == true) return false;
 
             RemoveHandlers_GeoLocator();
+            _geolocator = new Geolocator()
+            {
+                DesiredAccuracyInMeters = _persistentData.DesiredAccuracyInMeters,
+                ReportInterval = _persistentData.ReportIntervalInMilliSec,
+                //MovementThreshold = _persistentData.MovementThresholdInMetres, // no! either these props or the ones I use, they are conflicting sets
+                //DesiredAccuracy = _persistentData.PositAccuracy, // no! either these props or the ones I use, they are conflicting sets
+            };
+            // Only with windows phone: You must set the MovementThreshold for 
+            // distance-based tracking or ReportInterval for
+            // periodic-based tracking before adding event handlers.
 
             if (_persistentData.IsForegroundTracking)
             {
@@ -195,23 +205,7 @@ namespace LolloGPS.GPSInteraction
                     }));
                     return false;
                 }
-
-                _geolocator = new Geolocator()
-                {
-                    DesiredAccuracyInMeters = _persistentData.DesiredAccuracyInMeters,
-                    ReportInterval = _persistentData.ReportIntervalInMilliSec,
-                    //MovementThreshold = _persistentData.MovementThresholdInMetres, // no! either these props or the ones I use, they are conflicting sets
-                    //DesiredAccuracy = _persistentData.PositAccuracy, // no! either these props or the ones I use, they are conflicting sets
-                };
-                // Only with windows phone: You must set the MovementThreshold for 
-                // distance-based tracking or ReportInterval for
-                // periodic-based tracking before adding event handlers.
-
                 AddHandlers_GeoLocator();
-            }
-            else
-            {
-                RemoveHandlers_GeoLocator();
             }
             return true;
         }

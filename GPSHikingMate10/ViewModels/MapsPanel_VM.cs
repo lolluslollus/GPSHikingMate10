@@ -589,6 +589,15 @@ namespace LolloGPS.ViewModels
             });
         }
 
+        public Task ToggleIsOverlayAsync()
+        {
+            return RunFunctionIfOpenAsyncA(() =>
+            {
+                var tts = PersistentData?.TestTileSource;
+                if (tts == null) return;
+                tts.IsOverlay = !tts.IsOverlay;
+            });
+        }
         public async Task SetModelTileSourceAsync(TileSourceRecord ts)
         {
             await RunFunctionIfOpenAsyncT(async () =>
