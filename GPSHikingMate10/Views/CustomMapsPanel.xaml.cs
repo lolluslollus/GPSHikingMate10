@@ -71,11 +71,6 @@ namespace LolloGPS.Core
             Task pick = MainVM?.PickCustomTileFolderAsync();
         }
 
-        private void OnToggleLocalRemote_Click(object sender, RoutedEventArgs e)
-        {
-            Task toggle = MapsPanelVM?.ToggleIsFileSourceAsync();
-        }
-
         private void OnPickCustomTileSourceChooser_ItemSelected(object sender, TextAndTag e)
         {
             Task pick = MapsPanelVM?.SetModelTileSourceAsync(e?.Tag as TileSourceRecord);
@@ -98,11 +93,6 @@ namespace LolloGPS.Core
         private void OnRemoveRequestHeader_Click(object sender, RoutedEventArgs e)
         {
             Task remove = MapsPanelVM?.RemoveRequestHeaderFromTestTileSourceAsync((sender as FrameworkElement)?.DataContext as ObservableKeyAndValue);
-        }
-
-        private void OnToggleIsOverlay_Click(object sender, RoutedEventArgs e)
-        {
-            Task toggle = MapsPanelVM?.ToggleIsOverlayAsync();
         }
     }
 }
