@@ -90,8 +90,7 @@
         <TextBlock Grid.Row="10" Grid.ColumnSpan="2" Text="Toggle base / overlay: "
             TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
-            VerticalAlignment="Center"
-            Margin="8,2,2,2"/>
+            VerticalAlignment="Center"/>
         <TextBlock Grid.Row="12" Grid.ColumnSpan="3" Text="Use this source"
 			TextWrapping="Wrap"
             Style="{StaticResource BaseMessageStyle}"
@@ -119,8 +118,7 @@
 			MaxLength="{x:Bind MapsPanelVM.PersistentData.TestTileSource.MaxTechNameLengthProp, Mode=OneWay}"
 			VerticalAlignment="Center"/>
         <mctl:ToggleButtonLollo Grid.Row="2" Grid.Column="3"
-            IsChecked="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, FallbackValue=False}"
-            Click="OnToggleLocalRemote_Click"
+            IsChecked="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
 			Style="{StaticResource ToggleButtonRecoloured}"
             Margin="{StaticResource Thickness2}"
             TabIndex="1">
@@ -264,8 +262,7 @@
 			InputScope="Number"
 			VerticalAlignment="Center"/>
         <mctl:ToggleButtonLollo Grid.Row="10" Grid.Column="3"
-            IsChecked="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.IsOverlay, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-            Click="OnToggleIsOverlay_Click"
+            IsChecked="{Binding ElementName=me, Path=MapsPanelVM.PersistentData.TestTileSource.IsOverlay, Mode=TwoWay, Converter={StaticResource BoolToNullableBoolConverter}, UpdateSourceTrigger=PropertyChanged}"
 			Style="{StaticResource ToggleButtonRecoloured}"
             Margin="{StaticResource Thickness2}">
             <mctl:ToggleButtonLollo.CheckedContent>

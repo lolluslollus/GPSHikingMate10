@@ -22,7 +22,7 @@ namespace LolloGPS.Controlz
 
         public object CheckedContent
         {
-            get { return (object)GetValue(CheckedContentProperty); }
+            get { return GetValue(CheckedContentProperty); }
             set { SetValue(CheckedContentProperty, value); }
         }
         public static readonly DependencyProperty CheckedContentProperty =
@@ -30,29 +30,22 @@ namespace LolloGPS.Controlz
 
         public object UncheckedContent
         {
-            get { return (object)GetValue(UncheckedContentProperty); }
+            get { return GetValue(UncheckedContentProperty); }
             set { SetValue(UncheckedContentProperty, value); }
         }
         public static readonly DependencyProperty UncheckedContentProperty =
             DependencyProperty.Register("UncheckedContent", typeof(object), typeof(ToggleButtonLollo), new PropertyMetadata(null));
-        // LOLLO TODO this does not work with two-way binding: investigate
-        public new bool IsChecked
-        {
-            get { return (bool)GetValue(IsCheckedProperty); }
-            set { SetValue(IsCheckedProperty, value); }
-        }
-        public new static readonly DependencyProperty IsCheckedProperty =
-            DependencyProperty.Register("IsChecked", typeof(bool), typeof(ToggleButtonLollo), new PropertyMetadata(false, OnIsChecked_PropertyChanged));
-        private static void OnIsChecked_PropertyChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
-        {
-            (obj as ToggleButtonLollo)?.UpdateAfterIsCheckedChanged();
-        }
+
 
         public ToggleButtonLollo() : base()
         {
             Loaded += OnLoaded;
+            RegisterPropertyChangedCallback(IsCheckedProperty, OnIsCheckedChanged);
         }
-
+        private void OnIsCheckedChanged(DependencyObject obj, DependencyProperty prop)
+        {
+            UpdateAfterIsCheckedChanged();
+        }
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             UpdateAfterIsCheckedChanged();
@@ -60,10 +53,9 @@ namespace LolloGPS.Controlz
 
         private void UpdateAfterIsCheckedChanged()
         {
-            bool isChecked = IsChecked;
+            bool isChecked = IsChecked == true;
             if (isChecked && CheckedContent != null) Content = CheckedContent;
             else if (!isChecked && UncheckedContent != null) Content = UncheckedContent;
-            base.IsChecked = isChecked;
         }
     }
 }
