@@ -30,7 +30,7 @@ namespace LolloGPS.ViewModels
         private Collection<TextAndTag> _zoomLevelChoices;
         public Collection<TextAndTag> ZoomLevelChoices { get { return _zoomLevelChoices; } private set { _zoomLevelChoices = value; RaisePropertyChanged_UI(); } }
 
-        // the following bools should be volatile, instead we choose to only read and write them in the UI thread.
+        // the following properties should be volatile, instead we choose to only read and write them in the UI thread.
         private bool _isClearCustomCacheEnabled = false;
         public bool IsClearCustomCacheEnabled { get { return _isClearCustomCacheEnabled; } private set { if (_isClearCustomCacheEnabled != value) { _isClearCustomCacheEnabled = value; RaisePropertyChanged_UI(); } } }
         private bool _isClearOrSaveCacheEnabled = false;
@@ -47,7 +47,6 @@ namespace LolloGPS.ViewModels
         public bool IsChangeMapStyleEnabled { get { return _isChangeMapStyleEnabled; } private set { if (_isChangeMapStyleEnabled != value) { _isChangeMapStyleEnabled = value; RaisePropertyChanged_UI(); } } }
         private string _testTileSourceErrorMsg = "";
         public string TestTileSourceErrorMsg { get { return _testTileSourceErrorMsg; } private set { _testTileSourceErrorMsg = value; RaisePropertyChanged_UI(); } }
-
         private List<TextAndTag> _selectedBaseTiles = new List<TextAndTag>();
         public List<TextAndTag> SelectedBaseTiles { get { return _selectedBaseTiles; } private set { _selectedBaseTiles = value; RaisePropertyChanged_UI(); } }
         private List<TextAndTag> _selectedOverlayTiles = new List<TextAndTag>();
@@ -56,13 +55,10 @@ namespace LolloGPS.ViewModels
         public SwitchableObservableCollection<TextAndTag> BaseTileSourceChoices { get { return _baseTileSourceChoices; } }
         private readonly SwitchableObservableCollection<TextAndTag> _overlayTileSourceChoices = new SwitchableObservableCollection<TextAndTag>();
         public SwitchableObservableCollection<TextAndTag> OverlayTileSourceChoices { get { return _overlayTileSourceChoices; } }
-
         private List<TextAndTag> _modelTileSources = new List<TextAndTag>();
         public List<TextAndTag> ModelTileSources { get { return _modelTileSources; } private set { _modelTileSources = value; RaisePropertyChanged_UI(); } }
-
         private readonly SwitchableObservableCollection<ObservableKeyAndValue> _requestHeaders = new SwitchableObservableCollection<ObservableKeyAndValue>();
         public SwitchableObservableCollection<ObservableKeyAndValue> RequestHeaders { get { return _requestHeaders; } }
-
         private readonly SwitchableObservableCollection<ObservableString> _uriStrings = new SwitchableObservableCollection<ObservableString>();
         public SwitchableObservableCollection<ObservableString> UriStrings { get { return _uriStrings; } }
 
@@ -97,8 +93,8 @@ namespace LolloGPS.ViewModels
             ICollection<TileSourceRecord> currentTileSources = null;
             await Task.Run(async () =>
             {
-                allTileSources = await PersistentData.GetAllTileSourcezCloneAsync(CancToken);
-                currentTileSources = await PersistentData.GetCurrentTileSourcezCloneAsync(CancToken);
+                allTileSources = await PersistentData?.GetAllTileSourcezCloneAsync(CancToken);
+                currentTileSources = await PersistentData?.GetCurrentTileSourcezCloneAsync(CancToken);
             });
 
             await RunInUiThreadAsync(delegate
@@ -158,8 +154,9 @@ namespace LolloGPS.ViewModels
         private void UpdateIsTestCustomTileSourceEnabled()
         {
             IsTestCustomTileSourceEnabled = !_tileCacheClearerSaver.IsClearingScheduled
-            && !PersistentData.IsTileSourcezBusy
-            && RuntimeData.IsConnectionAvailable;
+            && !PersistentData.IsTileSourcezBusy;
+            //&& (PersistentData.TestTileSource.IsFileSource
+            //|| RuntimeData.IsConnectionAvailable);
         }
         private void UpdateIsChangeMapStyleEnabled(ICollection<TileSourceRecord> currentTileSources)
         {
@@ -172,8 +169,8 @@ namespace LolloGPS.ViewModels
         }
         private void UpdateTileSourceChoices(ICollection<TileSourceRecord> allTileSources)
         {
-            List<TextAndTag> baseTileSources = new List<TextAndTag>();
-            List<TextAndTag> overlayTileSources = new List<TextAndTag>();
+            var baseTileSources = new List<TextAndTag>();
+            var overlayTileSources = new List<TextAndTag>();
             if (allTileSources != null)
             {
                 foreach (var ts in allTileSources)
@@ -182,8 +179,8 @@ namespace LolloGPS.ViewModels
                     else baseTileSources.Add(new TextAndTag(ts.DisplayName, ts));
                 }
             }
-            _baseTileSourceChoices.ReplaceAll(baseTileSources);
-            _overlayTileSourceChoices.ReplaceAll(overlayTileSources);
+            BaseTileSourceChoices.ReplaceAll(baseTileSources);
+            OverlayTileSourceChoices.ReplaceAll(overlayTileSources);
         }
         private void UpdateModelTileSources()
         {
@@ -209,7 +206,7 @@ namespace LolloGPS.ViewModels
 
             // return if no changes. It can avoid endless loops in edge cases, and it avoids useless rerenders, which can steal the focus.
             var rhd = new Dictionary<string, string>();
-            foreach (var rh in _requestHeaders)
+            foreach (var rh in RequestHeaders)
             {
                 rhd.Add(rh.Key, rh.Val);
             }
@@ -228,7 +225,7 @@ namespace LolloGPS.ViewModels
             }
 
             // return if no changes. It can avoid endless loops in edge cases, and it avoids useless rerenders, which can steal the focus.
-            if (uss.OrderBy(str => str).SequenceEqual(_uriStrings.Select(us => us.Str).OrderBy(str => str))) return;
+            if (uss.OrderBy(str => str).SequenceEqual(UriStrings.Select(us => us.Str).OrderBy(str => str))) return;
 
             UriStrings.ReplaceAll(uss.Select(us => new ObservableString(us)));
         }
@@ -276,25 +273,26 @@ namespace LolloGPS.ViewModels
 
         private void RemoveHandlers_DataChanged()
         {
-            if (PersistentData != null)
-            {
-                PersistentData.PropertyChanged -= OnPersistentData_PropertyChanged;
-                RuntimeData.PropertyChanged -= OnRuntimeData_PropertyChanged;
-                TileCacheClearerSaver.IsClearingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
-                TileCacheClearerSaver.CacheCleared -= OnTileCacheClearerSaver_CacheCleared;
-                TileCacheClearerSaver.IsSavingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
-                TileCacheClearerSaver.CacheSaved -= OnTileCacheClearerSaver_CacheSaved;
-                ObservableKeyAndValue.SomethingChanged -= OnKeyAndValue_SomethingChanged;
-                ObservableString.SomethingChanged -= OnTypedString_SomethingChanged;
+            var pd = PersistentData;
+            var rd = RuntimeData;
 
-                _isDataChangedHandlerActive = false;
-            }
+            if (pd != null) pd.PropertyChanged -= OnPersistentData_PropertyChanged;
+            if (rd != null) rd.PropertyChanged -= OnRuntimeData_PropertyChanged;
+            TileCacheClearerSaver.IsClearingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
+            TileCacheClearerSaver.CacheCleared -= OnTileCacheClearerSaver_CacheCleared;
+            TileCacheClearerSaver.IsSavingScheduledChanged -= OnTileCache_IsClearingOrSavingScheduledChanged;
+            TileCacheClearerSaver.CacheSaved -= OnTileCacheClearerSaver_CacheSaved;
+            ObservableKeyAndValue.SomethingChanged -= OnKeyAndValue_SomethingChanged;
+            ObservableString.SomethingChanged -= OnTypedString_SomethingChanged;
+
+            _isDataChangedHandlerActive = false;
         }
-        private async void OnPersistentData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+
+        private async void OnPersistentData_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(PersistentData.IsTilesDownloadDesired))
             {
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
+                var currentTileSources = await Task.Run(() => PersistentData?.GetCurrentTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(() =>
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
@@ -302,7 +300,7 @@ namespace LolloGPS.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.CurrentTileSources))
             {
-                var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
+                var currentTileSources = await Task.Run(() => PersistentData?.GetCurrentTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
@@ -314,7 +312,7 @@ namespace LolloGPS.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.TileSourcez))
             {
-                var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
+                var allTileSources = await Task.Run(() => PersistentData?.GetAllTileSourcezCloneAsync(CancToken));
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsClearCustomCacheEnabled(allTileSources);
@@ -323,8 +321,7 @@ namespace LolloGPS.ViewModels
             }
             else if (e.PropertyName == nameof(PersistentData.IsTileSourcezBusy))
             {
-                bool isBusy = PersistentData.IsTileSourcezBusy;
-                if (isBusy)
+                if (PersistentData?.IsTileSourcezBusy != false)
                 {
                     // if I get the tile sources now, this will only fire after the tile sources semaphore has been released, 
                     // ie too late to be useful. Not dangerous but bad UI. It's also a matter of performance.
@@ -339,8 +336,8 @@ namespace LolloGPS.ViewModels
                 }
                 else
                 {
-                    var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
-                    var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));
+                    var allTileSources = await Task.Run(() => PersistentData?.GetAllTileSourcezCloneAsync(CancToken));
+                    var currentTileSources = await Task.Run(() => PersistentData?.GetCurrentTileSourcezCloneAsync(CancToken));
                     await RunInUiThreadAsync(delegate
                     {
                         UpdateIsClearCacheEnabled();
@@ -362,6 +359,7 @@ namespace LolloGPS.ViewModels
             {
                 await RunInUiThreadAsync(delegate
                 {
+                    //UpdateIsTestCustomTileSourceEnabled(); // LOLLO NOTE either I make this fire when TestTileSource.IsFileSource changes, or I just allow it.
                     UpdateRequestHeaders();
                     UpdateUriStrings();
                 }).ConfigureAwait(false);
@@ -376,7 +374,7 @@ namespace LolloGPS.ViewModels
                 await RunInUiThreadAsync(delegate
                 {
                     UpdateIsLeechingEnabled(currentTileSources);
-                    UpdateIsTestCustomTileSourceEnabled();
+                    //UpdateIsTestCustomTileSourceEnabled();
                 }).ConfigureAwait(false);
             }
         }
@@ -404,11 +402,11 @@ namespace LolloGPS.ViewModels
             var tts = pd?.TestTileSource;
             if (tts == null) return;
 
-            var result = await pd.SetUriStringsOfTestTileSourceAsync(_uriStrings.Select(us => us.Str).ToList(), CancToken);
+            var result = await pd.SetUriStringsOfTestTileSourceAsync(UriStrings.Select(us => us.Str).ToList(), CancToken);
             if (result?.Item1 != true) _mainVM?.SetLastMessage_UI(result?.Item2 ?? "Error setting the uri strings");
         }
 
-        private async void OnTileCache_IsClearingOrSavingScheduledChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private async void OnTileCache_IsClearingOrSavingScheduledChanged(object sender, PropertyChangedEventArgs e)
         {
             var allTileSources = await Task.Run(() => PersistentData.GetAllTileSourcezCloneAsync(CancToken));
             var currentTileSources = await Task.Run(() => PersistentData.GetCurrentTileSourcezCloneAsync(CancToken));

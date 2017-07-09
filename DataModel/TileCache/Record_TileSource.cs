@@ -281,6 +281,7 @@ namespace LolloGPS.Data.TileCache
             {
                 return "Uri format is invalid";
             }
+            // not a very important check, so we issue no messages if no connection is available.
             if (RuntimeData.GetInstance().IsConnectionAvailable)
             {
                 try

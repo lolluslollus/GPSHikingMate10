@@ -153,58 +153,6 @@
             </Grid.RowDefinitions>
             <!-- map and altitude overlays -->
             <StackPanel Grid.Row="0" Orientation="Vertical" Canvas.ZIndex="100">
-                <!--<Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}"
-					Opacity=".75"
-					Visibility="{x:Bind PersistentData.IsTilesDownloadDesired, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"
-					VerticalAlignment="Top"
-					IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ProgressBar Grid.Column="0" Grid.ColumnSpan="2"
-						 IsIndeterminate="False"
-						 Minimum="0"
-						 Maximum="1"
-						 Foreground="{StaticResource FlashyForeground}"
-						 VerticalAlignment="Bottom"
-						 Value="{x:Bind RuntimeData.DownloadProgressValue, Mode=OneWay}"/>
-                    <TextBlock Grid.Column="0"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Text="Downloading..." 
-						Foreground="{StaticResource FlashyForeground}"
-						Style="{StaticResource BaseMessageStyle}"
-						Margin="10"
-						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToVisibleConverter}, Mode=OneWay}"/>
-                    <TextBlock Grid.Column="0"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						Text="Download will resume when back online"
-						Foreground="{StaticResource FlashyForeground}"
-						TextWrapping="WrapWholeWords"
-						Style="{StaticResource BaseMessageStyle}"
-						Margin="10"
-						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-						Visibility="{x:Bind RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
-                    <Button Grid.Column="1"
-						BorderBrush="{StaticResource FlashyForeground}"
-						HorizontalAlignment="Center"
-						VerticalAlignment="Center"
-						IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"
-						Click="OnCancelDownload_Click">
-                        <Button.Content>
-                            <TextBlock
-								HorizontalAlignment="Center"
-								VerticalAlignment="Center"
-								Text="Cancel" 
-								Foreground="{StaticResource FlashyForeground}"
-								Style="{StaticResource BaseMessageStyle}"
-								IsDoubleTapEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False"/>
-                        </Button.Content>
-                    </Button>
-                </Grid>-->
                 <!-- icons for battery consuming functions -->
                 <StackPanel Margin="0" Padding="0" Orientation="Horizontal">
                     <AppBarButton
