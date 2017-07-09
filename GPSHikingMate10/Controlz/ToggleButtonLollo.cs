@@ -35,7 +35,7 @@ namespace LolloGPS.Controlz
         }
         public static readonly DependencyProperty UncheckedContentProperty =
             DependencyProperty.Register("UncheckedContent", typeof(object), typeof(ToggleButtonLollo), new PropertyMetadata(null));
-
+        // LOLLO TODO this does not work with two-way binding: investigate
         public new bool IsChecked
         {
             get { return (bool)GetValue(IsCheckedProperty); }

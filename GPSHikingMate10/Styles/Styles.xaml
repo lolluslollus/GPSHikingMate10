@@ -199,7 +199,7 @@
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
-        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2}"/>
         <Setter Property="Width" Value="{StaticResource AppBarButtonWidth}"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -361,7 +361,7 @@
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
-        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2}"/>
         <Setter Property="Width" Value="{StaticResource AppBarButtonWidth}"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -511,7 +511,7 @@
         <Setter Property="IsDoubleTapEnabled" Value="False"/>
         <Setter Property="IsHoldingEnabled" Value="False"/>
         <Setter Property="IsRightTapEnabled" Value="False"/>
-        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Margin" Value="{StaticResource Thickness2}"/>
         <Setter Property="Width" Value="{StaticResource AppBarButtonWidth}"/>
         <!--<Setter Property="Margin" Value="{StaticResource Thickness2}"/>-->
         <Setter Property="Template">
