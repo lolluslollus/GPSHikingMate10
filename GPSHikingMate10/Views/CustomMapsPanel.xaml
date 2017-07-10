@@ -10,7 +10,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	UseLayoutRounding="True"
 	mc:Ignorable="d"
-	d:DesignHeight="600"
+	d:DesignHeight="900"
 	d:DesignWidth="400">
 
     <Grid Background="{ThemeResource FlyoutBackgroundThemeBrush}" x:Name="LayoutRoot">
@@ -288,15 +288,20 @@
 			Style="{StaticResource AppBarButtonRecolouredCompact}"
             HorizontalAlignment="Right"/>
         <!-- error message: no connection -->
-        <TextBlock Grid.Row="13" Grid.ColumnSpan="4"
-            Text="No connection"
-            TextWrapping="Wrap"
-            Foreground="{StaticResource FlashyForeground}"
-            Style="{StaticResource BaseMessageStyle}"
-            Margin="8,2,2,2"
-			VerticalAlignment="Center"
+        <ContentControl Grid.Row="13" Grid.ColumnSpan="4"
+            VerticalAlignment="Center"
+            VerticalContentAlignment="Center" 
 			HorizontalAlignment="Right"
-			Visibility="{x:Bind MapsPanelVM.RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
+            HorizontalContentAlignment="Right"
+            Visibility="{x:Bind MapsPanelVM.PersistentData.TestTileSource.IsFileSource, Mode=OneWay, Converter={StaticResource BooleanToCollapsedConverter}}">
+            <TextBlock Grid.Row="13" Grid.ColumnSpan="4"
+                Text="No connection"
+                TextWrapping="Wrap"
+                Foreground="{StaticResource FlashyForeground}"
+                Style="{StaticResource BaseMessageStyle}"
+                Margin="8,2,2,2"
+			    Visibility="{x:Bind MapsPanelVM.RuntimeData.IsConnectionAvailable, Converter={StaticResource BooleanToCollapsedConverter}, Mode=OneWay}"/>
+        </ContentControl>
         <AppBarButton Grid.Row="14" Grid.Column="3"
 			Click="OnClearCustomTileSource_Click"
 			Icon="Delete"
