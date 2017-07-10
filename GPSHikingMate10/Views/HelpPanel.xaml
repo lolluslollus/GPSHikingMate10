@@ -80,7 +80,7 @@
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>
-		<TextBlock Text="Mind that many maps only support certain zoom levels, or only cover certain areas."
+		<TextBlock Text="Mind that many maps only support certain zoom levels, or only cover certain areas. Some servers are slow, and you will need long download sessions to use their tiles."
 			TextWrapping="Wrap"
 			Style="{StaticResource BaseMessageStyle}"
 			Margin="{StaticResource Thickness0404}"/>

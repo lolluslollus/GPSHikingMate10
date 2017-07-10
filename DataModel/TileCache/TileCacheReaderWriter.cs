@@ -424,33 +424,24 @@ namespace LolloGPS.Data.TileCache
             {
                 if (cancToken.IsCancellationRequested) return null;
                 // try to get this tile from the cache
-                //var tileCacheRecordFromDb = await TileCacheRecord.GetTileCacheRecordFromDbAsync(_tileSource, x, y, z, zoom).ConfigureAwait(false);
                 var fileNameWithExtension = GetFileNameWithExtensionFromCache(fileNameNoExtension); // this is 6x faster than using the DB, with few records and with thousands
                 if (cancToken.IsCancellationRequested) return null;
                 // tile is not in cache
-                //if (tileCacheRecordFromDb == null)
                 if (fileNameWithExtension == null)
                 {
                     if (!RuntimeData.GetInstance().IsConnectionAvailable) return null;
 
-                    //Debug.WriteLine("IsCaching = " + _isCaching);
-                    // tile not in cache and caching on: download the tile, save it and return an uri pointing at it (ie at its file) 
-                    //if (_isCaching)
-                    //{
                     fileNameWithExtension = await TrySaveTile2Async(x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
-                    if (fileNameWithExtension == null) return null;
+                    if (cancToken.IsCancellationRequested) return null;
+                    // if (fileNameWithExtension == null) return null; 
+                    // LOLLO TODO experiment:
+                    // zero tolerance when navigating online. If you really want you map, you download it.
+                    if (fileNameWithExtension == null) return _tileEmptyUri;
                     return GetUriForLocalTile(fileNameWithExtension);
-                    //}
-                    //// tile not in cache and cache off: return the web uri of the tile
-                    //else
-                    //{
-                    //result = new Uri(sWebUri);
-                    //}
                 }
                 // tile is in cache: return an uri pointing at it (ie at its file)
                 else
                 {
-                    //result = GetUriForFile(tileCacheRecordFromDb.FileName);
                     return GetUriForLocalTile(fileNameWithExtension);
                 }
             }
