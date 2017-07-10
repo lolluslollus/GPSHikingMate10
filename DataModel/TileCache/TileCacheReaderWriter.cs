@@ -249,27 +249,26 @@ namespace LolloGPS.Data.TileCache
         private static bool IsWebResponseContentOk(byte[] img)
         {
             int howManyBytesToCheck = 100;
-            if (img.Length > howManyBytesToCheck)
+            if (img.Length <= howManyBytesToCheck) return false;
+
+            try
             {
-                try
+                for (int i = img.Length - 1; i > img.Length - howManyBytesToCheck; i--)
                 {
-                    for (int i = img.Length - 1; i > img.Length - howManyBytesToCheck; i--)
+                    if (img[i] != 0)
                     {
-                        if (img[i] != 0)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
-                catch (Exception ex)
-                {
-                    // Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
-                    Debug.WriteLine(ex.ToString());
-                    return false;
-                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
+                Debug.WriteLine(ex.ToString());
+                return false;
             }
             //isStreamOk = newRecord.Img.FirstOrDefault(a => a != 0) != null; // this may take too long, so we only check the last 100 bytes
-            return false;
         }
 
         private static string GetExtension(string fileNameNoExtension, WebResponse response)
@@ -439,7 +438,8 @@ namespace LolloGPS.Data.TileCache
                     //if (_isCaching)
                     //{
                     fileNameWithExtension = await TrySaveTile2Async(x, y, z, zoom, fileNameNoExtension, cancToken).ConfigureAwait(false);
-                    if (fileNameWithExtension != null) return GetUriForLocalTile(fileNameWithExtension);
+                    if (fileNameWithExtension == null) return null;
+                    return GetUriForLocalTile(fileNameWithExtension);
                     //}
                     //// tile not in cache and cache off: return the web uri of the tile
                     //else
@@ -454,17 +454,17 @@ namespace LolloGPS.Data.TileCache
                     return GetUriForLocalTile(fileNameWithExtension);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) { return null; }
             catch (Exception ex)
             {
                 Debug.WriteLine("ERROR in GetTileUri(): " + ex.Message + ex.StackTrace);
+                return null;
             }
             finally
             {
                 //await ProcessingQueue.RemoveFromQueueAsync(fileNameNoExtension).ConfigureAwait(false);
                 Task remove = ProcessingQueue.RemoveFromQueueAsync(fileNameNoExtension);
             }
-            return null;
         }
 
         public async Task<bool> TrySaveTileAsync(int x, int y, int z, int zoom, CancellationToken cancToken)
@@ -560,60 +560,40 @@ namespace LolloGPS.Data.TileCache
                 using (var response = await request.GetResponseAsync().ConfigureAwait(false))
                 {
                     if (cancToken.IsCancellationRequested) return null;
-
-                    if ((response as HttpWebResponse).StatusCode == HttpStatusCode.OK && response.ContentLength > 0)
+                    if ((response as HttpWebResponse)?.StatusCode != HttpStatusCode.OK || response.ContentLength <= 0) return null;
+                    where = 3;
+                    using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
                     {
-                        where = 3;
-                        using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
+                        where = 4;
+                        // read response stream into a new record. 
+                        // This extra step is the price to pay if we want to check the stream content
+                        var fileNameWithExtension = Path.ChangeExtension(fileNameNoExtension, GetExtension(fileNameNoExtension, response));
+                        if (string.IsNullOrWhiteSpace(fileNameWithExtension)) return null;
+                        if (cancToken.IsCancellationRequested) return null;
+                        var imgBytes = new byte[response.ContentLength];
+                        //var newRecord = new TileCacheRecord(x, y, z, zoom);
+                        where = 5;
+                        await responseStream.ReadAsync(imgBytes, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
+                        if (cancToken.IsCancellationRequested) return null;
+                        if (!IsWebResponseContentOk(imgBytes)) return null;
+                        where = 6;
+                        // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
+                        var newFile = await _tileCacheFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                        using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
                         {
-                            where = 4;
-                            // read response stream into a new record. 
-                            // This extra step is the price to pay if we want to check the stream content
-                            var fileNameWithExtension = Path.ChangeExtension(fileNameNoExtension, GetExtension(fileNameNoExtension, response));
-                            var imgBytes = new byte[response.ContentLength];
-                            //var newRecord = new TileCacheRecord(x, y, z, zoom);
-                            if (cancToken.IsCancellationRequested) return null;
-                            if (!string.IsNullOrWhiteSpace(fileNameWithExtension))
-                            {
-                                where = 5;
-                                await responseStream.ReadAsync(imgBytes, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
-
-                                if (cancToken.IsCancellationRequested) return null;
-                                if (IsWebResponseContentOk(imgBytes))
-                                {
-                                    where = 6;
-                                    // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
-                                    var newFile = await _tileCacheFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
-                                    using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
-                                    {
-                                        where = 7;
-                                        writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
-                                        await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
-                                        where = 8;
-                                        writeStream.Flush();
-                                        if (writeStream.Length > 0)
-                                        {
-                                            where = 9;
-                                            // check file vs stream
-                                            var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
-                                            //var fileProps = await newFile.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
-                                            //var fileSize = fileProps.Size;
-                                            where = 10;
-                                            if ((long)fileSize == writeStream.Length)
-                                            {
-                                                where = 11;
-                                                //bool isInserted = await DBManager.TryInsertOrIgnoreIntoTileCacheAsync(newRecord).ConfigureAwait(false);
-                                                //if (isInserted)
-                                                //{
-                                                return fileNameWithExtension;
-                                                //	where = 11;
-                                                //}
-                                            }
-                                            //}
-                                        }
-                                    }
-                                }
-                            }
+                            where = 7;
+                            writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
+                            await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
+                            where = 8;
+                            writeStream.Flush();
+                            if (writeStream.Length <= 0) return null;
+                            where = 9;
+                            // check file vs stream
+                            var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
+                            where = 10;
+                            if ((long)fileSize != writeStream.Length) return null;
+                            where = 11;
+                            return fileNameWithExtension;
                         }
                     }
                 }
