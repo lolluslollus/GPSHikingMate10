@@ -364,9 +364,11 @@ namespace LolloGPS.Data.TileCache
         {
             var output = new List<TileSourceRecord>
             {
-                TileSourceRecord.GetDefaultTileSource(),
-                new TileSourceRecord(false, "", "", "ForUMaps", "4UMaps", "ForUMaps", "© 4UMaps.eu",
-                    "http://www.4umaps.eu/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection(), "http://4umaps.eu/{zoomlevel}/{x}/{y}.png"),
+                GetDefaultTileSource(),
+                // This has got very slow
+                new TileSourceRecord(false, "", "", "ForUMaps", "4UMaps", "ForUMaps", "© 4UMaps.eu - © OpenStreetMap contributors",
+                    "http://www.4umaps.eu/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection(), 
+                    "http://4umaps.eu/{zoomlevel}/{x}/{y}.png"),
                 new TileSourceRecord(false, "", "", "OpenTopoMap", "OpenTopoMap", "OpenTopoMap", "© OpenStreetMap contributors - © OpenTopoMap (CC-BY-SA)",
                     "http://opentopomap.org/", 2, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://a.tile.opentopomap.org/{zoomlevel}/{x}/{y}.png",
