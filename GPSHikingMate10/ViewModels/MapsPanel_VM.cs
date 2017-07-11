@@ -144,7 +144,7 @@ namespace LolloGPS.ViewModels
             && RuntimeData.IsConnectionAvailable
             && !_tileCacheClearerSaver.IsClearingScheduled
             && !PersistentData.IsTileSourcezBusy
-            && currentTileSources?.Any(ts => !ts.IsDefault) == true;
+            && currentTileSources?.Any(ts => !ts.IsDefault && !ts.IsFileSource) == true;
         }
         private void UpdateIsChangeTileSourceEnabled()
         {
@@ -528,7 +528,7 @@ namespace LolloGPS.ViewModels
                 else
                 {
                     IsShowZoomLevelChoices = false;
-                    _mainVM.SetLastMessage_UI("No downloads possible for this area or layers");
+                    _mainVM.SetLastMessage_UI("Choose different layers or frame, these offer nothing for download.");
                 }
             });
         }
