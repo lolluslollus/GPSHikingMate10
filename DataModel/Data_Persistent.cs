@@ -1632,43 +1632,62 @@ namespace LolloGPS.Data
         }
         public enum ClearCacheResult { Ok, Error, Cancelled }
         public async Task<ClearCacheResult> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
-        {// LOLLO TODO
-            /*
-             * remote custom source: clear tiles and source
-             * remote stock source: clear tiles
-             * local custom source: clear source
-             */
-            if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsFileSource) return ClearCacheResult.Error;
+        {
+            if (tileSource == null || tileSource.IsNone || tileSource.IsDefault) return ClearCacheResult.Error;
 
             try
             {
                 await _tileSourcezSemaphore.WaitAsync(cancToken).ConfigureAwait(false);
                 IsTileSourcezBusy = true;
 
-                List<string> folderNamesToBeDeleted = await GetFolderNamesToBeDeletedAsync(tileSource, cancToken).ConfigureAwait(false);
-                if (folderNamesToBeDeleted?.Any() != true) return ClearCacheResult.Ok;
+                if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
 
-                var tileSourcesFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
-                if (tileSourcesFolder == null) return ClearCacheResult.Ok;
-
-                foreach (var folderName in folderNamesToBeDeleted.Where(fn => !string.IsNullOrWhiteSpace(fn)))
+                if (isAlsoRemoveSources)
                 {
-                    try
+                    if (tileSource.IsAll)
                     {
-                        if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
-
-                        var tileSourceFolder = await tileSourcesFolder.TryGetItemAsync(folderName).AsTask(cancToken).ConfigureAwait(false);
-                        if (tileSourceFolder == null) continue;
-                        // recreate the folder instead of deleting it: there may be someone waiting for this folder, like a TileCacheReaderWriter.
-                        await tileSourcesFolder.CreateFolderAsync(folderName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
-                        // remove tile source from collection last.
-                        if (isAlsoRemoveSources) await RemoveTileSource2Async(folderName, cancToken).ConfigureAwait(false);
+                        foreach (var item in _tileSourcez.Where(ts => ts.IsCustom))
+                        {
+                            await RemoveTileSource2Async(item.TechName, cancToken).ConfigureAwait(false);
+                            if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
+                        }
                     }
-                    catch (OperationCanceledException) { return ClearCacheResult.Cancelled; }
-                    catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
-                    catch (FileNotFoundException) { Debug.WriteLine("FileNotFound in ClearCacheAsync()"); }
-                    catch (Exception ex) { Logger.Add_TPL("ERROR in ClearCacheAsync: " + ex.Message + ex.StackTrace, Logger.PersistentDataLogFilename); }
+                    else if (tileSource.IsCustom)
+                    {
+                        await RemoveTileSource2Async(tileSource.TechName, cancToken).ConfigureAwait(false);
+                    }
                 }
+
+                if (!tileSource.IsFileSource)
+                {
+                    var tileSourcesFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
+                    if (tileSourcesFolder != null)
+                    {
+                        if (tileSource.IsAll)
+                        {
+                            var oldSubFolders = await tileSourcesFolder.GetFoldersAsync().AsTask(cancToken).ConfigureAwait(false);
+                            foreach (var oldSubFolder in oldSubFolders)
+                            {
+                                await oldSubFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(cancToken).ConfigureAwait(false);
+                                if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
+                            }
+                            foreach (var remoteTileSource in _currentTileSources.Where(ts => !ts.IsDefault && !ts.IsFileSource && !string.IsNullOrWhiteSpace(ts.FolderName)))
+                            {
+                                await tileSourcesFolder.CreateFolderAsync(remoteTileSource.FolderName, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                                if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
+                            }
+                        }
+                        else
+                        {
+                            var oldSubFolder = await tileSourcesFolder.TryGetItemAsync(tileSource.FolderName).AsTask(cancToken).ConfigureAwait(false);
+                            if (oldSubFolder != null) await oldSubFolder.DeleteAsync(StorageDeleteOption.PermanentDelete).AsTask(cancToken).ConfigureAwait(false);
+                            if (cancToken.IsCancellationRequested) return ClearCacheResult.Cancelled;
+                            var remoteTileSource = _currentTileSources.FirstOrDefault(ts => ts.TechName == tileSource.TechName && !ts.IsDefault && !ts.IsFileSource && !string.IsNullOrWhiteSpace(ts.FolderName));
+                            if (remoteTileSource != null) await tileSourcesFolder.CreateFolderAsync(remoteTileSource.FolderName).AsTask(cancToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+
                 return ClearCacheResult.Ok;
             }
             catch (ObjectDisposedException) { return ClearCacheResult.Cancelled; }
@@ -1890,33 +1909,6 @@ namespace LolloGPS.Data
             {
                 SemaphoreSlimSafeRelease.TryRelease(_tileSourcezSemaphore);
             }
-        }
-        private static async Task<List<string>> GetFolderNamesToBeDeletedAsync(TileSourceRecord tileSource, CancellationToken cancToken)
-        {
-            var result = new List<string>();
-            if (tileSource == null) return result;
-            if (!tileSource.IsAll && !tileSource.IsNone && !string.IsNullOrWhiteSpace(tileSource.FolderName) && !tileSource.IsDefault)
-            {
-                result.Add(tileSource.FolderName);
-            }
-            else if (tileSource.IsAll)
-            {
-                var tileSourcesFolder = await ApplicationData.Current.LocalCacheFolder.TryGetItemAsync(ConstantData.TILE_SOURCES_DIR_NAME).AsTask(cancToken).ConfigureAwait(false) as StorageFolder;
-                if (tileSourcesFolder == null) return result;
-                // clean everything, even old folders, which were created for tile sources, which are no more available.
-                // The folder names are the tile source tech names.
-                var subFolders = await tileSourcesFolder.GetFoldersAsync().AsTask(cancToken).ConfigureAwait(false);
-                result = subFolders.Select(sf => sf.Name).ToList();
-
-                //foreach (var item in _tileSourcez)
-                //{
-                //    if (!item.IsDefault && !string.IsNullOrWhiteSpace(item.FolderName))
-                //    {
-                //        result.Add(item.FolderName);
-                //    }
-                //}
-            }
-            return result;
         }
         #endregion tileSourcesMethods
 
