@@ -1632,7 +1632,12 @@ namespace LolloGPS.Data
         }
         public enum ClearCacheResult { Ok, Error, Cancelled }
         public async Task<ClearCacheResult> TryClearCacheAsync(TileSourceRecord tileSource, bool isAlsoRemoveSources, CancellationToken cancToken)
-        {
+        {// LOLLO TODO
+            /*
+             * remote custom source: clear tiles and source
+             * remote stock source: clear tiles
+             * local custom source: clear source
+             */
             if (tileSource == null || tileSource.IsNone || tileSource.IsDefault || tileSource.IsFileSource) return ClearCacheResult.Error;
 
             try

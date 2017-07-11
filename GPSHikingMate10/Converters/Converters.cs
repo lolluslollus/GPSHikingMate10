@@ -882,19 +882,19 @@ namespace LolloGPS.Converters
             bool isClearingCustomCache = (parameter?.ToString() == "forClearingCustomCache");
             bool isSavingTiles = (parameter?.ToString() == "forSavingTiles");
             bool isPickingTileSource = (parameter?.ToString() == "forPickingTileSource");
-            // clear none
+            // add dummy source "none"
             if (isClearingCache || isClearingCustomCache)
             {
                 var none = TileSourceRecord.GetNoTileSource();
                 output.Add(new TextAndTag(none.DisplayName, none));
             }
-            // clear all
+            // add dummy source "all"
             if (isClearingCache)
             {
                 var all = TileSourceRecord.GetAllTileSource();
                 output.Add(new TextAndTag(all.DisplayName, all));
             }
-            // clear all custom sources one by one
+            // all custom sources
             if (isClearingCustomCache)
             {
                 foreach (var item in tileSources.Where(a => a.IsCustom))
@@ -902,23 +902,15 @@ namespace LolloGPS.Converters
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
             }
-            // clear all sources one by one
-            else if (isClearingCache)
+            // all remote sources except default
+            else if (isClearingCache || isSavingTiles)
             {
-                foreach (var item in tileSources.Where(a => !a.IsDefault))
+                foreach (var item in tileSources.Where(a => !a.IsDefault && !a.IsFileSource))
                 {
                     output.Add(new TextAndTag(item.DisplayName, item));
                 }
             }
-            // select all sources one by one
-            else if (isSavingTiles)
-            {
-                foreach (var item in tileSources)
-                {
-                    if (item.IsDefault || item.IsFileSource) continue;
-                    output.Add(new TextAndTag(item.DisplayName, item));
-                }
-            }
+            // all sources except default
             else if (isPickingTileSource)
             {
                 foreach (var item in tileSources)
