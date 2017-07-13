@@ -37,7 +37,11 @@ namespace LolloGPS.Data
         public static readonly double PI_HALF = Math.PI / 2.0;
         public static readonly double DEG_TO_RAD = Math.PI / 180.0;
         public static readonly double RAD_TO_DEG = 180.0 / Math.PI;
-        public const int MAX_TILES_TO_LEECH = 10000;
+#if NOSTORE
+        public const long MAX_TILES_TO_LEECH = 1048576;
+#else
+        public const long MAX_TILES_TO_LEECH = 131072;
+#endif
         //public const string RegIsSavingFile = "IsSavingFile";
         //public const string RegIsLoadingFile = "IsLoadingFile";
         //public const string RegWhichSeries = "WhichSeries";

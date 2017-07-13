@@ -27,7 +27,7 @@ namespace LolloGPS.Calcs
             _zoom = zoom;
         }
 
-        public static List<TileCoordinates> GetTileCoordinates4MultipleZoomLevels(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom, int maxTileCount, CancellationToken cancToken)
+        public static List<TileCoordinates> GetTileCoordinates4MultipleZoomLevels(BasicGeoposition nwCorner, BasicGeoposition seCorner, int maxZoom, int minZoom, long maxTileCount, CancellationToken cancToken)
         {
             var output = new List<TileCoordinates>();
             if (nwCorner.Latitude == seCorner.Latitude && nwCorner.Longitude == seCorner.Longitude || maxZoom < minZoom) return output;
