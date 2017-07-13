@@ -40,7 +40,7 @@ namespace LolloGPS.Data
 #if NOSTORE
         public const long MAX_TILES_TO_LEECH = 1048576;
 #else
-        public const long MAX_TILES_TO_LEECH = 131072;
+        public const long MAX_TILES_TO_LEECH = 65536;
 #endif
         //public const string RegIsSavingFile = "IsSavingFile";
         //public const string RegIsLoadingFile = "IsLoadingFile";
