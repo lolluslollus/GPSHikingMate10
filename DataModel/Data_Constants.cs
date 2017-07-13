@@ -42,12 +42,9 @@ namespace LolloGPS.Data
 #else
         public const long MAX_TILES_TO_LEECH = 65536;
 #endif
-        //public const string RegIsSavingFile = "IsSavingFile";
-        //public const string RegIsLoadingFile = "IsLoadingFile";
-        //public const string RegWhichSeries = "WhichSeries";
 
         public const ulong MaxFileSize = (ulong)10000000;
-        public const int TRIAL_LENGTH_DAYS = 7;
+        public const int TRIAL_LENGTH_DAYS = 14;
 
         public static string AppName { get { return APPNAME; } }
         private static readonly string _version = Package.Current.Id.Version.Major.ToString()
