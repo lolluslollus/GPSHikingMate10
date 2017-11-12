@@ -23,7 +23,12 @@ namespace LolloGPS.GPSInteraction
             try
             {
                 //_backgroundTaskProtectorSemaphore.WaitOne(200);
-                if (_backgroundTaskSemaphore == null) _backgroundTaskSemaphore = new Semaphore(1, 1, BACKGROUND_TASK_SEMAPHORE_NAME);
+                var sema = _backgroundTaskSemaphore;
+                if (sema == null)
+                {
+                    sema = new Semaphore(1, 1, BACKGROUND_TASK_SEMAPHORE_NAME);
+                    _backgroundTaskSemaphore = sema;
+                }
                 _backgroundTaskSemaphore.WaitOne();
                 Logger.Add_TPL("SetMainAppIsRunningAndActive() ending", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
                 return true;

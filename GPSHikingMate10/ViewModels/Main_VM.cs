@@ -184,10 +184,8 @@ namespace LolloGPS.ViewModels
         public void GetAFix()
         {
             var gpsInt = _gpsInteractor;
-            if (gpsInt != null)
-            {
-                Task getLoc = Task.Run(gpsInt.GetGeoLocationAppendingHistoryAsync);
-            }
+            if (gpsInt == null) return;
+            Task getLoc = Task.Run(gpsInt.GetGeoLocationAppendingHistoryAsync);
         }
 
         /// <summary>

@@ -54,8 +54,8 @@ namespace LolloGPS.Core
 #endif
 
             _mainVM = new MainVM(MyLolloMap, MyAltitudeProfiles, this);
-            RaisePropertyChanged_UI(nameof(MainVM));
             _mapsPanelVM = new MapsPanelVM(MyLolloMap.LolloMapVM, _mainVM, this);
+            RaisePropertyChanged_UI(nameof(MainVM));
             RaisePropertyChanged_UI(nameof(MapsPanelVM));
         }
 
@@ -334,16 +334,16 @@ namespace LolloGPS.Core
         #region file activated
         public async Task FileActivateAsync(FileActivatedEventArgs args)
         {
-            if (!IsOnMe) return;
+            if (!IsOnMe()) return;
             // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, 
             // while I am already trying to open it from somewhere else.
             int cnt = 0;
-            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe)
+            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe())
             {
                 cnt++; if (cnt > 200) return;
                 await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm).ConfigureAwait(false);
             }
-            if (!IsOnMe) return;
+            if (!IsOnMe()) return;
             await _mainVM.LoadFileAsync(args).ConfigureAwait(false);
         }
         #endregion file activated

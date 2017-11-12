@@ -11,6 +11,7 @@
     xmlns:mctl="using:LolloGPS.Controlz"
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    LastNavigatedPageRegKey="LolloGPS.Core.Main"
 	UseLayoutRounding="True">
     <uctl:OpenableObservablePage.Resources>
         <Storyboard x:Name="ShowHideLastMessageFlashyStoryboard">
