@@ -17,8 +17,8 @@ namespace LolloGPS.Core
     public sealed partial class Main : Utilz.Controlz.OpenableObservablePage, IInfoPanelEventReceiver
     {
         #region properties
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData => App.PersistentData;
+        public RuntimeData RuntimeData => App.RuntimeData;
 
         private readonly MainVM _mainVM = null;
         public MainVM MainVM { get { return _mainVM; } }

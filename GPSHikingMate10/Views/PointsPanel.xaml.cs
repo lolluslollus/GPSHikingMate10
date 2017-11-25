@@ -16,8 +16,8 @@ namespace LolloGPS.Core
     public sealed partial class PointsPanel : Utilz.Controlz.ObservableControl
     {
         #region properties
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData => App.PersistentData;
+        public RuntimeData RuntimeData => App.RuntimeData;
 
         public MainVM MainVM
         {

@@ -30,19 +30,19 @@ namespace LolloGPS.Services
         }
         private Licenser() { }
 
-        private static readonly RuntimeData _runtimeData = RuntimeData.GetInstance();
         public async Task<bool> CheckLicensedAsync()
         {
             // do not use persistent data across this class
             // coz you cannot be sure it has been read out yet.
             // I can only use license expiration date with win10 if I want the "try" button in the store
+            RuntimeData runtimeData = RuntimeData.GetInstance();
             try
             {
 #if NOSTORE && !TRIALTESTING
                 return true;
 #endif
                 if (Package.Current.IsDevelopmentMode) return true; // only available with win10
-
+                
                 // if (Package.Current.IsBundle) return true; // don't use it https://msdn.microsoft.com/library/windows/apps/hh975357(v=vs.120).aspx#Appx
                 //await LoadAppListingUriProxyFileAsync();
                 LicenseInformation licenseInformation = await GetLicenseInformation();
@@ -50,7 +50,7 @@ namespace LolloGPS.Services
                 {
                     if (licenseInformation.IsTrial)
                     {
-                        _runtimeData.IsTrial = true;
+                        runtimeData.IsTrial = true;
 
                         bool isCheating = false;
                         bool isExpired = false;
@@ -66,35 +66,35 @@ namespace LolloGPS.Services
 
                         if (isCheating || isExpired)
                         {
-                            _runtimeData.TrialResidualDays = -1;
+                            runtimeData.TrialResidualDays = -1;
                         }
                         else
                         {
-                            _runtimeData.TrialResidualDays = (expiryDate.UtcDateTime - DateTimeOffset.UtcNow).Days;
+                            runtimeData.TrialResidualDays = (expiryDate.UtcDateTime - DateTimeOffset.UtcNow).Days;
                         }
 
                         if (isCheating || isExpired
-                            || _runtimeData.TrialResidualDays > ConstantData.TRIAL_LENGTH_DAYS
-                            || _runtimeData.TrialResidualDays < 0)
+                            || runtimeData.TrialResidualDays > ConstantData.TRIAL_LENGTH_DAYS
+                            || runtimeData.TrialResidualDays < 0)
                         {
                             return await AskQuitOrBuyAsync(resourceLoader.GetString("LicenserTrialExpiredLong"), resourceLoader.GetString("LicenserTrialExpiredShort"));
                         }
                     }
                     else
                     {
-                        _runtimeData.IsTrial = false;
+                        runtimeData.IsTrial = false;
                     }
                 }
                 else
                 {
-                    _runtimeData.IsTrial = true;
+                    runtimeData.IsTrial = true;
                     return await AskQuitOrBuyAsync(resourceLoader.GetString("LicenserNoLicensesLong"), resourceLoader.GetString("LicenserNoLicensesShort"));
                 }
                 return true;
             }
             catch (Exception ex)
             {
-                _runtimeData.IsTrial = true;
+                runtimeData.IsTrial = true;
                 Logger.Add_TPL(ex.ToString(), Logger.ForegroundLogFilename);
                 return await AskQuitOrBuyAsync(resourceLoader.GetString("LicenserErrorChecking"), resourceLoader.GetString("LicenserNoLicensesShort"));
             }

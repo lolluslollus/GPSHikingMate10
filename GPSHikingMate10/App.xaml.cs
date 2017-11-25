@@ -28,11 +28,10 @@ namespace LolloGPS.Core
     public sealed partial class App : Application, ISuspenderResumer
     {
         #region properties
-        //private const int MSecToWaitToConfirm = 25;
         private static PersistentData _persistentData = null;
-        public static PersistentData PersistentData { get { return _persistentData; } }
+        public static PersistentData PersistentData => _persistentData;
         private static RuntimeData _runtimeData = null;
-        public static RuntimeData RuntimeData { get { return _runtimeData; } }
+        public static RuntimeData RuntimeData => _runtimeData;
 
         private static readonly SemaphoreSlimSafeRelease _startingSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         #endregion properties
@@ -135,7 +134,7 @@ namespace LolloGPS.Core
         /// <param name="args"></param>
         private async void OnSplashScreen_Dismissed(SplashScreen sender, object args)
         {
-            sender.Dismissed -= OnSplashScreen_Dismissed;
+            if (sender != null) sender.Dismissed -= OnSplashScreen_Dismissed;
             if (!await Licenser.GetInstance().CheckLicensedAsync()) Quit();
         }
 
@@ -201,13 +200,14 @@ namespace LolloGPS.Core
             // In simple cases, I don't need to deregister events when suspending and reregister them when resuming, 
             // but I deregister them when suspending to make sure long running tasks are really stopped.
             // This also includes the background task state check.
-            // If I stop registering and deregistering events, I must explicitly check for the background state in GPSInteractor, 
+            // If I stop handling events, I must explicitly check for the background state in GPSInteractor, 
             // which may have changed when the app was suspended. For example, the user barred this app running in background while the app was suspended.
             // This is done in the MainVM, which is subscribed to ResumeStarted.
             Logger.Add_TPL("OnResuming started", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             try
             {
                 await _startingSemaphore.WaitAsync();
+                _runtimeData = RuntimeData.GetInstance();
                 // notify the subscribers; we don't do anything else here.
                 ResumeStarted?.Invoke(this, EventArgs.Empty);
                 // make sure the subscribers are all open before proceeding

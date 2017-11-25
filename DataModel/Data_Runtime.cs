@@ -156,9 +156,7 @@ namespace LolloGPS.Data.Runtime
         }
 
         private RuntimeData()
-        {
-            Open();
-        }
+        { }
         private void Open()
         {
             if (_isOpen) return;

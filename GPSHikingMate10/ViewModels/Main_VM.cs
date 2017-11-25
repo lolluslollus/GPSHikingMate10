@@ -31,8 +31,8 @@ namespace LolloGPS.ViewModels
         private const double MIN_ALTITUDE_M_ABS = .1;
         private const double MAX_ALTITUDE_M_ABS = 10000.0;
 
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData => App.PersistentData;
+        public RuntimeData RuntimeData => App.RuntimeData;
 
         private readonly IMapAltProfCentrer _lolloMap = null;
         private readonly IMapAltProfCentrer _altitudeProfiles = null;

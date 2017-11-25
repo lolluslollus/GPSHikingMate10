@@ -26,8 +26,8 @@ namespace LolloGPS.ViewModels
     {
         // http://josm.openstreetmap.de/wiki/Maps
 
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData => App.PersistentData;
+        public RuntimeData RuntimeData => App.RuntimeData;
 
         private readonly IGeoBoundingBoxProvider _gbbProvider = null;
         private readonly TileDownloader _tileDownloader = null;

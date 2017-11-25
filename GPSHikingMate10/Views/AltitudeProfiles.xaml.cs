@@ -29,8 +29,8 @@ namespace LolloGPS.Core
         private readonly AltitudeProfilesVM _altitudeProfilesVM = null;
         public AltitudeProfilesVM AltitudeProfilesVM { get { return _altitudeProfilesVM; } }
 
-        public PersistentData PersistentData { get { return App.PersistentData; } }
-        public RuntimeData RuntimeData { get { return App.RuntimeData; } }
+        public PersistentData PersistentData => App.PersistentData;
+        public RuntimeData RuntimeData => App.RuntimeData;
 
         private readonly SemaphoreSlimSafeRelease _drawSemaphore = new SemaphoreSlimSafeRelease(1, 1);
         #endregion properties
