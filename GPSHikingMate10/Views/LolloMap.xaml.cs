@@ -20,6 +20,9 @@ using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 
+// LOLLO TODO from fall creators update, An AltitudeReferenceSystem of Ellipsoid might not be supported.
+// LOLLO TODO from fall creators update, TryGetLocationFromOffset supercedes GetLocationFromOffset.
+
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 
 // The only way to create a route seems to be MapRouteFinder, which takes *ages* and it is not what we want here, either.
