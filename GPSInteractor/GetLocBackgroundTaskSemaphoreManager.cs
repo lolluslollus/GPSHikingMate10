@@ -72,8 +72,7 @@ namespace LolloGPS.GPSInteraction
         {
             try
             {
-                Semaphore semaphoreOpen = null;
-                bool result = Semaphore.TryOpenExisting(BACKGROUND_TASK_SEMAPHORE_NAME, out semaphoreOpen);
+                bool result = Semaphore.TryOpenExisting(BACKGROUND_TASK_SEMAPHORE_NAME, out Semaphore semaphoreOpen);
                 return result;
             }
             catch

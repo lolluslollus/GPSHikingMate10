@@ -334,18 +334,29 @@ namespace LolloGPS.Core
         #region file activated
         public async Task FileActivateAsync(FileActivatedEventArgs args)
         {
-            if (!IsOnMe()) return;
             // wait for the mainVM to be available and open, a bit crude but it beats opening it concurrently from here, 
             // while I am already trying to open it from somewhere else.
             int cnt = 0;
-            while ((_mainVM == null || !_mainVM.IsOpen) && IsOnMe())
+            while (_mainVM == null || !_mainVM.IsOpen)
             {
                 cnt++; if (cnt > 200) return;
-                await Task.Delay(SuspenderResumerExtensions.MSecToWaitToConfirm).ConfigureAwait(false);
+                await Task.Delay(25).ConfigureAwait(false);
             }
-            if (!IsOnMe()) return;
             await _mainVM.LoadFileAsync(args).ConfigureAwait(false);
         }
         #endregion file activated
+
+        #region suspend resume
+        public Task OnSuspendAsync()
+        {
+            return CloseAsync(LifecycleEvents.Suspending);
+        }
+
+        public Task OnResumeAsync()
+        {
+            if (!IsOnMe()) return Task.CompletedTask;
+            return OpenAsync(LifecycleEvents.Resuming);
+        }
+        #endregion suspend resume
     }
 }

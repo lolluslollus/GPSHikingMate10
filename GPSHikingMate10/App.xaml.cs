@@ -25,7 +25,7 @@ namespace LolloGPS.Core
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    public sealed partial class App : Application, ISuspenderResumer
+    public sealed partial class App : Application
     {
         #region properties
         private static PersistentData _persistentData = null;
@@ -37,8 +37,6 @@ namespace LolloGPS.Core
         #endregion properties
 
         #region events
-        public event SuspendingEventHandler SuspendStarted;
-        public event EventHandler ResumeStarted;
         // interesting: the new event handlers with more control
         //event EventHandler ISuspenderResumer.ResumeStarted
         //{
@@ -95,16 +93,16 @@ namespace LolloGPS.Core
         /// search results, and so forth.
         /// This is also invoked when the app is resumed after being terminated.
         /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        /// <param name="args">Details about the launch request and process.</param>
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
-            Logger.Add_TPL("OnLaunched started with " + " arguments = " + e.Arguments + " and kind = " + e.Kind.ToString() + " and prelaunch activated = " + e.PrelaunchActivated + " and prev exec state = " + e.PreviousExecutionState.ToString(),
+            Logger.Add_TPL("OnLaunched started with " + " arguments = " + args.Arguments + " and kind = " + args.Kind.ToString() + " and prelaunch activated = " + args.PrelaunchActivated + " and prev exec state = " + args.PreviousExecutionState.ToString(),
                 Logger.AppEventsLogFilename,
                 Logger.Severity.Info,
                 false);
 
-            e.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
-            e.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
+            args.SplashScreen.Dismissed -= OnSplashScreen_Dismissed;
+            args.SplashScreen.Dismissed += OnSplashScreen_Dismissed;
 
             try
             {
@@ -112,7 +110,7 @@ namespace LolloGPS.Core
                 _runtimeData = RuntimeData.GetInstance();
                 _persistentData = await SuspensionManager.LoadSettingsAsync();
 
-                Frame rootFrame = GetCreateRootFrame(e);
+                var rootFrame = GetCreateRootFrame();
                 NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.Launched);
                 // Ensure the current window is active
                 Window.Current.Activate();
@@ -169,11 +167,9 @@ namespace LolloGPS.Core
                 // first of all
                 await SuspensionManager.SaveSettingsAsync(_persistentData);
 
-                // try closing the subscribers tidily...
-                // notify the subscribers (eg Main.cs)
-                SuspendStarted?.Invoke(this, args);
-                // make sure the subscribers are all closed.
-                await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, SuspendStarted?.GetInvocationList(), false).ConfigureAwait(false);
+                var main = GetCreateRootFrame()?.Content as Main;
+                if (main == null) throw new Exception("OnSuspending: main is null");
+                if (main != null) await main.OnSuspendAsync().ConfigureAwait(false);
 
                 //first to come, last to go
                 RuntimeData?.Close();
@@ -207,11 +203,13 @@ namespace LolloGPS.Core
             try
             {
                 await _startingSemaphore.WaitAsync();
+
                 _runtimeData = RuntimeData.GetInstance();
-                // notify the subscribers; we don't do anything else here.
-                ResumeStarted?.Invoke(this, EventArgs.Empty);
-                // make sure the subscribers are all open before proceeding
-                await SuspenderResumerExtensions.WaitForIOpenableSubscribers(this, ResumeStarted?.GetInvocationList(), true).ConfigureAwait(false);
+
+                var main = GetCreateRootFrame()?.Content as Main;
+                if (main == null) throw new Exception("OnResuming: main is null");
+                if (main != null) await main.OnResumeAsync().ConfigureAwait(false);
+
                 Logger.Add_TPL("the subscribers to ResumeStarted are open", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (Exception ex)
@@ -257,18 +255,18 @@ namespace LolloGPS.Core
                     if (!isAppAlreadyRunning)
                     {
                         _persistentData = await SuspensionManager.LoadSettingsAsync();
-                        rootFrame = GetCreateRootFrame(args);
+                        rootFrame = GetCreateRootFrame();
                         NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.FileActivated);
                         Window.Current.Activate();
                     }
                     else
                     {
-                        rootFrame = GetCreateRootFrame(args);
+                        rootFrame = GetCreateRootFrame();
                     }
 
                     var main = rootFrame.Content as Main;
                     if (main == null) throw new Exception("OnFileActivated: main is null");
-                    await main.FileActivateAsync(args).ConfigureAwait(false);
+                    if (main != null) await main.FileActivateAsync(args).ConfigureAwait(false);
                 }
                 Logger.Add_TPL("OnFileActivated() ended ok", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
@@ -309,7 +307,7 @@ namespace LolloGPS.Core
                 return (Window.Current?.Content as Frame)?.Content is Main;
             }
         }
-        private Frame GetCreateRootFrame(IActivatedEventArgs e)
+        private Frame GetCreateRootFrame()
         {
             Frame rootFrame = null;
             if (Window.Current?.Content is Frame)
