@@ -83,7 +83,7 @@ namespace BackgroundTasks
                 //{
                 //	isSaved = PersistentData.RunDbOpInOtherTask(delegate
                 //	{
-                //		return PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true);
+                //		return PersistentData.TryAddHistoryRecordOnlyDb(newDataRecord, true);
                 //	});
                 //}
 
@@ -97,7 +97,7 @@ namespace BackgroundTasks
                 }
 
                 _stringBuilder.AppendLine("GetLocationBackgroundTask is about to save the new geoPosition");
-                bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.AddHistoryRecordOnlyDb(newDataRecord, true));
+                bool isSaved = PersistentData.RunDbOpInOtherTask(() => PersistentData.TryAddHistoryRecordOnlyDb(newDataRecord, true));
                 _stringBuilder.AppendLine($"GetLocationBackgroundTask has saved the new geoPosition: {isSaved}");
             }
             catch (ObjectDisposedException) // comes from the cts

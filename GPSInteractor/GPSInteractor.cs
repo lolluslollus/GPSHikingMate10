@@ -165,7 +165,8 @@ namespace LolloGPS.GPSInteraction
                     if (args != null)
                     {
                         var newDataRecord = GetNewHistoryRecord(args.Position);
-                        await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false);
+                        if (!await _persistentData.TryAddHistoryRecordAsync(newDataRecord).ConfigureAwait(false))
+                            SetLastMessage_UI(resourceLoader.GetString("TooManyLocations"));
                     }
                 }
                 catch (Exception exc)
@@ -409,10 +410,11 @@ namespace LolloGPS.GPSInteraction
                     var pos = await gl.GetGeopositionAsync().AsTask(CancToken).ConfigureAwait(false);
                     var newDataRecord = GetNewHistoryRecord(pos);
                     if (CancToken.IsCancellationRequested) return;
-                    if (await _persistentData.AddHistoryRecordAsync(newDataRecord, false).ConfigureAwait(false))
-                    {
+
+                    if (await _persistentData.TryAddHistoryRecordAsync(newDataRecord).ConfigureAwait(false))
                         result = newDataRecord;
-                    }
+                    else
+                        SetLastMessage_UI(resourceLoader.GetString("TooManyLocations"));
                 }
                 catch (UnauthorizedAccessException)
                 {

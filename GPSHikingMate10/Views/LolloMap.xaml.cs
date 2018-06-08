@@ -20,9 +20,6 @@ using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
 
-// LOLLO TODO from fall creators update, An AltitudeReferenceSystem of Ellipsoid might not be supported.
-// LOLLO TODO from fall creators update, TryGetLocationFromOffset supercedes GetLocationFromOffset.
-
 // The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 // the polyline cannot be replaced with a route. The problem is, class MapRoute has no constructor and it is sealed. 
 // The only way to create a route seems to be MapRouteFinder, which takes *ages* and it is not what we want here, either.
@@ -59,6 +56,12 @@ namespace LolloGPS.Core
         internal const double MAX_LAT_NEARLY = 80.0;
         internal const double MIN_LON = -180.0;
         internal const double MAX_LON = 180.0;
+        internal const AltitudeReferenceSystem ALT_REF_SYS = AltitudeReferenceSystem.Ellipsoid; //.Geoid;
+
+        private readonly MapElementsLayer _historyLayer = new MapElementsLayer();
+        private readonly MapElementsLayer _route0Layer = new MapElementsLayer();
+        private readonly MapElementsLayer _checkpointsLayer = new MapElementsLayer();
+        private readonly MapElementsLayer _flyoutPointsLayer = new MapElementsLayer();
 
         private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
         {
@@ -197,7 +200,7 @@ namespace LolloGPS.Core
                     break;
             }
 
-            MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon });
+            MyMap.Center = new Geopoint(new BasicGeoposition() { Latitude = PersistentData.MapLastLat, Longitude = PersistentData.MapLastLon }, ALT_REF_SYS);
             MyMap.Style = PersistentData.MapStyle;
             //MyMap.DesiredPitch = 0.0;
             //MyMap.Heading = 0;
@@ -211,7 +214,13 @@ namespace LolloGPS.Core
             if (RuntimeData.IsProperTouchDevice) MyMap.RotateInteractionMode = MapInteractionMode.GestureOnly;
             else MyMap.RotateInteractionMode = MapInteractionMode.PointerKeyboardAndControl;
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
+            MyMap.PanInteractionMode = MapPanInteractionMode.Auto;
             //MyMap.MapElements.Clear(); // no!
+
+            MyMap.Layers.Add(_historyLayer);
+            MyMap.Layers.Add(_route0Layer);
+            MyMap.Layers.Add(_checkpointsLayer);
+            MyMap.Layers.Add(_flyoutPointsLayer);
 
             _lolloMapVM = new LolloMapVM(MyMap.TileSources, this);
             RaisePropertyChanged_UI(nameof(LolloMapVM));
@@ -286,7 +295,7 @@ namespace LolloGPS.Core
                 {
                     double lat = PersistentData.MapLastLat; // always reference these variables in the UI thread, to avoid locks, coz they can be speed-critical
                     double lon = PersistentData.MapLastLon;
-                    var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon });
+                    var gp = new Geopoint(new BasicGeoposition { Latitude = lat, Longitude = lon }, ALT_REF_SYS);
                     double zoom = PersistentData.MapLastZoom;
                     double heading = PersistentData.MapLastHeading;
                     double pitch = PersistentData.MapLastPitch;
@@ -327,7 +336,7 @@ namespace LolloGPS.Core
                 if (cnt < 1) return Task.CompletedTask;
                 if (cnt == 1 && coll[0] != null && !coll[0].IsEmpty())
                 {
-                    Geopoint target = new Geopoint(new BasicGeoposition() { Latitude = coll[0].Latitude, Longitude = coll[0].Longitude });
+                    Geopoint target = new Geopoint(new BasicGeoposition() { Latitude = coll[0].Latitude, Longitude = coll[0].Longitude }, ALT_REF_SYS);
                     return RunInUiThreadAsync(delegate
                     {
                         Task set = MyMap.TrySetViewAsync(target).AsTask(); //, CentreZoomLevel);
@@ -355,7 +364,8 @@ namespace LolloGPS.Core
 
                     var bounds = new GeoboundingBox(
                         new BasicGeoposition { Latitude = maxLatitude, Longitude = minLongitude },
-                        new BasicGeoposition { Latitude = minLatitude, Longitude = maxLongitude });
+                        new BasicGeoposition { Latitude = minLatitude, Longitude = maxLongitude },
+                        ALT_REF_SYS);
                     return RunInUiThreadAsync(delegate
                     {
                         Task set = MyMap.TrySetViewBoundsAsync(bounds,
@@ -390,7 +400,7 @@ namespace LolloGPS.Core
                     Altitude = point?.Altitude ?? 0.0,
                     Latitude = point?.Latitude ?? 0.0,
                     Longitude = point?.Longitude ?? 0.0
-                });
+                }, ALT_REF_SYS);
                 return RunInUiThreadAsync(delegate
                 {
                     Task c2 = MyMap.TrySetViewAsync(location).AsTask(); //, CentreZoomLevel);
@@ -417,7 +427,6 @@ namespace LolloGPS.Core
             try
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
-
                 List<BasicGeoposition> basicGeoPositions = PersistentData.History.Select(item => new BasicGeoposition() { Altitude = 0.0, Latitude = item.Latitude, Longitude = item.Longitude }).ToList();
                 if (!basicGeoPositions.Any())
                 {
@@ -430,24 +439,25 @@ namespace LolloGPS.Core
                 {
                     // LOLLO TODO when zooming in and panning, the polylines and the MapIcons move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
-                    _mapPolylineHistory.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface instead of destroying and redoing, it would be nice to just add the latest point; 
-                                                                                                                  // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
+                    _mapPolylineHistory.Path = new Geopath(basicGeoPositions, ALT_REF_SYS); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // //.Surface 
+                    // LOLLO TODO instead of destroying and redoing, it would be nice to just add the latest point; 
+                    // stupidly, _mapPolylineRoute0.Path.Positions is an IReadOnlyList.
 
-                    //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0]));
-                    //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions.Last()));
-                    _iconStartHistory.Location = new Geopoint(basicGeoPositions[0]);
-                    _iconEndHistory.Location = new Geopoint(basicGeoPositions.Last());
+                    //MapControl.SetLocation(_imageStartHistory, new Geopoint(basicGeoPositions[0], ALT_REF_SYS));
+                    //MapControl.SetLocation(_imageEndHistory, new Geopoint(basicGeoPositions.Last(), ALT_REF_SYS));
+                    _iconStartHistory.Location = new Geopoint(basicGeoPositions[0], ALT_REF_SYS);
+                    _iconEndHistory.Location = new Geopoint(basicGeoPositions.Last(), ALT_REF_SYS);
                     //Better even: use binding; sadly, it is broken for the moment
 
                     if (CancToken.IsCancellationRequested) return;
 
                     if (!_isHistoryInMap)
                     {
-                        if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
+                        if (!_historyLayer.MapElements.Contains(_mapPolylineHistory)) _historyLayer.MapElements.Add(_mapPolylineHistory);
                         //if (!MyMap.Children.Contains(_imageStartHistory)) { MyMap.Children.Add(_imageStartHistory); MapControl.SetNormalizedAnchorPoint(_imageStartHistory, _pointersAnchorPoint); }
                         //if (!MyMap.Children.Contains(_imageEndHistory)) { MyMap.Children.Add(_imageEndHistory); MapControl.SetNormalizedAnchorPoint(_imageEndHistory, _pointersAnchorPoint); }
-                        if (!MyMap.MapElements.Contains(_iconStartHistory)) MyMap.MapElements.Add(_iconStartHistory);
-                        if (!MyMap.MapElements.Contains(_iconEndHistory)) MyMap.MapElements.Add(_iconEndHistory);
+                        if (!_historyLayer.MapElements.Contains(_iconStartHistory)) _historyLayer.MapElements.Add(_iconStartHistory);
+                        if (!_historyLayer.MapElements.Contains(_iconEndHistory)) _historyLayer.MapElements.Add(_iconEndHistory);
                         _isHistoryInMap = true;
                     }
                 }).ConfigureAwait(false);
@@ -480,16 +490,14 @@ namespace LolloGPS.Core
                 {
                     // LOLLO TODO when zooming in and panning, the polylines and the MapIcons move about. It was very hard to find a combination of parameters to minimise this,
                     // and they still move about a bit.
-                    _mapPolylineRoute0.Path = new Geopath(basicGeoPositions, AltitudeReferenceSystem.Ellipsoid); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface instead of destroying and redoing, it would be nice to just add the latest point; 
+                    _mapPolylineRoute0.Path = new Geopath(basicGeoPositions, ALT_REF_SYS); //.Geoid // .Unspecified // .Ellipsoid // .Terrain // .Surface 
+                    // LOLLO TODO instead of destroying and redoing, it would be nice to just add the latest point; 
 
                     if (CancToken.IsCancellationRequested) return;
 
                     if (!_isRoute0InMap)
                     {
-                        if (!MyMap.MapElements.Contains(_mapPolylineRoute0))
-                        {
-                            MyMap.MapElements.Add(_mapPolylineRoute0);
-                        }
+                        if (!_route0Layer.MapElements.Contains(_mapPolylineRoute0)) _route0Layer.MapElements.Add(_mapPolylineRoute0);
                         _isRoute0InMap = true;
                     }
                 }).ConfigureAwait(false);
@@ -533,7 +541,7 @@ namespace LolloGPS.Core
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
                 List<GeopointAndSymbol> geoPointsAndSymbols = PersistentData.Checkpoints.Select(item => new GeopointAndSymbol(
-                    new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }),
+                    new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }, ALT_REF_SYS),
                     item.Symbol
                     )).ToList();
 
@@ -550,16 +558,18 @@ namespace LolloGPS.Core
 #endif
 
                     int j = 0;
-                    int howManyMapElements = MyMap.MapElements.Count;
+                    int howManyMapElements = _checkpointsLayer.MapElements.Count;
                     int howManyGeopoints = geoPointsAndSymbols.Count;
                     for (int i = 0; i < howManyGeopoints; i++)
                     {
-                        while (j < howManyMapElements && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
+                        //while (j < howManyMapElements && (!(_checkpointsLayer.MapElements[j] is MapIcon) || _checkpointsLayer.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
+                        while (j < howManyMapElements && !(_checkpointsLayer.MapElements[j] is MapIcon))
                         {
+                            Debugger.Break();
                             j++; // MapElement is not a checkpoint: skip to the next element
                         }
 
-                        var mapIcon = MyMap.MapElements[j] as MapIcon;
+                        var mapIcon = _checkpointsLayer.MapElements[j] as MapIcon;
                         if (mapIcon != null)
                         {
                             var gpsy = geoPointsAndSymbols[i];
@@ -570,7 +580,7 @@ namespace LolloGPS.Core
                             else if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Triangle)) mapIcon.Image = _checkpointTriangleIconStreamReference;
                             else mapIcon.Image = _checkpointCircleIconStreamReference;
 
-                            //(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+                            //(_checkpointsLayer.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
                             //mapIcon.Title = "LOLLO TODO"; // style the titles, not possible as of June 2017.
                             mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed
                         }
@@ -581,11 +591,13 @@ namespace LolloGPS.Core
 
                     for (int i = howManyGeopoints; i < PersistentData.MaxRecordsInCheckpoints; i++)
                     {
-                        while (j < howManyMapElements && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
+                        //while (j < howManyMapElements && (!(_checkpointsLayer.MapElements[j] is MapIcon) || _checkpointsLayer.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
+                        while (j < howManyMapElements && !(_checkpointsLayer.MapElements[j] is MapIcon))
                         {
+                            Debugger.Break();
                             j++; // MapElement is not a checkpoint: skip to the next element
                         }
-                        MyMap.MapElements[j].Visible = false;
+                        _checkpointsLayer.MapElements[j].Visible = false;
                         j++;
                     }
 #if DEBUG
@@ -610,7 +622,7 @@ namespace LolloGPS.Core
             Stopwatch sw0 = new Stopwatch(); sw0.Start();
 #endif
             bool isInit = false;
-            if (MyMap.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
+            if (_checkpointsLayer.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
             {
                 Debug.WriteLine("InitCheckpoints_MapIcons() is initialising the checkpoints, because there really are some");
                 for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
@@ -624,7 +636,7 @@ namespace LolloGPS.Core
                         Visible = false
                     };
 
-                    MyMap.MapElements.Add(newIcon);
+                    _checkpointsLayer.MapElements.Add(newIcon);
                 }
                 isInit = true;
                 Debug.WriteLine("Checkpoints were initialised");
@@ -646,7 +658,7 @@ namespace LolloGPS.Core
             {
                 await _drawSemaphore.WaitAsync(CancToken).ConfigureAwait(false);
 
-                List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude })).ToList();
+                List<Geopoint> geoPoints = PersistentData.Checkpoints.Select(item => new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }, ALT_REF_SYS)).ToList();
 
                 if (CancToken.IsCancellationRequested) return;
 
@@ -744,7 +756,7 @@ namespace LolloGPS.Core
                 List<PointOfInterest> checkpoints = PersistentData.Checkpoints.Select(item => new PointOfInterest()
                 {
                     ImageSource = _checkpointCircleImageSource,
-                    Location = new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }),
+                    Location = new Geopoint(new BasicGeoposition() { Altitude = item.Altitude, Latitude = item.Latitude, Longitude = item.Longitude }, ALT_REF_SYS),
                     NormalizedAnchorPoint = _checkpointsAnchorPoint
 
                 }).ToList();
@@ -782,13 +794,13 @@ namespace LolloGPS.Core
                 //_imageFlyoutPoint.Visibility = Visibility.Visible;
                 _iconFlyoutPoint.Visible = true;
 
-                //MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }));
-                _iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude });
+                //MapControl.SetLocation(_imageFlyoutPoint, new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }, ALT_REF_SYS));
+                _iconFlyoutPoint.Location = new Geopoint(new BasicGeoposition() { Altitude = 0.0, Latitude = PersistentData.Selected.Latitude, Longitude = PersistentData.Selected.Longitude }, ALT_REF_SYS);
 
                 if (!_isFlyoutPointInMap)
                 {
                     //if (!MyMap.Children.Contains(_imageFlyoutPoint)) { MyMap.Children.Add(_imageFlyoutPoint); MapControl.SetNormalizedAnchorPoint(_imageFlyoutPoint, _pointersAnchorPoint); }
-                    if (!MyMap.MapElements.Contains(_iconFlyoutPoint)) MyMap.MapElements.Add(_iconFlyoutPoint);
+                    if (!_flyoutPointsLayer.MapElements.Contains(_iconFlyoutPoint)) _flyoutPointsLayer.MapElements.Add(_iconFlyoutPoint);
                     _isFlyoutPointInMap = true;
                 }
             });
@@ -813,51 +825,43 @@ namespace LolloGPS.Core
             GeoboundingBox output = null;
             await RunInUiThreadAsync(delegate
             {
-                Geopoint topLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 });
-                Geopoint topRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 });
-                Geopoint bottomLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 });
-                Geopoint bottomRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 });
+                Geopoint topLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 }, ALT_REF_SYS);
+                Geopoint topRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MAX_LAT, Longitude = 0.0 }, ALT_REF_SYS);
+                Geopoint bottomLeftGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 }, ALT_REF_SYS);
+                Geopoint bottomRightGeopoint = new Geopoint(new BasicGeoposition() { Latitude = MIN_LAT, Longitude = 0.0 }, ALT_REF_SYS);
                 try
                 {
                     // when you zoom out and then in with the north pole in the middle of the map, 
-                    // then start downloading tiles, MyMap.GetLocationFromOffset() may throw, so we have some extra complexity.
+                    // then start downloading tiles.
                     double minLon = ABSURD_LON;
                     double maxLon = ABSURD_LON;
-                    try
-                    {
-                        MyMap.GetLocationFromOffset(new Point(0.0, 0.0), out topLeftGeopoint);
-                        UpdateMinLon(ref minLon, topLeftGeopoint.Position);
-                        UpdateMaxLon(ref maxLon, topLeftGeopoint.Position);
-                    }
-                    catch { }
-                    try
-                    {
-                        MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), out topRightGeopoint);
-                        UpdateMinLon(ref minLon, topRightGeopoint.Position);
-                        UpdateMaxLon(ref maxLon, topRightGeopoint.Position);
-                    }
-                    catch { }
-                    try
-                    {
-                        MyMap.GetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), out bottomLeftGeopoint);
-                        UpdateMinLon(ref minLon, bottomLeftGeopoint.Position);
-                        UpdateMaxLon(ref maxLon, bottomLeftGeopoint.Position);
-                    }
-                    catch { }
-                    try
-                    {
-                        MyMap.GetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), out bottomRightGeopoint);
-                        UpdateMinLon(ref minLon, bottomRightGeopoint.Position);
-                        UpdateMaxLon(ref maxLon, bottomRightGeopoint.Position);
-                    }
-                    catch { }
+
+                    if (!MyMap.TryGetLocationFromOffset(new Point(0.0, 0.0), ALT_REF_SYS, out topLeftGeopoint)
+                    || !MyMap.TryGetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), ALT_REF_SYS, out topRightGeopoint)
+                    || !MyMap.TryGetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), ALT_REF_SYS, out bottomLeftGeopoint)
+                    || !MyMap.TryGetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), ALT_REF_SYS, out bottomRightGeopoint)) return;
+
+                    UpdateMinLon(ref minLon, topLeftGeopoint.Position);
+                    UpdateMaxLon(ref maxLon, topLeftGeopoint.Position);
+
+                    UpdateMinLon(ref minLon, topRightGeopoint.Position);
+                    UpdateMaxLon(ref maxLon, topRightGeopoint.Position);
+
+                    UpdateMinLon(ref minLon, bottomLeftGeopoint.Position);
+                    UpdateMaxLon(ref maxLon, bottomLeftGeopoint.Position);
+
+                    UpdateMinLon(ref minLon, bottomRightGeopoint.Position);
+                    UpdateMaxLon(ref maxLon, bottomRightGeopoint.Position);
 
                     double minLat = Math.Min(Math.Min(Math.Min(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
                     double maxLat = Math.Max(Math.Max(Math.Max(topLeftGeopoint.Position.Latitude, topRightGeopoint.Position.Latitude), bottomLeftGeopoint.Position.Latitude), bottomRightGeopoint.Position.Latitude);
 
                     AdjustMinMaxLatLon(ref minLat, ref maxLat, ref minLon, ref maxLon);
 
-                    output = new GeoboundingBox(new BasicGeoposition() { Latitude = maxLat, Longitude = minLon }, new BasicGeoposition() { Latitude = minLat, Longitude = maxLon });
+                    output = new GeoboundingBox(
+                        new BasicGeoposition() { Latitude = maxLat, Longitude = minLon },
+                        new BasicGeoposition() { Latitude = minLat, Longitude = maxLon },
+                        ALT_REF_SYS);
                 }
                 catch (Exception ex)
                 {
@@ -932,10 +936,10 @@ namespace LolloGPS.Core
                     Geopoint bottomRightGeoPoint = null;
 
                     // pick up the geographic coordinates of those points
-                    MyMap.GetLocationFromOffset(topLeftPoint, out topLeftGeoPoint);
-                    MyMap.GetLocationFromOffset(topRightPoint, out topRightGeoPoint);
-                    MyMap.GetLocationFromOffset(bottomLeftPoint, out bottomLeftGeoPoint);
-                    MyMap.GetLocationFromOffset(bottomRightPoint, out bottomRightGeoPoint);
+                    if (!MyMap.TryGetLocationFromOffset(topLeftPoint, ALT_REF_SYS, out topLeftGeoPoint)
+                    || !MyMap.TryGetLocationFromOffset(topRightPoint, ALT_REF_SYS, out topRightGeoPoint)
+                    || !MyMap.TryGetLocationFromOffset(bottomLeftPoint, ALT_REF_SYS, out bottomLeftGeoPoint)
+                    || !MyMap.TryGetLocationFromOffset(bottomRightPoint, ALT_REF_SYS, out bottomRightGeoPoint)) return;
 
                     // work out the maxes and mins, so you can ignore rotation, pitch etc
                     double minLat = Math.Min(bottomRightGeoPoint.Position.Latitude, Math.Min(bottomLeftGeoPoint.Position.Latitude, Math.Min(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
@@ -1235,7 +1239,7 @@ namespace LolloGPS.Core
 
         private static async Task<ScaleFactors> CalcAlongMeridiansAsync(MapControl mapControl, CancellationToken cancToken)
         {
-            if (mapControl == null) return LastScaleFactors;
+            if (mapControl?.Center?.Position == null) return LastScaleFactors;
 
             double actualHeight = mapControl.ActualHeight;
             double actualWidth = mapControl.ActualWidth;
@@ -1246,7 +1250,7 @@ namespace LolloGPS.Core
             Func<Point, Geopoint> getLocationFromOffset = (Point p) =>
             {
                 Geopoint gp = null;
-                mapControl.GetLocationFromOffset(p, out gp);
+                mapControl.TryGetLocationFromOffset(p, LolloMap.ALT_REF_SYS, out gp);
                 return gp;
             };
 
@@ -1303,6 +1307,7 @@ namespace LolloGPS.Core
             if (cancToken.IsCancellationRequested) return LastScaleFactors;
             Geopoint locationS = getLocationFromOffset(pointS);
             if (cancToken.IsCancellationRequested) return LastScaleFactors;
+            if (locationN == null || locationS == null) return LastScaleFactors;
 
             double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;
 
@@ -1401,8 +1406,8 @@ namespace LolloGPS.Core
                 //Point pointS = new Point(halfMapWidth + hypotheticalMeridianBarLength * Math.Sin(headingRadians), halfMapHeight + hypotheticalMeridianBarLength * Math.Cos(headingRadians));
                 //double checkIpotenusaMustBeSameAsBarLength = Math.Sqrt((pointN.X - pointS.X) * (pointN.X - pointS.X) + (pointN.Y - pointS.Y) * (pointN.Y - pointS.Y)); //remove when done testing
                 //Geopoint locationN = null; Geopoint locationS = null;
-                //mapControl.GetLocationFromOffset(pointN, out locationN);
-                //mapControl.GetLocationFromOffset(pointS, out locationS);
+                //mapControl.TryGetLocationFromOffset(pointN, LolloMap.ALT_REF_SYS, out locationN);
+                //mapControl.TryGetLocationFromOffset(pointS, LolloMap.ALT_REF_SYS, out locationS);
 
                 Point pointW = new Point(hypotheticalMeasureBarX1, hypotheticalMeasureBarY1);
                 Point pointE = new Point(
@@ -1411,8 +1416,8 @@ namespace LolloGPS.Core
                 // if(pointE.X > 360.0 || pointW.X > 360.0) { }
                 Geopoint locationW = null;
                 Geopoint locationE = null; // PointE = 315, 369 throws an error coz locationE cannot be resolved. It happens on start, not every time.
-                mapControl.GetLocationFromOffset(pointW, out locationW);
-                mapControl.GetLocationFromOffset(pointE, out locationE);
+                mapControl.TryGetLocationFromOffset(pointW, LolloMap.ALT_REF_SYS, out locationW);
+                mapControl.TryGetLocationFromOffset(pointE, LolloMap.ALT_REF_SYS, out locationE);
 
                 //double scaleEndsDistanceMetres = Math.Abs(locationN.Position.Latitude - locationS.Position.Latitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeridianBarLength + 1); //need the abs for when the map is rotated;
                 double scaleEndsDistanceMetres = Math.Abs(locationE.Position.Longitude - locationW.Position.Longitude) * LatitudeToMetres * LolloMap.SCALE_IMAGE_WIDTH / (hypotheticalMeasureBarLength + 1); //need the abs for when the map is rotated;

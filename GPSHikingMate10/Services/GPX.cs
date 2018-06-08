@@ -140,98 +140,99 @@ namespace LolloGPS.GPX
                 {
                     cancToken.ThrowIfCancellationRequested();
                     XElement xmlData = XElement.Load(inStream2.AsStreamForRead());
+                    if (xmlData == null) return newDataRecords;
+
                     cancToken.ThrowIfCancellationRequested();
 
-                    if (xmlData != null)
+                    XNamespace xn = xmlData.GetDefaultNamespace();
+                    List<XElement> mapPoints = whichTable == PersistentData.Tables.Checkpoints
+                        ? GetWpts_Checkpoints(xmlData, xn)
+                        : GetWpts_Route0(xmlData, xn);
+                    cancToken.ThrowIfCancellationRequested();
+
+                    foreach (XElement xe in mapPoints)
                     {
-                        XNamespace xn = xmlData.GetDefaultNamespace();
-                        List<XElement> mapPoints = whichTable == PersistentData.Tables.Checkpoints ? GetWpts_Checkpoints(xmlData, xn) : GetWpts_Route0(xmlData, xn);
-                        cancToken.ThrowIfCancellationRequested();
+                        double latitude = default(double);
+                        var lat = xe.Attribute("lat"); // no xn + with attributes
+                        if (lat != null) double.TryParse(lat.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out latitude);
+                        else continue; //do not add this point if lat is missing
 
-                        foreach (XElement xe in mapPoints)
+                        double longitude = default(double);
+                        var lon = xe.Attribute("lon"); // no xn + with attributes
+                        if (lon != null) double.TryParse(lon.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
+                        else continue; //do not add this point if lon is missing
+
+                        double altitude = default(double);
+                        var ele = xe.Descendants(xn + "ele").FirstOrDefault();
+                        if (ele != null) double.TryParse(ele.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out altitude);
+
+                        string positionSource = string.Empty;
+                        var src = xe.Descendants(xn + "src").FirstOrDefault();
+                        if (src != null) positionSource = src.Value;
+
+                        string symbol = string.Empty;
+                        var sym = xe.Descendants(xn + "sym").FirstOrDefault();
+                        if (sym != null) symbol = sym.Value;
+
+                        DateTime timePoint = default(DateTime);                   // Date and time in are in Univeral Coordinated Time (UTC), not local time! Conforms to ISO 8601 specification for date/time representation. 
+                        var time = xe.Descendants(xn + "time").FirstOrDefault(); // Creation/modification timestamp for element. 
+                        if (time != null) DateTime.TryParse(time.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timePoint);                     //Fractional seconds are allowed for millisecond timing in tracklogs. 
+
+                        uint howManySatellites = default(uint);
+                        var sat = xe.Descendants(xn + "sat").FirstOrDefault();
+                        if (sat != null) uint.TryParse(sat.Value, out howManySatellites);
+
+                        double speedInMetreSec = default(double);
+                        var speed = xe.Descendants(xn + "speed").FirstOrDefault();
+                        if (speed != null) double.TryParse(speed.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out speedInMetreSec);
+
+                        //string gpsName = string.Empty;
+                        //var name = xe.Descendants(xn + "name").FirstOrDefault();
+                        //if (name != null) gpsName = name.Value;
+
+                        //string gpsComment = string.Empty;
+                        //var cmt = xe.Descendants(xn + "cmt").FirstOrDefault();
+                        //if (cmt != null) gpsComment = cmt.Value;
+
+                        string humanDescription = string.Empty;
+                        var desc = xe.Descendants(xn + "desc").FirstOrDefault();
+                        if (desc != null) humanDescription = desc.Value;
+
+                        string hyperLink = null;
+                        string hyperLinkText = string.Empty;
+                        var link = xe.Descendants(xn + "link").FirstOrDefault();
+                        var href = link?.Attribute("href"); // no xn + with attributes
+                        if (href != null)
                         {
-                            double latitude = default(double);
-                            var lat = xe.Attribute("lat"); // no xn + with attributes
-                            if (lat != null) double.TryParse(lat.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out latitude);
-                            else continue; //do not add this point if lat is missing
-
-                            double longitude = default(double);
-                            var lon = xe.Attribute("lon"); // no xn + with attributes
-                            if (lon != null) double.TryParse(lon.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out longitude);
-                            else continue; //do not add this point if lon is missing
-
-                            double altitude = default(double);
-                            var ele = xe.Descendants(xn + "ele").FirstOrDefault();
-                            if (ele != null) double.TryParse(ele.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out altitude);
-
-                            string positionSource = string.Empty;
-                            var src = xe.Descendants(xn + "src").FirstOrDefault();
-                            if (src != null) positionSource = src.Value;
-
-                            string symbol = string.Empty;
-                            var sym = xe.Descendants(xn + "sym").FirstOrDefault();
-                            if (sym != null) symbol = sym.Value;
-
-                            DateTime timePoint = default(DateTime);                   // Date and time in are in Univeral Coordinated Time (UTC), not local time! Conforms to ISO 8601 specification for date/time representation. 
-                            var time = xe.Descendants(xn + "time").FirstOrDefault(); // Creation/modification timestamp for element. 
-                            if (time != null) DateTime.TryParse(time.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timePoint);                     //Fractional seconds are allowed for millisecond timing in tracklogs. 
-
-                            uint howManySatellites = default(uint);
-                            var sat = xe.Descendants(xn + "sat").FirstOrDefault();
-                            if (sat != null) uint.TryParse(sat.Value, out howManySatellites);
-
-                            double speedInMetreSec = default(double);
-                            var speed = xe.Descendants(xn + "speed").FirstOrDefault();
-                            if (speed != null) double.TryParse(speed.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out speedInMetreSec);
-
-                            //string gpsName = string.Empty;
-                            //var name = xe.Descendants(xn + "name").FirstOrDefault();
-                            //if (name != null) gpsName = name.Value;
-
-                            //string gpsComment = string.Empty;
-                            //var cmt = xe.Descendants(xn + "cmt").FirstOrDefault();
-                            //if (cmt != null) gpsComment = cmt.Value;
-
-                            string humanDescription = string.Empty;
-                            var desc = xe.Descendants(xn + "desc").FirstOrDefault();
-                            if (desc != null) humanDescription = desc.Value;
-
-                            string hyperLink = null;
-                            string hyperLinkText = string.Empty;
-                            var link = xe.Descendants(xn + "link").FirstOrDefault();
-                            var href = link?.Attribute("href"); // no xn + with attributes
-                            if (href != null)
+                            Uri testUri = null;
+                            if (Uri.TryCreate(href.Value, UriKind.RelativeOrAbsolute, out testUri))
                             {
-                                Uri testUri = null;
-                                if (Uri.TryCreate(href.Value, UriKind.RelativeOrAbsolute, out testUri))
-                                {
-                                    hyperLink = href.Value;
-                                    var text = link.Descendants(xn + "text").FirstOrDefault();
-                                    if (text != null) hyperLinkText = text.Value;
-                                }
+                                hyperLink = href.Value;
+                                var text = link.Descendants(xn + "text").FirstOrDefault();
+                                if (text != null) hyperLinkText = text.Value;
                             }
-
-                            newDataRecords.Add(new PointRecord()
-                            {
-                                Altitude = altitude,
-                                Latitude = latitude,
-                                Longitude = longitude,
-                                PositionSource = positionSource,
-                                Symbol = symbol,
-                                TimePoint = timePoint,
-                                HowManySatellites = howManySatellites,
-                                SpeedInMetreSec = speedInMetreSec,
-                                //GPSName = gpsName,
-                                //GPSComment = comment,
-                                HumanDescription = humanDescription,
-                                HyperLink = hyperLink,
-                                HyperLinkText = hyperLinkText
-                                //HorizontalDilutionOfPrecision = horizontalDilutionOfPrecision,
-                                //VerticalDilutionOfPrecision = verticalDilutionOfPrecision,
-                                //PositionDilutionOfPrecision = positionDilutionOfPrecision
-                            });
-                            cancToken.ThrowIfCancellationRequested();
                         }
+
+                        newDataRecords.Add(new PointRecord()
+                        {
+                            Altitude = altitude,
+                            Latitude = latitude,
+                            Longitude = longitude,
+                            PositionSource = positionSource,
+                            Symbol = symbol,
+                            TimePoint = timePoint,
+                            HowManySatellites = howManySatellites,
+                            SpeedInMetreSec = speedInMetreSec,
+                            //GPSName = gpsName,
+                            //GPSComment = comment,
+                            HumanDescription = humanDescription,
+                            HyperLink = hyperLink,
+                            HyperLinkText = hyperLinkText
+                            //HorizontalDilutionOfPrecision = horizontalDilutionOfPrecision,
+                            //VerticalDilutionOfPrecision = verticalDilutionOfPrecision,
+                            //PositionDilutionOfPrecision = positionDilutionOfPrecision
+                        });
+                        cancToken.ThrowIfCancellationRequested();
                     }
                 }
             }

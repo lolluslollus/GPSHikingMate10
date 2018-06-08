@@ -112,7 +112,6 @@ namespace LolloGPS.Core
 
                 var rootFrame = GetCreateRootFrame();
                 NavigateToRootFrameContent(rootFrame, Utilz.Controlz.OpenableObservablePage.NavigationParameters.Launched);
-                // Ensure the current window is active
                 Window.Current.Activate();
             }
             catch (Exception ex)
@@ -169,16 +168,16 @@ namespace LolloGPS.Core
 
                 var main = GetCreateRootFrame()?.Content as Main;
                 if (main == null) throw new Exception("OnSuspending: main is null");
-                if (main != null) await main.OnSuspendAsync().ConfigureAwait(false);
+                await main.OnSuspendAsync().ConfigureAwait(false);
 
                 //first to come, last to go
                 RuntimeData?.Close();
 
-                Logger.Add_TPL("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
+                await Logger.AddAsync("OnSuspending ended OK", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
             catch (Exception ex)
             {
-                Logger.Add_TPL(ex.ToString(), Logger.AppEventsLogFilename);
+                await Logger.AddAsync(ex.ToString(), Logger.AppEventsLogFilename);
             }
             finally
             {
@@ -208,7 +207,7 @@ namespace LolloGPS.Core
 
                 var main = GetCreateRootFrame()?.Content as Main;
                 if (main == null) throw new Exception("OnResuming: main is null");
-                if (main != null) await main.OnResumeAsync().ConfigureAwait(false);
+                await main.OnResumeAsync().ConfigureAwait(false);
 
                 Logger.Add_TPL("the subscribers to ResumeStarted are open", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }
@@ -266,7 +265,7 @@ namespace LolloGPS.Core
 
                     var main = rootFrame.Content as Main;
                     if (main == null) throw new Exception("OnFileActivated: main is null");
-                    if (main != null) await main.FileActivateAsync(args).ConfigureAwait(false);
+                    await main.FileActivateAsync(args).ConfigureAwait(false);
                 }
                 Logger.Add_TPL("OnFileActivated() ended ok", Logger.AppEventsLogFilename, Logger.Severity.Info, false);
             }

@@ -57,8 +57,8 @@ namespace LolloGPS.Data
         #endregion enums
 
         #region constants
-        public const int MaxRecordsInRoute = short.MaxValue;
-        public const int MaxRecordsInHistory = short.MaxValue;
+        public const int MaxRecordsInRoute = 10000; // short.MaxValue;
+        public const int MaxRecordsInHistory = 10000; // short.MaxValue;
         private const int MaxCheckpoints1 = 500; // was 100
         private const int MaxCheckpoints2 = 1000; // was 200
         private const int MaxCheckpoints3 = 1500; // was 500
@@ -814,7 +814,7 @@ namespace LolloGPS.Data
                 SemaphoreSlimSafeRelease.TryRelease(_historySemaphore);
             }
         }
-        public async Task<bool> AddHistoryRecordAsync(PointRecord dataRecord, bool checkMaxEntries)
+        public async Task<bool> TryAddHistoryRecordAsync(PointRecord dataRecord)
         {
             try
             {
@@ -823,9 +823,9 @@ namespace LolloGPS.Data
                 bool result = false;
                 await RunInUiThreadAsync(delegate
                 {
-                    result = AddHistoryRecord2(dataRecord, checkMaxEntries);
+                    result = AddHistoryRecord2(dataRecord, true);
                 }).ConfigureAwait(false);
-                if (result) await DBManager.InsertIntoHistoryAsync(dataRecord, checkMaxEntries).ConfigureAwait(false);
+                if (result) await DBManager.InsertIntoHistoryAsync(dataRecord, true).ConfigureAwait(false);
                 return result;
             }
             finally
@@ -870,7 +870,7 @@ namespace LolloGPS.Data
                 return false;
             }
         }
-        public static bool AddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
+        public static bool TryAddHistoryRecordOnlyDb(PointRecord dataRecord, bool checkMaxEntries)
         {
             if (dataRecord == null || dataRecord.IsEmpty()) return false;
 
@@ -2031,7 +2031,7 @@ namespace LolloGPS.Data
 
         string LastMessage { get; set; }
 
-        Task<bool> AddHistoryRecordAsync(PointRecord dataRecord, bool checkMaxEntries);
+        Task<bool> TryAddHistoryRecordAsync(PointRecord dataRecord);
     }
 
 
