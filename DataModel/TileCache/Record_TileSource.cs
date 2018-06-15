@@ -494,6 +494,11 @@ namespace LolloGPS.Data.TileCache
                     "http://ut.no/", 5, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "https://tilesprod.ut.no/tilestache/ut_topo_light/{zoomlevel}/{x}/{y}.jpg"),
 
+                // this uses UTM 33X and WGS84 coordinates. There is also http://topojanmayen.npolar.no/
+                //new TileSourceRecord(false, "", "", "TopoSvalbard", "TopoSvalbard (Norway)", "TopoSvalbard", "© TopoSvalbard",
+                //    "http://toposvalbard.npolar.no/", 5, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+                //    "http://geodata.npolar.no/arcgis/rest/services/Basisdata_Intern/NP_TopoSvalbard_Basiskart/MapServer/tile/{zoomlevel}/{y}/{x}"),
+
                 // this is tricky, it needs a prior request to https://kso.etjanster.lantmateriet.se/ to get two cookies, and the following requests will use those cookies, 
                 // and return new cookies (which happen to be the same, at least for a while).
                 //new TileSourceRecord(false, "", "", "Lantmateriet", "Lantmateriet (Sweden)", "Lantmateriet", "",
@@ -577,6 +582,11 @@ namespace LolloGPS.Data.TileCache
             output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
                 "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
+
+            // this has funny coordinates
+            //output.Add(new TileSourceRecord(false, "", "", "Ngi", "Ngi (Belgium)", "Ngi", "© Ngi",
+            //    "", 4, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+            //    "http://www.ngi.be/cartoweb/1.0.0/topo/default/3812/{zoomlevel}/{y}/{x}.png"));
 
             // this is rather useless
             //new TileSourceRecord(false, "", "", "CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
