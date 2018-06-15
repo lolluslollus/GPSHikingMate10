@@ -456,6 +456,11 @@ namespace LolloGPS.Data.TileCache
                     "http://a.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png",
                     "http://b.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png",
                     "http://c.tile.thunderforest.com/transport/{zoomlevel}/{x}/{y}.png"),
+#if NOSTORE
+                new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
+                    "https://www.arcgis.com/", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
+                    "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"),
+#endif
                 // not very useful
                 //new TileSourceRecord(false, "", "", "StamenToner", "Stamen Toner","StamenToner", "© Stamen - © OpenStreetMap contributors",
                 //    "http://maps.stamen.com/", 2, 18, 256, false, false, GetAcceptImageWebHeaderCollection(),
@@ -572,16 +577,11 @@ namespace LolloGPS.Data.TileCache
             // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/proxy/?LAYER=World_Topo_Map&STYLE=default&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
 
             output.Add(new TileSourceRecord(false, "", "", "GeoportailTopo", "Geoportail Topo (F)", "GeoportailTopo", "© Geoportail",
-                "", 7, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+                "https://www.geoportail.gouv.fr/", 7, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
                 "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
             output.Add(new TileSourceRecord(false, "", "", "GeoportailNormal", "Geoportail Normal (F)", "GeoportailNormal", "© Geoportail",
-                "", 2, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+                "https://www.geoportail.gouv.fr/", 2, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
                 "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
-
-            // also try http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}
-            output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
-                "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
-                "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
 
             // this has funny coordinates
             //output.Add(new TileSourceRecord(false, "", "", "Ngi", "Ngi (Belgium)", "Ngi", "© Ngi",
