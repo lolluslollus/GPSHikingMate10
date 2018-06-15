@@ -76,14 +76,14 @@ namespace LolloGPS.Data.TileCache
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Referer)] = "https://map.schweizmobil.ch/?lang=en&bgLayer=pk&resolution=256";
             return headers;
         }
-        private static Dictionary<string, string> GetIGNWebHeaderCollection()
+        private static Dictionary<string, string> GetFakeBrowserWebHeaderCollection()
         {
             var headers = new Dictionary<string, string>();
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8";
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.AcceptEncoding)] = "gzip, deflate";
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Connection)] = "Keep-Alive";
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.ContentType)] = TileCacheReaderWriter.MimeTypeImageAny;
-            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Host)] = "wxs.ign.fr";
+            // headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Host)] = "wxs.ign.fr";
             // headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Referer)] = "https://www.geoportail.gouv.fr…onnees/carte-topographique-ign";
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.UserAgent)] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134";
             return headers;
@@ -542,13 +542,42 @@ namespace LolloGPS.Data.TileCache
                     "http://www.ign.es/", 6, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://www.ign.es/wmts/mapa-raster?layer=MTN&style=default&tilematrixset=GoogleMapsCompatible&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={zoomlevel}&TileCol={x}&TileRow={y}"),
                 // Keeps giving 404, I think they use special coordinates
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/13/5657/5621
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/18/37543/38249
+                // http://www.pcn.minambiente.it/arcgis/rest/services/base_new/MapServer/tile/12/2496/2542
+                // queste funzionano, ma chissà le coordinate:
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/IGM_25000/MapServer/tile/11/2495/2542
+                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/IGM_25000/MapServer/tile/13/4993/5082
                 //new TileSourceRecord(false, "","",  "Minambiente", "Minambiente (Italy)","Minambiente", "",
                 //    "http://www.pcn.minambiente.it/", 4, 18, 512, false, false, GetAcceptImageWebHeaderCollection(),
                 //    "http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/{zoomlevel}/{y}/{x}"),
-                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/13/5657/5621
-                // http://www.pcn.minambiente.it/arcgis/rest/services/immagini/ortofoto_colore_12/MapServer/tile/18/37543/38249
-
+                //new TileSourceRecord(false, "", "", "GeoportaleNazionale", "Geoportale Nazionale (Italy)", "GeoportaleNazionale", "© Geoportale Nazionale",
+                //    "http://www.pcn.minambiente.it/", 8, 16, 512, false, false, GetAcceptAnythingWebHeaderCollection(),
+                //    "http://www.pcn.minambiente.it/arcgis/rest/services/immagini/IGM_25000/MapServer/tile/{zoomlevel}/{x}/{y}"),
             };
+
+            // geoportail fr ? http://depot.ign.fr/geoportail/api/develop/tech-docs-js/developpeur/wmts.html
+            // to get a key: http://professionnels.ign.fr/ign/contrats
+            // or study https://www.geoportail.gouv.fr/carte
+            // normal IGN map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+            // topo IGN map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+            // esri world topo map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/proxy/?LAYER=World_Topo_Map&STYLE=default&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+
+            output.Add(new TileSourceRecord(false, "", "", "GeoportailTopo", "Geoportail Topo (F)", "GeoportailTopo", "© Geoportail",
+                "", 7, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
+            output.Add(new TileSourceRecord(false, "", "", "GeoportailNormal", "Geoportail Normal (F)", "GeoportailNormal", "© Geoportail",
+                "", 2, 16, 256, false, false, GetFakeBrowserWebHeaderCollection(),
+                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
+
+            // also try http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}
+            output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
+                "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
+                "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
+
             // this is rather useless
             //new TileSourceRecord(false, "", "", "CambLaosThaiViet", "OSM Cambodia Laos Thai Vietnam","CambLaosThaiViet", "",
             //    "http://a.tile.osm-tools.org/osm_then/{zoomlevel}/{x}/{y}.png",
@@ -565,12 +594,6 @@ namespace LolloGPS.Data.TileCache
 
 #endif
 
-#if NOSTORE
-            // also try http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}
-            output.Add(new TileSourceRecord(false, "", "", "ArcGIS", "ArcGIS World Topo Map", "ArcGIS", "© ARCGIS",
-                "", 0, 16, 256, false, false, GetAcceptImageWebHeaderCollection(),
-                "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{zoomlevel}/{y}/{x}"));
-#endif
             // This one has its own coordinates. y=0 is south, y=max is north. Zoom 0 accepts 0<=y<=8 and 0<=x<=7.
             // Zoom 1 accepts y max = 16, x max = 15
             // https://www.mapplus.ch/ts1/1.0.0/osm_schweiz_topo_2016/2/31/33.png
@@ -653,23 +676,6 @@ namespace LolloGPS.Data.TileCache
                 "", 3, 15, 256, false, false, GetAcceptImageWebHeaderCollection(),
                 "https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{zoomlevel}/{y}/{x}"));
 #endif
-
-            // geoportail fr ? http://depot.ign.fr/geoportail/api/develop/tech-docs-js/developpeur/wmts.html
-            // to get a key: http://professionnels.ign.fr/ign/contrats
-            // or study https://www.geoportail.gouv.fr/carte
-            // normal IGN map:
-            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
-            // topo IGN map:
-            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
-            // esri world topo map:
-            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/proxy/?LAYER=World_Topo_Map&STYLE=default&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
-
-            output.Add(new TileSourceRecord(false, "", "", "GeoportailTopo", "Geoportail Topo (F)", "GeoportailTopo", "© Geoportail",
-                "", 7, 16, 256, false, false, GetIGNWebHeaderCollection(),
-                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
-            output.Add(new TileSourceRecord(false, "", "", "GeoportailNormal", "Geoportail Normal (F)", "GeoportailNormal", "© Geoportail",
-                "", 2, 16, 256, false, false, GetIGNWebHeaderCollection(),
-                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
 
             return output;
         }
