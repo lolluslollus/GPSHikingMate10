@@ -593,12 +593,12 @@ namespace LolloGPS.Data.TileCache
             catch (WebException ex) { return null; }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR in TrySaveTileAsync(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
+                Debug.WriteLine("ERROR in TrySaveTile2Async(): " + ex.Message + ex.StackTrace + Environment.NewLine + " I made it to where = " + where);
             }
 #if DEBUG
             finally
             {
-                Debug.WriteLine("TrySaveTileAsync() made it to where = " + where);
+                Debug.WriteLine("TrySaveTile2Async() made it to where = " + where);
             }
 #endif
             return null;

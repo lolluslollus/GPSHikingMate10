@@ -58,6 +58,12 @@ namespace LolloGPS.Data.TileCache
         {
             return new Dictionary<string, string>();
         }
+        private static Dictionary<string, string> GetAcceptAnythingWebHeaderCollection()
+        {
+            var headers = new Dictionary<string, string>();
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = "*/*";
+            return headers;
+        }
         private static Dictionary<string, string> GetAcceptImageWebHeaderCollection()
         {
             var headers = new Dictionary<string, string>();
@@ -68,6 +74,18 @@ namespace LolloGPS.Data.TileCache
         {
             var headers = new Dictionary<string, string>();
             headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Referer)] = "https://map.schweizmobil.ch/?lang=en&bgLayer=pk&resolution=256";
+            return headers;
+        }
+        private static Dictionary<string, string> GetIGNWebHeaderCollection()
+        {
+            var headers = new Dictionary<string, string>();
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Accept)] = "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8";
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.AcceptEncoding)] = "gzip, deflate";
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Connection)] = "Keep-Alive";
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.ContentType)] = TileCacheReaderWriter.MimeTypeImageAny;
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Host)] = "wxs.ign.fr";
+            // headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.Referer)] = "https://www.geoportail.gouv.fr…onnees/carte-topographique-ign";
+            headers[Enum.GetName(typeof(HttpRequestHeader), HttpRequestHeader.UserAgent)] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134";
             return headers;
         }
         #endregion constants
@@ -368,7 +386,7 @@ namespace LolloGPS.Data.TileCache
 #if NOSTORE
                 // This has got very slow
                 new TileSourceRecord(false, "", "", "ForUMaps", "4UMaps", "ForUMaps", "© 4UMaps.eu - © OpenStreetMap contributors",
-                    "http://www.4umaps.eu/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection(), 
+                    "http://www.4umaps.eu/", 2, 15, 256, false, false, GetAcceptImageWebHeaderCollection(),
                     "http://4umaps.eu/{zoomlevel}/{x}/{y}.png"),
 #endif
                 new TileSourceRecord(false, "", "", "OpenTopoMap", "OpenTopoMap", "OpenTopoMap", "© OpenStreetMap contributors - © OpenTopoMap (CC-BY-SA)",
@@ -639,6 +657,20 @@ namespace LolloGPS.Data.TileCache
             // geoportail fr ? http://depot.ign.fr/geoportail/api/develop/tech-docs-js/developpeur/wmts.html
             // to get a key: http://professionnels.ign.fr/ign/contrats
             // or study https://www.geoportail.gouv.fr/carte
+            // normal IGN map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+            // topo IGN map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+            // esri world topo map:
+            // "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/proxy/?LAYER=World_Topo_Map&STYLE=default&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"
+
+            output.Add(new TileSourceRecord(false, "", "", "GeoportailTopo", "Geoportail Topo (F)", "GeoportailTopo", "© Geoportail",
+                "", 7, 16, 256, false, false, GetIGNWebHeaderCollection(),
+                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR.CV&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
+            output.Add(new TileSourceRecord(false, "", "", "GeoportailNormal", "Geoportail Normal (F)", "GeoportailNormal", "© Geoportail",
+                "", 2, 16, 256, false, false, GetIGNWebHeaderCollection(),
+                "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/geoportail/wmts?EXCEPTIONS=text/xml&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD&STYLE=normal&TILEMATRIXSET=PM&SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&FORMAT=image/jpeg&TILEMATRIX={zoomlevel}&TILECOL={x}&TILEROW={y}"));
+
             return output;
         }
         public static TileSourceRecord GetDefaultTileSource()
