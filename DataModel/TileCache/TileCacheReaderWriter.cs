@@ -23,7 +23,7 @@ namespace LolloGPS.Data.TileCache
         public static readonly string[] AllowedExtensions = { "bmp", "jpeg", "jpg", "png" };
         public static readonly string[] AllowedExtensionsTolerant = AllowedExtensions.Concat(AllowedExtensions.Select(ext => $".{ext}")).ToArray();
         public const int MaxRecords = 65535;
-        public const int WebRequestTimeoutMsec = 65535;
+        public const int WebRequestTimeoutMsec = 2048; //65535;
         private static readonly Uri _tileMustZoomInUri = new Uri("ms-appx:///Assets/TileMustZoomIn-256.png", UriKind.Absolute);
         private static readonly Uri _tileMustZoomOutUri = new Uri("ms-appx:///Assets/TileMustZoomOut-256.png", UriKind.Absolute);
         private static readonly Uri _tileEmptyUri = new Uri("ms-appx:///Assets/TileEmpty-256.png", UriKind.Absolute);
@@ -535,7 +535,7 @@ namespace LolloGPS.Data.TileCache
 
                 where = 2;
 
-                cancToken.Register(delegate
+                using (var cancTokenRegistration = cancToken.Register(delegate
                 {
                     try
                     {
@@ -546,45 +546,46 @@ namespace LolloGPS.Data.TileCache
                     {
                         Debug.WriteLine("web request aborted with error");
                     }
-                }, false);
-
-                using (var response = await request.GetResponseAsync().ConfigureAwait(false))
+                }, false))
                 {
-                    if (cancToken.IsCancellationRequested) return null;
-                    if ((response as HttpWebResponse)?.StatusCode != HttpStatusCode.OK || response.ContentLength <= 0) return null;
-                    where = 3;
-                    using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
+                    using (var response = await request.GetResponseAsync().ConfigureAwait(false))
                     {
-                        where = 4;
-                        // read response stream into a new record. 
-                        // This extra step is the price to pay if we want to check the stream content
-                        var fileNameWithExtension = Path.ChangeExtension(fileNameNoExtension, GetExtension(fileNameNoExtension, response));
-                        if (string.IsNullOrWhiteSpace(fileNameWithExtension)) return null;
                         if (cancToken.IsCancellationRequested) return null;
-                        var imgBytes = new byte[response.ContentLength];
-                        //var newRecord = new TileCacheRecord(x, y, z, zoom);
-                        where = 5;
-                        await responseStream.ReadAsync(imgBytes, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
-                        if (cancToken.IsCancellationRequested) return null;
-                        if (!IsWebResponseContentOk(imgBytes)) return null;
-                        where = 6;
-                        // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
-                        var newFile = await _tileCacheFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
-                        using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
+                        if ((response as HttpWebResponse)?.StatusCode != HttpStatusCode.OK || response.ContentLength <= 0) return null;
+                        where = 3;
+                        using (var responseStream = response.GetResponseStream()) // note that I cannot read the length of this stream, nor change its position
                         {
-                            where = 7;
-                            writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
-                            await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
-                            where = 8;
-                            writeStream.Flush();
-                            if (writeStream.Length <= 0) return null;
-                            where = 9;
-                            // check file vs stream
-                            var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
-                            where = 10;
-                            if ((long)fileSize != writeStream.Length) return null;
-                            where = 11;
-                            return fileNameWithExtension;
+                            where = 4;
+                            // read response stream into a new record. 
+                            // This extra step is the price to pay if we want to check the stream content
+                            var fileNameWithExtension = Path.ChangeExtension(fileNameNoExtension, GetExtension(fileNameNoExtension, response));
+                            if (string.IsNullOrWhiteSpace(fileNameWithExtension)) return null;
+                            if (cancToken.IsCancellationRequested) return null;
+                            var imgBytes = new byte[response.ContentLength];
+                            //var newRecord = new TileCacheRecord(x, y, z, zoom);
+                            where = 5;
+                            await responseStream.ReadAsync(imgBytes, 0, (int)response.ContentLength, cancToken).ConfigureAwait(false);
+                            if (cancToken.IsCancellationRequested) return null;
+                            if (!IsWebResponseContentOk(imgBytes)) return null;
+                            where = 6;
+                            // If I am here, the file does not exist yet. You never know tho, so we use CreationCollisionOption.ReplaceExisting just in case.
+                            var newFile = await _tileCacheFolder.CreateFileAsync(fileNameWithExtension, CreationCollisionOption.ReplaceExisting).AsTask(cancToken).ConfigureAwait(false);
+                            using (var writeStream = await newFile.OpenStreamForWriteAsync().ConfigureAwait(false))
+                            {
+                                where = 7;
+                                writeStream.Seek(0, SeekOrigin.Begin); // we don't need it but it does not hurt
+                                await writeStream.WriteAsync(imgBytes, 0, imgBytes.Length).ConfigureAwait(false); // I cannot use readStream.CopyToAsync() coz, after reading readStream, its cursor has advanced and we cannot turn it back
+                                where = 8;
+                                writeStream.Flush();
+                                if (writeStream.Length <= 0) return null;
+                                where = 9;
+                                // check file vs stream
+                                var fileSize = await newFile.GetFileSizeAsync().ConfigureAwait(false);
+                                where = 10;
+                                if ((long)fileSize != writeStream.Length) return null;
+                                where = 11;
+                                return fileNameWithExtension;
+                            }
                         }
                     }
                 }

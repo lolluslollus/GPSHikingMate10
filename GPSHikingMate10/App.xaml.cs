@@ -157,10 +157,14 @@ namespace LolloGPS.Core
         private async void OnSuspending(object sender, SuspendingEventArgs args)
         {
             var deferral = args.SuspendingOperation.GetDeferral();
-            Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + args.SuspendingOperation.Deadline.ToString(),
-                Logger.AppEventsLogFilename,
-                Logger.Severity.Info,
-                false);
+            try // this try..catch looks redundant, but it prevents some crashes in the debugger
+            {
+                Logger.Add_TPL("OnSuspending started with suspending operation deadline = " + args.SuspendingOperation.Deadline.ToString(),
+                    Logger.AppEventsLogFilename,
+                    Logger.Severity.Info,
+                    false);
+            }
+            catch (Exception) { }
             try
             {
                 // first of all
