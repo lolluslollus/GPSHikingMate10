@@ -58,11 +58,6 @@ namespace LolloGPS.Core
         internal const double MAX_LON = 180.0;
         internal const AltitudeReferenceSystem ALT_REF_SYS = AltitudeReferenceSystem.Ellipsoid; //.Geoid;
 
-        private readonly MapElementsLayer _historyLayer = new MapElementsLayer();
-        private readonly MapElementsLayer _route0Layer = new MapElementsLayer();
-        private readonly MapElementsLayer _checkpointsLayer = new MapElementsLayer();
-        private readonly MapElementsLayer _flyoutPointsLayer = new MapElementsLayer();
-
         private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
         {
             MapTabIndex = ROUTE0_TAB_INDEX,
@@ -216,11 +211,6 @@ namespace LolloGPS.Core
             MyMap.TiltInteractionMode = MapInteractionMode.Disabled;
             MyMap.PanInteractionMode = MapPanInteractionMode.Auto;
             //MyMap.MapElements.Clear(); // no!
-
-            MyMap.Layers.Add(_historyLayer);
-            MyMap.Layers.Add(_route0Layer);
-            MyMap.Layers.Add(_checkpointsLayer);
-            MyMap.Layers.Add(_flyoutPointsLayer);
 
             _lolloMapVM = new LolloMapVM(MyMap.TileSources, this);
             RaisePropertyChanged_UI(nameof(LolloMapVM));
@@ -453,11 +443,11 @@ namespace LolloGPS.Core
 
                     if (!_isHistoryInMap)
                     {
-                        if (!_historyLayer.MapElements.Contains(_mapPolylineHistory)) _historyLayer.MapElements.Add(_mapPolylineHistory);
+                        if (!MyMap.MapElements.Contains(_mapPolylineHistory)) MyMap.MapElements.Add(_mapPolylineHistory);
                         //if (!MyMap.Children.Contains(_imageStartHistory)) { MyMap.Children.Add(_imageStartHistory); MapControl.SetNormalizedAnchorPoint(_imageStartHistory, _pointersAnchorPoint); }
                         //if (!MyMap.Children.Contains(_imageEndHistory)) { MyMap.Children.Add(_imageEndHistory); MapControl.SetNormalizedAnchorPoint(_imageEndHistory, _pointersAnchorPoint); }
-                        if (!_historyLayer.MapElements.Contains(_iconStartHistory)) _historyLayer.MapElements.Add(_iconStartHistory);
-                        if (!_historyLayer.MapElements.Contains(_iconEndHistory)) _historyLayer.MapElements.Add(_iconEndHistory);
+                        if (!MyMap.MapElements.Contains(_iconStartHistory)) MyMap.MapElements.Add(_iconStartHistory);
+                        if (!MyMap.MapElements.Contains(_iconEndHistory)) MyMap.MapElements.Add(_iconEndHistory);
                         _isHistoryInMap = true;
                     }
                 }).ConfigureAwait(false);
@@ -497,7 +487,10 @@ namespace LolloGPS.Core
 
                     if (!_isRoute0InMap)
                     {
-                        if (!_route0Layer.MapElements.Contains(_mapPolylineRoute0)) _route0Layer.MapElements.Add(_mapPolylineRoute0);
+                        if (!MyMap.MapElements.Contains(_mapPolylineRoute0))
+                        {
+                            MyMap.MapElements.Add(_mapPolylineRoute0);
+                        }
                         _isRoute0InMap = true;
                     }
                 }).ConfigureAwait(false);
@@ -558,18 +551,17 @@ namespace LolloGPS.Core
 #endif
 
                     int j = 0;
-                    int howManyMapElements = _checkpointsLayer.MapElements.Count;
+                    int howManyMapElements = MyMap.MapElements.Count;
                     int howManyGeopoints = geoPointsAndSymbols.Count;
                     for (int i = 0; i < howManyGeopoints; i++)
                     {
-                        //while (j < howManyMapElements && (!(_checkpointsLayer.MapElements[j] is MapIcon) || _checkpointsLayer.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
-                        while (j < howManyMapElements && !(_checkpointsLayer.MapElements[j] is MapIcon))
+                        while (j < howManyMapElements && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
                         {
                             Debugger.Break();
                             j++; // MapElement is not a checkpoint: skip to the next element
                         }
 
-                        var mapIcon = _checkpointsLayer.MapElements[j] as MapIcon;
+                        var mapIcon = MyMap.MapElements[j] as MapIcon;
                         if (mapIcon != null)
                         {
                             var gpsy = geoPointsAndSymbols[i];
@@ -580,7 +572,7 @@ namespace LolloGPS.Core
                             else if (gpsy.Sym.Equals(PersistentData.CheckpointSymbols.Triangle)) mapIcon.Image = _checkpointTriangleIconStreamReference;
                             else mapIcon.Image = _checkpointCircleIconStreamReference;
 
-                            //(_checkpointsLayer.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
+                            //(MyMap.MapElements[j] as MapIcon).NormalizedAnchorPoint = new Point(0.5, 0.5);
                             //mapIcon.Title = "LOLLO TODO"; // style the titles, not possible as of June 2017.
                             mapIcon.Visible = true; // set it last, in the attempt of getting a little more speed
                         }
@@ -591,13 +583,12 @@ namespace LolloGPS.Core
 
                     for (int i = howManyGeopoints; i < PersistentData.MaxRecordsInCheckpoints; i++)
                     {
-                        //while (j < howManyMapElements && (!(_checkpointsLayer.MapElements[j] is MapIcon) || _checkpointsLayer.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
-                        while (j < howManyMapElements && !(_checkpointsLayer.MapElements[j] is MapIcon))
+                        while (j < howManyMapElements && (!(MyMap.MapElements[j] is MapIcon) || MyMap.MapElements[j].MapTabIndex != CHECKPOINT_TAB_INDEX))
                         {
                             Debugger.Break();
                             j++; // MapElement is not a checkpoint: skip to the next element
                         }
-                        _checkpointsLayer.MapElements[j].Visible = false;
+                        MyMap.MapElements[j].Visible = false;
                         j++;
                     }
 #if DEBUG
@@ -622,7 +613,7 @@ namespace LolloGPS.Core
             Stopwatch sw0 = new Stopwatch(); sw0.Start();
 #endif
             bool isInit = false;
-            if (_checkpointsLayer.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
+            if (MyMap.MapElements.Count < PersistentData.MaxRecordsInCheckpoints) // only init when you really need it
             {
                 Debug.WriteLine("InitCheckpoints_MapIcons() is initialising the checkpoints, because there really are some");
                 for (int i = 0; i < PersistentData.MaxRecordsInCheckpoints; i++)
@@ -636,7 +627,7 @@ namespace LolloGPS.Core
                         Visible = false
                     };
 
-                    _checkpointsLayer.MapElements.Add(newIcon);
+                    MyMap.MapElements.Add(newIcon);
                 }
                 isInit = true;
                 Debug.WriteLine("Checkpoints were initialised");
@@ -800,7 +791,7 @@ namespace LolloGPS.Core
                 if (!_isFlyoutPointInMap)
                 {
                     //if (!MyMap.Children.Contains(_imageFlyoutPoint)) { MyMap.Children.Add(_imageFlyoutPoint); MapControl.SetNormalizedAnchorPoint(_imageFlyoutPoint, _pointersAnchorPoint); }
-                    if (!_flyoutPointsLayer.MapElements.Contains(_iconFlyoutPoint)) _flyoutPointsLayer.MapElements.Add(_iconFlyoutPoint);
+                    if (!MyMap.MapElements.Contains(_iconFlyoutPoint)) MyMap.MapElements.Add(_iconFlyoutPoint);
                     _isFlyoutPointInMap = true;
                 }
             });
