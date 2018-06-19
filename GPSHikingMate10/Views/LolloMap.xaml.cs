@@ -117,14 +117,6 @@ namespace LolloGPS.Core
         private readonly LolloMapVM _lolloMapVM = null;
         public LolloMapVM LolloMapVM => _lolloMapVM;
 
-        //private static WeakReference _myReadyMapInstance = null;
-        private static MapControl _myReadyMapInstance = null;
-        private static MapControl GetMapControlInstanceIfReady() // for the converters
-        {
-            //return _myReadyMapInstance?.Target as MapControl;
-            return _myReadyMapInstance;
-        }
-
         // these three are always set in the UI thread
         private bool _isHistoryInMap = false;
         private bool _isRoute0InMap = false;
@@ -259,14 +251,11 @@ namespace LolloGPS.Core
             Task drawR = isResuming ? Task.CompletedTask : Task.Run(DrawRoute0Async);
             await Task.WhenAll(restore, drawC, drawH, drawR);
 
-            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(MyMap);
-            //_myReadyMapInstance = new WeakReference(MyMap);
-            _myReadyMapInstance = MyMap;
+            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(MyMap, this);
         }
         protected override async Task CloseMayOverrideAsync(object args = null)
         {
             RemoveHandlers();
-            _myReadyMapInstance = null;
             await CompassControl.CloseAsync(args);
             await _lolloMapVM.CloseAsync(args).ConfigureAwait(false);
         }
@@ -810,7 +799,33 @@ namespace LolloGPS.Core
         {
             maxLon = maxLon != ABSURD_LON ? Math.Max(pos.Longitude, maxLon) : pos.Longitude;
         }
+        /// <summary>
+        /// This method is only here to ensure compatibility with older code, eg in the Windows Phone,
+        /// which has no IMapControl6 yet.
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="desiredReferenceSystem"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public bool TryGetLocationFromOffset(Point offset, AltitudeReferenceSystem desiredReferenceSystem, out Geopoint location)
+        {
+            if (MyMap == null)
+            {
+                location = null;
+                return false;
+            }
 
+            try
+            {
+                MyMap.GetLocationFromOffset(offset, desiredReferenceSystem, out location);
+                return true;
+            }
+            catch
+            {
+                location = null;
+                return false;
+            }
+        }
         public async Task<GeoboundingBox> GetMinMaxLatLonAsync()
         {
             GeoboundingBox output = null;
@@ -827,10 +842,10 @@ namespace LolloGPS.Core
                     double minLon = ABSURD_LON;
                     double maxLon = ABSURD_LON;
 
-                    if (!MyMap.TryGetLocationFromOffset(new Point(0.0, 0.0), ALT_REF_SYS, out topLeftGeopoint)
-                    || !MyMap.TryGetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), ALT_REF_SYS, out topRightGeopoint)
-                    || !MyMap.TryGetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), ALT_REF_SYS, out bottomLeftGeopoint)
-                    || !MyMap.TryGetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), ALT_REF_SYS, out bottomRightGeopoint)) return;
+                    if (!TryGetLocationFromOffset(new Point(0.0, 0.0), ALT_REF_SYS, out topLeftGeopoint)
+                    || !TryGetLocationFromOffset(new Point(MyMap.ActualWidth, 0.0), ALT_REF_SYS, out topRightGeopoint)
+                    || !TryGetLocationFromOffset(new Point(0.0, MyMap.ActualHeight), ALT_REF_SYS, out bottomLeftGeopoint)
+                    || !TryGetLocationFromOffset(new Point(MyMap.ActualWidth, MyMap.ActualHeight), ALT_REF_SYS, out bottomRightGeopoint)) return;
 
                     UpdateMinLon(ref minLon, topLeftGeopoint.Position);
                     UpdateMaxLon(ref maxLon, topLeftGeopoint.Position);
@@ -927,10 +942,10 @@ namespace LolloGPS.Core
                     Geopoint bottomRightGeoPoint = null;
 
                     // pick up the geographic coordinates of those points
-                    if (!MyMap.TryGetLocationFromOffset(topLeftPoint, ALT_REF_SYS, out topLeftGeoPoint)
-                    || !MyMap.TryGetLocationFromOffset(topRightPoint, ALT_REF_SYS, out topRightGeoPoint)
-                    || !MyMap.TryGetLocationFromOffset(bottomLeftPoint, ALT_REF_SYS, out bottomLeftGeoPoint)
-                    || !MyMap.TryGetLocationFromOffset(bottomRightPoint, ALT_REF_SYS, out bottomRightGeoPoint)) return;
+                    if (!TryGetLocationFromOffset(topLeftPoint, ALT_REF_SYS, out topLeftGeoPoint)
+                    || !TryGetLocationFromOffset(topRightPoint, ALT_REF_SYS, out topRightGeoPoint)
+                    || !TryGetLocationFromOffset(bottomLeftPoint, ALT_REF_SYS, out bottomLeftGeoPoint)
+                    || !TryGetLocationFromOffset(bottomRightPoint, ALT_REF_SYS, out bottomRightGeoPoint)) return;
 
                     // work out the maxes and mins, so you can ignore rotation, pitch etc
                     double minLat = Math.Min(bottomRightGeoPoint.Position.Latitude, Math.Min(bottomLeftGeoPoint.Position.Latitude, Math.Min(topLeftGeoPoint.Position.Latitude, topRightGeoPoint.Position.Latitude)));
@@ -1153,7 +1168,7 @@ namespace LolloGPS.Core
             if (!IsOpen) return;
             PersistentData.MapLastZoom = sender.ZoomLevel;
             // the following two expressions seem equivalent
-            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(GetMapControlInstanceIfReady()).ConfigureAwait(false);
+            ScaleFactors = await ScaleFactors.GetNewScaleFactorsAsync(MyMap, this).ConfigureAwait(false);
             //Task ww = ScaleFactors.GetNewScaleFactors(GetMapControlInstanceIfReady()).ContinueWith(async (Task<ScaleFactors> sf) => { ScaleFactors = await sf; });
         }
 
@@ -1228,9 +1243,9 @@ namespace LolloGPS.Core
         //private const double VerticalHalfCircM = 20004000.0;
         private const double LatitudeToMetres = 111133.33333333333; //vertical half circumference of earth / 180 degrees
 
-        private static async Task<ScaleFactors> CalcAlongMeridiansAsync(MapControl mapControl, CancellationToken cancToken)
+        private static async Task<ScaleFactors> CalcAlongMeridiansAsync(MapControl mapControl, LolloMap lolloMap, CancellationToken cancToken)
         {
-            if (mapControl?.Center?.Position == null) return LastScaleFactors;
+            if (mapControl?.Center?.Position == null || lolloMap == null) return LastScaleFactors;
 
             double actualHeight = mapControl.ActualHeight;
             double actualWidth = mapControl.ActualWidth;
@@ -1241,7 +1256,7 @@ namespace LolloGPS.Core
             Func<Point, Geopoint> getLocationFromOffset = (Point p) =>
             {
                 Geopoint gp = null;
-                mapControl.TryGetLocationFromOffset(p, LolloMap.ALT_REF_SYS, out gp);
+                lolloMap.TryGetLocationFromOffset(p, LolloMap.ALT_REF_SYS, out gp);
                 return gp;
             };
 
@@ -1475,9 +1490,9 @@ namespace LolloGPS.Core
         /// </summary>
         /// <param name="mapControl"></param>
         /// <returns></returns>
-        public static async Task<ScaleFactors> GetNewScaleFactorsAsync(MapControl mapControl)
+        public static async Task<ScaleFactors> GetNewScaleFactorsAsync(MapControl mapControl, LolloMap lolloMap)
         {
-            if (mapControl == null) return GetInitialScaleFactors();
+            if (mapControl == null || lolloMap == null) return GetInitialScaleFactors();
             if (mapControl.ZoomLevel == LastZoom) return LastScaleFactors;
             double zoomLevel = mapControl.ZoomLevel;
 
@@ -1495,7 +1510,7 @@ namespace LolloGPS.Core
             ScaleFactors result = LastScaleFactors;
             try
             {
-                LastScaleFactors = result = await CalcAlongMeridiansAsync(mapControl, cancToken).ConfigureAwait(false);
+                LastScaleFactors = result = await CalcAlongMeridiansAsync(mapControl, lolloMap, cancToken).ConfigureAwait(false);
                 LastZoom = zoomLevel; //remember this to avoid repeating the same calculation
             }
             catch (OperationCanceledException) { }
