@@ -123,8 +123,8 @@ namespace LolloGPS.Data
             {
                 if (_instance == null) _instance = new PersistentData();
                 // make sure no UI has been initialised yet
-                if (source.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
-                if (_instance.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active");
+                if (source.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active, but source has listeners");
+                if (_instance.IsAnyoneListening()) throw new DataAlreadyBoundException("PersistentData.GetInstanceWithClonedNonDbProperties must not be called when any UI is active, but _instance has listeners");
                 // initialise non-serialised properties
                 source._checkpoints = new SwitchableObservableCollection<PointRecord>(MaxRecordsInCheckpoints);
                 source._history = new SwitchableObservableCollection<PointRecord>(MaxRecordsInHistory);
@@ -2037,7 +2037,7 @@ namespace LolloGPS.Data
 
     public class DataAlreadyBoundException : Exception
     {
-        public DataAlreadyBoundException() : base() { }
-        public DataAlreadyBoundException(string message) : base(message) { }
+        public DataAlreadyBoundException() : base() { Debugger.Break(); }
+        public DataAlreadyBoundException(string message) : base(message) { Debugger.Break(); }
     }
 }
