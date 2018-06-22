@@ -320,7 +320,7 @@
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                             <Button Content="Fgr" Click="OnLogButton_Click"/>
                             <Button Content="Bgr" Click="OnLogButton_Click"/>
-                            <Button Content="BgrCanc" Click="OnLogButton_Click"/>
+                            <Button Content="BgrTask" Click="OnLogButton_Click"/>
                         </StackPanel>
                         <StackPanel Grid.Row="1" Orientation="Horizontal">
                             <Button Content="FileError" Click="OnLogButton_Click"/>

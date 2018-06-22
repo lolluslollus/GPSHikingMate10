@@ -52,7 +52,7 @@ namespace BackgroundTasks
 
                 // LOLLO the following fails with an uncatchable exception "System.ArgumentException use of undefined keyword value 1 for event taskscheduled"
                 // only in the background task and only if called before GetDeferral and only if awaited
-                //Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundLogFilename, Logger.Severity.Info, false);
+                //Logger.Add_TPL("GetLocationBackgroundTask started", Logger.BackgroundTaskLogFilename, Logger.Severity.Info, false);
                 _stringBuilder.AppendLine($"GetLocationBackgroundTask starting at {DateTime.Now.ToString(Logger.DATE_TIME_FORMAT)}");
 
                 if (GetLocBackgroundTaskSemaphoreManager.GetMainAppIsRunningAndActive())
@@ -118,7 +118,7 @@ namespace BackgroundTasks
                 if (ts != null) ts.Canceled -= OnCanceled;
                 _cts?.Dispose();
                 _cts = null;
-                Logger.AddAsync($"GetLocationBackgroundTask ended {_stringBuilder.ToString()}", Logger.BackgroundCancelledLogFilename, Logger.Severity.Info, false).Wait();
+                Logger.AddAsync($"GetLocationBackgroundTask ended {_stringBuilder.ToString()}", Logger.BackgroundTaskLogFilename, Logger.Severity.Info, false).Wait();
                 _deferral?.Complete();
             }
         }

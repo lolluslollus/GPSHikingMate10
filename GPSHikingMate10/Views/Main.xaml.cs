@@ -230,9 +230,9 @@ namespace LolloGPS.Core
             {
                 _mainVM.LogText = await Logger.ReadAsync(Logger.BackgroundLogFilename);
             }
-            else if (cnt == "BgrCanc")
+            else if (cnt == "BgrTask")
             {
-                _mainVM.LogText = await Logger.ReadAsync(Logger.BackgroundCancelledLogFilename);
+                _mainVM.LogText = await Logger.ReadAsync(Logger.BackgroundTaskLogFilename);
             }
             else if (cnt == "AppExc")
             {
