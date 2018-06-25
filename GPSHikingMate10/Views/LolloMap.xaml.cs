@@ -56,7 +56,8 @@ namespace LolloGPS.Core
         internal const double MAX_LAT_NEARLY = 80.0;
         internal const double MIN_LON = -180.0;
         internal const double MAX_LON = 180.0;
-        internal const AltitudeReferenceSystem ALT_REF_SYS = AltitudeReferenceSystem.Ellipsoid; //.Geoid;
+        // LOLLO NOTE must use Terrain or Surface, or the polyline disappears when zooming in.
+        internal const AltitudeReferenceSystem ALT_REF_SYS = AltitudeReferenceSystem.Terrain; //.Ellipsoid; //.Geoid;
 
         private readonly MapPolyline _mapPolylineRoute0 = new MapPolyline()
         {
