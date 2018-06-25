@@ -1,6 +1,6 @@
-MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.39.0_ARM.appx
-SymbolPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.39.0\GPSHikingMate10_1.1.39.0_ARM.appxsym
-ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\GPSHikingMate10_1.1.39.0_scale-100.appx
-ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\GPSHikingMate10_1.1.39.0_scale-125.appx
-ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\GPSHikingMate10_1.1.39.0_scale-150.appx
-ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\GPSHikingMate10_1.1.39.0_scale-400.appx
+MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0_ARM.appx
+SymbolPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0\GPSHikingMate10_1.1.40.0_ARM.appxsym
+ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0_scale-100.appx
+ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0_scale-125.appx
+ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0_scale-150.appx
+ResourcePack=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\ARM\Release\Upload\GPSHikingMate10_1.1.40.0_scale-400.appx

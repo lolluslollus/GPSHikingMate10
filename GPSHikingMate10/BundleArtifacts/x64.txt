@@ -1,2 +1,2 @@
-MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\x64\Release\GPSHikingMate10_1.1.39.0_x64.appx
-SymbolPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\AppPackages\GPSHikingMate10_1.1.39.0_Test\GPSHikingMate10_1.1.39.0_x64.appxsym
+MainPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\bin\x64\Release\GPSHikingMate10_1.1.40.0_x64.appx
+SymbolPackage=D:\CD\dev\VS2015\GPSHikingMate10\GPSHikingMate10\AppPackages\GPSHikingMate10_1.1.40.0_Test\GPSHikingMate10_1.1.40.0_x64.appxsym
