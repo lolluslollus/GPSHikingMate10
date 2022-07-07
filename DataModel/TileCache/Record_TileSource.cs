@@ -38,7 +38,7 @@ namespace LolloGPS.Data.TileCache
         public static readonly string SampleRemoteUriString = $"{"http://"}tileserver.something/{ZoomLevelPlaceholder}/{XPlaceholder}/{YPlaceholder}.png";
 
         public const int MinMinZoom = 0;
-        public const int MaxMaxZoom = 20;
+        public const int MaxMaxZoom = 30;
         protected const int SampleMaxZoom = 16;
 
         protected const int DefaultTilePixelSize = 256;
